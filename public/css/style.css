@@ -1,0 +1,109 @@
+/* Global Theme - Bright, Friendly, Clean */
+:root {
+    --primary-color: #FF6B6B; /* Soft Red */
+    --secondary-color: #4ECDC4; /* Teal */
+    --accent-color: #FFE66D; /* Soft Yellow */
+    --background-color: #F7FFF7; /* Very Light Mint */
+    --text-color: #292F36; /* Dark Grey */
+    --white: #FFFFFF;
+    --success: #6BFFB8;
+    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --border-radius: 12px;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    color: var(--text-color);
+    margin-bottom: 0.5em;
+}
+
+button {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--border-radius);
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-weight: bold;
+    box-shadow: 0 4px 0 #3dbcb3; /* 3D effect */
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #3dbcb3;
+}
+
+button:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #3dbcb3;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+}
+
+.card {
+    background: var(--white);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+/* Navbar */
+nav {
+    background-color: var(--white);
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav .logo {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+nav .menu a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+nav .menu a:hover {
+    color: var(--primary-color);
+}
+
+/* Badge specific styles */
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    font-size: 0.8em;
+    font-weight: bold;
+}
