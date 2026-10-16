@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — Home Tasks</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">⚡</div>
+        <div class="user-meta">
+          <span class="user-name">NovaEarner</span>
+          <span class="user-level">LVL 4 • PRO</span>
+        </div>
+      </div>
+      <div class="coin-pill" id="coinPill" title="Current Coin Balance">
+        <span>🪙</span>
+        <span class="coin-value" id="userCoinsDisplay">2,450</span>
+      </div>
+    </header>
+
+    <!-- Page Content (Tasks) -->
+    <main class="page-content">
+      
+      <!-- Tasks Section Header -->
+      <div class="tasks-banner">
+        <h1 class="tasks-title">Daily Tasks</h1>
+        <p class="tasks-subtitle">Complete daily missions & bounties to earn coins</p>
+      </div>
+
+      <!-- Tasks List -->
+      <div class="tasks-list" id="tasksList">
+        
+        <!-- Task 1 -->
+        <div class="task-card">
+          <div class="task-icon-wrap">⚡</div>
+          <div class="task-info">
+            <div class="task-name">Daily Check-In</div>
+            <div class="task-reward">+150 🪙</div>
+          </div>
+          <button class="btn-claim" onclick="claimTask(this, 150)">Claim</button>
+        </div>
+
+        <!-- Task 2 -->
+        <div class="task-card">
+          <div class="task-icon-wrap">⌨️</div>
+          <div class="task-info">
+            <div class="task-name">Typing Speed Sprint</div>
+            <div class="task-reward">+250 🪙</div>
+          </div>
+          <button class="btn-claim" onclick="claimTask(this, 250)">Claim</button>
+        </div>
+
+        <!-- Task 3 -->
+        <div class="task-card">
+          <div class="task-icon-wrap">🎯</div>
+          <div class="task-info">
+            <div class="task-name">Accuracy Milestone 98%</div>
+            <div class="task-reward">+350 🪙</div>
+          </div>
+          <button class="btn-claim" onclick="claimTask(this, 350)">Claim</button>
+        </div>
+
+        <!-- Task 4 -->
+        <div class="task-card">
+          <div class="task-icon-wrap">👥</div>
+          <div class="task-info">
+            <div class="task-name">Invite a Fellow Player</div>
+            <div class="task-reward">+500 🪙</div>
+          </div>
+          <button class="btn-claim" onclick="claimTask(this, 500)">Claim</button>
+        </div>
+
+        <!-- Task 5 -->
+        <div class="task-card">
+          <div class="task-icon-wrap">👑</div>
+          <div class="task-info">
+            <div class="task-name">Master Typer Bounty</div>
+            <div class="task-reward">+1,000 🪙</div>
+          </div>
+          <button class="btn-claim" onclick="claimTask(this, 1000)">Claim</button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- Below Menu Bar (Leaderboard, Home in Center, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Leaderboard</span>
+      </a>
+
+      <!-- Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
