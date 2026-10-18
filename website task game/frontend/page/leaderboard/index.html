@@ -26,51 +26,367 @@
       </div>
     </header>
 
+    <!-- Top Static Navigation Switcher Tabs (Leaderboard / Your Rank) -->
+    <div class="top-nav-switcher">
+      <button class="switcher-tab active" id="tabBtnLeaderboard" onclick="switchLeaderboardTab('leaderboard')">
+        <span class="switcher-icon">🏆</span>
+        <span class="switcher-text">Leaderboard</span>
+      </button>
+      <button class="switcher-tab" id="tabBtnYourRank" onclick="switchLeaderboardTab('your-rank')">
+        <span class="switcher-icon">👤</span>
+        <span class="switcher-text">Your Rank</span>
+        <span class="switcher-badge">#14</span>
+      </button>
+    </div>
+
     <!-- Page Content -->
     <main class="page-content">
-      <div class="tasks-banner">
-        <h1 class="tasks-title">Top Players</h1>
-        <p class="tasks-subtitle">Season leaderboard rankings and stats</p>
-      </div>
 
-      <div class="leaderboard-list">
-        <div class="leader-card">
-          <span class="leader-rank rank-1">#1</span>
-          <div class="leader-info">
-            <div class="leader-name">VortexTyper 🥇</div>
-            <div class="leader-sub">138 WPM • 99.4% Acc</div>
+      <!-- ========================================================
+           VIEW 1: LEADERBOARD (Top 1, 2, 3 Podium + In-Between Scrolling)
+           ======================================================== -->
+      <section class="leaderboard-view-panel" id="panelLeaderboard">
+
+        <!-- Top 1, 2, 3 Podium Showcase Stage -->
+        <div class="podium-showcase">
+          <div class="podium-title-row">
+            <span class="podium-live-dot"></span>
+            <span class="podium-heading">TOP 3 CHAMPIONS</span>
+            <span class="podium-season-tag">SEASON 1</span>
           </div>
-          <span class="leader-coins">42,850 🪙</span>
+
+          <div class="podium-pillars-row">
+
+            <!-- #2 Silver Rank (Left) -->
+            <div class="podium-pillar-col silver-col">
+              <div class="podium-player-card">
+                <span class="medal-icon">🥈</span>
+                <div class="pillar-avatar silver-avatar">⚡</div>
+                <div class="pillar-player-name">CyberKey</div>
+                <div class="pillar-player-coins">38,120 🪙</div>
+              </div>
+              <div class="podium-block block-silver">
+                <span class="block-number">2</span>
+              </div>
+            </div>
+
+            <!-- #1 Gold Rank Champion (Center - Highest) -->
+            <div class="podium-pillar-col gold-col">
+              <div class="podium-player-card">
+                <div class="crown-icon">👑</div>
+                <span class="medal-icon gold-medal">🥇</span>
+                <div class="pillar-avatar gold-avatar">⚡</div>
+                <div class="pillar-player-name gold-name">VortexTyper</div>
+                <div class="pillar-player-coins gold-coins">42,850 🪙</div>
+              </div>
+              <div class="podium-block block-gold">
+                <span class="block-number gold-number">1</span>
+              </div>
+            </div>
+
+            <!-- #3 Bronze Rank (Right) -->
+            <div class="podium-pillar-col bronze-col">
+              <div class="podium-player-card">
+                <span class="medal-icon">🥉</span>
+                <div class="pillar-avatar bronze-avatar">⚡</div>
+                <div class="pillar-player-name">Quantum</div>
+                <div class="pillar-player-coins">31,400 🪙</div>
+              </div>
+              <div class="podium-block block-bronze">
+                <span class="block-number">3</span>
+              </div>
+            </div>
+
+          </div>
         </div>
 
-        <div class="leader-card">
-          <span class="leader-rank rank-2">#2</span>
-          <div class="leader-info">
-            <div class="leader-name">CyberKey 🥈</div>
-            <div class="leader-sub">124 WPM • 98.9% Acc</div>
-          </div>
-          <span class="leader-coins">38,120 🪙</span>
+        <!-- In-Between Scrollable Rankings Section Header -->
+        <div class="ranks-section-header">
+          <h2 class="ranks-section-title">Contenders</h2>
+          <span class="ranks-count-tag">Ranks #4 &ndash; #20 (Scroll &darr;)</span>
         </div>
 
-        <div class="leader-card">
-          <span class="leader-rank rank-3">#3</span>
-          <div class="leader-info">
-            <div class="leader-name">QuantumFingers 🥉</div>
-            <div class="leader-sub">119 WPM • 98.2% Acc</div>
+        <!-- In-Between Scrollable Rankings List ("between scrolling throw show") -->
+        <div class="ranks-scrollable-container" id="ranksScrollContainer">
+
+          <!-- #4 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#4</span>
+            <div class="row-avatar">🎮</div>
+            <div class="row-info">
+              <div class="row-name">NovaStriker</div>
+              <div class="row-stats">115 WPM &bull; 98.0% Acc</div>
+            </div>
+            <span class="row-coins">28,500 🪙</span>
           </div>
-          <span class="leader-coins">31,400 🪙</span>
+
+          <!-- #5 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#5</span>
+            <div class="row-avatar">🎯</div>
+            <div class="row-info">
+              <div class="row-name">PixelMaster</div>
+              <div class="row-stats">109 WPM &bull; 97.8% Acc</div>
+            </div>
+            <span class="row-coins">24,200 🪙</span>
+          </div>
+
+          <!-- #6 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#6</span>
+            <div class="row-avatar">🌻</div>
+            <div class="row-info">
+              <div class="row-name">SolarKing</div>
+              <div class="row-stats">104 WPM &bull; 97.5% Acc</div>
+            </div>
+            <span class="row-coins">21,900 🪙</span>
+          </div>
+
+          <!-- #7 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#7</span>
+            <div class="row-avatar">🏎️</div>
+            <div class="row-info">
+              <div class="row-name">NeonRacer</div>
+              <div class="row-stats">101 WPM &bull; 97.2% Acc</div>
+            </div>
+            <span class="row-coins">19,450 🪙</span>
+          </div>
+
+          <!-- #8 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#8</span>
+            <div class="row-avatar">⚡</div>
+            <div class="row-info">
+              <div class="row-name">HyperByte</div>
+              <div class="row-stats">98 WPM &bull; 97.0% Acc</div>
+            </div>
+            <span class="row-coins">17,800 🪙</span>
+          </div>
+
+          <!-- #9 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#9</span>
+            <div class="row-avatar">💎</div>
+            <div class="row-info">
+              <div class="row-name">CrystalAce</div>
+              <div class="row-stats">96 WPM &bull; 96.9% Acc</div>
+            </div>
+            <span class="row-coins">16,200 🪙</span>
+          </div>
+
+          <!-- #10 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#10</span>
+            <div class="row-avatar">🥷</div>
+            <div class="row-info">
+              <div class="row-name">ShadowTyper</div>
+              <div class="row-stats">95 WPM &bull; 96.5% Acc</div>
+            </div>
+            <span class="row-coins">14,900 🪙</span>
+          </div>
+
+          <!-- #11 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#11</span>
+            <div class="row-avatar">🦁</div>
+            <div class="row-info">
+              <div class="row-name">ApexLegend</div>
+              <div class="row-stats">94 WPM &bull; 96.2% Acc</div>
+            </div>
+            <span class="row-coins">13,400 🪙</span>
+          </div>
+
+          <!-- #12 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#12</span>
+            <div class="row-avatar">🚀</div>
+            <div class="row-info">
+              <div class="row-name">TurboSprint</div>
+              <div class="row-stats">93 WPM &bull; 96.0% Acc</div>
+            </div>
+            <span class="row-coins">12,100 🪙</span>
+          </div>
+
+          <!-- #13 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#13</span>
+            <div class="row-avatar">🦊</div>
+            <div class="row-info">
+              <div class="row-name">CyberFox</div>
+              <div class="row-stats">93 WPM &bull; 95.8% Acc</div>
+            </div>
+            <span class="row-coins">10,850 🪙</span>
+          </div>
+
+          <!-- #14 NovaEarner (You) -->
+          <div class="leader-row-card highlight-me">
+            <span class="row-rank my-rank">#14</span>
+            <div class="row-avatar my-avatar">⚡</div>
+            <div class="row-info">
+              <div class="row-name my-name">NovaEarner <span class="badge-you">YOU</span></div>
+              <div class="row-stats my-stats">92 WPM &bull; 96.8% Acc</div>
+            </div>
+            <span class="row-coins my-coins" id="userScrollCoins">0 🪙</span>
+          </div>
+
+          <!-- #15 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#15</span>
+            <div class="row-avatar">🦅</div>
+            <div class="row-info">
+              <div class="row-name">FalconEye</div>
+              <div class="row-stats">90 WPM &bull; 95.5% Acc</div>
+            </div>
+            <span class="row-coins">8,900 🪙</span>
+          </div>
+
+          <!-- #16 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#16</span>
+            <div class="row-avatar">🔥</div>
+            <div class="row-info">
+              <div class="row-name">BlazeRider</div>
+              <div class="row-stats">88 WPM &bull; 95.0% Acc</div>
+            </div>
+            <span class="row-coins">7,400 🪙</span>
+          </div>
+
+          <!-- #17 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#17</span>
+            <div class="row-avatar">🛡️</div>
+            <div class="row-info">
+              <div class="row-name">IronPulse</div>
+              <div class="row-stats">85 WPM &bull; 94.8% Acc</div>
+            </div>
+            <span class="row-coins">6,200 🪙</span>
+          </div>
+
+          <!-- #18 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#18</span>
+            <div class="row-avatar">🌊</div>
+            <div class="row-info">
+              <div class="row-name">EchoWave</div>
+              <div class="row-stats">82 WPM &bull; 94.2% Acc</div>
+            </div>
+            <span class="row-coins">5,100 🪙</span>
+          </div>
+
+          <!-- #19 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#19</span>
+            <div class="row-avatar">🌟</div>
+            <div class="row-info">
+              <div class="row-name">ZenithPro</div>
+              <div class="row-stats">80 WPM &bull; 94.0% Acc</div>
+            </div>
+            <span class="row-coins">4,300 🪙</span>
+          </div>
+
+          <!-- #20 -->
+          <div class="leader-row-card">
+            <span class="row-rank">#20</span>
+            <div class="row-avatar">⚔️</div>
+            <div class="row-info">
+              <div class="row-name">AlphaStrike</div>
+              <div class="row-stats">78 WPM &bull; 93.5% Acc</div>
+            </div>
+            <span class="row-coins">3,500 🪙</span>
+          </div>
+
         </div>
 
-        <div class="leader-card highlight-me">
-          <span class="leader-rank">#14</span>
-          <div class="leader-info">
-            <div class="leader-name">NovaEarner (You)</div>
-            <div class="leader-sub">92 WPM • 96.8% Acc</div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 2: YOUR RANK DETAIL PANEL (Shown via "Your Rank" Tab)
+           ======================================================== -->
+      <section class="your-rank-view-panel" id="panelYourRank" style="display: none;">
+        
+        <!-- Player Standing Hero Card -->
+        <div class="my-standing-card">
+          <div class="standing-top-row">
+            <div class="standing-avatar-box">
+              <span class="standing-avatar">⚡</span>
+              <span class="standing-badge">PRO</span>
+            </div>
+            <div class="standing-meta">
+              <h2 class="standing-name">NovaEarner</h2>
+              <span class="standing-tier">Silver League &bull; Division III</span>
+            </div>
+            <div class="standing-rank-pill">
+              <span class="rank-label">RANK</span>
+              <span class="rank-number">#14</span>
+            </div>
           </div>
-          <span class="leader-coins" id="userLeaderboardCoins">0 🪙</span>
+
+          <div class="standing-stats-grid">
+            <div class="standing-stat-box">
+              <span class="stat-k">Balance</span>
+              <span class="stat-v text-amber" id="detailCoins">0 🪙</span>
+            </div>
+            <div class="standing-stat-box">
+              <span class="stat-k">Reward Stars</span>
+              <span class="stat-v text-yellow" id="detailStars">0 ⭐</span>
+            </div>
+            <div class="standing-stat-box">
+              <span class="stat-k">Win Streak</span>
+              <span class="stat-v text-emerald">5 Days 🔥</span>
+            </div>
+            <div class="standing-stat-box">
+              <span class="stat-k">Global Percentile</span>
+              <span class="stat-v text-cyan">Top 5% 🏆</span>
+            </div>
+          </div>
+
+          <!-- Rank Progress to Next Tier -->
+          <div class="tier-progress-card">
+            <div class="progress-info-row">
+              <span class="prog-label">Next Rank: #13 CyberFox</span>
+              <span class="prog-needed">850 Coins needed</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: 72%;"></div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- Ways to climb ranks -->
+        <div class="climb-ranks-banner">
+          <h3 class="climb-title">Climb The Leaderboard</h3>
+          <p class="climb-sub">Earn coins & stars to rise through the global ranks!</p>
+
+          <div class="climb-actions-row">
+            <a href="../sunflower/index.html" class="climb-btn btn-farm">
+              <span>🌻 Play Sunflower Valley</span>
+            </a>
+            <a href="../home/index.html" class="climb-btn btn-tasks">
+              <span>⚡ Complete Daily Tasks</span>
+            </a>
+          </div>
+        </div>
+
+      </section>
+
     </main>
+
+    <!-- Static Pinned "Your Rank" Bar (Floating right above the bottom menu bar) -->
+    <div class="static-your-rank-bar" id="staticYourRankBar" onclick="switchLeaderboardTab('your-rank')">
+      <div class="static-rank-left">
+        <span class="static-rank-num">#14</span>
+        <div class="static-user-avatar">⚡</div>
+        <div class="static-user-details">
+          <div class="static-user-name">NovaEarner <span class="you-badge">YOU</span></div>
+          <div class="static-user-sub">Top 5% &bull; Tap for full rank details</div>
+        </div>
+      </div>
+      <div class="static-rank-right">
+        <span class="static-coins" id="stickyUserCoins">0 🪙</span>
+        <span class="static-tap-arrow">&rsaquo;</span>
+      </div>
+    </div>
 
     <!-- Below Menu Bar (Shop, Leaderboard Active, Home Center, Wallet, Profile) -->
     <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">

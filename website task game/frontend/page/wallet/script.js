@@ -18,39 +18,17 @@ function updateWalletDisplays() {
 
   const topStars = document.getElementById('walletStarsTop');
   if (topStars) topStars.textContent = starsFmt;
-
-  const bigCoins = document.getElementById('vaultBalanceBig');
-  if (bigCoins) bigCoins.textContent = `${coinsFmt} 🪙`;
-
-  const bigStars = document.getElementById('vaultStarsBig');
-  if (bigStars) bigStars.textContent = `${starsFmt} ⭐`;
-}
-
-// Convert 100 Coins to 50 Stars
-function convertCoinsToStars() {
-  if (userCoins < 100) {
-    alert('Insufficient Coins! You need at least 100 Coins to convert.');
-    return;
-  }
-  userCoins -= 100;
-  userStars += 50;
-
-  localStorage.setItem('task_game_coins', userCoins.toString());
-  localStorage.setItem('task_game_stars', userStars.toString());
-  updateWalletDisplays();
-
-  addTransaction('Converted 100 Coins to 50 Stars', '+50 ⭐', 'Just now');
 }
 
 // Buy Amazon Gift Card with Stars
 function buyGiftCard(rsAmount, starCost, title, imgPath) {
   if (userStars < starCost) {
     const diff = starCost - userStars;
-    const confirmConvert = confirm(
-      `Insufficient Stars!\n\nYou have ${userStars.toLocaleString()} ⭐ but need ${starCost.toLocaleString()} ⭐ (${diff} more).\n\nWould you like to exchange 100 Coins for 50 Stars now?`
+    const goToShop = confirm(
+      `Insufficient Stars!\n\nYou have ${userStars.toLocaleString()} ⭐ but need ${starCost.toLocaleString()} ⭐ (${diff} more).\n\nWould you like to open the Shop to get more Stars?`
     );
-    if (confirmConvert) {
-      convertCoinsToStars();
+    if (goToShop) {
+      window.location.href = '../shop/index.html';
     }
     return;
   }

@@ -26,47 +26,213 @@
       </div>
     </header>
 
+    <!-- Top Static Navigation Switcher Tabs (Profile / Admin) -->
+    <div class="top-nav-switcher">
+      <button class="switcher-tab active" id="tabBtnProfile" onclick="switchProfileTab('profile')">
+        <span class="switcher-icon">👤</span>
+        <span class="switcher-text">Profile</span>
+      </button>
+      <button class="switcher-tab" id="tabBtnAdmin" onclick="switchProfileTab('admin')">
+        <span class="switcher-icon">🛡️</span>
+        <span class="switcher-text">Admin</span>
+        <span class="admin-lock-tag" id="adminStatusTag">🔒</span>
+      </button>
+    </div>
+
     <!-- Page Content -->
     <main class="page-content">
-      
-      <!-- Profile Badge Card -->
-      <div class="profile-hero-card">
-        <div class="profile-big-avatar">⚡</div>
-        <h2 class="profile-display-name">NovaEarner</h2>
-        <span class="profile-badge-pro">PRO TYPIST • LEVEL 4</span>
 
-        <div class="profile-stats-grid">
-          <div class="profile-stat-box">
-            <span class="stat-num">92</span>
-            <span class="stat-lbl">WPM Speed</span>
-          </div>
-          <div class="profile-stat-box">
-            <span class="stat-num">96.8%</span>
-            <span class="stat-lbl">Accuracy</span>
-          </div>
-          <div class="profile-stat-box">
-            <span class="stat-num">4</span>
-            <span class="stat-lbl">Days Streak</span>
-          </div>
-        </div>
-      </div>
+      <!-- ========================================================
+           VIEW 1: REGULAR USER PROFILE VIEW
+           ======================================================== -->
+      <section class="profile-view-panel" id="panelUserProfile">
+        <!-- Profile Badge Hero Card -->
+        <div class="profile-hero-card">
+          <div class="profile-big-avatar">⚡</div>
+          <h2 class="profile-display-name">NovaEarner</h2>
+          <span class="profile-badge-pro">PRO TYPIST &bull; LEVEL 4</span>
 
-      <!-- Account Settings / Menu Options -->
-      <div class="section-title">Account Menu</div>
-      <div class="profile-links-list">
-        <div class="profile-link-item" onclick="alert('Notification settings: All alerts active.')">
-          <span>🔔 Push Notifications</span>
-          <span class="link-arrow">&rarr;</span>
+          <div class="profile-stats-grid">
+            <div class="profile-stat-box">
+              <span class="stat-num">92</span>
+              <span class="stat-lbl">WPM Speed</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="stat-num">96.8%</span>
+              <span class="stat-lbl">Accuracy</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="stat-num">4</span>
+              <span class="stat-lbl">Days Streak</span>
+            </div>
+          </div>
         </div>
-        <div class="profile-link-item" onclick="alert('Security: Two-Factor Authentication enabled.')">
-          <span>🔒 Security & 2FA</span>
-          <span class="link-arrow">&rarr;</span>
+
+        <!-- Account Settings / Menu Options -->
+        <div class="section-title">Account Menu</div>
+        <div class="profile-links-list">
+          <div class="profile-link-item" onclick="alert('Notification settings: All alerts active.')">
+            <span>🔔 Push Notifications</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+          <div class="profile-link-item" onclick="alert('Security: Two-Factor Authentication enabled.')">
+            <span>🔒 Security &amp; 2FA</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+          <div class="profile-link-item" onclick="alert('Support: Support ticket portal ready.')">
+            <span>💬 Help &amp; Community</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+          <div class="profile-link-item admin-quick-link" onclick="switchProfileTab('admin')">
+            <span style="color: #38bdf8;">🛡️ Admin Control Portal</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
         </div>
-        <div class="profile-link-item" onclick="alert('Support: Support ticket portal ready.')">
-          <span>💬 Help & Community</span>
-          <span class="link-arrow">&rarr;</span>
+      </section>
+
+      <!-- ========================================================
+           VIEW 2A: ADMIN LOGIN VIEW (Masked password, hidden credentials)
+           ======================================================== -->
+      <section class="admin-login-panel" id="panelAdminLogin" style="display: none;">
+        
+        <div class="admin-login-card">
+          <div class="admin-shield-icon">🛡️</div>
+          <h2 class="admin-login-title">Admin Portal</h2>
+          <p class="admin-login-subtitle">Authorized administrator verification required</p>
+
+          <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="admin-form">
+            <div class="form-group">
+              <label for="adminUsername" class="form-label">Username</label>
+              <div class="input-wrap">
+                <span class="input-ico">👤</span>
+                <input 
+                  type="text" 
+                  id="adminUsername" 
+                  class="admin-input" 
+                  placeholder="Enter admin username" 
+                  required 
+                  autocomplete="off" 
+                  autocapitalize="off" 
+                  spellcheck="false" 
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="adminPassword" class="form-label">Password</label>
+              <div class="input-wrap">
+                <span class="input-ico">🔑</span>
+                <input 
+                  type="password" 
+                  id="adminPassword" 
+                  class="admin-input" 
+                  placeholder="••••••••" 
+                  required 
+                  autocomplete="current-password" 
+                />
+              </div>
+            </div>
+
+            <div class="admin-login-error" id="adminLoginError" style="display: none;">
+              ⚠️ Invalid username or password. Access denied!
+            </div>
+
+            <button type="submit" class="btn-admin-submit" id="btnAdminLogin">
+              <span>🔒 SECURE LOGIN</span>
+            </button>
+          </form>
         </div>
-      </div>
+
+      </section>
+
+      <!-- ========================================================
+           VIEW 2B: ADMIN DASHBOARD (When authenticated)
+           ======================================================== -->
+      <section class="admin-dashboard-panel" id="panelAdminDashboard" style="display: none;">
+        
+        <div class="admin-dash-header">
+          <div class="admin-dash-title-wrap">
+            <span class="admin-root-pill">● ROOT ACCESS</span>
+            <h2 class="admin-dash-title">System Console</h2>
+          </div>
+          <button class="btn-admin-logout" onclick="adminLogout()" title="Sign Out of Admin">
+            <span>Sign Out</span>
+          </button>
+        </div>
+
+        <!-- Live Economy Overview Strip -->
+        <div class="admin-overview-grid">
+          <div class="admin-stat-card">
+            <span class="admin-k">Player Coins</span>
+            <span class="admin-v text-amber" id="adminLiveCoins">0 🪙</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-k">Reward Stars</span>
+            <span class="admin-v text-yellow" id="adminLiveStars">0 ⭐</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-k">Sunflower Seeds</span>
+            <span class="admin-v text-emerald" id="adminLiveSeeds">3 🌱</span>
+          </div>
+          <div class="admin-stat-card">
+            <span class="admin-k">Water Wells</span>
+            <span class="admin-v text-sky" id="adminLiveWells">20 🪣</span>
+          </div>
+        </div>
+
+        <!-- Section 1: Coins & Stars Management -->
+        <div class="admin-tool-box">
+          <div class="tool-box-title">🪙 Player Currency Manager</div>
+          
+          <div class="admin-tool-row">
+            <input type="number" id="inputCoinsAdjust" class="admin-tool-input" placeholder="Enter coins (e.g. 1000)" />
+            <button class="btn-tool-action btn-green" onclick="adminAddCoins()">+ Add Coins</button>
+            <button class="btn-tool-action btn-blue" onclick="adminSetCoins()">Set Coins</button>
+          </div>
+
+          <div class="quick-preset-btns">
+            <button class="btn-preset" onclick="adminQuickCoins(500)">+500 🪙</button>
+            <button class="btn-preset" onclick="adminQuickCoins(2000)">+2,000 🪙</button>
+            <button class="btn-preset" onclick="adminQuickCoins(10000)">+10,000 🪙</button>
+            <button class="btn-preset btn-preset-danger" onclick="adminQuickCoins(-500)">-500 🪙</button>
+          </div>
+
+          <div class="tool-divider"></div>
+
+          <div class="admin-tool-row">
+            <input type="number" id="inputStarsAdjust" class="admin-tool-input" placeholder="Enter stars (e.g. 10)" />
+            <button class="btn-tool-action btn-gold" onclick="adminAddStars()">+ Add Stars ⭐</button>
+          </div>
+        </div>
+
+        <!-- Section 2: Sunflower Valley Farm Tycoon Controls -->
+        <div class="admin-tool-box">
+          <div class="tool-box-title">🌻 Sunflower Valley Tycoon Tools</div>
+          <div class="farm-admin-buttons">
+            <button class="btn-farm-tool" onclick="adminGiveFarmSupplies(20, 20)">
+              <span>🌱 +20 Seeds &amp; 🪣 +20 Buckets</span>
+            </button>
+            <button class="btn-farm-tool" onclick="adminGiveSunflowerCoins(500)">
+              <span>🌻 +500 Sunflower Coins</span>
+            </button>
+            <button class="btn-farm-tool btn-farm-tool-danger" onclick="adminResetFarmPlots()">
+              <span>🔄 Reset 20 Land Plots to Harvest Ready</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section 3: System Status -->
+        <div class="admin-status-box">
+          <div class="status-row">
+            <span class="status-indicator-dot"></span>
+            <span class="status-text">Server Status: Online &bull; Cloud Vault Active</span>
+          </div>
+          <div class="admin-log-box" id="adminLogBox">
+            [System Log] Admin session verified. Ready for command execution.
+          </div>
+        </div>
+
+      </section>
 
     </main>
 

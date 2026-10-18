@@ -5,11 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Frontend — Home Tasks</title>
   <style>
+    /* Global Scrollbar Hiding */
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
     }
 
     body {
@@ -21,6 +29,130 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       APP CYBERNETIC LOADING SCREEN (START TO HOME PAGE)
+       ========================================================================== */
+    .app-loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: radial-gradient(circle at 50% 40%, #0c1a40 0%, #030816 80%, #01040d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .app-loading-overlay.fade-out {
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+    }
+
+    .loading-content-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      max-width: 320px;
+      width: 90%;
+    }
+
+    .loading-logo-ring {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .loading-ring-spinner {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(56, 189, 248, 0.15);
+      border-top-color: #38bdf8;
+      border-right-color: #facc15;
+      animation: loadingSpin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    @keyframes loadingSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-logo-core {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(155deg, #1d4ed8 0%, #0b1a3d 100%);
+      border: 1.5px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      animation: corePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes corePulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+      50% { transform: scale(1.08); box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 0 50px rgba(250, 204, 21, 0.4); }
+    }
+
+    .loading-app-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.08em;
+      margin: 0;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+    }
+
+    .loading-subtitle {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+      margin-bottom: 0.75rem;
+    }
+
+    .loading-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 60%, #facc15 100%);
+      border-radius: 999px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      transition: width 0.2s ease-out;
+    }
+
+    .loading-status-text {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 600;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 0.02em;
     }
 
     /* Mobile Screen Viewport Container */
@@ -192,12 +324,12 @@
       color: #fbbf24;
     }
 
-    /* Proper 3D Gray Action Button */
+    /* Proper 3D Gray Action Button with #848683 palette */
     .btn-claim {
-      background: linear-gradient(155deg, #4b5563 0%, #374151 45%, #1f2937 100%);
+      background: linear-gradient(155deg, #9ca09b 0%, #848683 45%, #696b68 100%);
       color: #ffffff;
       border: 1.5px solid;
-      border-color: #9ca3af #4b5563 #111827 #6b7280;
+      border-color: #b3b7b2 #848683 #535552 #717370;
       border-radius: 8px;
       padding: 0.45rem 0.95rem;
       font-size: 0.8rem;
@@ -210,8 +342,8 @@
     }
 
     .btn-claim:hover {
-      background: linear-gradient(155deg, #6b7280 0%, #4b5563 45%, #374151 100%);
-      border-color: #cbd5e1 #6b7280 #1f2937 #9ca3af;
+      background: linear-gradient(155deg, #a8aca7 0%, #8f928e 45%, #727471 100%);
+      border-color: #c4c8c3 #9ca09b #5e605d #848683;
       transform: translateY(-1px);
       box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5);
     }
@@ -231,7 +363,7 @@
     }
 
     /* ==========================================================================
-       PROPER ANIMATED 3D BLUE MENU BAR (DYNAMIC COLOR & LIGHT ANIMATIONS)
+       PROPER ANIMATED 3D BLUE MENU BAR (DYNAMIC MULTI-COLOR & LIGHT ANIMATIONS)
        ========================================================================== */
     .below-menu-bar {
       position: fixed;
@@ -241,16 +373,16 @@
       width: 100%;
       max-width: 440px;
       height: 74px;
-      background: linear-gradient(180deg, #0a1738 0%, #060e24 100%);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-top: 1.5px solid rgba(56, 189, 248, 0.35);
-      border-left: 1px solid rgba(56, 189, 248, 0.18);
-      border-right: 1px solid rgba(56, 189, 248, 0.18);
+      background: linear-gradient(180deg, rgba(8, 18, 48, 0.94) 0%, rgba(3, 8, 22, 0.98) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1.5px solid rgba(56, 189, 248, 0.45);
+      border-left: 1px solid rgba(56, 189, 248, 0.2);
+      border-right: 1px solid rgba(56, 189, 248, 0.2);
       box-shadow: 
-        0 -10px 28px rgba(0, 0, 0, 0.8),
-        inset 0 1.5px 0 rgba(56, 189, 248, 0.22),
-        0 0 16px rgba(56, 189, 248, 0.12);
+        0 -10px 28px rgba(0, 0, 0, 0.85),
+        inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
+        0 0 20px rgba(56, 189, 248, 0.15);
       display: flex;
       align-items: center;
       justify-content: space-around;
@@ -260,44 +392,61 @@
       animation: menuBarAmbientPulse 6s ease-in-out infinite;
     }
 
-    /* Animated neon laser beam running across top rim */
+    /* Animated multi-color chromatic neon laser beam sweeping along top rim */
     .below-menu-bar::before {
       content: '';
       position: absolute;
       top: -1.5px;
       left: 0;
       width: 100%;
-      height: 2px;
+      height: 2.5px;
       background: linear-gradient(90deg, 
         transparent 0%, 
-        rgba(56, 189, 248, 0.2) 20%, 
-        #38bdf8 45%, 
-        #facc15 55%, 
-        rgba(56, 189, 248, 0.2) 80%, 
+        rgba(0, 240, 255, 0.15) 10%, 
+        #00f0ff 25%, 
+        #818cf8 40%, 
+        #ec4899 50%, 
+        #facc15 65%, 
+        #10b981 78%, 
+        #00f0ff 90%, 
         transparent 100%
       );
-      background-size: 200% 100%;
-      animation: menuTopLaserSweep 4s linear infinite;
+      background-size: 300% 100%;
+      animation: menuTopLaserSweep 3.5s linear infinite;
       pointer-events: none;
+      filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.7));
     }
 
     @keyframes menuTopLaserSweep {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% { background-position: 300% 0; }
+      100% { background-position: -300% 0; }
     }
 
+    /* Smooth ambient multi-color breathing aura (cyan -> violet -> gold -> cyan) */
     @keyframes menuBarAmbientPulse {
-      0%, 100% {
+      0% {
         box-shadow: 
-          0 -10px 28px rgba(0, 0, 0, 0.8),
-          inset 0 1.5px 0 rgba(56, 189, 248, 0.22),
-          0 0 16px rgba(56, 189, 248, 0.12);
+          0 -10px 28px rgba(0, 0, 0, 0.88),
+          inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
+          0 0 20px rgba(0, 240, 255, 0.2);
       }
-      50% {
+      33% {
         box-shadow: 
-          0 -12px 32px rgba(0, 0, 0, 0.85),
-          inset 0 1.8px 0 rgba(56, 189, 248, 0.38),
-          0 0 24px rgba(56, 189, 248, 0.25);
+          0 -12px 34px rgba(0, 0, 0, 0.92),
+          inset 0 1.8px 0 rgba(168, 85, 247, 0.45),
+          0 0 26px rgba(168, 85, 247, 0.25);
+      }
+      66% {
+        box-shadow: 
+          0 -12px 34px rgba(0, 0, 0, 0.92),
+          inset 0 1.8px 0 rgba(250, 204, 21, 0.45),
+          0 0 26px rgba(250, 204, 21, 0.25);
+      }
+      100% {
+        box-shadow: 
+          0 -10px 28px rgba(0, 0, 0, 0.88),
+          inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
+          0 0 20px rgba(0, 240, 255, 0.2);
       }
     }
 
@@ -314,7 +463,7 @@
       font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
-      padding: 0.3rem 0.35rem;
+      padding: 0.3rem 0.35rem 0.45rem 0.35rem;
       border-radius: 12px;
       transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
       text-decoration: none;
@@ -324,7 +473,7 @@
 
     .below-menu-item:hover .menu-label {
       color: #38bdf8;
-      text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
     }
 
     /* 3D Blue Menu Icon Disc with Dynamic Hover Lighting */
@@ -351,69 +500,104 @@
     .below-menu-item:hover .menu-icon-wrap {
       background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 45%, #172554 100%);
       border-color: #93c5fd #3b82f6 #0c1a3d #2563eb;
-      transform: translateY(-3px) scale(1.06);
+      transform: translateY(-3px) scale(1.08);
       box-shadow: 
         0 8px 18px rgba(0, 0, 0, 0.75),
         inset 0 2px 1.5px rgba(191, 219, 254, 0.7),
         inset 0 -2px 3px rgba(0, 0, 0, 0.6),
-        0 0 20px rgba(56, 189, 248, 0.55);
+        0 0 22px rgba(56, 189, 248, 0.65);
       color: #ffffff;
     }
 
     .below-menu-item:active .menu-icon-wrap {
-      transform: translateY(1px) scale(0.94);
+      transform: translateY(1px) scale(0.93);
       box-shadow: 
         inset 0 2px 4px rgba(0, 0, 0, 0.85),
         inset 0 -1px 1px rgba(147, 197, 253, 0.2),
         0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
-    /* Active 3D Blue Menu Item (Pulsing Animated Yellow Light Glow) */
+    /* Active 3D Blue Menu Item (Pulsing Animated Multi-Color Glow: Gold to Cyan) */
     .below-menu-item.active .menu-icon-wrap {
-      background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 40%, #0b1a3d 100%);
+      background: linear-gradient(155deg, #1e40af 0%, #1d4ed8 40%, #0c1e4a 100%);
       color: #facc15;
       transform: translateY(-2px);
-      animation: activeTabYellowPulse 2.4s ease-in-out infinite;
+      animation: activeTabColorCyclePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes activeTabColorCyclePulse {
+      0%, 100% {
+        color: #facc15;
+        border-color: #fef08a #facc15 #854d0e #ca8a04;
+        box-shadow: 
+          0 4px 14px rgba(0, 0, 0, 0.7),
+          inset 0 1.5px 1.5px rgba(254, 240, 138, 0.75),
+          inset 0 -2px 3px rgba(0, 0, 0, 0.75),
+          0 0 18px rgba(250, 204, 21, 0.75),
+          0 0 30px rgba(234, 179, 8, 0.4);
+      }
+      50% {
+        color: #38bdf8;
+        border-color: #bae6fd #38bdf8 #0369a1 #0284c7;
+        box-shadow: 
+          0 6px 20px rgba(0, 0, 0, 0.8),
+          inset 0 2px 2px rgba(186, 230, 253, 0.85),
+          inset 0 -2px 3px rgba(0, 0, 0, 0.75),
+          0 0 24px rgba(56, 189, 248, 0.85),
+          0 0 42px rgba(14, 165, 233, 0.5);
+      }
     }
 
     .below-menu-item.active .menu-icon-wrap svg {
-      filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.75));
+      animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
     }
 
-    @keyframes activeTabYellowPulse {
+    @keyframes activeSvgFilterPulse {
       0%, 100% {
-        border-color: #fef08a #facc15 #854d0e #ca8a04;
-        box-shadow: 
-          0 4px 12px rgba(0, 0, 0, 0.65),
-          inset 0 1.5px 1.5px rgba(254, 240, 138, 0.6),
-          inset 0 -2px 3px rgba(0, 0, 0, 0.7),
-          0 0 16px rgba(250, 204, 21, 0.6),
-          0 0 28px rgba(234, 179, 8, 0.3);
+        filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.9));
       }
       50% {
-        border-color: #ffffff #fde047 #a16207 #eab308;
-        box-shadow: 
-          0 6px 18px rgba(0, 0, 0, 0.75),
-          inset 0 2px 2px rgba(254, 240, 138, 0.85),
-          inset 0 -2px 3px rgba(0, 0, 0, 0.7),
-          0 0 24px rgba(250, 204, 21, 0.92),
-          0 0 42px rgba(234, 179, 8, 0.55);
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
       }
     }
 
     .below-menu-item.active .menu-label {
-      animation: activeTextPulse 2.4s ease-in-out infinite;
+      animation: activeTextColorPulse 2.8s ease-in-out infinite;
     }
 
-    @keyframes activeTextPulse {
+    @keyframes activeTextColorPulse {
       0%, 100% {
         color: #facc15;
-        text-shadow: 0 0 8px rgba(250, 204, 21, 0.6);
+        text-shadow: 0 0 8px rgba(250, 204, 21, 0.75), 0 0 16px rgba(234, 179, 8, 0.4);
       }
       50% {
-        color: #fde047;
-        text-shadow: 0 0 14px rgba(250, 204, 21, 0.95), 0 0 20px rgba(234, 179, 8, 0.6);
+        color: #38bdf8;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 0 20px rgba(14, 165, 233, 0.5);
       }
+    }
+
+    /* Active Glowing Neon Pip Indicator with Color Flow */
+    .below-menu-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      width: 16px;
+      height: 3.5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #00f0ff, #facc15, #ec4899, #00f0ff);
+      background-size: 250% 100%;
+      box-shadow: 0 0 8px #facc15, 0 0 14px #00f0ff;
+      animation: activePipColorShift 3s linear infinite, activePipPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes activePipColorShift {
+      0% { background-position: 0% 0; }
+      100% { background-position: 250% 0; }
+    }
+
+    @keyframes activePipPulse {
+      0%, 100% { transform: scaleX(1); opacity: 0.85; }
+      50% { transform: scaleX(1.35); opacity: 1; filter: brightness(1.3); }
     }
 
     .menu-label {
@@ -426,22 +610,22 @@
     /* Center Elevated 3D Blue Tab (Home) */
     .center-home-btn {
       position: relative;
-      top: -10px;
+      top: -12px;
       flex: 1.15;
     }
 
     .center-home-icon-wrap {
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 35%, #0b1a3d 100%);
       border: 2px solid;
       border-color: #93c5fd #38bdf8 #06112c #2563eb;
       box-shadow: 
-        0 6px 16px rgba(0, 0, 0, 0.75),
-        inset 0 2.5px 2px rgba(191, 219, 254, 0.6),
-        inset 0 -3px 4px rgba(0, 0, 0, 0.8),
-        0 0 18px rgba(37, 99, 235, 0.35);
+        0 6px 18px rgba(0, 0, 0, 0.8),
+        inset 0 2.5px 2px rgba(191, 219, 254, 0.7),
+        inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+        0 0 20px rgba(37, 99, 235, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -453,73 +637,77 @@
 
     @keyframes centerAuraBreathe {
       0%, 100% {
+        border-color: #93c5fd #38bdf8 #06112c #2563eb;
         box-shadow: 
-          0 6px 16px rgba(0, 0, 0, 0.75),
-          inset 0 2.5px 2px rgba(191, 219, 254, 0.6),
-          inset 0 -3px 4px rgba(0, 0, 0, 0.8),
-          0 0 18px rgba(37, 99, 235, 0.35);
+          0 6px 18px rgba(0, 0, 0, 0.8),
+          inset 0 2.5px 2px rgba(191, 219, 254, 0.7),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+          0 0 20px rgba(37, 99, 235, 0.4);
       }
       50% {
+        border-color: #bae6fd #00f0ff #0a1f4a #1d4ed8;
         box-shadow: 
-          0 8px 22px rgba(0, 0, 0, 0.85),
-          inset 0 3px 2.5px rgba(224, 242, 254, 0.75),
-          inset 0 -3px 4px rgba(0, 0, 0, 0.8),
-          0 0 28px rgba(56, 189, 248, 0.6),
-          0 0 42px rgba(37, 99, 235, 0.35);
+          0 8px 24px rgba(0, 0, 0, 0.9),
+          inset 0 3px 2.5px rgba(224, 242, 254, 0.85),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+          0 0 32px rgba(0, 240, 255, 0.75),
+          0 0 48px rgba(37, 99, 235, 0.45);
       }
     }
 
     .center-home-btn:hover .center-home-icon-wrap {
       background: linear-gradient(155deg, #3b82f6 0%, #2563eb 40%, #1e3a8a 100%);
       border-color: #bfdbfe #60a5fa #0c1a3d #3b82f6;
-      transform: scale(1.1) translateY(-3px);
+      transform: scale(1.12) translateY(-3px);
       box-shadow: 
-        0 10px 26px rgba(0, 0, 0, 0.85),
-        inset 0 3px 2px rgba(255, 255, 255, 0.75),
+        0 10px 28px rgba(0, 0, 0, 0.85),
+        inset 0 3px 2px rgba(255, 255, 255, 0.8),
         inset 0 -3px 4px rgba(0, 0, 0, 0.7),
-        0 0 28px rgba(56, 189, 248, 0.65);
+        0 0 30px rgba(56, 189, 248, 0.75);
       color: #ffffff;
     }
 
     .center-home-btn:active .center-home-icon-wrap {
-      transform: scale(0.96) translateY(1px);
+      transform: scale(0.95) translateY(1px);
       box-shadow: 
         inset 0 3px 5px rgba(0, 0, 0, 0.85),
         inset 0 -1px 1px rgba(255, 255, 255, 0.2),
         0 3px 6px rgba(0, 0, 0, 0.6);
     }
 
-    /* Center Home Active (3D Blue with Animated Yellow Light Glow) */
+    /* Center Home Active (3D Blue with Animated Multi-Color Pulse: Gold to Cyan) */
     .center-home-btn.active .center-home-icon-wrap {
-      background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 35%, #0b1a3d 100%);
+      background: linear-gradient(155deg, #1e40af 0%, #1d4ed8 35%, #0b1a3d 100%);
       transform: scale(1.08) translateY(-2px);
       color: #facc15;
-      animation: centerActiveYellowPulse 2.4s ease-in-out infinite;
+      animation: centerActiveColorCyclePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes centerActiveColorCyclePulse {
+      0%, 100% {
+        color: #facc15;
+        border-color: #fef08a #facc15 #854d0e #ca8a04;
+        box-shadow: 
+          0 8px 24px rgba(0, 0, 0, 0.8),
+          inset 0 2.5px 3px rgba(255, 255, 255, 0.7),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.75),
+          0 0 26px rgba(250, 204, 21, 0.85),
+          0 0 46px rgba(234, 179, 8, 0.5);
+      }
+      50% {
+        color: #38bdf8;
+        border-color: #bae6fd #38bdf8 #0369a1 #0284c7;
+        box-shadow: 
+          0 10px 32px rgba(0, 0, 0, 0.9),
+          inset 0 3px 3.5px rgba(255, 255, 255, 0.95),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.75),
+          0 0 36px rgba(56, 189, 248, 0.98),
+          0 0 60px rgba(14, 165, 233, 0.6);
+      }
     }
 
     .center-home-btn.active .center-home-icon-wrap svg {
-      filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.85));
-    }
-
-    @keyframes centerActiveYellowPulse {
-      0%, 100% {
-        border-color: #fef08a #facc15 #854d0e #ca8a04;
-        box-shadow: 
-          0 8px 24px rgba(0, 0, 0, 0.75),
-          inset 0 2.5px 3px rgba(255, 255, 255, 0.6),
-          inset 0 -3px 4px rgba(0, 0, 0, 0.7),
-          0 0 24px rgba(250, 204, 21, 0.75),
-          0 0 42px rgba(234, 179, 8, 0.45);
-      }
-      50% {
-        border-color: #ffffff #fde047 #a16207 #eab308;
-        box-shadow: 
-          0 10px 30px rgba(0, 0, 0, 0.85),
-          inset 0 3px 3.5px rgba(255, 255, 255, 0.9),
-          inset 0 -3px 4px rgba(0, 0, 0, 0.7),
-          0 0 34px rgba(250, 204, 21, 0.95),
-          0 0 58px rgba(234, 179, 8, 0.65);
-      }
+      animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
     }
 
     /* Top Navigation Tabs (Tasks / Games) */
@@ -701,6 +889,22 @@
 </head>
 <body>
 
+  <!-- Cybernetic Loading / Splash Screen (Transitions into Home Page) -->
+  <div class="app-loading-overlay" id="appLoadingOverlay">
+    <div class="loading-content-box">
+      <div class="loading-logo-ring">
+        <div class="loading-ring-spinner"></div>
+        <div class="loading-logo-core">⚡</div>
+      </div>
+      <h1 class="loading-app-title">NOVA EARNER</h1>
+      <div class="loading-subtitle">Cybernetic Gaming &amp; Task Arena</div>
+      <div class="loading-progress-track">
+        <div class="loading-progress-bar" id="loadingProgressBar"></div>
+      </div>
+      <div class="loading-status-text" id="loadingStatusText">INITIALIZING SYSTEM...</div>
+    </div>
+  </div>
+
   <!-- Mobile View Screen Shell -->
   <div class="mobile-container">
     
@@ -728,10 +932,10 @@
         <div class="games-tab-content">
           <div class="games-badge-row">
             <span class="games-live-pill">● LIVE ARENA</span>
-            <span class="games-win-pill">WIN COINS & STARS</span>
+            <span class="games-win-pill">🌻 20 LANDS TYCOON</span>
           </div>
           <h2 class="games-tab-heading">Games</h2>
-          <p class="games-tab-sub">Spin Fortune Wheel, Typing Sprint & Memory Match</p>
+          <p class="games-tab-sub">Sunflower Valley Tycoon &amp; Solar Harvest</p>
           <div class="games-cta-btn">
             <span>Play Games</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -871,9 +1075,91 @@
       localStorage.setItem('task_game_coins', '0');
     }
     let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+
+    // Web Audio Synthesizer for Home Tasks
+    const HomeAudio = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      playStartupChime() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime;
+          [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+            gain.gain.setValueAtTime(0.08, t + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.08 + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + idx * 0.08);
+            osc.stop(t + idx * 0.08 + 0.38);
+          });
+        } catch (e) {}
+      },
+      playCoinClaim() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(987.77, t);
+          osc.frequency.setValueAtTime(1318.51, t + 0.06);
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.27);
+        } catch (e) {}
+      }
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
       const display = document.getElementById('userCoinsDisplay');
       if (display) display.textContent = userCoins.toLocaleString();
+
+      // Cybernetic Loading Screen Progression (Transitions into Home Page)
+      const overlay = document.getElementById('appLoadingOverlay');
+      const bar = document.getElementById('loadingProgressBar');
+      const statusText = document.getElementById('loadingStatusText');
+
+      if (overlay && bar) {
+        let progress = 0;
+        const steps = [
+          { p: 25, msg: 'INITIALIZING SYSTEM...' },
+          { p: 55, msg: 'CONNECTING SECURE VAULT...' },
+          { p: 85, msg: 'SYNCHRONIZING REWARDS...' },
+          { p: 100, msg: 'ARENA READY!' }
+        ];
+        let stepIdx = 0;
+
+        const loadInterval = setInterval(() => {
+          if (stepIdx < steps.length) {
+            progress = steps[stepIdx].p;
+            bar.style.width = `${progress}%`;
+            if (statusText) statusText.textContent = steps[stepIdx].msg;
+            stepIdx++;
+          } else {
+            clearInterval(loadInterval);
+            HomeAudio.playStartupChime();
+            setTimeout(() => {
+              overlay.classList.add('fade-out');
+              setTimeout(() => overlay.remove(), 550);
+            }, 300);
+          }
+        }, 220);
+      }
     });
 
     function claimTask(btn, rewardAmount) {
@@ -885,6 +1171,7 @@
       userCoins += rewardAmount;
       localStorage.setItem('task_game_coins', userCoins.toString());
       document.getElementById('userCoinsDisplay').textContent = userCoins.toLocaleString();
+      HomeAudio.playCoinClaim();
     }
   </script>
 </body>

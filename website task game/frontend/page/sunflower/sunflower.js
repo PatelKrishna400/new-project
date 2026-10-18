@@ -1071,6 +1071,50 @@ const sunflowerAudio = {
     [659.25, 830.61, 987.77, 1318.51].forEach((f, idx) => {
       setTimeout(() => this.playTone(f, 'triangle', 0.22, 0.1), idx * 80);
     });
+  },
+  playPlant() {
+    if (this.muted) return;
+    this.init(); this.resume();
+    if (!this.ctx) return;
+    [330, 440, 550].forEach((f, idx) => {
+      setTimeout(() => this.playTone(f, 'sine', 0.1, 0.08), idx * 45);
+    });
+  },
+  playHarvest() {
+    if (this.muted) return;
+    this.init(); this.resume();
+    if (!this.ctx) return;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, idx) => {
+      setTimeout(() => this.playTone(f, 'triangle', 0.16, 0.09), idx * 40);
+    });
+  },
+  playShovel() {
+    if (this.muted) return;
+    this.init(); this.resume();
+    if (!this.ctx) return;
+    [220, 180, 150].forEach((f, idx) => {
+      setTimeout(() => this.playTone(f, 'sawtooth', 0.12, 0.06), idx * 50);
+    });
+  },
+  playClick() {
+    if (this.muted) return;
+    this.playTone(600, 'sine', 0.05, 0.04);
+  },
+  playError() {
+    if (this.muted) return;
+    this.init(); this.resume();
+    if (!this.ctx) return;
+    [200, 160].forEach((f, idx) => {
+      setTimeout(() => this.playTone(f, 'square', 0.15, 0.07), idx * 80);
+    });
+  },
+  playFanfare() {
+    if (this.muted) return;
+    this.init(); this.resume();
+    if (!this.ctx) return;
+    [523.25, 523.25, 523.25, 659.25, 783.99, 1046.50].forEach((f, idx) => {
+      setTimeout(() => this.playTone(f, 'triangle', 0.25, 0.12), idx * 90);
+    });
   }
 };
 
@@ -1256,7 +1300,7 @@ window.plantSfPlot = function(plotId, event = null) {
     plot.isWithered = false;
     plot.lastTick = Date.now();
 
-    sunflowerAudio.playTone(550, 'triangle', 0.15, 0.1);
+    sunflowerAudio.playPlant();
     const posX = event ? event.clientX : window.innerWidth / 2;
     const posY = event ? event.clientY : window.innerHeight / 2;
     spawnSfFloat(`🌱 Planted Baby Plant on Land #${plot.id}! (1 min / 60s Growth incubation)`, posX, posY, 'text-emerald-400');
@@ -1421,7 +1465,7 @@ window.shovelSfPlot = function(plotId, event = null) {
     plot.lifeTimer = 0;
     plot.timer = getSfPlotCycleTime(plotIndex, 1);
 
-    sunflowerAudio.playTone(200, 'sawtooth', 0.2, 0.1);
+    sunflowerAudio.playShovel();
     const posX = event ? event.clientX : window.innerWidth / 2;
     const posY = event ? event.clientY : window.innerHeight / 2;
     spawnSfFloat(`Plot #${plot.id} Cleared! Install a new plant to restart at Level 1 🌱`, posX, posY, 'text-emerald-400');
@@ -3300,7 +3344,7 @@ window.collectPlotHarvest = function(plotId, event = null) {
     plot.uncollectedCoins = 0;
     plot.readyToCollect = false;
 
-    sunflowerAudio.playCoin();
+    sunflowerAudio.playHarvest();
     const multMsg = boosterMult > 1 ? ` (${boosterMult}X Boosted!)` : '';
     spawnSfFloat(`+${formatNumber(finalHarvest)} 🌻 Harvest Collected!${multMsg}`, posX, posY, 'text-yellow-400 font-black');
 
@@ -5282,8 +5326,11 @@ window.closeSunflowerImageViewer = function() {
 
 function checkAndAutoStartSunflower() {
   const sfPage = document.getElementById('pageSunflower');
-  if (sfPage && sfPage.classList.contains('active')) {
-    initSunflowerTycoonGame();
+  if (sfPage) {
+    sfPage.classList.add('active');
+    if (typeof initSunflowerTycoonGame === 'function') {
+      initSunflowerTycoonGame();
+    }
   }
 }
 
