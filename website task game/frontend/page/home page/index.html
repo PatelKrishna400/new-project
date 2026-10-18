@@ -22,13 +22,36 @@
       </div>
       <div class="coin-pill" id="coinPill" title="Current Coin Balance">
         <span>🪙</span>
-        <span class="coin-value" id="userCoinsDisplay">2,450</span>
+        <span class="coin-value" id="userCoinsDisplay">0</span>
       </div>
     </header>
 
     <!-- Page Content (Tasks) -->
     <main class="page-content">
       
+
+      <!-- Games Featured Interactive Tab Card -->
+      <a href="../games/index.html" class="games-feature-tab" id="gamesHeroTab" title="Open Gaming Arena">
+        <div class="games-tab-content">
+          <div class="games-badge-row">
+            <span class="games-live-pill">● LIVE ARENA</span>
+            <span class="games-win-pill">WIN COINS & STARS</span>
+          </div>
+          <h2 class="games-tab-heading">Games</h2>
+          <p class="games-tab-sub">Spin Fortune Wheel, Typing Sprint & Memory Match</p>
+          <div class="games-cta-btn">
+            <span>Play Games</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="games-tab-art">
+          <img src="../games/assets/games_banner.jpg" alt="Games Arena" class="games-art-img" />
+          <div class="games-art-overlay"></div>
+        </div>
+      </a>
+
       <!-- Tasks Section Header -->
       <div class="tasks-banner">
         <h1 class="tasks-title">Daily Tasks</h1>
@@ -92,13 +115,25 @@
 
     </main>
 
-    <!-- Below Menu Bar (Leaderboard, Home in Center, Profile) -->
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet, Profile) -->
     <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
       
-      <!-- Leaderboard Page Link -->
+      <!-- 1. Shop Page Link (Beside Leaderboard) -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
       <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
         <div class="menu-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
             <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
             <path d="M4 22h16"></path>
@@ -107,10 +142,10 @@
             <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
           </svg>
         </div>
-        <span class="menu-label">Leaderboard</span>
+        <span class="menu-label">Ranks</span>
       </a>
 
-      <!-- Home Page Link (Center) -->
+      <!-- 3. Home Page Link (Center Elevated) -->
       <a href="../home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
         <div class="center-home-icon-wrap">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -121,10 +156,22 @@
         <span class="menu-label">Home</span>
       </a>
 
-      <!-- Profile Page Link -->
+      <!-- 4. Wallet Page Link (Between Home and Profile) -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
       <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
         <div class="menu-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>

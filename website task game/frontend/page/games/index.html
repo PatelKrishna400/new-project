@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — Gaming Arena</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">🎮</div>
+        <div class="user-meta">
+          <span class="user-name">NovaEarner</span>
+          <span class="user-level">GAMING ZONE</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="gameCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="gameStarsDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      
+      <!-- Top Navigation Tabs (Tasks / Games) -->
+      <nav class="top-nav-tabs" aria-label="Page Category Switcher">
+        <a href="../home/index.html" class="top-tab-btn" id="tabTasks">
+          <span class="tab-icon">📋</span>
+          <span class="tab-title">Tasks</span>
+        </a>
+        <a href="index.html" class="top-tab-btn active" id="tabGames">
+          <span class="tab-icon">🎮</span>
+          <span class="tab-title">Games</span>
+          <span class="tab-live-dot"></span>
+        </a>
+      </nav>
+
+      <!-- Gaming Hero Banner Card -->
+      <div class="game-hero-banner">
+        <img src="assets/games_banner.jpg" alt="Cybernetic Arcade Arena" class="hero-banner-img" />
+        <div class="hero-banner-overlay">
+          <span class="hero-badge">● LIVE TOURNAMENT</span>
+          <h1 class="hero-title">Cybernetic Arcade</h1>
+          <p class="hero-desc">Play mini-games to win Coins 🪙 and Stars ⭐ in real-time</p>
+        </div>
+      </div>
+
+      <!-- Quick Stats Strip -->
+      <div class="game-stats-strip">
+        <div class="stat-cell">
+          <span class="stat-val" id="statGamesPlayed">0</span>
+          <span class="stat-label">Played</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-cell">
+          <span class="stat-val" id="statCoinsWon">+0 🪙</span>
+          <span class="stat-label">Won Today</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-cell">
+          <span class="stat-val" id="statStreak">0 🔥</span>
+          <span class="stat-label">Win Streak</span>
+        </div>
+      </div>
+
+      <!-- Section Title -->
+      <div class="section-title-row">
+        <h2 class="section-title">Featured Games</h2>
+        <span class="section-tag">Instant Rewards</span>
+      </div>
+
+      <!-- ==========================================
+           GAME 1: LUCKY FORTUNE SPIN WHEEL
+           ========================================== -->
+      <div class="game-card" id="wheelGameCard">
+        <div class="game-card-header">
+          <div class="game-badge-icon">🎯</div>
+          <div class="game-info">
+            <h3 class="game-title">Lucky Fortune Wheel</h3>
+            <p class="game-desc">Spin the neon wheel to win coins & stars instantly!</p>
+          </div>
+          <span class="game-pill-reward">Up to 500 🪙</span>
+        </div>
+
+        <div class="wheel-stage">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="fortuneWheelCanvas" width="280" height="280"></canvas>
+        </div>
+
+        <div class="game-controls">
+          <button class="btn-game-action" id="btnSpinWheel" onclick="spinWheel()">
+            <span>SPIN WHEEL</span>
+          </button>
+        </div>
+        <div class="wheel-result-msg" id="wheelResultMsg">Ready to spin! Tap the button above.</div>
+      </div>
+
+      <!-- ==========================================
+           GAME 2: SPEED TYPING SPRINT
+           ========================================== -->
+      <div class="game-card" id="typingGameCard">
+        <div class="game-card-header">
+          <div class="game-badge-icon">⚡</div>
+          <div class="game-info">
+            <h3 class="game-title">Speed Typing Sprint</h3>
+            <p class="game-desc">Type the target word before the 10s timer runs out!</p>
+          </div>
+          <span class="game-pill-reward">+100 🪙</span>
+        </div>
+
+        <div class="typing-stage">
+          <div class="typing-hud">
+            <div class="timer-box">
+              <span class="hud-label">TIME</span>
+              <span class="hud-val" id="typingTimer">10s</span>
+            </div>
+            <div class="score-box">
+              <span class="hud-label">SCORE</span>
+              <span class="hud-val" id="typingScore">0 pts</span>
+            </div>
+          </div>
+
+          <div class="target-word-display" id="targetWordDisplay">READY?</div>
+
+          <div class="typing-input-row">
+            <input type="text" id="typingInput" class="typing-input" placeholder="Tap Start to type..." disabled autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <button class="btn-game-action btn-sm" id="btnStartTyping" onclick="startTypingGame()">START</button>
+          </div>
+        </div>
+        <div class="typing-result-msg" id="typingResultMsg">Hit START and type matching words rapidly!</div>
+      </div>
+
+      <!-- ==========================================
+           GAME 3: CYBER MEMORY CARD MATCH
+           ========================================== -->
+      <div class="game-card" id="memoryGameCard">
+        <div class="game-card-header">
+          <div class="game-badge-icon">🃏</div>
+          <div class="game-info">
+            <h3 class="game-title">Cyber Memory Match</h3>
+            <p class="game-desc">Match all 4 icon pairs to claim +150 🪙 reward</p>
+          </div>
+          <span class="game-pill-reward">+150 🪙</span>
+        </div>
+
+        <div class="memory-grid" id="memoryGrid">
+          <!-- 8 cards rendered by script -->
+        </div>
+
+        <div class="game-controls">
+          <button class="btn-game-action btn-secondary-3d" id="btnResetMemory" onclick="resetMemoryGame()">
+            <span>NEW GAME</span>
+          </button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

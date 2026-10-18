@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — Wallet Vault</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">💰</div>
+        <div class="user-meta">
+          <span class="user-name">NovaEarner</span>
+          <span class="user-level">WALLET VAULT</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="walletBalanceTop">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance (Used for Amazon Gift Cards)">
+          <span>⭐</span>
+          <span class="star-value" id="walletStarsTop">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      
+
+      <!-- ==========================================================================
+           AMAZON GIFT CARD SECTION (3 OPTIONS: ₹100, ₹500, ₹1000 RS WITH STARS)
+           ========================================================================== -->
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">Amazon Gift Card</h2>
+          <p class="section-subtitle">Redeem Amazon vouchers instantly using your Stars ⭐</p>
+        </div>
+        <span class="star-badge">⭐ Star Store</span>
+      </div>
+
+      <div class="giftcard-list">
+        
+        <!-- 1. ₹100 Amazon Gift Card Option -->
+        <div class="giftcard-card" id="cardOption100">
+          <div class="giftcard-media">
+            <img src="assets/amazon_100.jpg" alt="₹100 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag">₹100 RS</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹100 Amazon Gift Card</h3>
+              <p class="giftcard-desc">Redeemable for shopping, recharges & digital orders on Amazon</p>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">100</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(100, 100, '₹100 Amazon Gift Card', 'assets/amazon_100.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ₹500 Amazon Gift Card Option -->
+        <div class="giftcard-card featured" id="cardOption500">
+          <div class="giftcard-media">
+            <img src="assets/amazon_500.jpg" alt="₹500 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag gold">₹500 RS</div>
+            <div class="popular-ribbon">POPULAR</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹500 Amazon Gift Card</h3>
+              <p class="giftcard-desc">Instant digital code sent straight to your wallet vault</p>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">500</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(500, 500, '₹500 Amazon Gift Card', 'assets/amazon_500.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ₹1000 Amazon Gift Card Option -->
+        <div class="giftcard-card" id="cardOption1000">
+          <div class="giftcard-media">
+            <img src="assets/amazon_1000.jpg" alt="₹1,000 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag vip">₹1,000 RS</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹1,000 Amazon Gift Card</h3>
+              <p class="giftcard-desc">Prime shopping credit, high-value electronics & subscriptions</p>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">1,000</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(1000, 1000, '₹1,000 Amazon Gift Card', 'assets/amazon_1000.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent History -->
+      <div class="section-title">Recent Transactions</div>
+      <div class="history-list" id="walletHistoryList">
+        <div class="history-item">
+          <div>
+            <div class="history-name">Daily Check-In Reward</div>
+            <div class="history-time">Today, 21:30</div>
+          </div>
+          <span class="history-amount">+150 🪙</span>
+        </div>
+        <div class="history-item">
+          <div>
+            <div class="history-name">Typing Speed Bounty</div>
+            <div class="history-time">Yesterday, 19:45</div>
+          </div>
+          <span class="history-amount">+250 🪙</span>
+        </div>
+      </div>
+
+      <!-- Voucher Success Modal -->
+      <div class="voucher-modal-overlay" id="voucherModalOverlay">
+        <div class="voucher-modal-box">
+          <button class="modal-close-btn" onclick="closeVoucherModal()">✕</button>
+          <div class="modal-badge-success">🎉 Voucher Redeemed!</div>
+          <div class="modal-card-preview">
+            <img src="assets/amazon_100.jpg" alt="Amazon Gift Card" id="modalVoucherImg" class="modal-card-img" />
+          </div>
+          <h3 class="modal-voucher-title" id="modalVoucherTitle">₹100 Amazon Gift Card</h3>
+          <p class="modal-voucher-sub">Your Amazon.in Claim Code is ready to use:</p>
+          
+          <div class="voucher-code-box">
+            <span class="voucher-code-text" id="modalVoucherCode">AMZN-7492-89BX-100R</span>
+            <button class="btn-copy-code" id="btnCopyCode" onclick="copyVoucherCode()">Copy</button>
+          </div>
+
+          <p class="voucher-instruction">Enter this code in your Amazon Pay wallet at checkout.</p>
+          <button class="btn-modal-done" onclick="closeVoucherModal()">Done</button>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet Active, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link (Active - Between Home and Profile) -->
+      <a href="../wallet/index.html" class="below-menu-item active" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

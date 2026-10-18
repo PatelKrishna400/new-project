@@ -1,5 +1,8 @@
 // Task Claiming Logic
-let userCoins = parseInt(localStorage.getItem('task_game_coins') || '2450', 10);
+if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
+  localStorage.setItem('task_game_coins', '0');
+}
+let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 
 document.addEventListener('DOMContentLoaded', () => {
   updateCoinDisplay();
