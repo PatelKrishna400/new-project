@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Frontend — Home Tasks</title>
+  <title>NovaEarner — Webtask</title>
+  <script>
+    if (sessionStorage.getItem('task_app_loaded') === 'true') {
+      document.documentElement.classList.add('app-preloaded');
+    }
+  </script>
+  <!-- Firebase SDK & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -36,9 +43,15 @@
           <span class="user-level">LVL 4 • PRO</span>
         </div>
       </div>
-      <div class="coin-pill" id="coinPill" title="Current Coin Balance">
-        <span>🪙</span>
-        <span class="coin-value" id="userCoinsDisplay">0</span>
+      <div class="header-pills">
+        <div class="coin-pill" id="coinPill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="userCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" id="starPill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="userStarsDisplay">0</span>
+        </div>
       </div>
     </header>
 
@@ -54,7 +67,6 @@
             <span class="games-win-pill">🌻 20 LANDS TYCOON</span>
           </div>
           <h2 class="games-tab-heading">Games</h2>
-          <p class="games-tab-sub">Sunflower Valley Tycoon &amp; Solar Harvest</p>
           <div class="games-cta-btn">
             <span>Play Games</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -70,63 +82,12 @@
 
       <!-- Tasks Section Header -->
       <div class="tasks-banner">
-        <h1 class="tasks-title">Daily Tasks</h1>
-        <p class="tasks-subtitle">Complete daily missions & bounties to earn coins</p>
+        <h1 class="tasks-title">Webtask</h1>
       </div>
 
       <!-- Tasks List -->
       <div class="tasks-list" id="tasksList">
-        
-        <!-- Task 1 -->
-        <div class="task-card">
-          <div class="task-icon-wrap">⚡</div>
-          <div class="task-info">
-            <div class="task-name">Daily Check-In</div>
-            <div class="task-reward">+150 🪙</div>
-          </div>
-          <button class="btn-claim" onclick="claimTask(this, 150)">Claim</button>
-        </div>
-
-        <!-- Task 2 -->
-        <div class="task-card">
-          <div class="task-icon-wrap">⌨️</div>
-          <div class="task-info">
-            <div class="task-name">Typing Speed Sprint</div>
-            <div class="task-reward">+250 🪙</div>
-          </div>
-          <button class="btn-claim" onclick="claimTask(this, 250)">Claim</button>
-        </div>
-
-        <!-- Task 3 -->
-        <div class="task-card">
-          <div class="task-icon-wrap">🎯</div>
-          <div class="task-info">
-            <div class="task-name">Accuracy Milestone 98%</div>
-            <div class="task-reward">+350 🪙</div>
-          </div>
-          <button class="btn-claim" onclick="claimTask(this, 350)">Claim</button>
-        </div>
-
-        <!-- Task 4 -->
-        <div class="task-card">
-          <div class="task-icon-wrap">👥</div>
-          <div class="task-info">
-            <div class="task-name">Invite a Fellow Player</div>
-            <div class="task-reward">+500 🪙</div>
-          </div>
-          <button class="btn-claim" onclick="claimTask(this, 500)">Claim</button>
-        </div>
-
-        <!-- Task 5 -->
-        <div class="task-card">
-          <div class="task-icon-wrap">👑</div>
-          <div class="task-info">
-            <div class="task-name">Master Typer Bounty</div>
-            <div class="task-reward">+1,000 🪙</div>
-          </div>
-          <button class="btn-claim" onclick="claimTask(this, 1000)">Claim</button>
-        </div>
-
+        <!-- Dynamically loaded & synchronized with Admin in real time -->
       </div>
 
     </main>
@@ -199,6 +160,8 @@
 
   </div>
 
+  <!-- Firebase Cloud Sync & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

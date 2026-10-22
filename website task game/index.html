@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Complaint Management System</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <i class="fa-solid fa-graduation-cap"></i>
+      <span>Student Complaint Portal</span>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Role Switcher -->
+      <div class="role-switch">
+        <button id="btnStudentRole" class="active"><i class="fa-solid fa-user"></i> Student</button>
+        <button id="btnAdminRole"><i class="fa-solid fa-user-shield"></i> Admin</button>
+      </div>
+
+      <!-- Theme Button -->
+      <button id="themeBtn" class="icon-btn" title="Toggle Theme">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- STUDENT VIEW: ONLY COMPLAINT FORM -->
+    <section id="studentView" class="view-section">
+      <div class="form-card">
+        <h2 class="form-title"><i class="fa-solid fa-file-pen"></i> Student Complaint Form</h2>
+        <form id="newComplaintForm">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="studentName">Student Name *</label>
+              <input type="text" id="studentName" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="input-group">
+              <label for="rollNo">Roll Number *</label>
+              <input type="text" id="rollNo" placeholder="e.g. 2024-CS-042" required>
+            </div>
+
+            <div class="input-group">
+              <label for="category">Category *</label>
+              <select id="category" required>
+                <option value="">Select category</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Academic">Academic</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Library">Library</option>
+                <option value="Canteen">Canteen</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="priority">Priority *</label>
+              <select id="priority" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="subject">Subject *</label>
+            <input type="text" id="subject" placeholder="Brief subject of the issue" required>
+          </div>
+
+          <div class="input-group">
+            <label for="details">Details *</label>
+            <textarea id="details" rows="5" placeholder="Explain the problem in detail..." required></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="reset" class="btn btn-secondary">Clear</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit Complaint</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ADMIN VIEW: STATS & COMPLAINTS LIST WITH STUDENT NAMES -->
+    <section id="adminView" class="view-section hidden">
+      
+      <!-- Quick Stats Row -->
+      <div class="stats-row">
+        <div class="stat-box blue">
+          <i class="fa-solid fa-list-check"></i>
+          <div>
+            <span class="num" id="statTotal">0</span>
+            <span class="label">Total</span>
+          </div>
+        </div>
+        <div class="stat-box yellow">
+          <i class="fa-solid fa-hourglass-half"></i>
+          <div>
+            <span class="num" id="statPending">0</span>
+            <span class="label">Pending</span>
+          </div>
+        </div>
+        <div class="stat-box purple">
+          <i class="fa-solid fa-gears"></i>
+          <div>
+            <span class="num" id="statProgress">0</span>
+            <span class="label">In Progress</span>
+          </div>
+        </div>
+        <div class="stat-box green">
+          <i class="fa-solid fa-circle-check"></i>
+          <div>
+            <span class="num" id="statResolved">0</span>
+            <span class="label">Resolved</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" placeholder="Search by student name, roll no, or subject...">
+        </div>
+        <select id="filterStatus" class="select-input">
+          <option value="ALL">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+        <select id="filterCategory" class="select-input">
+          <option value="ALL">All Categories</option>
+          <option value="Hostel">Hostel</option>
+          <option value="Academic">Academic</option>
+          <option value="Infrastructure">Infrastructure</option>
+          <option value="Library">Library</option>
+          <option value="Canteen">Canteen</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- Admin Complaints Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Student Name</th>
+              <th>Roll No</th>
+              <th>Category</th>
+              <th>Subject</th>
+              <th>Priority</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="complaintsTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+      <div id="emptyMessage" class="empty-state hidden">No complaints found.</div>
+    </section>
+
+  </main>
+
+  <!-- Simple Detail & Status Modal -->
+  <div id="detailModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="modalId">Complaint</h3>
+        <button id="modalClose" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-content">
+        <div class="modal-row"><strong>Student:</strong> <span id="mStudent"></span> (<span id="mRoll"></span>)</div>
+        <div class="modal-row"><strong>Category:</strong> <span id="mCategory"></span></div>
+        <div class="modal-row"><strong>Priority:</strong> <span id="mPriority"></span></div>
+        <div class="modal-row"><strong>Date:</strong> <span id="mDate"></span></div>
+        <div class="modal-row"><strong>Status:</strong> <span id="mStatusBadge"></span></div>
+        <div class="modal-row"><strong>Subject:</strong> <span id="mSubject"></span></div>
+        <div class="modal-row"><strong>Details:</strong>
+          <div id="mDetails" class="details-text"></div>
+        </div>
+
+        <!-- Admin Status Change Option -->
+        <div id="adminStatusBlock" class="admin-block hidden">
+          <label for="adminStatusSelect"><strong>Update Status:</strong></label>
+          <div class="status-change-row">
+            <select id="adminStatusSelect">
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+            <button id="btnSaveStatus" class="btn btn-primary btn-sm">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Password Modal (Password: 0911) -->
+  <div id="passwordModal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 340px;">
+      <div class="modal-head">
+        <h3>Admin Access</h3>
+        <button id="pwdCloseBtn" class="close-btn">&times;</button>
+      </div>
+      <form id="adminPwdForm">
+        <div class="input-group">
+          <label for="adminPwdInput">Enter Password</label>
+          <input type="password" id="adminPwdInput" placeholder="Password" required autocomplete="off">
+          <span id="pwdError" class="hidden" style="color:var(--red); font-size:0.8rem; margin-top:4px;">Incorrect password!</span>
+        </div>
+        <div class="form-actions" style="margin-top:1rem;">
+          <button type="button" id="btnCancelPwd" class="btn btn-secondary btn-sm">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Unlock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

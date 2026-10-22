@@ -186,6 +186,9 @@ window.toggleArcadeSound = function() {
 };
 
 function updateGameDisplays() {
+  userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+  userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+
   const coinsDisplay = document.getElementById('gameCoinsDisplay');
   const starsDisplay = document.getElementById('gameStarsDisplay');
   if (coinsDisplay) coinsDisplay.textContent = userCoins.toLocaleString();
@@ -199,16 +202,26 @@ function updateGameDisplays() {
   if (statWon) statWon.textContent = `+${coinsWonToday.toLocaleString()} 🪙`;
   if (statStrk) statStrk.textContent = `${winStreak} 🔥`;
 
-  // Live Sunflower Valley Farm Stats
-  const sfCoins = localStorage.getItem('sf_coins') || '0';
-  const sfSeeds = localStorage.getItem('sf_seeds') || '3';
-  const sfBuckets = localStorage.getItem('sf_buckets') || '20';
+  // Live Sunflower Valley Farm Stats from ENERGY_TAP_SUNFLOWER_STATE_V4
+  let sfCoins = 0;
+  let sfSeeds = 3;
+  let sfBuckets = 20;
+
+  try {
+    const rawSf = localStorage.getItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    if (rawSf) {
+      const sfState = JSON.parse(rawSf);
+      if (typeof sfState.coins === 'number') sfCoins = sfState.coins;
+      if (typeof sfState.seeds === 'number') sfSeeds = sfState.seeds;
+      if (typeof sfState.baskets === 'number') sfBuckets = sfState.baskets;
+    }
+  } catch (e) {}
 
   const tabCoinsEl = document.getElementById('tabSfCoins');
   const tabSeedsEl = document.getElementById('tabSfSeeds');
   const tabBucketsEl = document.getElementById('tabSfBuckets');
 
-  if (tabCoinsEl) tabCoinsEl.textContent = `${parseInt(sfCoins, 10).toLocaleString()} 🌻`;
+  if (tabCoinsEl) tabCoinsEl.textContent = `${Math.floor(sfCoins).toLocaleString()} 🌻`;
   if (tabSeedsEl) tabSeedsEl.textContent = `${sfSeeds} 🌱`;
   if (tabBucketsEl) tabBucketsEl.textContent = `${sfBuckets} 🪣`;
 }
@@ -571,4 +584,24 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', () => {
     ArcadeAudio.init();
   }, { once: true });
+});
+
+// Real-Time Cross-Tab / Cross-Window Synchronization
+window.addEventListener('storage', (e) => {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'ENERGY_TAP_SUNFLOWER_STATE_V4') {
+    updateGameDisplays();
+  }
+});
+
+try {
+  const syncChannel = new BroadcastChannel('nova_task_sync');
+  syncChannel.onmessage = () => {
+    updateGameDisplays();
+  };
+} catch (e) {}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    updateGameDisplays();
+  }
 });

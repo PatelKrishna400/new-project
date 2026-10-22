@@ -1,0 +1,31 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "system": {
+      "tasks_config": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "tasks": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["createdAt", "updatedAt"]
+    },
+    "users": {
+      ".read": true,
+      ".write": true,
+      "$user_id": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": ["coins", "stars"]
+      }
+    },
+    "withdrawals": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["status", "timestamp"]
+    }
+  }
+}

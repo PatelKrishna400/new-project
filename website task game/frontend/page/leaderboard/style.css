@@ -35,7 +35,7 @@ body {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding-bottom: 148px;
+  padding-bottom: 154px;
 }
 
 .home-header {
@@ -87,17 +87,32 @@ body {
   letter-spacing: 0.04em;
 }
 
-.coin-pill {
+.header-pills {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+}
+
+.coin-pill,
+.star-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   background: #0a1738;
   border: 1px solid #38bdf8;
-  padding: 0.35rem 0.8rem;
+  padding: 0.3rem 0.65rem;
   border-radius: 9999px;
   font-weight: 800;
   color: #fbbf24;
-  font-size: 0.9rem;
+  font-size: 0.825rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.star-pill {
+  border-color: #facc15;
+  color: #facc15;
+  background: linear-gradient(135deg, #1f1b0a 0%, #0a1738 100%);
+  box-shadow: 0 2px 8px rgba(250, 204, 21, 0.2);
 }
 
 /* ==========================================================================
@@ -845,7 +860,191 @@ body {
 
 .btn-tasks:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+}
+/* ==========================================================================
+   STICKY USER REAL-TIME RANK BAR (ABOVE MENU BAR)
+   - Docked at bottom: 74px (directly above .below-menu-bar)
+   - Real-time rank, avatar, user name, live coins, and status
+   ========================================================================== */
+.sticky-user-rank-bar {
+  position: fixed;
+  bottom: 74px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  height: 64px;
+  background: linear-gradient(135deg, rgba(8, 20, 52, 0.98) 0%, rgba(5, 12, 32, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-left: 1px solid rgba(56, 189, 248, 0.2);
+  border-right: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 
+    0 -8px 24px rgba(0, 0, 0, 0.8),
+    0 -2px 10px rgba(56, 189, 248, 0.15),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.85rem;
+  z-index: 999;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.sticky-user-rank-bar:hover {
+  background: linear-gradient(135deg, rgba(12, 30, 75, 0.98) 0%, rgba(7, 18, 45, 0.98) 100%);
+  border-top-color: #38bdf8;
+  box-shadow: 
+    0 -10px 28px rgba(0, 0, 0, 0.9),
+    0 0 18px rgba(56, 189, 248, 0.3);
+}
+
+.user-rank-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.user-rank-badge {
+  font-size: 0.82rem;
+  font-weight: 900;
+  padding: 0.25rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.18);
+  border: 1.5px solid #38bdf8;
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  min-width: 40px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.user-rank-badge.rank-1 {
+  background: linear-gradient(135deg, #78350f, #b45309);
+  border-color: #fef08a;
+  color: #fef08a;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.6);
+}
+
+.user-rank-badge.rank-2 {
+  background: linear-gradient(135deg, #334155, #475569);
+  border-color: #cbd5e1;
+  color: #f1f5f9;
+  box-shadow: 0 0 10px rgba(203, 213, 225, 0.4);
+}
+
+.user-rank-badge.rank-3 {
+  background: linear-gradient(135deg, #431407, #7c2d12);
+  border-color: #fdba74;
+  color: #ffedd5;
+  box-shadow: 0 0 10px rgba(251, 146, 60, 0.4);
+}
+
+.user-rank-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  border: 2px solid #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+}
+
+.user-rank-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.user-rank-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.user-rank-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+
+.user-rank-you-pill {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 0.05rem 0.35rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+}
+
+.user-rank-status-sub {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 155px;
+}
+
+.user-rank-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.user-rank-coins {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #fbbf24;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.user-rank-stars {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #facc15;
+}
+
+.row-you-pill {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 0.05rem 0.35rem;
+  border-radius: 9999px;
+  letter-spacing: 0.04em;
+  margin-left: 0.35rem;
+}
+
+/* Enhanced Highlight for current user in the list */
+.leader-row-card.highlight-me {
+  border: 1.5px solid #fbbf24 !important;
+  background: linear-gradient(155deg, #1f1a08 0%, #0c1a3e 100%) !important;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(254, 240, 138, 0.25) !important;
+}
+
+.podium-player-card.is-me {
+  filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.8));
 }
 
 /* ==========================================================================
@@ -862,13 +1061,12 @@ body {
   background: linear-gradient(180deg, rgba(8, 18, 48, 0.94) 0%, rgba(3, 8, 22, 0.98) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1.5px solid rgba(56, 189, 248, 0.45);
+  border-top: 1px solid rgba(56, 189, 248, 0.2);
   border-left: 1px solid rgba(56, 189, 248, 0.2);
   border-right: 1px solid rgba(56, 189, 248, 0.2);
   box-shadow: 
     0 -10px 28px rgba(0, 0, 0, 0.85),
-    inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-    0 0 20px rgba(56, 189, 248, 0.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -878,61 +1076,17 @@ body {
   animation: menuBarAmbientPulse 6s ease-in-out infinite;
 }
 
-/* Animated multi-color chromatic neon laser beam sweeping along top rim */
-.below-menu-bar::before {
-  content: '';
-  position: absolute;
-  top: -1.5px;
-  left: 0;
-  width: 100%;
-  height: 2.5px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(0, 240, 255, 0.15) 10%, 
-    #00f0ff 25%, 
-    #818cf8 40%, 
-    #ec4899 50%, 
-    #facc15 65%, 
-    #10b981 78%, 
-    #00f0ff 90%, 
-    transparent 100%
-  );
-  background-size: 300% 100%;
-  animation: menuTopLaserSweep 3.5s linear infinite;
-  pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.7));
-}
-
-@keyframes menuTopLaserSweep {
-  0% { background-position: 300% 0; }
-  100% { background-position: -300% 0; }
-}
-
-/* Smooth ambient multi-color breathing aura (cyan -> violet -> gold -> cyan) */
+/* Ambient pulse on bottom menu bar (clean subtle shadow without colorful lines) */
 @keyframes menuBarAmbientPulse {
-  0% {
+  0%, 100% {
     box-shadow: 
       0 -10px 28px rgba(0, 0, 0, 0.88),
-      inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-      0 0 20px rgba(0, 240, 255, 0.2);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
-  33% {
+  50% {
     box-shadow: 
-      0 -12px 34px rgba(0, 0, 0, 0.92),
-      inset 0 1.8px 0 rgba(168, 85, 247, 0.45),
-      0 0 26px rgba(168, 85, 247, 0.25);
-  }
-  66% {
-    box-shadow: 
-      0 -12px 34px rgba(0, 0, 0, 0.92),
-      inset 0 1.8px 0 rgba(250, 204, 21, 0.45),
-      0 0 26px rgba(250, 204, 21, 0.25);
-  }
-  100% {
-    box-shadow: 
-      0 -10px 28px rgba(0, 0, 0, 0.88),
-      inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-      0 0 20px rgba(0, 240, 255, 0.2);
+      0 -12px 32px rgba(0, 0, 0, 0.95),
+      inset 0 1px 0 rgba(56, 189, 248, 0.15);
   }
 }
 
@@ -1195,3 +1349,1184 @@ body {
 .center-home-btn.active .center-home-icon-wrap svg {
   animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   LEADERBOARD EVENT BANNER & COUNTDOWN STYLES
+   ========================================================================== */
+/* ==========================================================================
+   LEADERBOARD STREAMLINED ACTIVE SESSION TAB BANNER (NAME + TIMER ONLY)
+   Clickable card opening the Season Details & Rewards Modal
+   ========================================================================== */
+.leaderboard-session-tab-card {
+  background: linear-gradient(135deg, rgba(8, 20, 52, 0.95) 0%, rgba(13, 31, 80, 0.95) 50%, rgba(6, 15, 42, 0.98) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.leaderboard-session-tab-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.1), transparent);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.leaderboard-session-tab-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6), 0 0 24px rgba(56, 189, 248, 0.3);
+}
+
+.leaderboard-session-tab-card:hover::before {
+  left: 100%;
+}
+
+.leaderboard-session-tab-card:active {
+  transform: scale(0.985);
+}
+
+.session-tab-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.session-tab-trophy-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.2) 0%, rgba(217, 119, 6, 0.25) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(250, 204, 21, 0.2);
+}
+
+.session-tab-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.session-tab-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.session-tab-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 0.12rem 0.5rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+}
+
+.session-tab-mini-badge.finished {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.session-tab-mini-badge.finished .event-pulse-dot {
+  background-color: #f87171;
+  box-shadow: 0 0 8px #f87171;
+  animation: none;
+}
+
+.event-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #34d399;
+  box-shadow: 0 0 8px #34d399;
+  animation: pulseDotAnim 1.6s infinite ease-in-out;
+}
+
+@keyframes pulseDotAnim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.session-tab-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.session-tab-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.session-timer-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(2, 6, 20, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 10px;
+  padding: 0.35rem 0.65rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.session-timer-ico {
+  font-size: 0.82rem;
+}
+
+.session-timer-clock {
+  font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #38bdf8;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+}
+
+.session-tab-arrow-cue {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.leaderboard-session-tab-card:hover .session-tab-arrow-cue {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+}
+
+.arrow-glyph {
+  font-size: 0.78rem;
+  transition: transform 0.2s ease;
+}
+
+.leaderboard-session-tab-card:hover .arrow-glyph {
+  transform: translateX(2px);
+}
+
+/* ==========================================================================
+   LEADERBOARD SEASON & REWARDS POPUP MODAL STYLES
+   ========================================================================== */
+.season-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(1, 4, 14, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  animation: fadeInSeason 0.24s ease-out;
+}
+
+@keyframes fadeInSeason {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.season-modal-box {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  background: linear-gradient(180deg, #09173d 0%, #050d24 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(56, 189, 248, 0.15);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  animation: slideUpSeason 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpSeason {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.season-modal-drag-bar {
+  width: 44px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  margin: 0.65rem auto 0.25rem auto;
+}
+
+.season-modal-close-btn {
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.season-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+.season-modal-header {
+  padding: 0.5rem 1.25rem 0.85rem 1.25rem;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  text-align: center;
+  position: relative;
+}
+
+.season-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #34d399;
+  padding: 0.18rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.season-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+  animation: pulseDotAnim 1.6s infinite;
+}
+
+.season-modal-title {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 0.45rem 0;
+  letter-spacing: -0.01em;
+}
+
+.season-modal-timer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(3, 8, 24, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 999px;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.season-modal-timer-pill .timer-time {
+  color: #38bdf8;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.season-modal-body {
+  padding: 1rem 1.15rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Season Section Cards */
+.season-section-card {
+  background: linear-gradient(135deg, rgba(8, 20, 52, 0.85) 0%, rgba(5, 14, 38, 0.92) 100%);
+  border: 1.2px solid rgba(56, 189, 248, 0.28);
+  border-radius: 16px;
+  padding: 0.9rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.section-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  flex: 1;
+}
+
+.section-card-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-top: 1px;
+}
+
+.section-card-title-wrap {
+  flex: 1;
+}
+
+.section-card-title {
+  font-size: 0.88rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 0.15rem 0;
+}
+
+.section-card-sub {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.participation-status-pill,
+.quota-badge,
+.rank-prize-badge {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.participation-status-pill.locked {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+}
+
+.participation-status-pill.participated {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.quota-badge {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+}
+
+.rank-prize-badge {
+  background: rgba(250, 204, 21, 0.18);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  color: #facc15;
+}
+
+/* Season Progress Bar Elements */
+.season-progress-bar-wrap {
+  background: rgba(2, 6, 20, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.season-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.progress-lbl {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.progress-val {
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.season-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.season-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.season-bar-fill.fill-blue {
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.season-bar-fill.fill-amber {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 50%, #fbbf24 100%);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.season-progress-sub {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 0.35rem;
+  font-weight: 600;
+}
+
+/* Action Rows & Buttons */
+.btn-season-action {
+  width: 100%;
+  padding: 0.65rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.btn-go-tasks-modal {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.btn-go-tasks-modal:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+  transform: translateY(-1px);
+}
+
+/* Season Ad Action Box (6-Hour Cooldown) */
+.season-ad-action-box {
+  background: rgba(2, 6, 20, 0.6);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.season-cooldown-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.cooldown-label-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cooldown-ico {
+  font-size: 0.85rem;
+}
+
+.cooldown-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.cooldown-val {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #f59e0b;
+}
+
+.btn-season-watch-ad {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  border: 1.5px solid rgba(251, 191, 36, 0.5);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+}
+
+.btn-season-watch-ad:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.5);
+}
+
+.btn-season-watch-ad:disabled {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.watch-ad-play-ico {
+  font-size: 0.85rem;
+}
+
+.ad-reward-pill-tip {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* User Standing Box & Rank Claim */
+.season-user-standing-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(2, 6, 20, 0.7);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.standing-lbl {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.15rem;
+}
+
+.standing-rank-name {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.standing-prize-stars {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #facc15;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.4);
+}
+
+.modal-prizes-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.prize-mini-item {
+  background: rgba(2, 6, 20, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.35rem 0.2rem;
+  text-align: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #cbd5e1;
+}
+
+.prize-mini-item span {
+  display: block;
+  font-size: 0.65rem;
+  color: #facc15;
+  font-weight: 900;
+  margin-top: 1px;
+}
+
+/* Claim Gate Box */
+.season-claim-gate-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.claim-req-warning {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.7rem;
+  color: #fca5a5;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.claim-req-warning.satisfied {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.btn-claim-season-reward {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.25s ease;
+}
+
+.btn-claim-season-reward.active {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+  border: 1.5px solid rgba(74, 222, 128, 0.6);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4), 0 0 16px rgba(74, 222, 128, 0.3);
+  animation: claimPulse 2s infinite;
+}
+
+@keyframes claimPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4), 0 0 12px rgba(74, 222, 128, 0.3); }
+  50% { box-shadow: 0 6px 22px rgba(22, 163, 74, 0.6), 0 0 20px rgba(74, 222, 128, 0.5); }
+}
+
+.btn-claim-season-reward.locked,
+.btn-claim-season-reward:disabled {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  animation: none;
+}
+
+.btn-claim-season-reward.claimed {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+  cursor: default;
+  animation: none;
+}
+
+/* Simulation Tools */
+.season-sim-tools {
+  margin-top: 0.85rem;
+  background: rgba(2, 6, 20, 0.45);
+  border: 1px dashed rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 0.55rem 0.65rem;
+}
+
+.sim-tools-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 0.4rem;
+}
+
+.sim-tools-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.btn-sim-tool {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.22rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.btn-sim-tool:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #ffffff;
+}
+
+/* Modal Footer */
+.season-modal-footer {
+  padding: 0.75rem 1.25rem 1.15rem 1.25rem;
+  border-top: 1px solid rgba(56, 189, 248, 0.18);
+}
+
+.btn-season-modal-close {
+  width: 100%;
+  padding: 0.7rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-season-modal-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   100-TASK QUALIFICATION CARD STYLES
+   ========================================================================== */
+.qualification-card {
+  border-radius: 16px;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.qualification-card.locked {
+  background: linear-gradient(135deg, rgba(30, 20, 8, 0.9) 0%, rgba(45, 26, 12, 0.9) 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 16px rgba(245, 158, 11, 0.1);
+}
+
+.qualification-card.qualified {
+  background: linear-gradient(135deg, rgba(6, 32, 28, 0.9) 0%, rgba(10, 48, 40, 0.9) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 16px rgba(16, 185, 129, 0.1);
+}
+
+.qualify-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.qualify-status-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+}
+
+.qualify-status-pill.locked {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+}
+
+.qualify-status-pill.qualified {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+}
+
+.qualify-req-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+}
+
+.qualify-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.2rem;
+}
+
+.qualify-desc {
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  line-height: 1.35;
+  margin-bottom: 0.65rem;
+}
+
+.qualify-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+}
+
+.qualify-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(3, 8, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.qualify-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.qualify-bar-fill.qualified {
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.qualify-bar-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.btn-go-tasks {
+  display: block;
+  text-align: center;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.5rem 0.9rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-go-tasks:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.6);
+}
+
+/* Podium & Contender Task Badges */
+.pillar-task-count {
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  margin-bottom: 2px;
+}
+
+.gold-tasks {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.15);
+  border-color: rgba(250, 204, 21, 0.4);
+}
+
+.row-task-pill {
+  font-size: 0.66rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  padding: 0.12rem 0.4rem;
+  border-radius: 6px;
+}
+
+/* Locked Sticky Rank Bar */
+.user-rank-badge.rank-locked {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+
+/* ==========================================================================
+   3-MONTH SEASON STAR PRIZES SHOWCASE STYLING
+   ========================================================================== */
+.leaderboard-prizes-card {
+  background: linear-gradient(135deg, rgba(16, 24, 52, 0.95) 0%, rgba(24, 38, 80, 0.95) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.35);
+  border-radius: 16px;
+  padding: 0.85rem;
+  margin-bottom: 0.9rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), 0 0 16px rgba(250, 204, 21, 0.12);
+}
+
+.prizes-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.prizes-title {
+  font-size: 0.76rem;
+  font-weight: 900;
+  color: #fde047;
+  letter-spacing: 0.04em;
+}
+
+.prizes-pool-badge {
+  font-size: 0.66rem;
+  font-weight: 900;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+}
+
+.prizes-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.35rem;
+}
+
+.prize-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.3rem;
+  border-radius: 10px;
+  background: rgba(3, 8, 22, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.prize-pill.prize-1st {
+  grid-column: span 2;
+  border-color: rgba(250, 204, 21, 0.55);
+  background: linear-gradient(135deg, rgba(40, 30, 8, 0.8) 0%, rgba(70, 50, 10, 0.8) 100%);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+}
+
+.prize-pill.prize-2nd {
+  grid-column: span 2;
+  border-color: rgba(226, 232, 240, 0.45);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
+}
+
+.prize-pill.prize-3rd {
+  grid-column: span 2;
+  border-color: rgba(251, 146, 60, 0.45);
+  background: linear-gradient(135deg, rgba(67, 20, 7, 0.8) 0%, rgba(124, 45, 18, 0.8) 100%);
+}
+
+.prize-pill.prize-mid {
+  grid-column: span 3;
+  border-color: rgba(56, 189, 248, 0.4);
+  background: linear-gradient(135deg, rgba(8, 20, 52, 0.75) 0%, rgba(14, 30, 75, 0.75) 100%);
+}
+
+.prize-pill.prize-low {
+  grid-column: span 3;
+  border-color: rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.prize-rank {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.prize-1st .prize-rank { color: #fde047; }
+.prize-2nd .prize-rank { color: #e2e8f0; }
+.prize-3rd .prize-rank { color: #fdba74; }
+.prize-mid .prize-rank { color: #38bdf8; }
+.prize-low .prize-rank { color: #94a3b8; }
+
+.prize-stars {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #facc15;
+}
+
+/* Podium Pillar Star Prize Badges */
+.pillar-prize-pill {
+  font-size: 0.65rem;
+  font-weight: 900;
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  margin-bottom: 2px;
+  display: inline-block;
+}
+
+.gold-prize {
+  color: #fef08a;
+  background: rgba(234, 179, 8, 0.25);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
+}
+
+.silver-prize {
+  color: #ffffff;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(226, 232, 240, 0.4);
+}
+
+.bronze-prize {
+  color: #fdba74;
+  background: rgba(194, 65, 12, 0.2);
+  border: 1px solid rgba(251, 146, 60, 0.4);
+}
+
+/* Contenders Row Star Prize Badge */
+.row-star-prize {
+  font-size: 0.64rem;
+  font-weight: 900;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.14);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Contenders Row Task Pill */
+.row-task-pill {
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Empty Ranks State */
+.empty-ranks-box {
+  text-align: center;
+  padding: 2.2rem 1.2rem;
+  background: rgba(10, 23, 56, 0.65);
+  border: 1px dashed rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.empty-ranks-icon {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 2px 8px rgba(250, 204, 21, 0.5));
+}
+
+.empty-ranks-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.empty-ranks-desc {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.btn-qualify-now {
+  margin-top: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%);
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-qualify-now:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.5);
+}
+
+
+

@@ -4,14 +4,23 @@
 
 #pageSunflower {
   position: relative;
-  padding-bottom: 96px;
-  background-color: #ffffff !important;
-  background: #ffffff !important;
-  overflow-x: clip;
+  width: 100%;
+  max-width: 440px;
   min-height: 100vh;
+  margin: 0 auto;
+  padding-bottom: 84px !important;
+  background-color: #0c0a09 !important;
+  background: radial-gradient(circle at 50% 0%, #1c1917 0%, #0c0a09 100%) !important;
+  border-left: 1px solid rgba(245, 158, 11, 0.25);
+  border-right: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.1);
+  overflow-x: clip;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column;
 }
 
-/* Atmospheric Scenic Stage hidden for clean white background */
+/* Atmospheric Scenic Stage hidden for clean background */
 .sf-tab-scenic-stage {
   display: none !important;
 }
@@ -20,8 +29,10 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  max-width: 1100px;
+  max-width: 440px;
   margin: 0 auto;
+  padding: 0 8px 84px 8px !important;
+  box-sizing: border-box;
   font-family: 'Fredoka', 'Quicksand', -apple-system, sans-serif;
   user-select: none;
   -webkit-user-select: none;
@@ -277,30 +288,244 @@
   color: #1e293b !important;
 }
 
-/* SF Page 3: Dedicated Shop & Depot High-Contrast Dark Luxury Styling */
+/* ==========================================================================
+   SF PAGE 3: 🏪 GARDEN STORE & DEPOT (LUSH GARDEN PALETTE)
+   - Matches the Garden Page (sfPage1) vibrant sketch card aesthetics
+   - Vivid thematic colors: Mint Green (Seed), Aquifer Sky Blue (Bucket),
+     Coral Terracotta (Shovel), Solar Gold (Profit), Turbo Teal (Speed)
+   ========================================================================== */
 #sfPage3 {
-  background: linear-gradient(180deg, #181512 0%, #0c0a09 100%) !important;
-  border: 1.5px solid rgba(245, 158, 11, 0.5) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(245, 158, 11, 0.15) !important;
-  color: #fef3c7 !important;
+  background: #fffbeb !important;
+  border: 2px solid #fde047 !important;
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  color: #1e293b !important;
 }
-#sfPage3 .bg-stone-950\/80,
-#sfPage3 .bg-stone-950\/90 {
-  background: rgba(28, 25, 23, 0.95) !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
-  color: #fef3c7 !important;
+
+#sfPage3 .sf-shop-header {
+  border-bottom: 2px solid #fef08a;
+  padding-bottom: 12px;
 }
-#sfPage3 .text-stone-300 {
-  color: #cbd5e1 !important;
+
+.sf-shop-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  user-select: none;
 }
-#sfPage3 .text-amber-300 {
-  color: #fde047 !important;
+
+.sf-shop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
 }
-#sfPage3 .text-cyan-300 {
-  color: #67e8f9 !important;
+
+/* 1. SEED / BABY PLANT - LUSH GARDEN MINT & EMERALD */
+.sf-shop-card.seed {
+  border: 2px solid #86efac;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+  box-shadow: 0 4px 18px rgba(34, 197, 94, 0.1);
 }
-#sfPage3 .text-stone-200 {
-  color: #e2e8f0 !important;
+.sf-shop-card.seed:hover {
+  border-color: #22c55e;
+  box-shadow: 0 8px 26px rgba(34, 197, 94, 0.18);
+}
+.sf-shop-card.seed .sf-shop-square {
+  background: linear-gradient(145deg, #f0fdf4, #dcfce7);
+  border: 2px solid #86efac;
+}
+
+/* 2. WATER BUCKET - AQUIFER SKY BLUE & CYAN */
+.sf-shop-card.bucket {
+  border: 2px solid #7dd3fc;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  box-shadow: 0 4px 18px rgba(2, 132, 199, 0.1);
+}
+.sf-shop-card.bucket:hover {
+  border-color: #0284c7;
+  box-shadow: 0 8px 26px rgba(2, 132, 199, 0.18);
+}
+.sf-shop-card.bucket .sf-shop-square {
+  background: linear-gradient(145deg, #f0f9ff, #bae6fd);
+  border: 2px solid #7dd3fc;
+}
+
+/* 3. SHOVEL - CORAL TERRACOTTA & ROSE */
+.sf-shop-card.shovel {
+  border: 2px solid #fda4af;
+  background: linear-gradient(135deg, #ffffff 0%, #fff1f2 100%);
+  box-shadow: 0 4px 18px rgba(225, 29, 72, 0.1);
+}
+.sf-shop-card.shovel:hover {
+  border-color: #e11d48;
+  box-shadow: 0 8px 26px rgba(225, 29, 72, 0.18);
+}
+.sf-shop-card.shovel .sf-shop-square {
+  background: linear-gradient(145deg, #fff1f2, #fecdd3);
+  border: 2px solid #fda4af;
+}
+
+/* 4. PROFIT MULTIPLIER - SOLAR GOLDEN AMBER */
+.sf-shop-card.booster {
+  border: 2px solid #fde047;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  box-shadow: 0 4px 18px rgba(245, 158, 11, 0.12);
+}
+.sf-shop-card.booster:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 26px rgba(245, 158, 11, 0.2);
+}
+.sf-shop-card.booster .sf-shop-square {
+  background: radial-gradient(circle at 50% 40%, #fef9c3 0%, #fef08a 60%, #fde047 100%);
+  border: 2px solid #f59e0b;
+}
+
+/* 5. SPEED MULTIPLIER - TURBO MINT & TEAL */
+.sf-shop-card.speed {
+  border: 2px solid #5eead4;
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%);
+  box-shadow: 0 4px 18px rgba(13, 148, 136, 0.12);
+}
+.sf-shop-card.speed:hover {
+  border-color: #0d9488;
+  box-shadow: 0 8px 26px rgba(13, 148, 136, 0.2);
+}
+.sf-shop-card.speed .sf-shop-square {
+  background: linear-gradient(145deg, #f0fdfa, #99f6e4);
+  border: 2px solid #5eead4;
+}
+
+/* SQUARE ICON BOX (Identical size & layout to sf-sketch-square) */
+.sf-shop-square {
+  width: 104px;
+  min-width: 104px;
+  height: 104px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06), 0 3px 8px rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  text-align: center;
+}
+
+.sf-shop-square-art {
+  font-size: 36px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.14));
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.sf-shop-card:hover .sf-shop-square-art {
+  transform: scale(1.15);
+}
+
+.sf-shop-square-badge {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* Content layout */
+.sf-shop-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sf-shop-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sf-shop-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1e293b;
+  letter-spacing: -0.2px;
+}
+
+.sf-shop-price-tag {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 900;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.sf-shop-middle {
+  font-size: 11px;
+  color: #475569;
+  line-height: 1.35;
+}
+
+.sf-shop-inventory {
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.sf-shop-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.sf-shop-btn {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sf-shop-btn:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 640px) {
+  .sf-shop-square {
+    width: 88px;
+    min-width: 88px;
+    height: 88px;
+  }
+  .sf-shop-square-art {
+    font-size: 28px;
+  }
+  .sf-shop-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
 }
 
 /* Soil Beds */
@@ -354,7 +579,7 @@
    ========================================================================== */
 #pageSunflower {
   padding-top: 8px !important;
-  padding-bottom: 96px !important;
+  padding-bottom: 0 !important;
 }
 
 .sf-sticky-header-bar {
@@ -366,20 +591,24 @@
   opacity: 1 !important;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
   min-height: 50px !important;
   height: auto !important;
   flex-shrink: 0 !important;
-  padding: 8px 12px !important;
+  padding: 8px 10px !important;
   background: linear-gradient(135deg, rgba(28, 25, 23, 0.96) 0%, rgba(18, 15, 13, 0.98) 100%) !important;
-  border: 1.5px solid rgba(245, 158, 11, 0.45) !important;
-  border-radius: 18px !important;
+  border-bottom: 1.5px solid rgba(245, 158, 11, 0.35) !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
   box-shadow: 
     0 4px 20px rgba(0, 0, 0, 0.45),
     0 0 16px rgba(245, 158, 11, 0.15),
     inset 0 1px 0 rgba(254, 240, 138, 0.2) !important;
-  margin: 4px 0 12px 0 !important;
+  margin: 0 0 10px 0 !important;
   width: 100%;
+  max-width: 440px;
   box-sizing: border-box !important;
   overflow: visible !important;
 }
@@ -440,7 +669,7 @@
 
 .sf-sticky-title-text {
   font-family: 'Fredoka', 'Plus Jakarta Sans', sans-serif;
-  font-size: 13.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #fde047 !important;
   letter-spacing: -0.2px;
@@ -452,7 +681,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 5px;
+  gap: 3.5px;
   overflow: visible !important;
   flex-shrink: 1;
   min-width: 0;
@@ -463,8 +692,8 @@
 .sf-hdr-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
+  gap: 3px;
+  padding: 3.5px 6.5px;
   border-radius: 9999px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -483,7 +712,7 @@
 }
 
 .sf-hdr-ico {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
@@ -493,7 +722,7 @@
 
 .sf-hdr-val {
   font-family: 'Fredoka', 'Quicksand', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.1px;
@@ -549,12 +778,13 @@
   box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(254, 240, 138, 0.4);
 }
 
-/* 6. 💎 Diamonds: Radiant Cyan Crystal Glow */
+/* 6. ⭐ Star Coins / Diamonds: Radiant Golden Amber Glow */
+.sf-hdr-pill.pill-star,
 .sf-hdr-pill.pill-diamond {
-  background: linear-gradient(135deg, #0e7490 0%, #083344 100%);
-  border: 1.5px solid #22d3ee;
-  color: #cffafe;
-  box-shadow: 0 2px 8px rgba(34, 211, 238, 0.35), inset 0 1px 0 rgba(207, 250, 254, 0.4);
+  background: linear-gradient(135deg, #78350f 0%, #451a03 100%);
+  border: 1.5px solid #fbbf24;
+  color: #fef08a;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35), inset 0 1px 0 rgba(254, 240, 138, 0.4);
 }
 
 .sf-hdr-pill.pill-firebase {
@@ -1462,30 +1692,34 @@ body.page-sunflower-active .bottom-nav {
 }
 
 .sf-bottom-menu-bar {
-  display: none;
+  display: flex !important;
   position: fixed !important;
-  bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  bottom: 0 !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   right: auto !important;
   height: 64px !important;
   margin: 0 !important;
-  width: calc(100% - 24px) !important;
-  max-width: 420px !important;
-  background: #ffffff !important;
-  border: 2px solid #f59e0b !important;
-  border-radius: 32px;
+  width: 100% !important;
+  max-width: 440px !important;
+  background: rgba(28, 25, 23, 0.98) !important;
+  border-top: 2px solid #f59e0b !important;
+  border-left: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-right: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-bottom: none !important;
+  border-radius: 20px 20px 0 0 !important;
   align-items: center;
   justify-content: space-around;
-  padding: 0 8px max(0px, env(safe-area-inset-bottom)) 8px;
+  padding: 0 4px max(0px, env(safe-area-inset-bottom)) 4px !important;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 
-    0 8px 24px rgba(245, 158, 11, 0.35),
-    0 2px 6px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 #ffffff;
+    0 -8px 24px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(254, 240, 138, 0.2);
   z-index: 9999 !important;
   flex-shrink: 0;
+  box-sizing: border-box !important;
 }
 
 #pageSunflower.active .sf-bottom-menu-bar,
@@ -1498,7 +1732,7 @@ body.page-sunflower-active #sfBottomMenuBar {
 }
 
 .sunflower-tycoon-container {
-  padding-bottom: 96px !important;
+  padding-bottom: 76px !important;
 }
 
 .sf-bottom-menu-bar::before {
@@ -1913,29 +2147,34 @@ body.page-sunflower-active #sfBottomMenuBar {
    SUNFLOWER VALLEY 5-TAB BOTTOM NAVIGATION BAR
    ========================================================================== */
 .sf-bottom-menu-bar {
-  display: none;
+  display: flex !important;
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  right: auto;
   height: calc(64px + max(0px, env(safe-area-inset-bottom)));
-  margin: 0 auto max(8px, env(safe-area-inset-bottom)) auto;
-  width: calc(100% - 24px);
+  margin: 0;
+  width: 100%;
   max-width: 440px;
   background: #1c1917 !important;
-  border: 2px solid #f59e0b !important;
-  border-radius: 32px;
+  border-top: 2px solid #f59e0b !important;
+  border-left: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-right: 1px solid rgba(245, 158, 11, 0.3) !important;
+  border-bottom: none !important;
+  border-radius: 20px 20px 0 0;
   align-items: center;
   justify-content: space-around;
   padding: 0 8px max(0px, env(safe-area-inset-bottom)) 8px;
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 
-    0 8px 24px rgba(245, 158, 11, 0.35),
-    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 -8px 24px rgba(0, 0, 0, 0.7),
+    0 0 16px rgba(245, 158, 11, 0.35),
     inset 0 1px 0 rgba(254, 240, 138, 0.2);
   z-index: 120;
   flex-shrink: 0;
+  box-sizing: border-box !important;
 }
 
 #pageSunflower.active .sf-bottom-menu-bar,
@@ -3138,6 +3377,27 @@ body.page-sunflower-active .sf-bottom-menu-bar {
 .sf-mgr-card.water-card .sf-mgr-unlock-btn {
   background: linear-gradient(180deg, #0891b2 0%, #0e7490 100%);
   border: 1px solid #22d3ee;
+}
+
+/* Water Bucket Throw Animation on Plot Tile */
+.sf-tile-water-splash {
+  animation: sfTileWaterSplashAnim 0.6s ease-out forwards;
+}
+
+@keyframes sfTileWaterSplashAnim {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(14, 165, 233, 0);
+  }
+  30% {
+    transform: scale(1.025);
+    box-shadow: 0 0 24px rgba(14, 165, 233, 0.6), inset 0 0 16px rgba(56, 189, 248, 0.4);
+    border-color: #38bdf8 !important;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(14, 165, 233, 0);
+  }
 }
 
 

@@ -87,17 +87,32 @@ body {
   letter-spacing: 0.04em;
 }
 
-.coin-pill {
+.header-pills {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
+}
+
+.coin-pill,
+.star-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
   background: #0a1738;
   border: 1px solid #38bdf8;
-  padding: 0.35rem 0.8rem;
+  padding: 0.3rem 0.65rem;
   border-radius: 9999px;
   font-weight: 800;
   color: #fbbf24;
-  font-size: 0.9rem;
+  font-size: 0.825rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.star-pill {
+  border-color: #facc15;
+  color: #facc15;
+  background: linear-gradient(135deg, #1f1b0a 0%, #0a1738 100%);
+  box-shadow: 0 2px 8px rgba(250, 204, 21, 0.2);
 }
 
 .page-content {
@@ -169,8 +184,8 @@ body {
 }
 
 .shop-name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.92rem;
+  font-weight: 800;
   color: #ffffff;
 }
 
@@ -237,13 +252,12 @@ body {
   background: linear-gradient(180deg, rgba(8, 18, 48, 0.94) 0%, rgba(3, 8, 22, 0.98) 100%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-top: 1.5px solid rgba(56, 189, 248, 0.45);
+  border-top: 1px solid rgba(56, 189, 248, 0.2);
   border-left: 1px solid rgba(56, 189, 248, 0.2);
   border-right: 1px solid rgba(56, 189, 248, 0.2);
   box-shadow: 
     0 -10px 28px rgba(0, 0, 0, 0.85),
-    inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-    0 0 20px rgba(56, 189, 248, 0.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -253,61 +267,17 @@ body {
   animation: menuBarAmbientPulse 6s ease-in-out infinite;
 }
 
-/* Animated multi-color chromatic neon laser beam sweeping along top rim */
-.below-menu-bar::before {
-  content: '';
-  position: absolute;
-  top: -1.5px;
-  left: 0;
-  width: 100%;
-  height: 2.5px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(0, 240, 255, 0.15) 10%, 
-    #00f0ff 25%, 
-    #818cf8 40%, 
-    #ec4899 50%, 
-    #facc15 65%, 
-    #10b981 78%, 
-    #00f0ff 90%, 
-    transparent 100%
-  );
-  background-size: 300% 100%;
-  animation: menuTopLaserSweep 3.5s linear infinite;
-  pointer-events: none;
-  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.7));
-}
-
-@keyframes menuTopLaserSweep {
-  0% { background-position: 300% 0; }
-  100% { background-position: -300% 0; }
-}
-
-/* Smooth ambient multi-color breathing aura (cyan -> violet -> gold -> cyan) */
+/* Ambient pulse on bottom menu bar (clean subtle shadow without colorful lines) */
 @keyframes menuBarAmbientPulse {
-  0% {
+  0%, 100% {
     box-shadow: 
       0 -10px 28px rgba(0, 0, 0, 0.88),
-      inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-      0 0 20px rgba(0, 240, 255, 0.2);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
-  33% {
+  50% {
     box-shadow: 
-      0 -12px 34px rgba(0, 0, 0, 0.92),
-      inset 0 1.8px 0 rgba(168, 85, 247, 0.45),
-      0 0 26px rgba(168, 85, 247, 0.25);
-  }
-  66% {
-    box-shadow: 
-      0 -12px 34px rgba(0, 0, 0, 0.92),
-      inset 0 1.8px 0 rgba(250, 204, 21, 0.45),
-      0 0 26px rgba(250, 204, 21, 0.25);
-  }
-  100% {
-    box-shadow: 
-      0 -10px 28px rgba(0, 0, 0, 0.88),
-      inset 0 1.5px 0 rgba(56, 189, 248, 0.35),
-      0 0 20px rgba(0, 240, 255, 0.2);
+      0 -12px 32px rgba(0, 0, 0, 0.95),
+      inset 0 1px 0 rgba(56, 189, 248, 0.15);
   }
 }
 
@@ -570,3 +540,176 @@ body {
 .center-home-btn.active .center-home-icon-wrap svg {
   animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   5-HOUR AD COOLDOWN COMMENT TAB (ORANGE FILLED TAB & BLACK TIMER TAB)
+   ========================================================================== */
+.shop-ad-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0.65rem !important;
+  position: relative;
+}
+
+.shop-card-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.btn-disabled-cooldown {
+  background: linear-gradient(155deg, #1e293b 0%, #0f172a 100%) !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  opacity: 0.75;
+}
+
+/* Comment-style Bubble Wrapper below the button */
+.ad-timer-comment-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  animation: slideDownComment 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDownComment {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Comment Speech Bubble Top Pointer Arrow */
+.comment-bubble-arrow {
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 9px solid #f97316;
+  margin-left: auto;
+  margin-right: 26px;
+  margin-bottom: -1px;
+  z-index: 2;
+  filter: drop-shadow(0 -2px 3px rgba(249, 115, 22, 0.5));
+}
+
+/* Comment Speech Box Container */
+.ad-timer-comment-box {
+  background: linear-gradient(160deg, #130a04 0%, #080a14 100%);
+  border: 1.5px solid #f97316;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 14px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+  z-index: 1;
+}
+
+.ad-timer-tabs-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Orange Colour Filled Tab */
+.timer-tab-orange {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #000000;
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  border: 1px solid #fdba74;
+}
+
+.tab-orange-icon {
+  font-size: 0.85rem;
+  animation: spinHourglass 3s ease-in-out infinite;
+}
+
+@keyframes spinHourglass {
+  0%, 80% { transform: rotate(0deg); }
+  90%, 100% { transform: rotate(180deg); }
+}
+
+.tab-orange-text {
+  font-family: inherit;
+  font-weight: 900;
+}
+
+/* Black Colour Tab With Timer Written Inside */
+.timer-tab-black {
+  flex: 1;
+  background: #000000;
+  border: 1.5px solid #f97316;
+  border-radius: 8px;
+  padding: 0.35rem 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(249, 115, 22, 0.2);
+}
+
+.tab-black-clock {
+  font-size: 0.85rem;
+}
+
+.tab-black-timer {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #fbbf24;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(251, 191, 36, 0.7), 0 0 20px rgba(249, 115, 22, 0.4);
+}
+
+/* Comment Footer */
+.ad-timer-comment-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.65rem;
+  color: #94a3b8;
+  border-top: 1px dashed rgba(249, 115, 22, 0.25);
+  padding-top: 0.35rem;
+}
+
+.comment-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 6px #f97316;
+  animation: blinkOrangeDot 1.2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes blinkOrangeDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.75); }
+}
+
+.comment-note-text {
+  font-weight: 600;
+  color: #cbd5e1;
+}
+

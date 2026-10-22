@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Frontend — Powerup Shop</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../telegram-stars.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
@@ -20,9 +22,15 @@
           <span class="user-level">ITEM SHOP</span>
         </div>
       </div>
-      <div class="coin-pill">
-        <span>🪙</span>
-        <span class="coin-value" id="shopCoinsDisplay">0</span>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="shopCoinsDisplayTop">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="shopStarsDisplayTop">0</span>
+        </div>
       </div>
     </header>
 
@@ -38,47 +46,80 @@
             <div style="font-size:1.05rem; font-weight:800; color:#ffffff;" id="shopCoinsDisplay">0</div>
           </div>
         </div>
-        <div style="flex:1; background:#0a1738; border:1px solid rgba(250,204,21,0.3); border-radius:12px; padding:0.6rem 0.8rem; display:flex; align-items:center; gap:0.5rem;">
-          <span style="font-size:1.25rem;">⭐</span>
-          <div>
-            <div style="font-size:0.65rem; color:#94a3b8; font-weight:700;">YOUR STARS</div>
-            <div style="font-size:1.05rem; font-weight:800; color:#facc15;" id="shopStarsDisplay">0</div>
+        <div style="flex:1; background:#0a1738; border:1px solid rgba(250,204,21,0.3); border-radius:12px; padding:0.6rem 0.8rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:1.25rem;">⭐</span>
+            <div>
+              <div style="font-size:0.65rem; color:#94a3b8; font-weight:700;">YOUR STARS</div>
+              <div style="font-size:1.05rem; font-weight:800; color:#facc15;" id="shopStarsDisplay">0</div>
+            </div>
           </div>
+          <button type="button" class="btn-tg-buy-mini" onclick="window.TelegramStars && window.TelegramStars.openModal()" style="font-size:0.65rem; padding:3px 7px;">+ Top-Up</button>
         </div>
       </div>
 
+      <!-- Telegram Stars Official Store Section -->
+      <div id="tgStarsStorePlaceholder"></div>
+
       <div class="tasks-banner">
         <h1 class="tasks-title">Shop &amp; Rewards</h1>
-        <p class="tasks-subtitle">Watch ads for free coins &amp; buy reward stars</p>
       </div>
 
       <div class="shop-list">
         
-        <!-- 1. Watch Ads -> Win 10 Coins -->
-        <div class="shop-card" style="border: 1.5px solid rgba(56,189,248,0.4); background: linear-gradient(155deg, #0e2052 0%, #081335 100%);">
-          <div class="shop-icon-wrap" style="background: rgba(56,189,248,0.15); border-color:#38bdf8;">📢</div>
-          <div class="shop-info">
-            <div class="shop-name" style="color:#38bdf8; display:flex; align-items:center; gap:0.35rem;">
-              <span>Watch Ads — Win Coins</span>
-              <span style="font-size:0.6rem; background:#0284c7; color:#fff; padding:0.1rem 0.4rem; border-radius:999px; font-weight:800;">FREE</span>
+        <!-- 1. Watch Ads -> Win 10 Coins (With 5-Hour Cooldown Comment Tab) -->
+        <div class="shop-card shop-ad-card" id="shopAdCard" style="border: 1.5px solid rgba(56,189,248,0.4); background: linear-gradient(155deg, #0e2052 0%, #081335 100%);">
+          <div class="shop-card-main-row">
+            <div class="shop-icon-wrap" style="background: rgba(56,189,248,0.15); border-color:#38bdf8;">📢</div>
+            <div class="shop-info">
+              <div class="shop-name" style="color:#38bdf8; display:flex; align-items:center; gap:0.35rem;">
+                <span>Watch Ads — Win Coins</span>
+                <span style="font-size:0.6rem; background:#0284c7; color:#fff; padding:0.1rem 0.4rem; border-radius:999px; font-weight:800;">FREE</span>
+              </div>
+              <div class="shop-desc">Watch a short sponsored video &amp; win coins</div>
+              <div class="shop-price" style="color:#38bdf8;">🪙 +10 Coins Free &bull; 5h Timer</div>
             </div>
-            <div class="shop-desc">Watch a short sponsored video &amp; win coins</div>
-            <div class="shop-price" style="color:#38bdf8;">🪙 +10 Coins Free</div>
+            <button class="btn-buy" id="btnWatchAd" style="background:linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%); border-color:#60a5fa #2563eb #0b1a3d #1d4ed8;" onclick="watchAdForCoins(this)">
+              Watch Ad
+            </button>
           </div>
-          <button class="btn-buy" style="background:linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%); border-color:#60a5fa #2563eb #0b1a3d #1d4ed8;" onclick="watchAdForCoins(this)">
-            Watch Ad
-          </button>
+
+          <!-- 5-Hour Timer Comment Bubble (Shows below like a comment when ad is watched) -->
+          <div class="ad-timer-comment-wrap" id="adTimerCommentWrap" style="display: none;">
+            <!-- Speech-bubble pointer arrow pointing up towards the Watch Ad button -->
+            <div class="comment-bubble-arrow"></div>
+
+            <div class="ad-timer-comment-box">
+              <div class="ad-timer-tabs-row">
+                <!-- 1. Orange Colour Filled Tab -->
+                <div class="timer-tab-orange">
+                  <span class="tab-orange-icon">⏳</span>
+                  <span class="tab-orange-text">NEXT AD IN</span>
+                </div>
+
+                <!-- 2. Black Colour Tab with Timer Written Inside -->
+                <div class="timer-tab-black">
+                  <span class="tab-black-clock">⏱️</span>
+                  <span class="tab-black-timer" id="adShopCooldownDisplay">05:00:00</span>
+                </div>
+              </div>
+
+              <!-- Comment footer note -->
+              <div class="ad-timer-comment-footer">
+                <span class="comment-badge-dot"></span>
+                <span class="comment-note-text">5-Hour Cooldown &bull; Next ad available when timer reaches 00:00:00</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 2. Buy 1 Star for 300 Coins -->
         <div class="shop-card" style="border: 1.5px solid rgba(250,204,21,0.35);">
           <div class="shop-icon-wrap" style="background: rgba(250,204,21,0.12); border-color:#facc15;">⭐</div>
           <div class="shop-info">
-            <div class="shop-name">1 Reward Star</div>
-            <div class="shop-desc">Exchange coins directly for a reward star</div>
-            <div class="shop-price">🪙 300 Coins &bull; +1 ⭐</div>
+            <div class="shop-name">1 Star ⭐</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(1, 300)">Buy 1 ⭐</button>
+          <button class="btn-buy" onclick="buyStars(1, 300)">300 Coin 🪙</button>
         </div>
 
         <!-- 3. Buy 10 Stars for 2900 Coins -->
@@ -86,13 +127,11 @@
           <div class="shop-icon-wrap" style="background: rgba(250,204,21,0.2); border-color:#facc15;">✨</div>
           <div class="shop-info">
             <div class="shop-name" style="display:flex; align-items:center; gap:0.35rem;">
-              <span>10 Reward Stars</span>
+              <span>10 Stars ⭐</span>
               <span style="font-size:0.58rem; background:#ca8a04; color:#000; font-weight:900; padding:0.1rem 0.35rem; border-radius:999px;">SAVE 100 🪙</span>
             </div>
-            <div class="shop-desc">Bundle pack of 10 stars for discounts</div>
-            <div class="shop-price">🪙 2,900 Coins &bull; +10 ⭐</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(10, 2900)">Buy 10 ⭐</button>
+          <button class="btn-buy" onclick="buyStars(10, 2900)">2,900 Coin 🪙</button>
         </div>
 
         <!-- 4. Buy 20 Stars for 5000 Coins -->
@@ -100,13 +139,11 @@
           <div class="shop-icon-wrap" style="background: rgba(250,204,21,0.25); border-color:#fef08a;">👑</div>
           <div class="shop-info">
             <div class="shop-name" style="color:#fde047; display:flex; align-items:center; gap:0.35rem;">
-              <span>20 Reward Stars</span>
+              <span>20 Stars ⭐</span>
               <span style="font-size:0.58rem; background:#eab308; color:#000; font-weight:900; padding:0.1rem 0.35rem; border-radius:999px;">BEST VALUE</span>
             </div>
-            <div class="shop-desc">Mega star pack — Save 1,000 Coins!</div>
-            <div class="shop-price" style="color:#fde047;">🪙 5,000 Coins &bull; +20 ⭐</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(20, 5000)">Buy 20 ⭐</button>
+          <button class="btn-buy" onclick="buyStars(20, 5000)">5,000 Coin 🪙</button>
         </div>
 
       </div>
@@ -181,6 +218,7 @@
 
   </div>
 
+  <script src="../../telegram-stars.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
