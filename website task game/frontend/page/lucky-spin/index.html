@@ -16,30 +16,51 @@
     <!-- Top Nav Header -->
     <header class="game-nav-header">
       <div class="nav-left">
-        <a href="../games/index.html" class="nav-btn" title="Back to Games Arena">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Back Button Pill -->
+        <a href="../games/index.html" class="nav-back-pill" title="Back to Games Arena">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
+          <span>Back</span>
         </a>
-        <button type="button" onclick="toggleInfoModal()" class="nav-btn" title="Game Rules & Info">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Info Button (i) -->
+        <button type="button" onclick="toggleInfoModal()" class="nav-info-btn" title="How to play">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </button>
-        <div class="nav-title-wrap">
-          <span class="status-dot"></span>
-          <h1 class="nav-title">Lucky Spin</h1>
-        </div>
       </div>
 
-      <!-- Coin Balance Pill -->
-      <div class="balance-pill">
-        <span class="coin-icon">🪙</span>
-        <span class="coin-val" id="coinBalance">0</span>
-        <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Coins">+</button>
+      <!-- Center Title with Glowing Purple Dot -->
+      <div class="nav-title-wrap">
+        <span class="status-dot"></span>
+        <h1 class="nav-title">Lucky Spin</h1>
+      </div>
+
+      <!-- Right Controls: Coin Pill + Mini App Actions -->
+      <div class="nav-right">
+        <div class="balance-pill" title="Coin Balance">
+          <span class="coin-icon">🪙</span>
+          <span class="coin-val" id="coinBalance">10</span>
+          <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Coins">+</button>
+        </div>
+        <div class="nav-actions-wrap">
+          <button type="button" class="nav-action-icon" title="Menu">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <button type="button" class="nav-action-icon" title="More">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="1.8"></circle>
+              <circle cx="12" cy="12" r="1.8"></circle>
+              <circle cx="12" cy="19" r="1.8"></circle>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -48,11 +69,13 @@
 
       <!-- Wheel Stage Box -->
       <div class="wheel-stage-box">
+        <div class="glow-ambient"></div>
+
         <!-- Center Pointer -->
         <div class="wheel-pointer"></div>
 
         <!-- Wheel Canvas -->
-        <canvas id="wheelCanvas" width="230" height="230"></canvas>
+        <canvas id="wheelCanvas" width="240" height="240"></canvas>
         <p class="wheel-hint">Twelve wedges, one gold 5×</p>
       </div>
 
@@ -61,17 +84,23 @@
         <div class="legend-item gold">Gold ×5</div>
         <div class="legend-item deep">Deep ×2</div>
         <div class="legend-item violet">Violet ×1</div>
+        <div class="legend-item lavender">Lavender ×0.5</div>
         <div class="legend-item bust">Bust ×0</div>
       </div>
 
       <!-- Bet Controls Card -->
       <div class="bet-controls-card">
+        <!-- Min/Max Limits & Daily Plays Counter -->
         <div class="bet-limits-row">
-          <span>Min bet: <b>30 🪙</b></span>
-          <span>Max bet: <b>2,000 🪙</b></span>
+          <span>Min bet <b id="minBetLabel">30 🪙</b></span>
+          <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
+            <span>🎯 Plays Today:</span>
+            <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
+          </div>
+          <span>Max bet <b id="maxBetLabel">2,000 🪙</b></span>
         </div>
 
-        <!-- Bet Chips Selector -->
+        <!-- Bet Chips Selector: 30, 50, 100, 500 -->
         <div class="chips-grid">
           <button type="button" class="bet-chip" data-val="30" onclick="setBet(30)">30 🪙</button>
           <button type="button" class="bet-chip active" data-val="50" onclick="setBet(50)">50 🪙</button>
@@ -90,7 +119,7 @@
         </div>
 
         <!-- Spin Action Button -->
-        <button type="button" class="btn-primary-play" id="btnSpinWheel" onclick="spinWheelGame()">
+        <button type="button" class="btn-primary-play" id="btnSpinWheel" onclick="handleSpinAction()">
           Spin Wheel
         </button>
       </div>
@@ -144,7 +173,7 @@
       </a>
     </nav>
 
-    <!-- Rules Bottom Sheet Modal -->
+    <!-- Rules Bottom Sheet Modal (Exact match to Image 5) -->
     <div id="infoModalOverlay" class="modal-overlay" onclick="toggleInfoModal()"></div>
     <div id="infoModalSheet" class="modal-sheet">
       <div class="drag-handle"></div>
@@ -162,38 +191,42 @@
       <div class="steps-list">
         <div class="step-row">
           <div class="step-num">1</div>
-          <p class="step-text">Set your bet chips and tap Spin Wheel.</p>
+          <p class="step-text">Set your bet and tap Spin.</p>
         </div>
         <div class="step-row">
           <div class="step-num">2</div>
-          <p class="step-text">The wheel rotates and decelerates onto one wedge under the pointer.</p>
+          <p class="step-text">The wheel turns and eases onto one wedge under the pointer.</p>
         </div>
         <div class="step-row">
           <div class="step-num">3</div>
-          <p class="step-text">The winning multiplier is awarded. Bust wedges lose the stake.</p>
+          <p class="step-text">The wedge multiplier is paid out; bust wedges lose the stake.</p>
         </div>
       </div>
 
       <!-- Multiplier Table in Sheet -->
       <div class="sheet-table">
-        <div class="sheet-table-row" style="background:rgba(234,179,8,0.15);"><span style="color:#fde047; font-weight:800;">Gold wedge 👑</span><span style="color:#fde047; font-weight:900;">×5</span></div>
-        <div class="sheet-table-row"><span>Deep violet 💎</span><span>×2</span></div>
-        <div class="sheet-table-row"><span>Violet (2 wedges)</span><span>×1 · stake back</span></div>
-        <div class="sheet-table-row"><span>Lavender (2 wedges)</span><span>×0.5</span></div>
-        <div class="sheet-table-row"><span>Bust (6 wedges)</span><span>×0</span></div>
+        <div class="sheet-table-row"><span>Gold wedge</span><span class="row-val">×5</span></div>
+        <div class="sheet-table-row"><span>Deep violet</span><span class="row-val">×2</span></div>
+        <div class="sheet-table-row"><span>Violet (×2 wedges)</span><span class="row-val">×1 · stake back</span></div>
+        <div class="sheet-table-row"><span>Lavender (×2 wedges)</span><span class="row-val">×0.5</span></div>
+        <div class="sheet-table-row"><span>Bust (×6 wedges)</span><span class="row-val">×0</span></div>
       </div>
 
       <!-- Sound Toggle Bar -->
       <div class="sound-toggle-bar">
         <div class="sound-label-wrap">
-          <span style="font-size:1.1rem;">🔊</span>
+          <svg class="sound-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
           <div>
-            <h5 class="sound-title">Sound Effects</h5>
-            <p class="sound-sub">Native Web Audio Synthesizer</p>
+            <h5 class="sound-title">Sound effects</h5>
+            <p class="sound-sub">On for all games</p>
           </div>
         </div>
         <label class="switch">
-          <input type="checkbox" checked onchange="toggleSound(this.checked)">
+          <input type="checkbox" id="soundToggleCheckbox" checked onchange="toggleSound(this.checked)">
           <span class="slider-switch"></span>
         </label>
       </div>
@@ -201,7 +234,54 @@
       <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it</button>
     </div>
 
-    <!-- Toast -->
+    <!-- Daily Limit Watch Ad Modal Popup -->
+    <div id="adModalOverlay" class="modal-overlay" onclick="closeAdModal()"></div>
+    <div id="adModalSheet" class="ad-modal-card">
+      <div class="ad-modal-header">
+        <div class="ad-badge">
+          <span>📺</span>
+          <span>Daily Plays Limit</span>
+        </div>
+        <button type="button" class="ad-close-btn" onclick="closeAdModal()">&times;</button>
+      </div>
+
+      <!-- Initial Ad Offer Prompt -->
+      <div id="adInitialView">
+        <div class="ad-icon-hero">🎬</div>
+        <h3 class="ad-title">10 Daily Plays Used</h3>
+        <p class="ad-desc">You've reached your 10 free plays limit for today! Watch a sponsored video ad to unlock <b style="color:#facc15;">+5 extra plays</b> instantly.</p>
+        
+        <div class="ad-plays-summary">
+          <div class="ad-stat-box">
+            <span class="ad-stat-label">Daily Limit</span>
+            <span class="ad-stat-val">10 Plays</span>
+          </div>
+          <div class="ad-stat-box">
+            <span class="ad-stat-label">Ad Reward</span>
+            <span class="ad-stat-val text-green">+5 Plays</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-watch-ad" onclick="startWatchingAd()">
+          <span>▶️ Watch Ad (+5 Plays)</span>
+        </button>
+      </div>
+
+      <!-- Video Player Simulator (Active when watching) -->
+      <div id="adPlayerView" style="display:none;">
+        <div class="ad-video-screen">
+          <div class="ad-sponsor-tag">📢 Sponsored Video Ad</div>
+          <div class="ad-spinner"></div>
+          <div class="ad-timer-text" id="adTimerText">Reward in 5s...</div>
+          <div class="ad-progress-bar-wrap">
+            <div class="ad-progress-bar-fill" id="adProgressFill"></div>
+          </div>
+        </div>
+        <p class="ad-notice">Please watch the full sponsor message to receive your reward...</p>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
     <div id="toastBar" class="toast-bar">
       <span class="toast-icon" id="toastIcon">🎡</span>
       <div>
