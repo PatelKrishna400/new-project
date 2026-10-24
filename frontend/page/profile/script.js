@@ -17,38 +17,54 @@ const DEFAULT_WITHDRAWALS = [];
 
 // Storage sanitization to purge legacy demo data and start everything from 0
 try {
-  const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  if (rawUsers && (rawUsers.includes('VortexTyper') || rawUsers.includes('CyberKey') || rawUsers.includes('42850') || rawUsers.includes('usr_2'))) {
-    localStorage.removeItem(USERS_STORAGE_KEY);
-  }
-  const rawWd = localStorage.getItem(WITHDRAW_STORAGE_KEY);
-  if (rawWd && (rawWd.includes('WD-8491') || rawWd.includes('WD-8490') || rawWd.includes('AMZN-7492'))) {
-    localStorage.removeItem(WITHDRAW_STORAGE_KEY);
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
+    localStorage.setItem('task_game_coins', '0');
+    localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
+    localStorage.setItem('task_game_total_tasks', '0');
+    localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
+    localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
+    localStorage.setItem('task_game_event_tasks', '0');
+    localStorage.setItem('task_game_event_tasks_count', '0');
+    localStorage.setItem('task_coins_won_today', '0');
+    localStorage.setItem('task_games_played_today', '0');
+    localStorage.setItem('task_win_streak', '0');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
+    localStorage.removeItem('task_game_stars_rating');
+    localStorage.removeItem('task_game_cloud_referral_codes');
+    localStorage.removeItem('task_game_ad_timer_end');
+    localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    localStorage.removeItem('sunflower_state');
+    localStorage.removeItem('task_game_tg_profile');
+    localStorage.removeItem('player_email');
+    localStorage.removeItem('player_whatsapp');
+    const existingName = localStorage.getItem('player_username');
+    if (!existingName || existingName.toLowerCase().includes('nova')) {
+      localStorage.setItem('player_username', 'Player');
+    }
+    localStorage.setItem('player_avatar', '⚡');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
   }
 } catch (e) {}
 
-// Ensure all balances and task counters start at 0
-if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
-  localStorage.setItem('task_game_coins', '0');
-}
-if (localStorage.getItem('task_game_stars') === '850' || !localStorage.getItem('task_game_stars')) {
-  localStorage.setItem('task_game_stars', '0');
-}
-if (!localStorage.getItem(TOTAL_TASKS_KEY)) {
-  localStorage.setItem(TOTAL_TASKS_KEY, '0');
-}
-if (!localStorage.getItem('task_game_total_tasks_completed')) {
-  localStorage.setItem('task_game_total_tasks_completed', '0');
-}
-if (!localStorage.getItem('task_game_ads_watched_count')) {
-  localStorage.setItem('task_game_ads_watched_count', '0');
-}
-if (!localStorage.getItem(EVENT_TASKS_KEY)) {
-  localStorage.setItem(EVENT_TASKS_KEY, '0');
-}
-if (!localStorage.getItem('task_game_event_tasks_count')) {
-  localStorage.setItem('task_game_event_tasks_count', '0');
-}
+// Clear legacy demo users and dummy pools if present
+try {
+  const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
+  if (rawUsers && (rawUsers.includes('VortexTyper') || rawUsers.includes('CyberKey') || rawUsers.includes('42850') || rawUsers.includes('usr_2') || rawUsers.includes('ShadowTyper') || rawUsers.includes('Alex_Gamer'))) {
+    localStorage.setItem(USERS_STORAGE_KEY, '[]');
+  }
+  const rawWd = localStorage.getItem(WITHDRAW_STORAGE_KEY);
+  if (rawWd && (rawWd.includes('WD-8491') || rawWd.includes('WD-8490') || rawWd.includes('AMZN-7492'))) {
+    localStorage.setItem(WITHDRAW_STORAGE_KEY, '[]');
+  }
+} catch (e) {}
 
 // Global active tab state ('profile' | 'admin')
 let activeProfileTab = 'profile';
@@ -869,6 +885,7 @@ function renderAdminWithdrawalsList() {
             <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.25rem;">
               <b>${wd.method}</b> • ${escapeHtml(wd.details || '')}
             </div>
+            ${(wd.deliveryLink || wd.link) ? `<div style="margin-top: 3px;"><a href="${escapeHtml(wd.deliveryLink || wd.link)}" target="_blank" rel="noopener noreferrer" style="color: #34d399; font-size: 0.72rem; font-weight: 800; text-decoration: underline;">🔗 View Link</a></div>` : ''}
             <div style="font-size: 0.65rem; color: #64748b; margin-top: 0.15rem;">${wd.time || 'Recent'}</div>
           </div>
 
@@ -882,7 +899,7 @@ function renderAdminWithdrawalsList() {
 
         ${isPending ? `
           <div style="display: flex; gap: 0.5rem; margin-top: 0.6rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-            <button class="btn-card-action success" style="flex: 1; padding: 6px;" onclick="approveWithdrawal('${wd.id}')">Approve &amp; Pay ✓</button>
+            <button class="btn-card-action success" style="flex: 1; padding: 6px;" onclick="approveWithdrawal('${wd.id}')">Approve &amp; Send Link ✓</button>
             <button class="btn-card-action danger" style="padding: 6px 12px;" onclick="rejectWithdrawal('${wd.id}')">Reject ✕</button>
           </div>
         ` : ''}
@@ -894,9 +911,31 @@ function renderAdminWithdrawalsList() {
 function approveWithdrawal(wdId) {
   const wd = withdrawalsData.find(w => w.id === wdId);
   if (!wd) return;
+
+  const link = prompt(`🔗 Enter Voucher / Delivery Link for #${wd.id} (optional):\n(e.g. https://example.com/voucher/claim...)`, wd.deliveryLink || wd.link || '');
+  if (link === null) return;
+
+  const enteredCode = prompt(`🔐 Enter Admin Approval Security Code (1109) to confirm approval:`);
+  if (enteredCode === null) return;
+
+  if (enteredCode.trim() !== '1109') {
+    alert('❌ Invalid Approval Code! Must enter code 1109.');
+    showToast('Invalid security code! Approval cancelled.', 'error');
+    return;
+  }
+
   wd.status = 'approved';
+  wd.approvedAt = Date.now();
+  if (link.trim()) {
+    let cleanLink = link.trim();
+    if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+      cleanLink = 'https://' + cleanLink;
+    }
+    wd.deliveryLink = cleanLink;
+    wd.link = cleanLink;
+  }
   saveWithdrawalsAndSync();
-  showToast(`Request ${wd.id} Approved!`);
+  showToast(`✅ Request ${wd.id} Approved with link!`);
 }
 
 function rejectWithdrawal(wdId) {
@@ -1084,18 +1123,11 @@ function updateAdminLiveDisplays() {
   const headerStars = document.getElementById('profileStarsDisplay');
   if (headerStars) headerStars.textContent = currentStars.toLocaleString();
 
-  // Telegram Stars Rating (per MTProto userFull.stars_rating)
-  if (window.TelegramStars && typeof window.TelegramStars.getRating === 'function') {
-    const ratingData = window.TelegramStars.getRating();
-    const ratingLevelEl = document.getElementById('tgProfileRatingLevel');
-    const ratingSubEl = document.getElementById('tgProfileRatingSub');
-    if (ratingLevelEl) {
-      ratingLevelEl.textContent = `Star Rating: Level ${ratingData.level}`;
-    }
-    if (ratingSubEl) {
-      ratingSubEl.textContent = `${ratingData.rating} / ${ratingData.next_level_stars} ⭐ Total Volume`;
-    }
-  }
+  // Telegram Stars Rating - Suppressed per user request
+  const ratingLevelEl = document.getElementById('tgProfileRatingLevel');
+  const ratingSubEl = document.getElementById('tgProfileRatingSub');
+  if (ratingLevelEl) ratingLevelEl.style.display = 'none';
+  if (ratingSubEl) ratingSubEl.style.display = 'none';
 
   const userAvatar = document.querySelector('.user-avatar');
   if (userAvatar) userAvatar.textContent = localStorage.getItem('player_avatar') || '👤';
@@ -2437,7 +2469,12 @@ function syncProfileReferralCode(customCode) {
 function getStoredReferrals() {
   try {
     const raw = localStorage.getItem(REFERRALS_LIST_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(r => r && !['Alex_Gamer', 'ShadowTyper', 'CyberViper', 'NeonBlaze', 'Phoenix99', 'QuantumCoder', 'StarHunter', 'HyperStrike', 'VortexPilot', 'LunaBlade'].some(mock => (r.name || '').includes(mock)));
+      }
+    }
   } catch (e) {}
   return [];
 }
@@ -2845,50 +2882,9 @@ async function handleClaimReferralReward() {
   } catch (e) {}
 }
 
-const SAMPLE_FRIEND_NAMES = [
-  'Alex_Gamer', 'ShadowTyper', 'CyberViper', 'NeonBlaze', 'Phoenix99', 
-  'QuantumCoder', 'StarHunter', 'HyperStrike', 'VortexPilot', 'LunaBlade'
-];
-const SAMPLE_AVATARS = ['⚡', '🎮', '🚀', '🔥', '👑', '🎯', '💎', '🌟', '🛡️', '👾'];
-
 function simulateFriendJoin() {
-  const btn = event ? (event.target.closest('button') || event.target) : null;
-  const referrals = getStoredReferrals();
-
-  const randName = SAMPLE_FRIEND_NAMES[Math.floor(Math.random() * SAMPLE_FRIEND_NAMES.length)] + '_' + Math.floor(10 + Math.random() * 89);
-  const randAvatar = SAMPLE_AVATARS[Math.floor(Math.random() * SAMPLE_AVATARS.length)];
-
-  const newRef = {
-    id: `ref_${Date.now()}`,
-    name: randName,
-    avatar: randAvatar,
-    time: 'Just now',
-    rewardCoins: 100,
-    rewardStars: 0,
-    timestamp: Date.now()
-  };
-
-  referrals.unshift(newRef);
-  if (referrals.length > 20) referrals.pop();
-  saveReferrals(referrals);
-
-  // Credit user +100 Coins per invite
-  let coins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + 100;
-  localStorage.setItem('task_game_coins', coins.toString());
-  localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
-
-  ProfileAudio.playRewardFanfare();
-  if (btn) showFloatingCoin(btn, '+100 🪙');
-
-  renderReferralStatsAndList();
-  updateAdminLiveDisplays();
-
-  showToast(`🎉 ${randName} joined with your code! +100 🪙 added!`, 3500);
-
-  try {
-    const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
-    ch.postMessage({ type: 'REFERRAL_JOINED', timestamp: Date.now() });
-  } catch (e) {}
+  copyInviteLink();
+  showToast('📋 Share your invite link with friends to earn real referral rewards!', 3500);
 }
 
 // ============================================================================
@@ -3100,44 +3096,13 @@ function renderTgProfileUI() {
   const usernameEl = document.getElementById('tgProfileUsername');
   if (usernameEl) usernameEl.textContent = p.username || 'nova_earner';
 
-  // Bio
+  // Bio, Birthday, Note, Chips & Tabs suppressed per user request
   const bioEl = document.getElementById('tgProfileBio');
-  if (bioEl) bioEl.textContent = p.bio || '🎮 Web Task Champion • Official Telegram Mini App Player';
+  if (bioEl) bioEl.style.display = 'none';
 
-  // Birthday
-  const bdayEl = document.getElementById('tgProfileBirthdayText');
-  if (bdayEl) bdayEl.textContent = p.birthday || 'Oct 12';
-
-  // Channel
-  const channelEl = document.getElementById('tgProfileChannelText');
-  const linkChannelName = document.getElementById('tgLinkChannelName');
-  const chanName = p.personalChannel ? (p.personalChannel.startsWith('@') ? p.personalChannel : '@' + p.personalChannel) : '@NovaChannel';
-  if (channelEl) channelEl.textContent = chanName;
-  if (linkChannelName) linkChannelName.textContent = chanName;
-
-  // Note
-  const noteEl = document.getElementById('tgProfileNote');
-  if (noteEl) noteEl.textContent = p.note ? `Private Note: ${p.note}` : 'Private Note: No note added';
-
-  // Online Status
-  const onlineDot = document.getElementById('tgOnlineDot');
-  const onlineText = document.getElementById('tgOnlineText');
-  const onlineChip = document.getElementById('tgProfileOnlineChip');
-  if (p.onlineStatus === 'online') {
-    if (onlineDot) onlineDot.textContent = '🟢';
-    if (onlineText) onlineText.textContent = 'Online';
-    if (onlineChip) onlineChip.className = 'tg-meta-chip online';
-  } else {
-    if (onlineDot) onlineDot.textContent = '⚪';
-    if (onlineText) onlineText.textContent = 'Recently';
-    if (onlineChip) onlineChip.className = 'tg-meta-chip';
-  }
-
-  // Accent Color
-  applyTgProfileAccentColor(p.accentColor || 'blue', false);
-
-  // Active Tab
-  switchTgProfileTab(p.activeProfileTab || 'gifts', false);
+  document.querySelectorAll('.tg-profile-tabs-header, .tg-ptab-panel, .tg-music-card, .tg-meta-chips-row, .tg-profile-rating-badge, .tg-accent-picker-row, .tg-private-note-card, .player-session-badge, .session-tab-mini-badge, .tg-wallet-topup-strip').forEach(el => {
+    el.style.display = 'none';
+  });
 }
 
 function applyTgProfileAccentColor(color, save = true) {

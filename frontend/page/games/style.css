@@ -143,14 +143,19 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  padding: 0.6rem 0.8rem;
+  padding: 0.65rem 0.8rem;
   border-radius: 10px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 800;
   color: #94a3b8;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
 }
 
 .top-tab-btn:hover {
@@ -165,8 +170,15 @@ body {
   box-shadow: 0 4px 12px rgba(29, 78, 216, 0.5), inset 0 1.5px 1px rgba(147, 197, 253, 0.5);
 }
 
+.top-tab-btn.active#tabBtnLucky {
+  background: linear-gradient(155deg, #9333ea 0%, #6b21a8 50%, #170826 100%);
+  color: #fef08a;
+  border: 1px solid rgba(192, 132, 252, 0.6);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5), inset 0 1.5px 1px rgba(233, 213, 255, 0.5);
+}
+
 .tab-icon {
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 
 .tab-live-dot {
@@ -178,10 +190,310 @@ body {
   animation: pulseDot 1.5s infinite;
 }
 
+.tab-live-dot-gold {
+  background: #facc15 !important;
+  box-shadow: 0 0 8px #facc15 !important;
+}
+
 @keyframes pulseDot {
   0% { transform: scale(0.9); opacity: 0.7; }
   50% { transform: scale(1.3); opacity: 1; }
   100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* Category Views Visibility */
+.game-category-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  width: 100%;
+}
+
+/* Master Lucky Suite Hero Card */
+.lucky-suite-hero-card {
+  position: relative;
+  background: linear-gradient(155deg, #1e1338 0%, #0d122b 50%, #080c1d 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.45);
+  border-radius: 20px;
+  padding: 1.15rem;
+  text-decoration: none;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 24px rgba(168, 85, 247, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
+}
+
+.lucky-suite-hero-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: #c084fc;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.8), 0 0 32px rgba(168, 85, 247, 0.4);
+}
+
+.lucky-hero-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.lucky-hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.lucky-hero-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #facc15;
+}
+
+.lucky-hero-tag {
+  background: rgba(168, 85, 247, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+}
+
+.lucky-hero-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.lucky-hero-desc {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.btn-open-suite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  border: 1px solid #c084fc;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transition: all 0.2s ease;
+}
+
+.lucky-suite-hero-card:hover .btn-open-suite {
+  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Grid of 7 Dedicated Arcade Game Cards */
+.lucky-games-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.lucky-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 18px;
+  padding: 0.85rem;
+  text-decoration: none;
+  color: #f8fafc;
+  min-height: 150px;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.lucky-card:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.lucky-card:active {
+  transform: scale(0.98);
+}
+
+.lucky-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.45rem;
+}
+
+.lucky-card-icon {
+  font-size: 1.45rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.lucky-mult-pill {
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.lucky-card-title {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.lucky-card-desc {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+  line-height: 1.3;
+}
+
+.btn-card-launch {
+  margin-top: 0.65rem;
+  width: 100%;
+  padding: 0.45rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-align: center;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+/* Card 1: Lucky Dice */
+.lucky-card-dice {
+  background: linear-gradient(165deg, #101c2e 0%, #0a111c 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.3);
+}
+.lucky-card-dice:hover { border-color: #38bdf8; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25); }
+.lucky-card-dice .lucky-card-icon { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); }
+.pill-dice { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+.btn-launch-dice { background: #38bdf8; color: #07090e; }
+
+/* Card 2: Lucky Scratch */
+.lucky-card-scratch {
+  background: linear-gradient(165deg, #22121b 0%, #120a0f 100%);
+  border: 1.5px solid rgba(251, 113, 133, 0.3);
+}
+.lucky-card-scratch:hover { border-color: #fb7185; box-shadow: 0 8px 24px rgba(251, 113, 133, 0.25); }
+.lucky-card-scratch .lucky-card-icon { background: rgba(251, 113, 133, 0.15); border: 1px solid rgba(251, 113, 133, 0.35); }
+.pill-scratch { background: rgba(251, 113, 133, 0.2); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.4); }
+.btn-launch-scratch { background: #fb7185; color: #07090e; }
+
+/* Card 3: Lucky Spin */
+.lucky-card-spin {
+  background: linear-gradient(165deg, #1b1029 0%, #0e0917 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.3);
+}
+.lucky-card-spin:hover { border-color: #a855f7; box-shadow: 0 8px 24px rgba(168, 85, 247, 0.25); }
+.lucky-card-spin .lucky-card-icon { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); }
+.pill-spin { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+.btn-launch-spin { background: #a855f7; color: #ffffff; }
+
+/* Card 4: Gift Drop */
+.lucky-card-plinko {
+  background: linear-gradient(165deg, #0e1c25 0%, #081117 100%);
+  border: 1.5px solid rgba(6, 182, 212, 0.3);
+}
+.lucky-card-plinko:hover { border-color: #06b6d4; box-shadow: 0 8px 24px rgba(6, 182, 212, 0.25); }
+.lucky-card-plinko .lucky-card-icon { background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35); }
+.pill-plinko { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4); }
+.btn-launch-plinko { background: #06b6d4; color: #07090e; }
+
+/* Card 5: Coin Flip */
+.lucky-card-coin {
+  background: linear-gradient(165deg, #221a0d 0%, #120e06 100%);
+  border: 1.5px solid rgba(234, 179, 8, 0.3);
+}
+.lucky-card-coin:hover { border-color: #eab308; box-shadow: 0 8px 24px rgba(234, 179, 8, 0.25); }
+.lucky-card-coin .lucky-card-icon { background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); }
+.pill-coin { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+.btn-launch-coin { background: #eab308; color: #451a03; }
+
+/* Card 6: Mines */
+.lucky-card-mines {
+  background: linear-gradient(165deg, #0d1e1c 0%, #071211 100%);
+  border: 1.5px solid rgba(45, 212, 191, 0.3);
+}
+.lucky-card-mines:hover { border-color: #2dd4bf; box-shadow: 0 8px 24px rgba(45, 212, 191, 0.25); }
+.lucky-card-mines .lucky-card-icon { background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); }
+.pill-mines { background: rgba(45, 212, 191, 0.2); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); }
+.btn-launch-mines { background: #2dd4bf; color: #022c22; }
+
+/* Card 7: Under Over Full Width */
+.lucky-card-full {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(90deg, #142210 0%, #0b1509 100%);
+  border: 1.5px solid rgba(132, 204, 22, 0.35);
+  border-radius: 18px;
+  padding: 0.95rem 1rem;
+  text-decoration: none;
+  color: #f8fafc;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lucky-card-full:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: #84cc16;
+  box-shadow: 0 8px 24px rgba(132, 204, 22, 0.25);
+}
+.lucky-card-full:active {
+  transform: scale(0.98);
+}
+.lucky-card-full .lucky-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+  width: 100%;
+}
+.lucky-card-full .lucky-card-icon {
+  background: rgba(132, 204, 22, 0.15);
+  border: 1px solid rgba(132, 204, 22, 0.35);
+  flex-shrink: 0;
+}
+.pill-underover {
+  background: rgba(132, 204, 22, 0.2);
+  color: #a3e635;
+  border: 1px solid rgba(132, 204, 22, 0.4);
+}
+.btn-launch-underover {
+  background: #84cc16;
+  color: #1a2e05;
+  padding: 0.45rem 1rem;
+  width: auto;
 }
 
 /* Hero Banner */

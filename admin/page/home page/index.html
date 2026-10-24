@@ -593,7 +593,7 @@
       <form class="modal-form" id="withdrawCreateForm" onsubmit="handleSaveTestWithdraw(event)">
         <div class="form-group">
           <label class="form-label" for="wdPlayerNameInput">Player Name</label>
-          <input type="text" id="wdPlayerNameInput" class="form-input" value="NovaEarner" required>
+          <input type="text" id="wdPlayerNameInput" class="form-input" value="Task Earner" required>
         </div>
 
         <div class="form-group">
@@ -613,12 +613,80 @@
 
         <div class="form-group">
           <label class="form-label" for="wdDetailsInput" id="wdDetailsLabel">UPI ID / Address</label>
-          <input type="text" id="wdDetailsInput" class="form-input" placeholder="e.g. novaearner@okhdfcbank" required>
+          <input type="text" id="wdDetailsInput" class="form-input" placeholder="e.g. taskearner@okhdfcbank" required>
         </div>
 
         <div class="modal-footer">
           <button type="button" class="btn-modal-cancel" onclick="closeWithdrawCreateModal()">Cancel</button>
           <button type="submit" class="btn-modal-save">Submit Request 💸</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Approve Cashout with Link & Security Code (1109) -->
+  <div class="modal-overlay" id="withdrawApproveModalOverlay">
+    <div class="modal-card max-w-sm">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(245, 158, 11, 0.25);">
+        <div class="modal-title-row">
+          <div class="modal-icon-badge" style="background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24;">🔐</div>
+          <div>
+            <h3 class="modal-title" style="color: #fbbf24;">Approve Wallet Request</h3>
+            <p class="modal-subtitle">Add Voucher / Delivery Link &amp; Verify (1109)</p>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeWithdrawApproveModal()">✕</button>
+      </div>
+
+      <form class="modal-form" id="withdrawApproveForm" onsubmit="handleConfirmApproveWithdrawal(event)">
+        <input type="hidden" id="approveReqId" value="">
+
+        <!-- Request Details Summary Card -->
+        <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 12px; padding: 0.9rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">REQUEST ID</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #38bdf8;" id="approveReqIdDisplay">#WD-0000</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">PLAYER</span>
+            <span style="font-weight: 800; color: #ffffff;" id="approvePlayerNameDisplay">Player</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">CASHOUT AMOUNT</span>
+            <span style="font-weight: 900; color: #fbbf24; font-size: 1.15rem;" id="approveAmountDisplay">₹0</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">PAYOUT METHOD</span>
+            <span style="font-size: 0.78rem; color: #cbd5e1; max-width: 60%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" id="approveDetailsDisplay">UPI</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="approveDeliveryLinkInput" style="color: #38bdf8; display: flex; justify-content: space-between;">
+            <span>Delivery Link / Reward Link 🔗</span>
+            <span style="font-size: 0.7rem; color: #94a3b8;">User can click in Recent Transactions</span>
+          </label>
+          <div class="input-icon-wrap" style="position: relative;">
+            <input type="url" id="approveDeliveryLinkInput" class="form-input" placeholder="https://example.com/voucher/claim... (optional)" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="approveSecurityCodeInput" style="color: #fbbf24; display: flex; justify-content: space-between;">
+            <span>Admin Approval Security Code *</span>
+            <span style="font-size: 0.7rem; color: #94a3b8;">Code: 1109</span>
+          </label>
+          <div class="input-icon-wrap" style="position: relative;">
+            <input type="password" id="approveSecurityCodeInput" class="form-input font-mono" placeholder="Enter security code (1109)" required autocomplete="off" maxlength="10" style="font-size: 1.1rem; letter-spacing: 0.15em;">
+          </div>
+          <div id="approveCodeError" style="display: none; color: #f87171; font-size: 0.75rem; font-weight: 700; margin-top: 0.4rem; align-items: center; gap: 4px;">
+            <span>⚠️ Invalid Code! Please enter security code 1109 to approve.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="margin-top: 1.25rem;">
+          <button type="button" class="btn-modal-cancel" onclick="closeWithdrawApproveModal()">Cancel</button>
+          <button type="submit" class="btn-modal-save" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">Approve &amp; Send Link ✅</button>
         </div>
       </form>
     </div>

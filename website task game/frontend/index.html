@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Task Earner — Webtask</title>
+  <script>
+    if (sessionStorage.getItem('task_app_loaded') === 'true') {
+      document.documentElement.classList.add('app-preloaded');
+    }
+    // Early zero-start sanitizer v7: Purge all demo users and mock data so everything starts from 0
+    try {
+      if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
+        localStorage.setItem('task_game_coins', '0');
+        localStorage.setItem('task_game_stars', '0');
+        localStorage.setItem('user_coins', '0');
+        localStorage.setItem('user_stars', '0');
+        localStorage.setItem('task_game_total_tasks', '0');
+        localStorage.setItem('task_game_total_tasks_completed', '0');
+        localStorage.setItem('completed_tasks_count', '0');
+        localStorage.setItem('task_game_ads_watched_count', '0');
+        localStorage.setItem('ads_watched_count', '0');
+        localStorage.setItem('task_game_event_tasks', '0');
+        localStorage.setItem('task_game_event_tasks_count', '0');
+        localStorage.setItem('task_coins_won_today', '0');
+        localStorage.setItem('task_games_played_today', '0');
+        localStorage.setItem('task_win_streak', '0');
+        localStorage.setItem('task_game_users', '[]');
+        localStorage.setItem('task_game_withdrawals', '[]');
+        localStorage.setItem('task_game_referrals_list', '[]');
+        localStorage.setItem('task_game_stars_transactions', '[]');
+        localStorage.setItem('task_game_claims', '{}');
+        localStorage.removeItem('task_game_stars_rating');
+        localStorage.removeItem('task_game_cloud_referral_codes');
+        localStorage.removeItem('task_game_ad_timer_end');
+        localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+        localStorage.removeItem('sunflower_state');
+        localStorage.removeItem('task_game_tg_profile');
+        localStorage.removeItem('player_email');
+        localStorage.removeItem('player_whatsapp');
+        const existingName = localStorage.getItem('player_username');
+        if (!existingName || existingName.toLowerCase().includes('nova')) {
+          localStorage.setItem('player_username', 'Player');
+        }
+        localStorage.setItem('player_avatar', '⚡');
+        localStorage.setItem('task_game_zero_start_clean_v7', 'true');
+      }
+    } catch (e) {}
+  </script>
+  <!-- Firebase SDK & Analytics Connection -->
+  <script type="module" src="firebase-config.js"></script>
+  <style>
+    /* One-Time Loading Page Rule: Never show if already loaded */
+    html.app-preloaded .app-loading-overlay {
+      display: none !important;
+    }
+
+    /* Global Scrollbar Hiding */
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+    /* Suppression of Session badges, top-up cards, and leaderboard prize/lock cards per user request */
+    .session-tab-mini-badge,
+    .event-live-indicator,
+    .player-session-badge,
+    .tg-wallet-topup-strip,
+    .tg-stars-store-container,
+    .btn-tg-buy-mini,
+    .leaderboard-prizes-card,
+    .qualification-card {
+      display: none !important;
+    }
+
+    body {
+      background-color: #030816;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       APP CYBERNETIC LOADING SCREEN (START TO HOME PAGE)
+       ========================================================================== */
+    .app-loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: radial-gradient(circle at 50% 40%, #0c1a40 0%, #030816 80%, #01040d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .app-loading-overlay.fade-out {
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+    }
+
+    .loading-content-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      max-width: 320px;
+      width: 90%;
+    }
+
+    .loading-logo-ring {
+      position: relative;
+      width: 88px;
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .loading-ring-spinner {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid rgba(56, 189, 248, 0.15);
+      border-top-color: #38bdf8;
+      border-right-color: #facc15;
+      animation: loadingSpin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+    }
+
+    @keyframes loadingSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-logo-core {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(155deg, #1d4ed8 0%, #0b1a3d 100%);
+      border: 1.5px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      animation: corePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes corePulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+      50% { transform: scale(1.08); box-shadow: 0 0 35px rgba(56, 189, 248, 0.8), 0 0 50px rgba(250, 204, 21, 0.4); }
+    }
+
+    .loading-app-title {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.08em;
+      margin: 0;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+    }
+
+    .loading-subtitle {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .loading-progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 999px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+      margin-bottom: 0.75rem;
+    }
+
+    .loading-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 60%, #facc15 100%);
+      border-radius: 999px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      transition: width 0.2s ease-out;
+    }
+
+    .loading-status-text {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 600;
+      font-family: 'Courier New', Courier, monospace;
+      letter-spacing: 0.02em;
+    }
+
+    /* Mobile Screen Viewport Container */
+    .mobile-container {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      background-color: #060e24;
+      border-left: 1px solid rgba(56, 189, 248, 0.15);
+      border-right: 1px solid rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.7), 0 0 20px rgba(56, 189, 248, 0.08);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 84px;
+    }
+
+    /* Top Header Bar */
+    .home-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6, 14, 36, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      padding: 0.85rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-user {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .user-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .user-level {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.04em;
+    }
+
+    .coin-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #0a1738;
+      border: 1px solid #38bdf8;
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      font-weight: 800;
+      color: #fbbf24;
+      font-size: 0.9rem;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Tasks Main Content */
+    .page-content {
+      flex: 1;
+      padding: 1.2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .tasks-banner {
+      margin-bottom: 0.2rem;
+    }
+
+    .tasks-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+
+    .tasks-subtitle {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    /* Tasks List */
+    .tasks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .task-card {
+      background: #0a1738;
+      border: 1px solid rgba(56, 189, 248, 0.14);
+      border-radius: 14px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .task-card:hover {
+      background: #0f1f4a;
+      border-color: rgba(56, 189, 248, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .task-card.completed {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .task-card.cooling-down {
+      border-color: rgba(245, 158, 11, 0.25);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .task-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .task-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+
+    .task-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .task-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-status-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .task-status-pill.ready {
+      background: rgba(56, 189, 248, 0.12);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .task-status-pill.cooling {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .task-desc-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+    }
+
+    .task-reward {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fbbf24;
+      flex-shrink: 0;
+    }
+
+    .task-desc-sep {
+      color: #475569;
+    }
+
+    .task-desc-text {
+      color: #94a3b8;
+      font-size: 0.72rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Proper 3D Gray Action Button with #848683 palette */
+    .btn-claim {
+      background: linear-gradient(155deg, #9ca09b 0%, #848683 45%, #696b68 100%);
+      color: #ffffff;
+      border: 1.5px solid;
+      border-color: #b3b7b2 #848683 #535552 #717370;
+      border-radius: 8px;
+      padding: 0.45rem 0.95rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5);
+      font-family: inherit;
+      min-width: 75px;
+      text-align: center;
+    }
+
+    .btn-claim:hover:not(:disabled) {
+      background: linear-gradient(155deg, #a8aca7 0%, #8f928e 45%, #727471 100%);
+      border-color: #c4c8c3 #9ca09b #5e605d #848683;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-claim:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 -1px 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-claim:disabled {
+      background: #1e293b !important;
+      border-color: #10b981 !important;
+      color: #10b981 !important;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .btn-claim.btn-timer-cooling {
+      border-color: rgba(245, 158, 11, 0.45) !important;
+      color: #fcd34d !important;
+      background: #172033 !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+      font-size: 0.75rem !important;
+      min-width: 90px;
+    }
+
+    /* Empty state */
+    .empty-tasks-box {
+      text-align: center;
+      padding: 2rem 1rem;
+      background: rgba(10, 23, 56, 0.6);
+      border: 1px dashed rgba(56, 189, 248, 0.25);
+      border-radius: 14px;
+      color: #94a3b8;
+    }
+    .empty-tasks-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .empty-tasks-text {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* Floating coin animation */
+    @keyframes floatCoin {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-30px) scale(1.3); opacity: 0; }
+    }
+    .floating-coin {
+      position: absolute;
+      color: #fbbf24;
+      font-weight: 800;
+      font-size: 1rem;
+      pointer-events: none;
+      animation: floatCoin 0.8s ease-out forwards;
+      z-index: 9999;
+      text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+    }
+
+    /* ==========================================================================
+       PROPER ANIMATED 3D BLUE MENU BAR (DYNAMIC MULTI-COLOR & LIGHT ANIMATIONS)
+       ========================================================================== */
+    .below-menu-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      height: 74px;
+      background: linear-gradient(180deg, rgba(8, 18, 48, 0.94) 0%, rgba(3, 8, 22, 0.98) 100%);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(56, 189, 248, 0.2);
+      border-left: 1px solid rgba(56, 189, 248, 0.2);
+      border-right: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 
+        0 -10px 28px rgba(0, 0, 0, 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 0.35rem;
+      z-index: 1000;
+      overflow: visible;
+      animation: menuBarAmbientPulse 6s ease-in-out infinite;
+    }
+
+    /* Ambient pulse on bottom menu bar (clean subtle shadow without colorful lines) */
+    @keyframes menuBarAmbientPulse {
+      0%, 100% {
+        box-shadow: 
+          0 -10px 28px rgba(0, 0, 0, 0.88),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+      50% {
+        box-shadow: 
+          0 -12px 32px rgba(0, 0, 0, 0.95),
+          inset 0 1px 0 rgba(56, 189, 248, 0.15);
+      }
+    }
+
+    .below-menu-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.22rem;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-family: inherit;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.3rem 0.35rem 0.45rem 0.35rem;
+      border-radius: 12px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      flex: 1;
+      position: relative;
+    }
+
+    .below-menu-item:hover .menu-label {
+      color: #38bdf8;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+    }
+
+    /* 3D Blue Menu Icon Disc with Dynamic Hover Lighting */
+    .menu-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 40%, #0b1a3d 100%);
+      border: 1.5px solid;
+      border-color: #60a5fa #2563eb #06112c #1d4ed8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e0f2fe;
+      box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.6),
+        inset 0 1.5px 1px rgba(147, 197, 253, 0.5),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.7),
+        0 0 10px rgba(37, 99, 235, 0.2);
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .below-menu-item:hover .menu-icon-wrap {
+      background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 45%, #172554 100%);
+      border-color: #93c5fd #3b82f6 #0c1a3d #2563eb;
+      transform: translateY(-3px) scale(1.08);
+      box-shadow: 
+        0 8px 18px rgba(0, 0, 0, 0.75),
+        inset 0 2px 1.5px rgba(191, 219, 254, 0.7),
+        inset 0 -2px 3px rgba(0, 0, 0, 0.6),
+        0 0 22px rgba(56, 189, 248, 0.65);
+      color: #ffffff;
+    }
+
+    .below-menu-item:active .menu-icon-wrap {
+      transform: translateY(1px) scale(0.93);
+      box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.85),
+        inset 0 -1px 1px rgba(147, 197, 253, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Active 3D Blue Menu Item (Pulsing Animated Multi-Color Glow: Gold to Cyan) */
+    .below-menu-item.active .menu-icon-wrap {
+      background: linear-gradient(155deg, #1e40af 0%, #1d4ed8 40%, #0c1e4a 100%);
+      color: #facc15;
+      transform: translateY(-2px);
+      animation: activeTabColorCyclePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes activeTabColorCyclePulse {
+      0%, 100% {
+        color: #facc15;
+        border-color: #fef08a #facc15 #854d0e #ca8a04;
+        box-shadow: 
+          0 4px 14px rgba(0, 0, 0, 0.7),
+          inset 0 1.5px 1.5px rgba(254, 240, 138, 0.75),
+          inset 0 -2px 3px rgba(0, 0, 0, 0.75),
+          0 0 18px rgba(250, 204, 21, 0.75),
+          0 0 30px rgba(234, 179, 8, 0.4);
+      }
+      50% {
+        color: #38bdf8;
+        border-color: #bae6fd #38bdf8 #0369a1 #0284c7;
+        box-shadow: 
+          0 6px 20px rgba(0, 0, 0, 0.8),
+          inset 0 2px 2px rgba(186, 230, 253, 0.85),
+          inset 0 -2px 3px rgba(0, 0, 0, 0.75),
+          0 0 24px rgba(56, 189, 248, 0.85),
+          0 0 42px rgba(14, 165, 233, 0.5);
+      }
+    }
+
+    .below-menu-item.active .menu-icon-wrap svg {
+      animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes activeSvgFilterPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.9));
+      }
+      50% {
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
+      }
+    }
+
+    .below-menu-item.active .menu-label {
+      animation: activeTextColorPulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes activeTextColorPulse {
+      0%, 100% {
+        color: #facc15;
+        text-shadow: 0 0 8px rgba(250, 204, 21, 0.75), 0 0 16px rgba(234, 179, 8, 0.4);
+      }
+      50% {
+        color: #38bdf8;
+        text-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 0 20px rgba(14, 165, 233, 0.5);
+      }
+    }
+
+    /* Active Glowing Neon Pip Indicator with Color Flow */
+    .below-menu-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      width: 16px;
+      height: 3.5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #00f0ff, #facc15, #ec4899, #00f0ff);
+      background-size: 250% 100%;
+      box-shadow: 0 0 8px #facc15, 0 0 14px #00f0ff;
+      animation: activePipColorShift 3s linear infinite, activePipPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes activePipColorShift {
+      0% { background-position: 0% 0; }
+      100% { background-position: 250% 0; }
+    }
+
+    @keyframes activePipPulse {
+      0%, 100% { transform: scaleX(1); opacity: 0.85; }
+      50% { transform: scaleX(1.35); opacity: 1; filter: brightness(1.3); }
+    }
+
+    .menu-label {
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      transition: color 0.25s ease, text-shadow 0.25s ease;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Center Elevated 3D Blue Tab (Home) */
+    .center-home-btn {
+      position: relative;
+      top: -12px;
+      flex: 1.15;
+    }
+
+    .center-home-icon-wrap {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 35%, #0b1a3d 100%);
+      border: 2px solid;
+      border-color: #93c5fd #38bdf8 #06112c #2563eb;
+      box-shadow: 
+        0 6px 18px rgba(0, 0, 0, 0.8),
+        inset 0 2.5px 2px rgba(191, 219, 254, 0.7),
+        inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+        0 0 20px rgba(37, 99, 235, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f8fafc;
+      transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin-bottom: 2px;
+      animation: centerAuraBreathe 3.5s ease-in-out infinite;
+    }
+
+    @keyframes centerAuraBreathe {
+      0%, 100% {
+        border-color: #93c5fd #38bdf8 #06112c #2563eb;
+        box-shadow: 
+          0 6px 18px rgba(0, 0, 0, 0.8),
+          inset 0 2.5px 2px rgba(191, 219, 254, 0.7),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+          0 0 20px rgba(37, 99, 235, 0.4);
+      }
+      50% {
+        border-color: #bae6fd #00f0ff #0a1f4a #1d4ed8;
+        box-shadow: 
+          0 8px 24px rgba(0, 0, 0, 0.9),
+          inset 0 3px 2.5px rgba(224, 242, 254, 0.85),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.85),
+          0 0 32px rgba(0, 240, 255, 0.75),
+          0 0 48px rgba(37, 99, 235, 0.45);
+      }
+    }
+
+    .center-home-btn:hover .center-home-icon-wrap {
+      background: linear-gradient(155deg, #3b82f6 0%, #2563eb 40%, #1e3a8a 100%);
+      border-color: #bfdbfe #60a5fa #0c1a3d #3b82f6;
+      transform: scale(1.12) translateY(-3px);
+      box-shadow: 
+        0 10px 28px rgba(0, 0, 0, 0.85),
+        inset 0 3px 2px rgba(255, 255, 255, 0.8),
+        inset 0 -3px 4px rgba(0, 0, 0, 0.7),
+        0 0 30px rgba(56, 189, 248, 0.75);
+      color: #ffffff;
+    }
+
+    .center-home-btn:active .center-home-icon-wrap {
+      transform: scale(0.95) translateY(1px);
+      box-shadow: 
+        inset 0 3px 5px rgba(0, 0, 0, 0.85),
+        inset 0 -1px 1px rgba(255, 255, 255, 0.2),
+        0 3px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Center Home Active (3D Blue with Animated Multi-Color Pulse: Gold to Cyan) */
+    .center-home-btn.active .center-home-icon-wrap {
+      background: linear-gradient(155deg, #1e40af 0%, #1d4ed8 35%, #0b1a3d 100%);
+      transform: scale(1.08) translateY(-2px);
+      color: #facc15;
+      animation: centerActiveColorCyclePulse 2.8s ease-in-out infinite;
+    }
+
+    @keyframes centerActiveColorCyclePulse {
+      0%, 100% {
+        color: #facc15;
+        border-color: #fef08a #facc15 #854d0e #ca8a04;
+        box-shadow: 
+          0 8px 24px rgba(0, 0, 0, 0.8),
+          inset 0 2.5px 3px rgba(255, 255, 255, 0.7),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.75),
+          0 0 26px rgba(250, 204, 21, 0.85),
+          0 0 46px rgba(234, 179, 8, 0.5);
+      }
+      50% {
+        color: #38bdf8;
+        border-color: #bae6fd #38bdf8 #0369a1 #0284c7;
+        box-shadow: 
+          0 10px 32px rgba(0, 0, 0, 0.9),
+          inset 0 3px 3.5px rgba(255, 255, 255, 0.95),
+          inset 0 -3px 4px rgba(0, 0, 0, 0.75),
+          0 0 36px rgba(56, 189, 248, 0.98),
+          0 0 60px rgba(14, 165, 233, 0.6);
+      }
+    }
+
+    .center-home-btn.active .center-home-icon-wrap svg {
+      animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
+    }
+
+    /* Top Navigation Tabs (Tasks / Games) */
+    .top-nav-tabs {
+      display: flex;
+      background: rgba(10, 23, 56, 0.85);
+      border: 1.5px solid rgba(56, 189, 248, 0.2);
+      border-radius: 14px;
+      padding: 0.3rem;
+      gap: 0.35rem;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      margin-bottom: 0.25rem;
+    }
+
+    .top-tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .top-tab-btn:hover {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .top-tab-btn.active {
+      background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 50%, #0c1a3d 100%);
+      color: #ffffff;
+      border: 1px solid rgba(96, 165, 250, 0.6);
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.5), inset 0 1.5px 1px rgba(147, 197, 253, 0.5);
+    }
+
+    .tab-hot-badge {
+      font-size: 0.58rem;
+      font-weight: 900;
+      color: #facc15;
+      background: rgba(250, 204, 21, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Featured Games Tab Card */
+    .games-feature-tab {
+      display: flex;
+      background: linear-gradient(155deg, #0e1e47 0%, #071233 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.3);
+      border-radius: 18px;
+      overflow: hidden;
+      text-decoration: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 0 18px rgba(56, 189, 248, 0.12);
+      transition: all 0.25s ease;
+      position: relative;
+      min-height: 125px;
+      margin-bottom: 0.35rem;
+    }
+
+    .games-feature-tab:hover {
+      transform: translateY(-2px);
+      border-color: #38bdf8;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 24px rgba(56, 189, 248, 0.3);
+    }
+
+    .games-feature-tab:active {
+      transform: translateY(1px);
+    }
+
+    .games-tab-content {
+      flex: 1.35;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.3rem;
+      z-index: 2;
+    }
+
+    .games-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .games-live-pill {
+      font-size: 0.6rem;
+      font-weight: 900;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+    }
+
+    .games-win-pill {
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: #fbbf24;
+      letter-spacing: 0.03em;
+    }
+
+    .games-tab-heading {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .games-tab-sub {
+      font-size: 0.68rem;
+      color: #94a3b8;
+      line-height: 1.3;
+      margin: 0;
+    }
+
+    .games-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      align-self: flex-start;
+      margin-top: 0.25rem;
+      background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 45%, #0b1a3d 100%);
+      border: 1.5px solid;
+      border-color: #60a5fa #2563eb #06112c #1d4ed8;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(147, 197, 253, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    .games-feature-tab:hover .games-cta-btn {
+      background: linear-gradient(155deg, #2563eb 0%, #1d4ed8 45%, #172554 100%);
+      border-color: #93c5fd #3b82f6 #0c1a3d #2563eb;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .games-tab-art {
+      flex: 0.9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .games-art-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.35s ease;
+    }
+
+    .games-feature-tab:hover .games-art-img {
+      transform: scale(1.06);
+    }
+
+    .games-art-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #071233 0%, rgba(7, 18, 51, 0.25) 100%);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cybernetic Loading / Splash Screen (Transitions into Home Page) -->
+  <div class="app-loading-overlay" id="appLoadingOverlay">
+    <div class="loading-content-box">
+      <div class="loading-logo-ring">
+        <div class="loading-ring-spinner"></div>
+        <div class="loading-logo-core">⚡</div>
+      </div>
+      <h1 class="loading-app-title">TASK EARNER</h1>
+      <div class="loading-subtitle">Cybernetic Gaming &amp; Task Arena</div>
+      <div class="loading-progress-track">
+        <div class="loading-progress-bar" id="loadingProgressBar"></div>
+      </div>
+      <div class="loading-status-text" id="loadingStatusText">INITIALIZING SYSTEM...</div>
+    </div>
+  </div>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">⚡</div>
+        <div class="user-meta">
+          <span class="user-name">Task Earner</span>
+          <span class="user-level" id="userRankDisplay">RANK #1</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" id="coinPill" title="Current Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="userCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" id="starPill" title="Current Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="userStarsDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content (Tasks) -->
+    <main class="page-content">
+      
+
+      <!-- Games Featured Interactive Tab Card -->
+      <a href="page/games/index.html" class="games-feature-tab" id="gamesHeroTab" title="Open Gaming Arena">
+        <div class="games-tab-content">
+          <div class="games-badge-row">
+            <span class="games-live-pill">● LIVE ARENA</span>
+            <span class="games-win-pill">🌻 20 LANDS TYCOON</span>
+          </div>
+          <h2 class="games-tab-heading">Games</h2>
+          <div class="games-cta-btn">
+            <span>Play Games</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="games-tab-art">
+          <img src="assets/games_banner.jpg" alt="Games Arena" class="games-art-img" />
+          <div class="games-art-overlay"></div>
+        </div>
+      </a>
+
+      <div class="tasks-banner">
+        <h1 class="tasks-title">Webtask</h1>
+      </div>
+
+      <div class="tasks-list" id="tasksList">
+        <!-- Dynamically loaded & synchronized with Admin in real time -->
+      </div>
+    </main>
+
+    <!-- Below Menu Bar (5 items) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="page/shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="page/leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="page/home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link -->
+      <a href="page/wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="page/profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script>
+    if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
+      localStorage.setItem('task_game_coins', '0');
+    }
+    if (localStorage.getItem('task_game_stars') === '850' || !localStorage.getItem('task_game_stars')) {
+      localStorage.setItem('task_game_stars', '0');
+    }
+    let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+    let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+
+    // Storage Keys & Sync Channels
+    const TASKS_STORAGE_KEY = 'task_game_tasks';
+    const CLAIMS_STORAGE_KEY = 'task_game_claims';
+    const SYNC_FLAG_KEY = 'task_game_sync_flag';
+    const SYNC_CHANNEL_NAME = 'nova_task_sync';
+
+    // Dynamic tasks managed strictly from Admin Panel (no hardcoded defaults)
+    const DEFAULT_TASKS = [];
+
+    function getStoredTasks() {
+      try {
+        const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            // Strip out legacy hardcoded tasks if present & sanitize names to Webtask
+            let modified = false;
+            const filtered = parsed
+              .filter(t => !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id))
+              .map(t => {
+                if (t.title && /daily\s*task/i.test(t.title)) {
+                  t.title = t.title.replace(/daily\s*task[s]?/gi, 'Webtask');
+                  modified = true;
+                }
+                if (t.description && /daily\s*task/i.test(t.description)) {
+                  t.description = t.description.replace(/daily\s*task[s]?/gi, 'webtask');
+                  modified = true;
+                }
+                return t;
+              });
+            if (filtered.length !== parsed.length || modified) {
+              localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(filtered));
+            }
+            return filtered;
+          }
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    function getStoredClaims() {
+      try {
+        const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
+        if (raw) {
+          const claims = JSON.parse(raw);
+          // Remove any lingering cooldown claims for legacy seed tasks
+          ['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].forEach(id => delete claims[id]);
+          return claims;
+        }
+      } catch (e) {}
+      return {};
+    }
+
+    function saveClaims(claims) {
+      localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(claims));
+      localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+      try {
+        const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        ch.postMessage({ type: 'CLAIMS_UPDATED', timestamp: Date.now() });
+      } catch (e) {}
+    }
+
+    function getTaskRemainingSeconds(task, claims) {
+      const timerSec = Number(task.timerSeconds);
+      if (isNaN(timerSec) || timerSec <= 0) {
+        return claims[task.id] ? -999 : 0;
+      }
+      const claimedAt = claims[task.id];
+      if (!claimedAt) return 0;
+      const elapsed = Math.floor((Date.now() - claimedAt) / 1000);
+      const remaining = timerSec - elapsed;
+      return remaining > 0 ? remaining : 0;
+    }
+
+    function formatRemainingTime(seconds) {
+      if (seconds <= 0) return 'Ready';
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      if (hrs > 0) {
+        return `${hrs}h ${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+      }
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function formatDurationBadge(seconds) {
+      const s = Number(seconds || 0);
+      if (s <= 0) return 'One-time Bounty';
+      const hrs = s / 3600;
+      if (hrs >= 1 && Number.isInteger(hrs)) return `${hrs}h Cooldown`;
+      if (hrs >= 1) return `${hrs.toFixed(1)}h Cooldown`;
+      const mins = Math.floor(s / 60);
+      if (mins >= 1) return `${mins}m Cooldown`;
+      return `${s}s Cooldown`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Web Audio Synthesizer for Home Tasks
+    const HomeAudio = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      playStartupChime() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime;
+          [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+            gain.gain.setValueAtTime(0.08, t + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + idx * 0.08 + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(t + idx * 0.08);
+            osc.stop(t + idx * 0.08 + 0.38);
+          });
+        } catch (e) {}
+      },
+      playCoinClaim() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const t = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(987.77, t);
+          osc.frequency.setValueAtTime(1318.51, t + 0.06);
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.27);
+        } catch (e) {}
+      }
+    };
+
+    function updateCoinDisplay() {
+      userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+
+      const display = document.getElementById('userCoinsDisplay');
+      if (display) display.textContent = userCoins.toLocaleString();
+
+      const starDisplay = document.getElementById('userStarsDisplay');
+      if (starDisplay) starDisplay.textContent = userStars.toLocaleString();
+
+      const avatarEl = document.querySelector('.user-avatar');
+      if (avatarEl) avatarEl.textContent = localStorage.getItem('player_avatar') || '⚡';
+
+      const nameEl = document.querySelector('.user-name');
+      if (nameEl) {
+        const savedName = localStorage.getItem('player_username');
+        nameEl.textContent = (savedName && savedName !== 'NovaEarner' && savedName !== 'Player') ? savedName : 'Task Earner';
+      }
+
+      // Dynamic User Rank Display in Header
+      const rankEl = document.getElementById('userRankDisplay') || document.querySelector('.user-level');
+      if (rankEl) {
+        let playerRank = 1;
+        try {
+          const rawUsers = localStorage.getItem('task_game_users');
+          const pName = localStorage.getItem('player_username') || 'Task Earner';
+          if (rawUsers) {
+            let users = JSON.parse(rawUsers);
+            if (Array.isArray(users) && users.length > 0) {
+              users.sort((a, b) => {
+                const tasksDiff = Number(b.eventTasks || 0) - Number(a.eventTasks || 0);
+                if (tasksDiff !== 0) return tasksDiff;
+                const coinsDiff = Number(b.coins || 0) - Number(a.coins || 0);
+                if (coinsDiff !== 0) return coinsDiff;
+                return Number(b.stars || 0) - Number(a.stars || 0);
+              });
+              const idx = users.findIndex(u => (u.name && u.name.toLowerCase() === pName.toLowerCase()) || u.id === 'usr_1');
+              if (idx >= 0) playerRank = idx + 1;
+            }
+          }
+          const savedRank = localStorage.getItem('task_game_rank') || localStorage.getItem('player_rank');
+          if (savedRank) playerRank = savedRank;
+        } catch (e) {}
+        rankEl.textContent = `RANK #${playerRank}`;
+      }
+
+      const pill = document.getElementById('coinPill');
+      if (pill) {
+        pill.style.transform = 'scale(1.05)';
+        setTimeout(() => { pill.style.transform = 'scale(1)'; }, 200);
+      }
+    }
+
+    function showFloatingCoin(targetElement, text) {
+      if (!targetElement) return;
+      const rect = targetElement.getBoundingClientRect();
+      const floatEl = document.createElement('div');
+      floatEl.className = 'floating-coin';
+      floatEl.textContent = text;
+      floatEl.style.left = `${rect.left + rect.width / 4}px`;
+      floatEl.style.top = `${rect.top - 8}px`;
+      document.body.appendChild(floatEl);
+      setTimeout(() => { floatEl.remove(); }, 800);
+    }
+
+    // Dynamic Task Rendering & Real-time Live Timer
+    function renderTasks() {
+      const container = document.getElementById('tasksList');
+      if (!container) return;
+
+      const tasks = getStoredTasks();
+      const claims = getStoredClaims();
+      const activeTasks = tasks.filter(t => t.active !== false);
+
+      if (activeTasks.length === 0) {
+        container.innerHTML = `
+          <div class="empty-tasks-box">
+            <div class="empty-tasks-icon">🎯</div>
+            <div class="empty-tasks-text">No active webtasks right now. Check back soon!</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeTasks.map(task => {
+        const remaining = getTaskRemainingSeconds(task, claims);
+        const isCoolingDown = remaining > 0;
+        const isOneTimeClaimed = (Number(task.timerSeconds || 0) <= 0 && claims[task.id]);
+
+        let btnHtml = '';
+        if (isOneTimeClaimed) {
+          btnHtml = `<button class="btn-claim" disabled>Claimed ✓</button>`;
+        } else if (isCoolingDown) {
+          btnHtml = `<button class="btn-claim btn-timer-cooling" data-task-id="${task.id}" disabled title="Resets in ${formatRemainingTime(remaining)}">⏳ ${formatRemainingTime(remaining)}</button>`;
+        } else {
+          btnHtml = `<button class="btn-claim" onclick="handleClaimTask('${task.id}', ${task.reward})">Claim</button>`;
+        }
+
+        return `
+          <div class="task-card ${isCoolingDown ? 'cooling-down' : ''} ${isOneTimeClaimed ? 'completed' : ''}" id="taskCard_${task.id}">
+            <div class="task-icon-wrap">${task.icon || '⚡'}</div>
+            <div class="task-info">
+              <div class="task-name-row">
+                <span class="task-name">${escapeHtml(task.title)}</span>
+                ${isCoolingDown 
+                  ? `<span class="task-status-pill cooling" id="pill_${task.id}">⏳ ${formatRemainingTime(remaining)}</span>` 
+                  : `<span class="task-status-pill ready">⏱️ ${formatDurationBadge(task.timerSeconds)}</span>`
+                }
+              </div>
+              <div class="task-desc-row">
+                <span class="task-reward">+${Number(task.reward).toLocaleString()} 🪙</span>
+                ${task.description ? `<span class="task-desc-sep">•</span><span class="task-desc-text">${escapeHtml(task.description)}</span>` : ''}
+              </div>
+            </div>
+            <div class="task-action-wrap" id="action_${task.id}">
+              ${btnHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Live 1-Second Timer Ticking
+    function updateLiveTimers() {
+      const tasks = getStoredTasks();
+      const claims = getStoredClaims();
+      let needFullRerender = false;
+
+      tasks.forEach(task => {
+        if (task.active === false) return;
+        const remaining = getTaskRemainingSeconds(task, claims);
+        const btn = document.querySelector(`.btn-timer-cooling[data-task-id="${task.id}"]`);
+        const pill = document.getElementById(`pill_${task.id}`);
+
+        if (btn) {
+          if (remaining > 0) {
+            const timeStr = `⏳ ${formatRemainingTime(remaining)}`;
+            btn.textContent = timeStr;
+            if (pill) pill.textContent = timeStr;
+          } else {
+            needFullRerender = true;
+          }
+        }
+      });
+
+      if (needFullRerender) {
+        renderTasks();
+      }
+    }
+
+    // User Task Claim Handler
+    function handleClaimTask(taskId, reward) {
+      const btn = event ? (event.target.closest('button') || event.target) : null;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const claims = getStoredClaims();
+      const remaining = getTaskRemainingSeconds(task, claims);
+      if (remaining > 0) return;
+
+      // 1. If task has a target URL / link, open it in a new window/tab
+      if (task.link && task.link.trim() !== '') {
+        window.open(task.link, '_blank');
+      }
+
+      // 2. If task requires a verification code, verify it
+      const requiredCode = (task.verificationCode || task.code || '').trim();
+      if (requiredCode !== '') {
+        const enteredCode = prompt(`🔑 Task Verification Required!\nEnter the verification code to claim +${Number(reward).toLocaleString()} coins for "${task.title}":`);
+        if (enteredCode === null) {
+          // User cancelled
+          return;
+        }
+        if (enteredCode.trim() !== requiredCode) {
+          alert(`❌ Invalid Verification Code! Please check the code and try again.`);
+          return;
+        }
+      }
+
+      // Add coins
+      userCoins += Number(reward);
+      localStorage.setItem('task_game_coins', userCoins.toString());
+
+      // Track total tasks completed for wallet withdrawal & leaderboard eligibility (Min 100)
+      let completedTasks = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
+      localStorage.setItem('task_game_total_tasks_completed', completedTasks.toString());
+
+      // If Leaderboard Event is active, count this task towards the active event
+      recordLeaderboardEventTask(completedTasks);
+
+      updateCoinDisplay();
+
+      // Audio & Float
+      HomeAudio.playCoinClaim();
+      if (btn) showFloatingCoin(btn, `+${Number(reward).toLocaleString()} 🪙`);
+
+      // Save claim timestamp
+      claims[taskId] = Date.now();
+      saveClaims(claims);
+
+      // Instantly transition into ticking live timer
+      renderTasks();
+    }
+
+    const GLOBAL_EPOCH_ANCHOR = Date.UTC(2026, 9, 1, 0, 0, 0); // Oct 1, 2026 00:00:00 UTC
+    const THREE_MONTHS_HOURS = 2160; // 90 days
+    const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
+
+    function getUniversalGlobalLeaderboardEvent() {
+      const now = Date.now();
+      let customEvt = null;
+      try {
+        const raw = localStorage.getItem('task_game_leaderboard_event');
+        if (raw) customEvt = JSON.parse(raw);
+      } catch (e) {}
+
+      // If manual override is active and not expired, respect it
+      if (customEvt && customEvt.isManualOverride && now < customEvt.endTime && customEvt.status === 'active') {
+        return customEvt;
+      }
+
+      // Universal Global 3-Month Season (Identical for ALL users worldwide: new, old, guest, logged-in)
+      const elapsed = Math.max(0, now - GLOBAL_EPOCH_ANCHOR);
+      const seasonIndex = Math.floor(elapsed / THREE_MONTHS_MS);
+      const seasonNumber = seasonIndex + 1;
+      const startTime = GLOBAL_EPOCH_ANCHOR + (seasonIndex * THREE_MONTHS_MS);
+      const endTime = startTime + THREE_MONTHS_MS;
+
+      const globalEvt = {
+        id: `global_season_${seasonNumber}`,
+        seasonNumber: seasonNumber,
+        name: `Season ${seasonNumber}: 3-Month Championship (21,500 ⭐ Prize Pool)`,
+        startTime: startTime,
+        endTime: endTime,
+        durationHours: THREE_MONTHS_HOURS,
+        durationDays: 90,
+        status: 'active',
+        isGlobal: true
+      };
+
+      // Rollover check: If stored event is from an older season, reset task counters
+      if (customEvt && customEvt.seasonNumber && customEvt.seasonNumber < seasonNumber) {
+        localStorage.setItem('task_game_event_tasks_count', '0');
+        try {
+          const rawUsers = localStorage.getItem('task_game_users');
+          if (rawUsers) {
+            const uList = JSON.parse(rawUsers);
+            if (Array.isArray(uList)) {
+              uList.forEach(u => { u.eventTasks = 0; });
+              localStorage.setItem('task_game_users', JSON.stringify(uList));
+            }
+          }
+        } catch (e) {}
+      }
+
+      try {
+        localStorage.setItem('task_game_leaderboard_event', JSON.stringify(globalEvt));
+      } catch (e) {}
+
+      return globalEvt;
+    }
+
+    function recordLeaderboardEventTask(totalTasks) {
+      try {
+        const now = Date.now();
+        const evt = getUniversalGlobalLeaderboardEvent();
+
+        if (evt.status === 'active' && now < evt.endTime) {
+          // Task completion directly increments event tasks from task 1 (clean zero start)
+          let eventTasks = parseInt(localStorage.getItem('task_game_event_tasks_count') || '0', 10) + 1;
+          localStorage.setItem('task_game_event_tasks_count', eventTasks.toString());
+
+          // Also update player entry in task_game_users
+          try {
+            const rawUsers = localStorage.getItem('task_game_users');
+            if (rawUsers) {
+              const users = JSON.parse(rawUsers);
+              const myName = localStorage.getItem('player_username') || 'Task Earner';
+              const me = users.find(u => u.id === 'usr_1' || u.name === myName || u.name === 'Task Earner' || u.name === 'NovaEarner' || u.name === 'Player');
+              if (me) {
+                me.eventTasks = eventTasks;
+                me.totalTasks = totalTasks;
+                localStorage.setItem('task_game_users', JSON.stringify(users));
+              }
+            }
+          } catch (e) {}
+
+          // Broadcast to other tabs (Leaderboard & Admin)
+          try {
+            const bc = new BroadcastChannel('nova_task_sync');
+            bc.postMessage({ type: 'EVENT_TASK_COUNT', count: eventTasks, totalTasks: totalTasks });
+            bc.close();
+          } catch (e) {}
+        } else if (now >= evt.endTime) {
+          // 3-Month Timer finished -> Rollover to next global 3-month season!
+          localStorage.setItem('task_game_event_tasks_count', '0');
+
+          // Remove old event data from user pool
+          try {
+            const rawUsers = localStorage.getItem('task_game_users');
+            if (rawUsers) {
+              const users = JSON.parse(rawUsers);
+              if (Array.isArray(users)) {
+                users.forEach(u => { u.eventTasks = 0; });
+                localStorage.setItem('task_game_users', JSON.stringify(users));
+              }
+            }
+          } catch (e) {}
+
+          localStorage.removeItem('task_game_leaderboard_event');
+          const nextEvt = getUniversalGlobalLeaderboardEvent();
+
+          try {
+            const bc = new BroadcastChannel('nova_task_sync');
+            bc.postMessage({ type: 'EVENT_FINISHED', nextEvent: nextEvt, timestamp: now });
+            bc.close();
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.error('Leaderboard event counting error:', err);
+      }
+    }
+
+    // Initialize Page & Event Listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      updateCoinDisplay();
+      renderTasks();
+
+      // Start live 1-second countdown clock
+      setInterval(updateLiveTimers, 1000);
+
+      // Cybernetic Loading Screen Progression (Runs ONLY once per app session)
+      const overlay = document.getElementById('appLoadingOverlay');
+      const bar = document.getElementById('loadingProgressBar');
+      const statusText = document.getElementById('loadingStatusText');
+      const isAlreadyLoaded = sessionStorage.getItem('task_app_loaded') === 'true';
+
+      if (isAlreadyLoaded) {
+        if (overlay) overlay.remove();
+      } else if (overlay && bar) {
+        sessionStorage.setItem('task_app_loaded', 'true');
+        let progress = 0;
+        const steps = [
+          { p: 25, msg: 'INITIALIZING SYSTEM...' },
+          { p: 55, msg: 'CONNECTING SECURE VAULT...' },
+          { p: 85, msg: 'SYNCHRONIZING REWARDS...' },
+          { p: 100, msg: 'ARENA READY!' }
+        ];
+        let stepIdx = 0;
+
+        const loadInterval = setInterval(() => {
+          if (stepIdx < steps.length) {
+            progress = steps[stepIdx].p;
+            bar.style.width = `${progress}%`;
+            if (statusText) statusText.textContent = steps[stepIdx].msg;
+            stepIdx++;
+          } else {
+            clearInterval(loadInterval);
+            HomeAudio.playStartupChime();
+            setTimeout(() => {
+              overlay.classList.add('fade-out');
+              setTimeout(() => overlay.remove(), 550);
+            }, 300);
+          }
+        }, 220);
+      }
+    });
+
+    // Real-Time Cross-Tab / Cross-Window Synchronization (Admin Edits -> Real-Time Player Screen Updates)
+    window.addEventListener('storage', (e) => {
+      if (e.key === TASKS_STORAGE_KEY || e.key === SYNC_FLAG_KEY || e.key === CLAIMS_STORAGE_KEY) {
+        renderTasks();
+      }
+      if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'player_username' || e.key === 'player_avatar') {
+        updateCoinDisplay();
+      }
+    });
+
+    // BroadcastChannel for instant same-browser cross-window sync
+    try {
+      const syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      syncChannel.onmessage = () => {
+        renderTasks();
+        updateCoinDisplay();
+      };
+    } catch (e) {}
+
+    // When tab gains focus, refresh tasks and coins
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        renderTasks();
+        updateCoinDisplay();
+      }
+    });
+
+    // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection
+    window.renderTasks = renderTasks;
+    window.getStoredTasks = getStoredTasks;
+    window.handleClaimTask = handleClaimTask;
+  </script>
+</body>
+</html>

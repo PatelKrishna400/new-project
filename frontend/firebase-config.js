@@ -77,26 +77,31 @@ const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
 // One-time zero-start sanitizer: Purge all mock demo users, artificial balances, and test records
 try {
-  if (!localStorage.getItem('task_game_zero_start_clean_v5')) {
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
     localStorage.setItem('task_game_coins', '0');
     localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
     localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
     localStorage.setItem('task_game_event_tasks', '0');
     localStorage.setItem('task_game_event_tasks_count', '0');
     localStorage.setItem('task_coins_won_today', '0');
     localStorage.setItem('task_games_played_today', '0');
     localStorage.setItem('task_win_streak', '0');
-    localStorage.removeItem('task_game_users');
-    localStorage.removeItem('task_game_withdrawals');
-    localStorage.removeItem('task_game_referrals_list');
-    localStorage.removeItem('task_game_stars_transactions');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
     localStorage.removeItem('task_game_stars_rating');
-    localStorage.removeItem('task_game_claims');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
     localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -105,7 +110,7 @@ try {
       localStorage.setItem('player_username', 'Player');
     }
     localStorage.setItem('player_avatar', '⚡');
-    localStorage.setItem('task_game_zero_start_clean_v5', 'true');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
     console.log("%c[System] Zero Start Complete: All balances, tasks, and users initialized from 0.", "color: #10b981; font-weight: bold;");
   }
 } catch (e) {}

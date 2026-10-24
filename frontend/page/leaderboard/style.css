@@ -13,6 +13,15 @@
   scrollbar-width: none !important;
 }
 
+/* Suppression of Active Session badge & top-up strips per user request */
+.session-tab-mini-badge,
+.event-live-indicator,
+.player-session-badge,
+.tg-wallet-topup-strip,
+.tg-stars-store-container {
+  display: none !important;
+}
+
 body {
   background-color: #030816;
   min-height: 100vh;
@@ -2530,5 +2539,10 @@ body {
   box-shadow: 0 6px 16px rgba(56, 189, 248, 0.5);
 }
 
-
-
+/* Permanent suppression per user request: hide prizes banner and 100-task locked card */
+.leaderboard-prizes-card,
+.qualification-card,
+#leaderboardPrizesCard,
+#qualificationCard {
+  display: none !important;
+}

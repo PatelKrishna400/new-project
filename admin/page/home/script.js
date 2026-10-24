@@ -276,7 +276,7 @@ function loadAllStoredData() {
     if (!Array.isArray(parsedUsers)) parsedUsers = [];
 
     // Filter out mock users
-    parsedUsers = parsedUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey');
+    parsedUsers = parsedUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey' && u.name !== 'ShadowTyper' && u.name !== 'Alex_Gamer' && u.name !== 'NeonBlaze' && u.name !== 'Phoenix99' && u.name !== 'QuantumCoder' && u.name !== 'StarHunter' && u.name !== 'HyperStrike' && u.name !== 'VortexPilot' && u.name !== 'LunaBlade');
 
     // Sync current player live stats to usr_1
     const playerCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
@@ -985,6 +985,7 @@ function renderWithdrawalsTable() {
         <td>
           <div style="font-weight: 700; color: #ffffff;">${escapeHtml(w.method)}</div>
           <div style="font-size: 0.72rem; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">${escapeHtml(w.details)}</div>
+          ${(w.deliveryLink || w.link) ? `<div style="margin-top: 3px;"><a href="${escapeHtml(w.deliveryLink || w.link)}" target="_blank" rel="noopener noreferrer" style="color: #34d399; font-size: 0.72rem; font-weight: 800; text-decoration: underline;">🔗 View Link</a></div>` : ''}
         </td>
         <td style="color: #cbd5e1; font-size: 0.75rem;">${escapeHtml(w.time || 'Recent')}</td>
         <td>
@@ -1019,7 +1020,7 @@ function openApproveModal(reqId) {
   if (nameDisplay) nameDisplay.textContent = req.playerName || 'Player';
   if (amtDisplay) amtDisplay.textContent = `₹${Number(req.amount).toLocaleString()}`;
   if (detDisplay) detDisplay.textContent = `${req.method} • ${req.details || ''}`;
-  if (linkInput) linkInput.value = req.deliveryLink || '';
+  if (linkInput) linkInput.value = req.deliveryLink || req.link || '';
   if (codeInput) codeInput.value = '';
   if (errBox) errBox.style.display = 'none';
 
@@ -1063,12 +1064,17 @@ function handleConfirmApproveWithdrawal(event) {
   req.approvedAt = Date.now();
   req.approvedWithCode = '1109';
   if (linkInput && linkInput.value.trim()) {
-    req.deliveryLink = linkInput.value.trim();
+    let cleanLink = linkInput.value.trim();
+    if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+      cleanLink = 'https://' + cleanLink;
+    }
+    req.deliveryLink = cleanLink;
+    req.link = cleanLink;
   }
   saveWithdrawalsAndSync();
   closeWithdrawApproveModal();
-  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) with security code 1109`);
-  showToast(`✅ Withdrawal #${req.id} approved for ₹${req.amount}! (Code 1109 Verified)`, 'success');
+  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) with link attached`);
+  showToast(`✅ Withdrawal #${req.id} approved with link! (Code 1109 Verified)`, 'success');
 }
 
 function approveWithdrawal(reqId) {
@@ -1078,6 +1084,9 @@ function approveWithdrawal(reqId) {
 function approveWithdrawalWithPrompt(reqId) {
   const req = withdrawalsData.find(w => w.id === reqId);
   if (!req) return;
+
+  const voucherUrl = prompt(`🔗 Optional: Add Delivery / Voucher / Reward Link for player to claim (or leave blank):\n(e.g. https://example.com/voucher/claim...)`, req.deliveryLink || req.link || '');
+  if (voucherUrl === null) return;
 
   const enteredCode = prompt(`🔐 Security Verification Required!\nEnter Admin Approval Code (Code: 1109) to approve cashout #${req.id} for ₹${Number(req.amount).toLocaleString()} (${req.playerName}):`);
 
@@ -1092,8 +1101,16 @@ function approveWithdrawalWithPrompt(reqId) {
   req.status = 'approved';
   req.approvedAt = Date.now();
   req.approvedWithCode = '1109';
+  if (voucherUrl.trim()) {
+    let cleanLink = voucherUrl.trim();
+    if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+      cleanLink = 'https://' + cleanLink;
+    }
+    req.deliveryLink = cleanLink;
+    req.link = cleanLink;
+  }
   saveWithdrawalsAndSync();
-  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) using code 1109`);
+  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) with link using code 1109`);
   showToast(`✅ Withdrawal #${req.id} approved for ₹${req.amount}! (Code 1109 Verified)`, 'success');
 }
 
@@ -1545,7 +1562,7 @@ function renderAdminEventSection() {
   let sumEventTasks = 0;
 
   users.forEach(u => {
-    const tot = Number(u.totalTasks !== undefined ? u.totalTasks : (u.id === 'usr_1' ? myTotalTasks : 120));
+    const tot = Number(u.totalTasks !== undefined ? u.totalTasks : (u.id === 'usr_1' ? myTotalTasks : 0));
     const ev = Number(u.eventTasks || 0);
     sumEventTasks += ev;
     if (tot >= 100) qualifiedCount++;
@@ -1569,7 +1586,7 @@ function renderAdminEventSection() {
   if (tbody) {
     tbody.innerHTML = users.map(u => {
       const isCurrentPlayer = (u.id === 'usr_1' || u.name === myName || u.name === 'Task Earner' || u.name === 'NovaEarner');
-      const totTasks = Number(u.totalTasks !== undefined ? u.totalTasks : (isCurrentPlayer ? myTotalTasks : 120));
+      const totTasks = Number(u.totalTasks !== undefined ? u.totalTasks : (isCurrentPlayer ? myTotalTasks : 0));
       const evTasks = Number(isCurrentPlayer ? myEventTasks : (u.eventTasks || 0));
       const isQualified = totTasks >= 100;
 

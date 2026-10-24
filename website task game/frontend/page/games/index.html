@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — Gaming Arena</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <a href="../home/index.html" class="header-back-btn" title="Back to Home" style="text-decoration:none; display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:10px; background:#0a1738; border:1.5px solid #38bdf8; color:#38bdf8; margin-right:2px; box-shadow:0 2px 6px rgba(0,0,0,0.5); transition:all 0.2s ease;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="gameCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="gameStarsDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- Top Game Category Switcher: Idle Game vs Lucky Game -->
+      <div class="top-nav-tabs" role="tablist" aria-label="Game Categories">
+        <button type="button" class="top-tab-btn active" id="tabBtnIdle" onclick="switchGameCategory('idle')" role="tab" aria-selected="true" aria-controls="idleGameSection">
+          <span class="tab-icon">🌾</span>
+          <span>Idle Game</span>
+          <span class="tab-live-dot" id="idleLiveDot"></span>
+        </button>
+        <button type="button" class="top-tab-btn" id="tabBtnLucky" onclick="switchGameCategory('lucky')" role="tab" aria-selected="false" aria-controls="luckyGameSection">
+          <span class="tab-icon">🎲</span>
+          <span>Lucky Game</span>
+          <span class="tab-live-dot tab-live-dot-gold" id="luckyLiveDot"></span>
+        </button>
+      </div>
+
+      <!-- ========================================================
+           1. IDLE GAME TAB VIEW (SUNFLOWER HONEY BEE FARM)
+           ======================================================== -->
+      <section class="game-category-view" id="idleGameSection">
+        <div class="section-title-row">
+          <h2 class="section-title">Idle Farm</h2>
+          <span class="section-tag">Tap to Open</span>
+        </div>
+
+        <!-- HONEY BEE FARM GAME TAB (CLICK TO OPEN HONEY FARM) -->
+        <a href="../sunflower/index.html" class="sunflower-game-tab" id="sunflowerGameTab" title="Click to Open Honey Bee Farm">
+          <!-- Main Banner Artwork Stage -->
+          <div class="tab-artwork-stage">
+            <img src="../sunflower/sunflower-bg.png" alt="Honey Bee Farm Panorama" class="tab-artwork-img" />
+            <div class="tab-artwork-vignette"></div>
+            <div class="tab-artwork-overlay-content">
+              <div class="tab-floating-icon">🍯</div>
+              <div class="tab-artwork-titles">
+                <h3 class="tab-title">Honey Bee Farm</h3>
+                <span class="tab-tagline">Harvest Honey Pots & Bloom Gardens</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Body Details -->
+          <div class="tab-body">
+            <!-- Live Balances Preview -->
+            <div class="tab-stats-preview">
+              <div class="tab-stat-pill">
+                <span class="pill-label">Honey Pots</span>
+                <span class="pill-value text-amber" id="tabSfCoins">0 🍯</span>
+              </div>
+              <div class="tab-stat-pill">
+                <span class="pill-label">Seeds Ready</span>
+                <span class="pill-value text-emerald" id="tabSfSeeds">3 🌱</span>
+              </div>
+              <div class="tab-stat-pill">
+                <span class="pill-label">Flower Groves</span>
+                <span class="pill-value text-sky" id="tabSfBuckets">20 🌸</span>
+              </div>
+            </div>
+
+            <!-- 3D Interactive Launch Button -->
+            <div class="tab-action-wrap">
+              <div class="btn-launch-game">
+                <span class="launch-icon">🐝</span>
+                <span class="launch-text">CLICK TO OPEN HONEY BEE FARM</span>
+                <svg class="launch-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <!-- ========================================================
+           2. LUCKY GAME TAB VIEW (7 CLASSIC ARCADE GAMES)
+           ======================================================== -->
+      <section class="game-category-view" id="luckyGameSection" style="display:none;">
+        <div class="section-title-row">
+          <h2 class="section-title">Lucky Arcade Games</h2>
+          <span class="section-tag" style="color:#facc15; border-color:rgba(250,204,21,0.4); background:rgba(250,204,21,0.12);">7 Games</span>
+        </div>
+
+        <!-- Master Lucky Arcade Suite Card Banner -->
+        <a href="../lucky-game/index.html" class="lucky-suite-hero-card" title="Open Full Lucky Arcade Suite">
+          <div class="lucky-hero-glow"></div>
+          <div class="lucky-hero-content">
+            <div class="lucky-hero-badge">
+              <span>👑 ALL-IN-ONE ARCADE</span>
+              <span class="lucky-hero-tag">MULTI-GAME HUB</span>
+            </div>
+            <h3 class="lucky-hero-title">Lucky Arcade Suite</h3>
+            <p class="lucky-hero-desc">Play all 7 arcade games with unified bet controls, audio synthesizers & instant coin sync.</p>
+            <div class="btn-open-suite">
+              <span>🎲 ENTER MASTER ARCADE</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- Grid of 7 Dedicated Arcade Game Cards -->
+        <div class="lucky-games-grid">
+
+          <!-- 1. Lucky Dice -->
+          <a href="../lucky-dice/index.html" class="lucky-card lucky-card-dice" title="Play Lucky Dice">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">🎲</div>
+              <span class="lucky-mult-pill pill-dice">Up to ×7</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Lucky Dice</h4>
+              <p class="lucky-card-desc">3D tumbling dice. Roll 4-6 to multiply. Roll three 6s for jackpot streak.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-dice">Play Dice →</div>
+          </a>
+
+          <!-- 2. Lucky Scratch -->
+          <a href="../lucky-scratch/index.html" class="lucky-card lucky-card-scratch" title="Play Lucky Scratch">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">🎫</div>
+              <span class="lucky-mult-pill pill-scratch">Up to ×15</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Lucky Scratch</h4>
+              <p class="lucky-card-desc">Scratch golden foil with mouse or finger to uncover massive prizes.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-scratch">Play Scratch →</div>
+          </a>
+
+          <!-- 3. Lucky Spin -->
+          <a href="../lucky-spin/index.html" class="lucky-card lucky-card-spin" title="Play Lucky Spin">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">🎡</div>
+              <span class="lucky-mult-pill pill-spin">Up to ×5</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Lucky Spin</h4>
+              <p class="lucky-card-desc">12-wedge neon wheel. Stop on the gold crown wedge for ×5 multiplier.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-spin">Play Spin →</div>
+          </a>
+
+          <!-- 4. Gift Drop (Plinko) -->
+          <a href="../gift-drop/index.html" class="lucky-card lucky-card-plinko" title="Play Gift Drop">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">🎁</div>
+              <span class="lucky-mult-pill pill-plinko">Up to ×24</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Gift Drop</h4>
+              <p class="lucky-card-desc">Drop lucky gift balls through 8 peg rows into high multiplier buckets.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-plinko">Play Drop →</div>
+          </a>
+
+          <!-- 5. Coin Flip -->
+          <a href="../coin-flip/index.html" class="lucky-card lucky-card-coin" title="Play Coin Flip">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">🪙</div>
+              <span class="lucky-mult-pill pill-coin">1.90× Double</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Coin Flip</h4>
+              <p class="lucky-card-desc">Call Heads or Tails in 3D physics tumble to double your coin stake.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-coin">Play Flip →</div>
+          </a>
+
+          <!-- 6. Gift Hunt (Mines) -->
+          <a href="../mines/index.html" class="lucky-card lucky-card-mines" title="Play Gift Hunt">
+            <div class="lucky-card-top">
+              <div class="lucky-card-icon">💣</div>
+              <span class="lucky-mult-pill pill-mines">Multi-Stage</span>
+            </div>
+            <div class="lucky-card-body">
+              <h4 class="lucky-card-title">Gift Hunt</h4>
+              <p class="lucky-card-desc">Uncover hidden gifts in a 5×5 minefield. Dodge bombs & cash out anytime.</p>
+            </div>
+            <div class="btn-card-launch btn-launch-mines">Play Hunt →</div>
+          </a>
+
+        </div>
+
+        <!-- 7. Under Over (Full Width Card) -->
+        <a href="../under-over/index.html" class="lucky-card-full lucky-card-underover" title="Play Under Over">
+          <div class="lucky-card-top">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <div class="lucky-card-icon">📊</div>
+              <div>
+                <div style="display:flex; align-items:center; gap:0.4rem;">
+                  <h4 class="lucky-card-title">Under Over</h4>
+                  <span class="lucky-mult-pill pill-underover">Up to ×95</span>
+                </div>
+                <p class="lucky-card-desc">Slide dynamic probability threshold 0–99. Customize your risk and multiplier odds.</p>
+              </div>
+            </div>
+            <div class="btn-card-launch btn-launch-underover" style="margin-top:0; white-space:nowrap;">Play →</div>
+          </div>
+        </a>
+
+      </section>
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

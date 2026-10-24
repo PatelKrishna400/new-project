@@ -17,26 +17,31 @@ const DEFAULT_USERS_POOL = [];
 
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
-  if (!localStorage.getItem('task_game_zero_start_clean_v5')) {
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
     localStorage.setItem('task_game_coins', '0');
     localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
     localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
     localStorage.setItem('task_game_event_tasks', '0');
     localStorage.setItem('task_game_event_tasks_count', '0');
     localStorage.setItem('task_coins_won_today', '0');
     localStorage.setItem('task_games_played_today', '0');
     localStorage.setItem('task_win_streak', '0');
-    localStorage.removeItem('task_game_users');
-    localStorage.removeItem('task_game_withdrawals');
-    localStorage.removeItem('task_game_referrals_list');
-    localStorage.removeItem('task_game_stars_transactions');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
     localStorage.removeItem('task_game_stars_rating');
-    localStorage.removeItem('task_game_claims');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
     localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -45,15 +50,15 @@ try {
       localStorage.setItem('player_username', 'Player');
     }
     localStorage.setItem('player_avatar', '⚡');
-    localStorage.setItem('task_game_zero_start_clean_v5', 'true');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
   }
 } catch (e) {}
 
 // Clear legacy demo users and dummy pools if present
 try {
   const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  if (rawUsers && (rawUsers.includes('Vortex') || rawUsers.includes('Cyber') || rawUsers.includes('42850') || rawUsers.includes('38120') || rawUsers.includes('usr_2'))) {
-    localStorage.removeItem(USERS_STORAGE_KEY);
+  if (rawUsers && (rawUsers.includes('Vortex') || rawUsers.includes('Cyber') || rawUsers.includes('42850') || rawUsers.includes('38120') || rawUsers.includes('usr_2') || rawUsers.includes('ShadowTyper') || rawUsers.includes('Alex_Gamer') || rawUsers.includes('NeonBlaze'))) {
+    localStorage.setItem(USERS_STORAGE_KEY, '[]');
   }
 } catch (e) { }
 
@@ -61,7 +66,7 @@ let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 let currentRanksList = [];
 let myCurrentRank = 0;
-let isUserQualified = false;
+let isUserQualified = true;
 let eventCountdownInterval = null;
 
 // Web Audio API Sound Synthesizer for Leaderboard Tabs
@@ -277,9 +282,9 @@ function startEventCountdownTimer() {
       // 3-Month Event has concluded!
       if (clockEl) clockEl.textContent = '00:00:00 (ENDED)';
       if (liveBadge) {
-        liveBadge.className = 'session-tab-mini-badge finished';
-        if (statusText) statusText.textContent = 'SEASON FINISHED';
+        liveBadge.style.display = 'none';
       }
+      if (statusText) statusText.textContent = '';
       const modalStatus = document.getElementById('modalSeasonStatusText');
       if (modalStatus) modalStatus.textContent = 'SEASON CONCLUDED';
 
@@ -292,9 +297,9 @@ function startEventCountdownTimer() {
       const timeStr = formatTimeRemaining(remaining);
       if (clockEl) clockEl.textContent = timeStr;
       if (liveBadge) {
-        liveBadge.className = 'session-tab-mini-badge';
-        if (statusText) statusText.textContent = 'ACTIVE SESSION';
+        liveBadge.style.display = 'none';
       }
+      if (statusText) statusText.textContent = '';
       const modalStatus = document.getElementById('modalSeasonStatusText');
       if (modalStatus) modalStatus.textContent = `SEASON ${evt.seasonNumber || 1} • GLOBAL EVENT ACTIVE`;
     }
@@ -483,7 +488,7 @@ function getActiveUsersList() {
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
   const userEventTasks = parseInt(localStorage.getItem(EVENT_TASKS_KEY) || '0', 10);
 
-  isUserQualified = userTotalTasks >= 100;
+  isUserQualified = true;
 
   let rawUsers = null;
   try {
@@ -495,20 +500,10 @@ function getActiveUsersList() {
 
   let users = [];
   if (Array.isArray(rawUsers) && rawUsers.length > 0) {
-    users = [...rawUsers];
-    // If pool is small, merge with default pool
-    if (users.length < DEFAULT_USERS_POOL.length) {
-      DEFAULT_USERS_POOL.forEach(poolUser => {
-        if (!users.some(u => u.name && u.name.toLowerCase() === poolUser.name.toLowerCase())) {
-          users.push({ ...poolUser });
-        }
-      });
-    }
+    // Purge any mock/demo users from storage
+    users = rawUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey' && u.name !== 'ShadowTyper' && u.name !== 'Alex_Gamer' && u.name !== 'NeonBlaze' && u.name !== 'Phoenix99' && u.name !== 'QuantumCoder' && u.name !== 'StarHunter' && u.name !== 'HyperStrike' && u.name !== 'VortexPilot' && u.name !== 'LunaBlade');
   } else {
-    users = DEFAULT_USERS_POOL.map(u => ({ ...u }));
-    try {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    } catch (e) { }
+    users = [];
   }
 
   const myName = localStorage.getItem('player_username') || 'Player';
@@ -539,16 +534,10 @@ function getActiveUsersList() {
     primaryUser.eventTasks = userEventTasks;
   }
 
-  // Filter out suspended players & enforce 100 Web Tasks qualification gate for ALL players
-  let activeOnly = users.filter(u => u.status !== 'suspended' && Number(u.totalTasks || 0) >= 100);
-
-  // If current player is not qualified (< 100 Web Tasks), ensure they are not in the ranks
-  if (!isUserQualified) {
-    activeOnly = activeOnly.filter(u => !(u.id === 'usr_1' || u.name === myName));
-  }
+  // Active players start directly from 0 tasks
+  let activeOnly = users.filter(u => u.status !== 'suspended');
 
   // SORTING:
-  // "when lederboard event start than count a task"
   // Rank by event tasks completed (primary), then coins (secondary), then stars (tertiary)
   activeOnly.sort((a, b) => {
     const tasksDiff = Number(b.eventTasks || 0) - Number(a.eventTasks || 0);
@@ -592,8 +581,12 @@ function renderRealLeaderboard() {
     myEventTasksEl.textContent = `${userEventTasks} 🎯`;
   }
 
-  // 2. RENDER 100-TASK QUALIFICATION CARD
-  renderQualificationCard(userTotalTasks);
+  // 2. HIDE PRIZES AND QUALIFICATION CARDS PER USER REQUEST
+  const prizesCard = document.getElementById('leaderboardPrizesCard');
+  if (prizesCard) prizesCard.style.display = 'none';
+
+  const qualCard = document.getElementById('qualificationCard');
+  if (qualCard) qualCard.style.display = 'none';
 
   // 3. GET QUALIFIED USERS LIST
   const users = getActiveUsersList();
@@ -621,7 +614,7 @@ function renderRealLeaderboard() {
         <div class="empty-ranks-box">
           <div class="empty-ranks-icon">🏆</div>
           <div class="empty-ranks-title">Leaderboard Awaiting Competitors</div>
-          <div class="empty-ranks-desc">Complete 100 Web Tasks to claim your rank and win up to 10,000 ⭐!</div>
+          <div class="empty-ranks-desc">Complete Web Tasks to claim your rank!</div>
           <a href="../home/index.html" class="btn-qualify-now">Complete Web Tasks &rarr;</a>
         </div>
       `;
@@ -673,54 +666,12 @@ function renderRealLeaderboard() {
 }
 
 /**
- * Render the 100-Task Qualification Gate Card
+ * Render the 100-Task Qualification Gate Card (Hidden per user request)
  */
 function renderQualificationCard(totalTasks) {
   const card = document.getElementById('qualificationCard');
-  const pill = document.getElementById('qualifyStatusPill');
-  const icon = document.getElementById('qualifyIcon');
-  const statusText = document.getElementById('qualifyStatusText');
-  const title = document.getElementById('qualifyTitle');
-  const desc = document.getElementById('qualifyDesc');
-  const barFill = document.getElementById('qualifyBarFill');
-  const progressLabel = document.getElementById('qualifyProgressLabel');
-  const remainingLabel = document.getElementById('qualifyRemainingLabel');
-  const actionRow = document.getElementById('qualifyActionRow');
-
-  if (!card) return;
-
-  const pct = Math.min(100, Math.floor((totalTasks / 100) * 100));
-
-  if (totalTasks < 100) {
-    // LOCKED / UNQUALIFIED
-    card.className = 'qualification-card locked';
-    if (pill) pill.className = 'qualify-status-pill locked';
-    if (icon) icon.textContent = '🔒';
-    if (statusText) statusText.textContent = 'LEADERBOARD LOCKED';
-    if (title) title.textContent = 'Complete 100 Web Tasks to Enter';
-    if (desc) desc.textContent = 'Your name will enter the active Leaderboard once you complete 100 Web Tasks.';
-    if (barFill) {
-      barFill.style.width = `${pct}%`;
-      barFill.className = 'qualify-bar-fill';
-    }
-    if (progressLabel) progressLabel.textContent = `Progress: ${totalTasks} / 100 Web Tasks (${pct}%)`;
-    if (remainingLabel) remainingLabel.textContent = `${100 - totalTasks} more tasks needed`;
-    if (actionRow) actionRow.style.display = 'block';
-  } else {
-    // QUALIFIED!
-    card.className = 'qualification-card qualified';
-    if (pill) pill.className = 'qualify-status-pill qualified';
-    if (icon) icon.textContent = '✅';
-    if (statusText) statusText.textContent = 'QUALIFIED COMPETITOR';
-    if (title) title.textContent = 'Leaderboard Entry Unlocked!';
-    if (desc) desc.textContent = `You have completed ${totalTasks} lifetime Web Tasks! Your name is actively ranked in the event.`;
-    if (barFill) {
-      barFill.style.width = '100%';
-      barFill.className = 'qualify-bar-fill qualified';
-    }
-    if (progressLabel) progressLabel.textContent = `Web Tasks Completed: ${totalTasks} / 100 (100% Qualified)`;
-    if (remainingLabel) remainingLabel.textContent = `Active in Event Ranks`;
-    if (actionRow) actionRow.style.display = 'none';
+  if (card) {
+    card.style.display = 'none';
   }
 }
 

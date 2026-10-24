@@ -5,6 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Leaderboard — Global 3-Month Championship</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Early zero-start sanitizer v7: Purge all demo users and mock data so everything starts from 0
+    try {
+      if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
+        localStorage.setItem('task_game_coins', '0');
+        localStorage.setItem('task_game_stars', '0');
+        localStorage.setItem('user_coins', '0');
+        localStorage.setItem('user_stars', '0');
+        localStorage.setItem('task_game_total_tasks', '0');
+        localStorage.setItem('task_game_total_tasks_completed', '0');
+        localStorage.setItem('completed_tasks_count', '0');
+        localStorage.setItem('task_game_ads_watched_count', '0');
+        localStorage.setItem('ads_watched_count', '0');
+        localStorage.setItem('task_game_event_tasks', '0');
+        localStorage.setItem('task_game_event_tasks_count', '0');
+        localStorage.setItem('task_coins_won_today', '0');
+        localStorage.setItem('task_games_played_today', '0');
+        localStorage.setItem('task_win_streak', '0');
+        localStorage.setItem('task_game_users', '[]');
+        localStorage.setItem('task_game_withdrawals', '[]');
+        localStorage.setItem('task_game_referrals_list', '[]');
+        localStorage.setItem('task_game_stars_transactions', '[]');
+        localStorage.setItem('task_game_claims', '{}');
+        localStorage.removeItem('task_game_stars_rating');
+        localStorage.removeItem('task_game_cloud_referral_codes');
+        localStorage.removeItem('task_game_ad_timer_end');
+        localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+        localStorage.removeItem('sunflower_state');
+        localStorage.removeItem('task_game_tg_profile');
+        localStorage.removeItem('player_email');
+        localStorage.removeItem('player_whatsapp');
+        const existingName = localStorage.getItem('player_username');
+        if (!existingName || existingName.toLowerCase().includes('nova')) {
+          localStorage.setItem('player_username', 'Player');
+        }
+        localStorage.setItem('player_avatar', '⚡');
+        localStorage.setItem('task_game_zero_start_clean_v7', 'true');
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
 
@@ -63,8 +103,8 @@
           <span id="myEventTasksCount" style="display: none;">0 🎯</span>
         </div>
 
-        <!-- Season Star Rewards Prize Pool Strip (Click to open Season Popup) -->
-        <div class="leaderboard-prizes-card" id="leaderboardPrizesCard" onclick="openLeaderboardSeasonModal()" role="button" tabindex="0" style="cursor: pointer;" title="Click to open Season Rewards popup">
+        <!-- Season Star Rewards Prize Pool Strip (Hidden per user request) -->
+        <div class="leaderboard-prizes-card" id="leaderboardPrizesCard" style="display: none !important;" aria-hidden="true">
           <div class="prizes-card-header">
             <span class="prizes-title">⭐ 3-MONTH SEASON STAR PRIZES</span>
             <span class="prizes-pool-badge">21,500 ⭐ Total Pool</span>
@@ -93,8 +133,8 @@
           </div>
         </div>
 
-        <!-- 100-Task Qualification Gate Banner -->
-        <div class="qualification-card" id="qualificationCard">
+        <!-- 100-Task Qualification Gate Banner (Hidden per user request) -->
+        <div class="qualification-card" id="qualificationCard" style="display: none !important;" aria-hidden="true">
           <div class="qualify-header">
             <div class="qualify-status-pill" id="qualifyStatusPill">
               <span class="qualify-icon" id="qualifyIcon">🔒</span>
@@ -198,7 +238,7 @@
           <div class="empty-ranks-box" id="emptyRanksPlaceholder">
             <div class="empty-ranks-icon">🏆</div>
             <div class="empty-ranks-title">Leaderboard Awaiting Competitors</div>
-            <div class="empty-ranks-desc">Complete 100 Web Tasks to claim your rank and win up to 10,000 ⭐!</div>
+            <div class="empty-ranks-desc">Complete Web Tasks to claim your rank!</div>
             <a href="../home/index.html" class="btn-qualify-now">Complete Web Tasks &rarr;</a>
           </div>
         </div>

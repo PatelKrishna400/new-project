@@ -12,6 +12,23 @@
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+/* Suppression of top-up cards and badges per user request */
+.session-tab-mini-badge,
+.event-live-indicator,
+.player-session-badge,
+.tg-wallet-topup-strip,
+.tg-stars-store-container,
+#tgStarsStoreContainer,
+.tg-store-header,
+.tg-store-title-row,
+.tg-rating-banner,
+.tg-packages-grid,
+.tg-package-card,
+.btn-tg-buy-mini,
+.leaderboard-prizes-card,
+.qualification-card {
+  display: none !important;
+}
 
 body {
   background-color: #030816;

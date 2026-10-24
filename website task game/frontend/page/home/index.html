@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Task Earner — Webtask</title>
+  <script>
+    if (sessionStorage.getItem('task_app_loaded') === 'true') {
+      document.documentElement.classList.add('app-preloaded');
+    }
+    // Early zero-start sanitizer v7: Purge all demo users and mock data so everything starts from 0
+    try {
+      if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
+        localStorage.setItem('task_game_coins', '0');
+        localStorage.setItem('task_game_stars', '0');
+        localStorage.setItem('user_coins', '0');
+        localStorage.setItem('user_stars', '0');
+        localStorage.setItem('task_game_total_tasks', '0');
+        localStorage.setItem('task_game_total_tasks_completed', '0');
+        localStorage.setItem('completed_tasks_count', '0');
+        localStorage.setItem('task_game_ads_watched_count', '0');
+        localStorage.setItem('ads_watched_count', '0');
+        localStorage.setItem('task_game_event_tasks', '0');
+        localStorage.setItem('task_game_event_tasks_count', '0');
+        localStorage.setItem('task_coins_won_today', '0');
+        localStorage.setItem('task_games_played_today', '0');
+        localStorage.setItem('task_win_streak', '0');
+        localStorage.setItem('task_game_users', '[]');
+        localStorage.setItem('task_game_withdrawals', '[]');
+        localStorage.setItem('task_game_referrals_list', '[]');
+        localStorage.setItem('task_game_stars_transactions', '[]');
+        localStorage.setItem('task_game_claims', '{}');
+        localStorage.removeItem('task_game_stars_rating');
+        localStorage.removeItem('task_game_cloud_referral_codes');
+        localStorage.removeItem('task_game_ad_timer_end');
+        localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+        localStorage.removeItem('sunflower_state');
+        localStorage.removeItem('task_game_tg_profile');
+        localStorage.removeItem('player_email');
+        localStorage.removeItem('player_whatsapp');
+        const existingName = localStorage.getItem('player_username');
+        if (!existingName || existingName.toLowerCase().includes('nova')) {
+          localStorage.setItem('player_username', 'Player');
+        }
+        localStorage.setItem('player_avatar', '⚡');
+        localStorage.setItem('task_game_zero_start_clean_v7', 'true');
+      }
+    } catch (e) {}
+  </script>
+  <!-- Firebase SDK & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Cybernetic Loading / Splash Screen (Transitions into Home Page) -->
+  <div class="app-loading-overlay" id="appLoadingOverlay">
+    <div class="loading-content-box">
+      <div class="loading-logo-ring">
+        <div class="loading-ring-spinner"></div>
+        <div class="loading-logo-core">⚡</div>
+      </div>
+      <h1 class="loading-app-title">TASK EARNER</h1>
+      <div class="loading-subtitle">Cybernetic Gaming &amp; Task Arena</div>
+      <div class="loading-progress-track">
+        <div class="loading-progress-bar" id="loadingProgressBar"></div>
+      </div>
+      <div class="loading-status-text" id="loadingStatusText">INITIALIZING SYSTEM...</div>
+    </div>
+  </div>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">⚡</div>
+        <div class="user-meta">
+          <span class="user-name">Task Earner</span>
+          <span class="user-level" id="userRankDisplay">RANK #1</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" id="coinPill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="userCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" id="starPill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="userStarsDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content (Tasks) -->
+    <main class="page-content">
+      
+
+      <!-- Games Featured Interactive Tab Card -->
+      <a href="../games/index.html" class="games-feature-tab" id="gamesHeroTab" title="Open Gaming Arena">
+        <div class="games-tab-content">
+          <div class="games-badge-row">
+            <span class="games-live-pill">● LIVE ARENA</span>
+            <span class="games-win-pill">🌻 20 LANDS TYCOON</span>
+          </div>
+          <h2 class="games-tab-heading">Games</h2>
+          <div class="games-cta-btn">
+            <span>Play Games</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+        <div class="games-tab-art">
+          <img src="../games/assets/games_banner.jpg" alt="Games Arena" class="games-art-img" />
+          <div class="games-art-overlay"></div>
+        </div>
+      </a>
+
+      <!-- Tasks Section Header -->
+      <div class="tasks-banner">
+        <h1 class="tasks-title">Webtask</h1>
+      </div>
+
+      <!-- Tasks List -->
+      <div class="tasks-list" id="tasksList">
+        <!-- Dynamically loaded & synchronized with Admin in real time -->
+      </div>
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link (Beside Leaderboard) -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center Elevated) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn active" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link (Between Home and Profile) -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <!-- Firebase Cloud Sync & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -13,6 +13,16 @@
   scrollbar-width: none !important;
 }
 
+/* Suppression of Session badges & top-up cards across all pages per user request */
+.session-tab-mini-badge,
+.event-live-indicator,
+.player-session-badge,
+.tg-wallet-topup-strip,
+.tg-stars-store-container,
+.btn-tg-buy-mini {
+  display: none !important;
+}
+
 body {
   background-color: #030816;
   min-height: 100vh;
@@ -727,3 +737,20 @@ body {
   color: #cbd5e1;
 }
 
+/* Suppression of Session badges, top-up cards, and leaderboard prize/lock cards per user request */
+.session-tab-mini-badge,
+.event-live-indicator,
+.player-session-badge,
+.tg-wallet-topup-strip,
+.tg-stars-store-container,
+#tgStarsStoreContainer,
+.tg-store-header,
+.tg-store-title-row,
+.tg-rating-banner,
+.tg-packages-grid,
+.tg-package-card,
+.btn-tg-buy-mini,
+.leaderboard-prizes-card,
+.qualification-card {
+  display: none !important;
+}

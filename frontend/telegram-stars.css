@@ -3,16 +3,20 @@
    Official Telegram Stars UI • Fragment TON • MTProto Transaction Ledger
    ========================================================================== */
 
-/* Stars Store Section in Shop & Wallet */
+/* ========================================================================== */
+/* Suppression of Image 3 Top-up cards & Image 4 Session badges across all pages */
+.tg-wallet-topup-strip,
+.tg-stars-store-container,
+.btn-tg-buy-mini,
+.tg-tx-ledger,
+.session-tab-mini-badge,
+.player-session-badge {
+  display: none !important;
+}
+
+/* Stars Store Section in Shop & Wallet (Suppressed per user request) */
 .tg-stars-store-container {
-  background: linear-gradient(155deg, #0d2252 0%, #081538 50%, #050d24 100%);
-  border: 1.5px solid rgba(250, 204, 21, 0.4);
-  border-radius: 18px;
-  padding: 1rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(250, 204, 21, 0.15);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 1rem;
+  display: none !important;
 }
 
 .tg-stars-store-container::before {
@@ -706,3 +710,14 @@
   border-color: #facc15;
 }
 
+/* Suppression of Session badges, top-up cards, and leaderboard prize/lock cards per user request */
+.session-tab-mini-badge,
+.event-live-indicator,
+.player-session-badge,
+.tg-wallet-topup-strip,
+.tg-stars-store-container,
+.btn-tg-buy-mini,
+.leaderboard-prizes-card,
+.qualification-card {
+  display: none !important;
+}

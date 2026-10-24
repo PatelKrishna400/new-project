@@ -548,65 +548,8 @@
   function renderShopStoreSection(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
-    const rating = getStarsRating();
-
-    container.innerHTML = `
-      <div class="tg-stars-store-container">
-        <div class="tg-store-header">
-          <div class="tg-store-badge">
-            <span>⭐ TELEGRAM STARS</span>
-            <span>XTR</span>
-          </div>
-          <span class="tg-store-xtr-tag">MTProto Payments ⚡</span>
-        </div>
-
-        <div class="tg-store-title-row">
-          <div class="tg-store-logo-icon">⭐</div>
-          <div>
-            <h2 class="tg-store-title">Official Star Top-Up</h2>
-            <p class="tg-store-desc">Get Stars to claim Amazon vouchers, enter event contests &amp; unlock VIP boosts.</p>
-          </div>
-        </div>
-
-        <!-- Star Rating Level Badge -->
-        <div class="tg-rating-banner">
-          <div class="tg-rating-left">
-            <span>⭐ Star Rating:</span>
-            <span class="tg-rating-badge">LEVEL ${rating.level}</span>
-          </div>
-          <div class="tg-rating-progress">
-            Volume: ${rating.rating} XTR
-          </div>
-        </div>
-
-        <!-- Packages Grid -->
-        <div class="tg-packages-grid">
-          ${TELEGRAM_STARS_PACKAGES.map(pkg => `
-            <div class="tg-package-card ${pkg.popular ? 'popular' : ''}" onclick="window.TelegramStars.openModal('${pkg.id}')">
-              ${pkg.badge ? `<div class="tg-pkg-badge">${pkg.badge}</div>` : ''}
-              
-              <div class="tg-pkg-top">
-                <span class="tg-pkg-icon">${pkg.icon}</span>
-                <span class="tg-pkg-stars">${pkg.stars.toLocaleString()} ⭐</span>
-              </div>
-              
-              <div class="tg-pkg-label">${pkg.desc}</div>
-              
-              <div class="tg-pkg-bottom">
-                <div class="tg-pkg-price-col">
-                  <span class="tg-pkg-price">$${pkg.usd.toFixed(2)}</span>
-                  <span class="tg-pkg-crypto">₹${pkg.inr} &bull; ${pkg.ton} TON</span>
-                </div>
-                <button type="button" class="btn-tg-buy-mini" onclick="event.stopPropagation(); window.TelegramStars.openModal('${pkg.id}')">
-                  Top-Up ⚡
-                </button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
+    container.innerHTML = '';
+    container.style.display = 'none';
   }
 
   function renderTransactionsLedger(containerId) {

@@ -234,7 +234,7 @@ function loadAllStoredData() {
     if (!Array.isArray(parsedUsers)) parsedUsers = [];
 
     // Filter out mock users
-    parsedUsers = parsedUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey');
+    parsedUsers = parsedUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey' && u.name !== 'ShadowTyper' && u.name !== 'Alex_Gamer' && u.name !== 'NeonBlaze' && u.name !== 'Phoenix99' && u.name !== 'QuantumCoder' && u.name !== 'StarHunter' && u.name !== 'HyperStrike' && u.name !== 'VortexPilot' && u.name !== 'LunaBlade');
 
     // Sync current player coins to usr_1
     const playerCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
@@ -900,6 +900,7 @@ function renderWithdrawalsTable() {
         <td>
           <div style="font-weight: 700; color: #ffffff;">${escapeHtml(w.method)}</div>
           <div style="font-size: 0.72rem; color: #94a3b8; font-family: 'JetBrains Mono', monospace;">${escapeHtml(w.details)}</div>
+          ${(w.deliveryLink || w.link) ? `<div style="margin-top: 3px;"><a href="${escapeHtml(w.deliveryLink || w.link)}" target="_blank" rel="noopener noreferrer" style="color: #34d399; font-size: 0.72rem; font-weight: 800; text-decoration: underline;">🔗 View Link</a></div>` : ''}
         </td>
         <td style="color: #cbd5e1; font-size: 0.75rem;">${escapeHtml(w.time || 'Recent')}</td>
         <td>
@@ -915,28 +916,103 @@ function renderWithdrawalsTable() {
   }).join('');
 }
 
-function approveWithdrawal(reqId) {
+function openApproveModal(reqId) {
   const req = withdrawalsData.find(w => w.id === reqId);
   if (!req) return;
 
-  const enteredCode = prompt(`🔐 Security Verification Required!\nEnter Admin Approval Code (Code: 1109) to approve cashout #${req.id} for ₹${Number(req.amount).toLocaleString()} (${req.playerName}):`);
+  const modal = document.getElementById('withdrawApproveModalOverlay');
+  const idInput = document.getElementById('approveReqId');
+  const idDisplay = document.getElementById('approveReqIdDisplay');
+  const nameDisplay = document.getElementById('approvePlayerNameDisplay');
+  const amtDisplay = document.getElementById('approveAmountDisplay');
+  const detDisplay = document.getElementById('approveDetailsDisplay');
+  const linkInput = document.getElementById('approveDeliveryLinkInput');
+  const codeInput = document.getElementById('approveSecurityCodeInput');
+  const errBox = document.getElementById('approveCodeError');
 
-  if (enteredCode === null) {
-    // Admin clicked cancel
+  if (idInput) idInput.value = req.id;
+  if (idDisplay) idDisplay.textContent = `#${req.id}`;
+  if (nameDisplay) nameDisplay.textContent = req.playerName || 'Player';
+  if (amtDisplay) amtDisplay.textContent = `₹${Number(req.amount).toLocaleString()}`;
+  if (detDisplay) detDisplay.textContent = `${req.method} • ${req.details || ''}`;
+  if (linkInput) linkInput.value = req.deliveryLink || req.link || '';
+  if (codeInput) codeInput.value = '';
+  if (errBox) errBox.style.display = 'none';
+
+  if (modal) {
+    modal.classList.add('active');
+    setTimeout(() => {
+      if (codeInput) codeInput.focus();
+    }, 150);
+  } else {
+    // Fallback if modal not present
+    const link = prompt(`Enter Delivery / Reward Link for #${req.id} (optional):`, req.deliveryLink || req.link || '');
+    if (link === null) return;
+    const code = prompt('Enter Admin Approval Code (1109):');
+    if (code !== '1109') {
+      alert('❌ Invalid code! Approval cancelled.');
+      return;
+    }
+    req.status = 'approved';
+    req.approvedAt = Date.now();
+    if (link.trim()) {
+      let cleanLink = link.trim();
+      if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+        cleanLink = 'https://' + cleanLink;
+      }
+      req.deliveryLink = cleanLink;
+      req.link = cleanLink;
+    }
+    saveWithdrawalsAndSync();
+    showToast(`✅ Withdrawal #${req.id} approved!`, 'success');
+  }
+}
+
+function closeWithdrawApproveModal() {
+  const modal = document.getElementById('withdrawApproveModalOverlay');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleConfirmApproveWithdrawal(event) {
+  if (event) event.preventDefault();
+  const reqId = document.getElementById('approveReqId') ? document.getElementById('approveReqId').value : '';
+  const codeInput = document.getElementById('approveSecurityCodeInput');
+  const linkInput = document.getElementById('approveDeliveryLinkInput');
+  const errBox = document.getElementById('approveCodeError');
+  const enteredCode = codeInput ? codeInput.value.trim() : '';
+
+  if (enteredCode !== '1109') {
+    if (errBox) errBox.style.display = 'flex';
+    if (codeInput) {
+      codeInput.value = '';
+      codeInput.focus();
+    }
+    showToast('❌ Invalid Approval Code! Must enter code 1109.', 'error');
     return;
   }
 
-  if (enteredCode.trim() !== '1109') {
-    alert('❌ Invalid Approval Code! Verification failed. Cashout request NOT approved.\n(Required approval code is: 1109)');
-    showToast('Invalid security code! Approval cancelled.', 'error');
-    return;
-  }
+  const req = withdrawalsData.find(w => w.id === reqId);
+  if (!req) return;
 
   req.status = 'approved';
   req.approvedAt = Date.now();
+  req.approvedWithCode = '1109';
+  if (linkInput && linkInput.value.trim()) {
+    let cleanLink = linkInput.value.trim();
+    if (!cleanLink.startsWith('http://') && !cleanLink.startsWith('https://')) {
+      cleanLink = 'https://' + cleanLink;
+    }
+    req.deliveryLink = cleanLink;
+    req.link = cleanLink;
+  }
   saveWithdrawalsAndSync();
-  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) using code 1109`);
-  showToast(`✅ Withdrawal #${req.id} approved for ₹${req.amount}!`, 'success');
+  closeWithdrawApproveModal();
+  logActivity(`Admin approved cashout #${req.id} for ${req.playerName} (₹${req.amount}) with link attached`);
+  showToast(`✅ Withdrawal #${req.id} approved with link! (Code 1109 Verified)`, 'success');
+}
+
+function approveWithdrawal(reqId) {
+  openApproveModal(reqId);
 }
 
 function rejectWithdrawal(reqId) {

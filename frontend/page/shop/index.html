@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Frontend — Powerup Shop</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="../../telegram-stars.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -46,15 +45,12 @@
             <div style="font-size:1.05rem; font-weight:800; color:#ffffff;" id="shopCoinsDisplay">0</div>
           </div>
         </div>
-        <div style="flex:1; background:#0a1738; border:1px solid rgba(250,204,21,0.3); border-radius:12px; padding:0.6rem 0.8rem; display:flex; align-items:center; justify-content:space-between; gap:0.5rem;">
-          <div style="display:flex; align-items:center; gap:0.5rem;">
-            <span style="font-size:1.25rem;">⭐</span>
-            <div>
-              <div style="font-size:0.65rem; color:#94a3b8; font-weight:700;">YOUR STARS</div>
-              <div style="font-size:1.05rem; font-weight:800; color:#facc15;" id="shopStarsDisplay">0</div>
-            </div>
+        <div style="flex:1; background:#0a1738; border:1px solid rgba(250,204,21,0.3); border-radius:12px; padding:0.6rem 0.8rem; display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:1.25rem;">⭐</span>
+          <div>
+            <div style="font-size:0.65rem; color:#94a3b8; font-weight:700;">YOUR STARS</div>
+            <div style="font-size:1.05rem; font-weight:800; color:#facc15;" id="shopStarsDisplay">0</div>
           </div>
-          <button type="button" class="btn-tg-buy-mini" onclick="window.TelegramStars && window.TelegramStars.openModal()" style="font-size:0.65rem; padding:3px 7px;">+ Top-Up</button>
         </div>
       </div>
 
@@ -187,7 +183,6 @@
 
   </div>
 
-  <script src="../../telegram-stars.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -563,12 +563,58 @@ function onMemoryCardClick(card) {
 }
 
 /* ==========================================================================
+   GAME CATEGORY SWITCHER (IDLE GAME VS LUCKY GAME)
+   ========================================================================== */
+window.switchGameCategory = function(category) {
+  try {
+    if (typeof ArcadeAudio !== 'undefined' && ArcadeAudio.playClick) {
+      ArcadeAudio.init();
+      ArcadeAudio.playClick();
+    }
+  } catch (e) {}
+
+  const idleSection = document.getElementById('idleGameSection');
+  const luckySection = document.getElementById('luckyGameSection');
+  const tabBtnIdle = document.getElementById('tabBtnIdle');
+  const tabBtnLucky = document.getElementById('tabBtnLucky');
+
+  if (category === 'lucky') {
+    if (idleSection) idleSection.style.display = 'none';
+    if (luckySection) luckySection.style.display = 'flex';
+    if (tabBtnIdle) {
+      tabBtnIdle.classList.remove('active');
+      tabBtnIdle.setAttribute('aria-selected', 'false');
+    }
+    if (tabBtnLucky) {
+      tabBtnLucky.classList.add('active');
+      tabBtnLucky.setAttribute('aria-selected', 'true');
+    }
+    localStorage.setItem('task_games_active_tab', 'lucky');
+  } else {
+    if (idleSection) idleSection.style.display = 'flex';
+    if (luckySection) luckySection.style.display = 'none';
+    if (tabBtnIdle) {
+      tabBtnIdle.classList.add('active');
+      tabBtnIdle.setAttribute('aria-selected', 'true');
+    }
+    if (tabBtnLucky) {
+      tabBtnLucky.classList.remove('active');
+      tabBtnLucky.setAttribute('aria-selected', 'false');
+    }
+    localStorage.setItem('task_games_active_tab', 'idle');
+  }
+};
+
+/* ==========================================================================
    INITIALIZATION
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
   updateGameDisplays();
   drawWheel();
   resetMemoryGame();
+
+  const savedTab = localStorage.getItem('task_games_active_tab') || 'idle';
+  switchGameCategory(savedTab);
 
   const sfTab = document.getElementById('sunflowerGameTab');
   if (sfTab) {

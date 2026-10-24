@@ -27,7 +27,7 @@
           <span>🪙</span>
           <span class="coin-value" id="profileCoinsDisplay">0</span>
         </div>
-        <div class="star-pill" title="Star Balance (Click to Top-Up)" onclick="window.TelegramStars && window.TelegramStars.openModal()" style="cursor: pointer;">
+        <div class="star-pill" title="Star Balance">
           <span>⭐</span>
           <span class="star-value" id="profileStarsDisplay">0</span>
         </div>
@@ -54,23 +54,17 @@
            VIEW 1: REGULAR USER PROFILE VIEW
            ======================================================== -->
       <section class="profile-view-panel" id="panelUserProfile">
-        <!-- Profile Badge Hero Card with Telegram Customization -->
+        <!-- Profile Badge Hero Card -->
         <div class="profile-hero-card theme-blue" id="tgProfileHeroCard">
-          <!-- Edit Profile Quick Action Button -->
-          <button type="button" class="btn-edit-tg-profile" onclick="openEditTgProfileModal()" title="Edit Telegram Profile & Bio">
-            <span>✏️ Edit Profile</span>
-          </button>
-
-          <!-- Big Avatar with Edit overlay -->
-          <div class="profile-avatar-wrap" onclick="openEditTgProfileModal()" title="Change Profile Avatar">
+          <!-- Big Avatar -->
+          <div class="profile-avatar-wrap" title="Profile Avatar">
             <div class="profile-big-avatar" id="tgProfileBigAvatar">⚡</div>
-            <div class="profile-avatar-badge-edit">✏️</div>
           </div>
 
           <!-- Name & Telegram Emoji Status -->
           <div class="profile-name-row">
             <h2 class="profile-display-name" id="tgProfileDisplayName">Player</h2>
-            <span class="tg-emoji-status-chip" id="tgProfileEmojiStatus" onclick="openEmojiStatusPicker()" title="Telegram Premium Status (Click to change)">⚡</span>
+            <span class="tg-emoji-status-chip" id="tgProfileEmojiStatus" title="Status">⚡</span>
           </div>
 
           <!-- Username Handle -->
@@ -80,9 +74,6 @@
           </div>
 
           <span class="profile-badge-pro" id="tgProfileRoleBadge">LEVEL 1 &bull; NOVICE</span>
-
-          <!-- Bio / About -->
-          <p class="tg-profile-bio" id="tgProfileBio">🎮 Mini App Player</p>
 
           <div class="profile-stats-grid">
             <div class="profile-stat-box">

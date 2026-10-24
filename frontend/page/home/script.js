@@ -1,25 +1,30 @@
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
-  if (!localStorage.getItem('task_game_zero_start_clean_v5')) {
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
     localStorage.setItem('task_game_coins', '0');
     localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
     localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
     localStorage.setItem('task_game_event_tasks', '0');
     localStorage.setItem('task_game_event_tasks_count', '0');
     localStorage.setItem('task_coins_won_today', '0');
     localStorage.setItem('task_games_played_today', '0');
     localStorage.setItem('task_win_streak', '0');
-    localStorage.removeItem('task_game_users');
-    localStorage.removeItem('task_game_withdrawals');
-    localStorage.removeItem('task_game_referrals_list');
-    localStorage.removeItem('task_game_stars_transactions');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
     localStorage.removeItem('task_game_stars_rating');
-    localStorage.removeItem('task_game_claims');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
     localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -28,7 +33,7 @@ try {
       localStorage.setItem('player_username', 'Player');
     }
     localStorage.setItem('player_avatar', '⚡');
-    localStorage.setItem('task_game_zero_start_clean_v5', 'true');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
   }
 } catch (e) {}
 
@@ -467,54 +472,31 @@ function recordLeaderboardEventTask(totalTasks) {
     const evt = getUniversalGlobalLeaderboardEvent();
 
     if (evt.status === 'active' && now < evt.endTime) {
-      // 100-TASK QUALIFICATION LIMIT GATE:
-      // User only plays/ranks in the Leaderboard after reaching 100 completed tasks ("100 limit after user play a lederboard")
-      if (totalTasks >= 100) {
-        let eventTasks = parseInt(localStorage.getItem('task_game_event_tasks_count') || '0', 10) + 1;
-        localStorage.setItem('task_game_event_tasks_count', eventTasks.toString());
+      // Task completion directly increments event tasks from task 1 (clean zero start)
+      let eventTasks = parseInt(localStorage.getItem('task_game_event_tasks_count') || '0', 10) + 1;
+      localStorage.setItem('task_game_event_tasks_count', eventTasks.toString());
 
-        // Synchronize in task_game_users
-        try {
-          const rawUsers = localStorage.getItem('task_game_users');
-          if (rawUsers) {
-            const users = JSON.parse(rawUsers);
-            const myName = localStorage.getItem('player_username') || 'Task Earner';
-            const me = users.find(u => u.id === 'usr_1' || u.name === myName || u.name === 'Task Earner' || u.name === 'NovaEarner' || u.name === 'Player');
-            if (me) {
-              me.eventTasks = eventTasks;
-              me.totalTasks = totalTasks;
-              localStorage.setItem('task_game_users', JSON.stringify(users));
-            }
+      // Synchronize in task_game_users
+      try {
+        const rawUsers = localStorage.getItem('task_game_users');
+        if (rawUsers) {
+          const users = JSON.parse(rawUsers);
+          const myName = localStorage.getItem('player_username') || 'Task Earner';
+          const me = users.find(u => u.id === 'usr_1' || u.name === myName || u.name === 'Task Earner' || u.name === 'NovaEarner' || u.name === 'Player');
+          if (me) {
+            me.eventTasks = eventTasks;
+            me.totalTasks = totalTasks;
+            localStorage.setItem('task_game_users', JSON.stringify(users));
           }
-        } catch (e) {}
+        }
+      } catch (e) {}
 
-        // Broadcast to other tabs
-        try {
-          const bc = new BroadcastChannel('nova_task_sync');
-          bc.postMessage({ type: 'EVENT_TASK_COUNT', count: eventTasks, totalTasks: totalTasks });
-          bc.close();
-        } catch (e) {}
-      } else {
-        // Player under 100 tasks: update totalTasks, eventTasks remains 0 until qualified
-        try {
-          const rawUsers = localStorage.getItem('task_game_users');
-          if (rawUsers) {
-            const users = JSON.parse(rawUsers);
-            const myName = localStorage.getItem('player_username') || 'Task Earner';
-            const me = users.find(u => u.id === 'usr_1' || u.name === myName || u.name === 'Task Earner' || u.name === 'NovaEarner' || u.name === 'Player');
-            if (me) {
-              me.totalTasks = totalTasks;
-              localStorage.setItem('task_game_users', JSON.stringify(users));
-            }
-          }
-        } catch (e) {}
-
-        try {
-          const bc = new BroadcastChannel('nova_task_sync');
-          bc.postMessage({ type: 'TOTAL_TASK_COUNT', totalTasks: totalTasks });
-          bc.close();
-        } catch (e) {}
-      }
+      // Broadcast to other tabs
+      try {
+        const bc = new BroadcastChannel('nova_task_sync');
+        bc.postMessage({ type: 'EVENT_TASK_COUNT', count: eventTasks, totalTasks: totalTasks });
+        bc.close();
+      } catch (e) {}
     } else if (now >= evt.endTime) {
       // 3-Month Timer finished -> Rollover to next global 3-month season!
       localStorage.setItem('task_game_event_tasks_count', '0');

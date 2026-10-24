@@ -1,25 +1,30 @@
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
-  if (!localStorage.getItem('task_game_zero_start_clean_v5')) {
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
     localStorage.setItem('task_game_coins', '0');
     localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
     localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
     localStorage.setItem('task_game_event_tasks', '0');
     localStorage.setItem('task_game_event_tasks_count', '0');
     localStorage.setItem('task_coins_won_today', '0');
     localStorage.setItem('task_games_played_today', '0');
     localStorage.setItem('task_win_streak', '0');
-    localStorage.removeItem('task_game_users');
-    localStorage.removeItem('task_game_withdrawals');
-    localStorage.removeItem('task_game_referrals_list');
-    localStorage.removeItem('task_game_stars_transactions');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
     localStorage.removeItem('task_game_stars_rating');
-    localStorage.removeItem('task_game_claims');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
     localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
+    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -28,7 +33,7 @@ try {
       localStorage.setItem('player_username', 'Player');
     }
     localStorage.setItem('player_avatar', '⚡');
-    localStorage.setItem('task_game_zero_start_clean_v5', 'true');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
   }
 } catch (e) {}
 
@@ -405,7 +410,7 @@ function renderWalletOrders() {
   if (!Array.isArray(withdrawals) || withdrawals.length === 0) {
     historyList.innerHTML = `
       <div style="padding: 1.5rem 1rem; text-align: center; color: #64748b; font-size: 0.82rem;">
-        <span>🛍️ No withdrawal requests yet. Claim an Amazon voucher above once eligible!</span>
+        <span>🛍️ No recent transactions or requests yet. Claim an Amazon voucher above once eligible!</span>
       </div>
     `;
     return;
@@ -418,9 +423,15 @@ function renderWalletOrders() {
     const statusColor = isApproved ? '#10b981' : (isRejected ? '#ef4444' : '#f59e0b');
     const statusBg = isApproved ? 'rgba(16, 185, 129, 0.15)' : (isRejected ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)');
 
-    const linkButton = (isApproved && w.deliveryLink) ? `
-      <div style="margin-top: 0.45rem;">
-        <a href="${escapeHtml(w.deliveryLink)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border-radius: 6px; font-weight: 800; font-size: 0.74rem; text-decoration: none; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);">
+    const targetUrl = (w.deliveryLink || w.link || w.rewardLink || '').trim();
+    let safeUrl = '';
+    if (targetUrl) {
+      safeUrl = (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) ? ('https://' + targetUrl) : targetUrl;
+    }
+
+    const linkButton = (isApproved && safeUrl) ? `
+      <div style="margin-top: 0.55rem;">
+        <a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border-radius: 8px; font-weight: 800; font-size: 0.78rem; text-decoration: none; box-shadow: 0 3px 8px rgba(16, 185, 129, 0.4); border: 1px solid #34d399; transition: transform 0.15s ease;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
           <span>Open Link</span> <span>🔗</span>
         </a>
       </div>
@@ -458,11 +469,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-window.renderTgTransactionsLedger = function() {
-  if (window.TelegramStars && typeof window.TelegramStars.renderTransactionsLedger === 'function') {
-    window.TelegramStars.renderTransactionsLedger('tgWalletTransactionsLedger');
-  }
-};
+window.renderTgTransactionsLedger = function() {};
 
 document.addEventListener('DOMContentLoaded', () => {
   updateWalletDisplays();
