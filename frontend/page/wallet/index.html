@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — Wallet Vault</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../telegram-stars.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">💰</div>
+        <div class="user-meta">
+          <span class="user-name">Player</span>
+          <span class="user-level">WALLET VAULT</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="walletBalanceTop">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance (Used for Amazon Gift Cards)">
+          <span>⭐</span>
+          <span class="star-value" id="walletStarsTop">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      
+
+
+      <!-- ==========================================================================
+           AMAZON GIFT CARD SECTION (3 OPTIONS: ₹100, ₹500, ₹1000 RS WITH STARS)
+           ========================================================================== -->
+      <div class="section-header-row">
+        <div>
+          <h2 class="section-title">Amazon Gift Card</h2>
+        </div>
+        <span class="star-badge">⭐ Star Store</span>
+      </div>
+
+      <div class="giftcard-list">
+        
+        <!-- 1. ₹100 Amazon Gift Card Option -->
+        <div class="giftcard-card" id="cardOption100">
+          <div class="giftcard-media">
+            <img src="assets/amazon_100.jpg" alt="₹100 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag">₹100 RS</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹100 Amazon Gift Card</h3>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">1,000</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(100, 1000, '₹100 Amazon Gift Card', 'assets/amazon_100.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ₹500 Amazon Gift Card Option -->
+        <div class="giftcard-card featured" id="cardOption500">
+          <div class="giftcard-media">
+            <img src="assets/amazon_500.jpg" alt="₹500 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag gold">₹500 RS</div>
+            <div class="popular-ribbon">POPULAR</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹500 Amazon Gift Card</h3>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">5,000</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(500, 5000, '₹500 Amazon Gift Card', 'assets/amazon_500.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. ₹1000 Amazon Gift Card Option -->
+        <div class="giftcard-card" id="cardOption1000">
+          <div class="giftcard-media">
+            <img src="assets/amazon_1000.jpg" alt="₹1,000 Amazon Gift Card" class="giftcard-img" />
+            <div class="giftcard-tag vip">₹1,000 RS</div>
+          </div>
+          <div class="giftcard-content">
+            <div class="giftcard-meta">
+              <span class="giftcard-brand">AMAZON.IN VOUCHER</span>
+              <h3 class="giftcard-name">₹1,000 Amazon Gift Card</h3>
+            </div>
+            <div class="giftcard-actions-bar">
+              <div class="giftcard-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val">10,000</span>
+                <span class="price-unit">Stars</span>
+              </div>
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(1000, 10000, '₹1,000 Amazon Gift Card', 'assets/amazon_1000.jpg')">
+                <span>Buy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recent Orders & Approved Requests -->
+      <div class="section-title">Recent Orders &amp; Approved Requests</div>
+      <div class="history-list" id="walletHistoryList">
+        <!-- Rendered dynamically by script.js -->
+      </div>
+
+      <!-- Telegram Stars Transactions (MTProto starsTransaction Ledger) -->
+      <div class="section-header-row" style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 class="section-title">Telegram Stars Ledger (XTR)</h2>
+        </div>
+        <button type="button" class="btn-tg-buy-mini" onclick="window.TelegramStars && window.TelegramStars.openModal()" style="font-size: 0.68rem; padding: 3px 8px;">
+          + Top-Up ⚡
+        </button>
+      </div>
+      <div id="tgWalletTransactionsLedger" style="margin-top: 0.5rem;"></div>
+
+      <!-- Buy Form Popup Modal (Email & WhatsApp Number) -->
+      <div class="voucher-modal-overlay" id="buyModalOverlay">
+        <div class="voucher-modal-box buy-modal-box">
+          <button class="modal-close-btn" onclick="closeBuyModal()" aria-label="Close modal">✕</button>
+          
+          <div class="modal-badge-buy">🎁 Order Voucher</div>
+
+          <div class="buy-item-preview">
+            <img src="assets/amazon_100.jpg" alt="Voucher" id="buyModalImg" class="buy-thumb-img" />
+            <div class="buy-item-info">
+              <h3 class="buy-item-title" id="buyModalTitle">₹100 Amazon Gift Card</h3>
+              <div class="buy-item-price">
+                <span class="price-star">⭐</span>
+                <span class="price-val" id="buyModalCost">1,000 Stars</span>
+              </div>
+            </div>
+          </div>
+
+          <form class="buy-form" id="buyForm" onsubmit="handleConfirmBuy(event)">
+            <input type="hidden" id="buyParamRs" value="100">
+            <input type="hidden" id="buyParamStars" value="1000">
+            <input type="hidden" id="buyParamTitle" value="₹100 Amazon Gift Card">
+            <input type="hidden" id="buyParamImg" value="assets/amazon_100.jpg">
+
+            <div class="form-group-wallet">
+              <label class="form-label-wallet" for="buyUserEmail">
+                <span>📧 Email Address *</span>
+              </label>
+              <input 
+                type="email" 
+                id="buyUserEmail" 
+                class="form-input-wallet" 
+                placeholder="yourname@gmail.com" 
+                required 
+                autocomplete="email"
+              />
+              <span class="input-hint-wallet">Claim code will be registered to this email</span>
+            </div>
+
+            <div class="form-group-wallet">
+              <label class="form-label-wallet" for="buyUserWhatsapp">
+                <span>💬 WhatsApp Number *</span>
+              </label>
+              <input 
+                type="tel" 
+                id="buyUserWhatsapp" 
+                class="form-input-wallet font-mono" 
+                placeholder="+91 9876543210" 
+                required 
+                autocomplete="tel"
+              />
+              <span class="input-hint-wallet">For instant delivery updates &amp; admin approval</span>
+            </div>
+
+            <div class="buy-modal-actions">
+              <button type="button" class="btn-wallet-cancel" onclick="closeBuyModal()">Cancel</button>
+              <button type="submit" class="btn-wallet-submit" id="btnSubmitBuy">
+                <span>Submit &amp; Buy ⭐</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Voucher Success Modal -->
+      <div class="voucher-modal-overlay" id="voucherModalOverlay">
+        <div class="voucher-modal-box">
+          <button class="modal-close-btn" onclick="closeVoucherModal()">✕</button>
+          <div class="modal-badge-success">🎉 Voucher Redeemed!</div>
+          <div class="modal-card-preview">
+            <img src="assets/amazon_100.jpg" alt="Amazon Gift Card" id="modalVoucherImg" class="modal-card-img" />
+          </div>
+          <h3 class="modal-voucher-title" id="modalVoucherTitle">₹100 Amazon Gift Card</h3>
+          <p class="modal-voucher-sub">Your Amazon.in Claim Code is ready to use:</p>
+          
+          <div class="voucher-code-box">
+            <span class="voucher-code-text" id="modalVoucherCode">AMZN-7492-89BX-100R</span>
+            <button class="btn-copy-code" id="btnCopyCode" onclick="copyVoucherCode()">Copy</button>
+          </div>
+
+          <p class="voucher-instruction">Enter this code in your Amazon Pay wallet at checkout.</p>
+          <button class="btn-modal-done" onclick="closeVoucherModal()">Done</button>
+        </div>
+      </div>
+
+
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet Active, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link (Active - Between Home and Profile) -->
+      <a href="../wallet/index.html" class="below-menu-item active" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+  </div>
+
+  <script src="../../telegram-stars.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Frontend — User Profile</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../telegram-stars.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">👤</div>
+        <div class="user-meta">
+          <span class="user-name">Player</span>
+          <span class="user-level">PLAYER PROFILE</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="profileCoinsDisplay">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance (Click to Top-Up)" onclick="window.TelegramStars && window.TelegramStars.openModal()" style="cursor: pointer;">
+          <span>⭐</span>
+          <span class="star-value" id="profileStarsDisplay">0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Static Navigation Switcher Tabs (Profile / Admin) -->
+    <div class="top-nav-switcher" id="topNavSwitcher">
+      <button class="switcher-tab active" id="tabBtnProfile" onclick="switchProfileTab('profile')">
+        <span class="switcher-icon">👤</span>
+        <span class="switcher-text">Profile</span>
+      </button>
+      <button class="switcher-tab" id="tabBtnAdmin" onclick="switchProfileTab('admin')">
+        <span class="switcher-icon">🛡️</span>
+        <span class="switcher-text">Admin</span>
+        <span class="admin-lock-tag" id="adminStatusTag">🔒</span>
+      </button>
+    </div>
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- ========================================================
+           VIEW 1: REGULAR USER PROFILE VIEW
+           ======================================================== -->
+      <section class="profile-view-panel" id="panelUserProfile">
+        <!-- Profile Badge Hero Card with Telegram Customization -->
+        <div class="profile-hero-card theme-blue" id="tgProfileHeroCard">
+          <!-- Edit Profile Quick Action Button -->
+          <button type="button" class="btn-edit-tg-profile" onclick="openEditTgProfileModal()" title="Edit Telegram Profile & Bio">
+            <span>✏️ Edit Profile</span>
+          </button>
+
+          <!-- Big Avatar with Edit overlay -->
+          <div class="profile-avatar-wrap" onclick="openEditTgProfileModal()" title="Change Profile Avatar">
+            <div class="profile-big-avatar" id="tgProfileBigAvatar">⚡</div>
+            <div class="profile-avatar-badge-edit">✏️</div>
+          </div>
+
+          <!-- Name & Telegram Emoji Status -->
+          <div class="profile-name-row">
+            <h2 class="profile-display-name" id="tgProfileDisplayName">Player</h2>
+            <span class="tg-emoji-status-chip" id="tgProfileEmojiStatus" onclick="openEmojiStatusPicker()" title="Telegram Premium Status (Click to change)">⚡</span>
+          </div>
+
+          <!-- Username Handle -->
+          <div class="tg-username-pill" onclick="copyProfileUsername()" title="Click to copy @username">
+            <span>@</span><span id="tgProfileUsername">player</span>
+            <span style="font-size: 0.65rem;">📋</span>
+          </div>
+
+          <span class="profile-badge-pro" id="tgProfileRoleBadge">LEVEL 1 &bull; NOVICE</span>
+
+          <!-- Bio / About -->
+          <p class="tg-profile-bio" id="tgProfileBio">🎮 Mini App Player</p>
+
+          <div class="profile-stats-grid">
+            <div class="profile-stat-box">
+              <span class="stat-num" id="profileStatTasks">0</span>
+              <span class="stat-lbl">Web Tasks</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="stat-num" id="profileStatAds">0</span>
+              <span class="stat-lbl">Ads Watched</span>
+            </div>
+            <div class="profile-stat-box">
+              <span class="stat-num" id="profileStatStreak">1</span>
+              <span class="stat-lbl">Days Streak</span>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- Account Settings / Menu Options -->
+        <div class="section-title">Account Menu</div>
+        <div class="profile-links-list">
+          <!-- Invite Friends Tab (Opens Popup on Click) -->
+          <div class="profile-link-item highlight-invite" onclick="openInviteFriendsModal()" id="btnOpenInviteModal" title="Click to open Invite Friends popup">
+            <div class="invite-tab-left">
+              <span class="invite-tab-gift">🎁</span>
+              <span class="invite-tab-title">Invite Friends (<b class="gold-text">+100 🪙 Only</b>)</span>
+            </div>
+            <span class="invite-menu-pill">+100 🪙</span>
+          </div>
+          <div class="profile-link-item" onclick="openTgPushNotificationsModal()" id="btnOpenPushNotificationsModal">
+            <span>🔔 Push Notifications &amp; Alerts</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span class="tg-push-status-badge" id="tgPushRegisteredBadge">WebPush: Active</span>
+              <span class="link-arrow">&rarr;</span>
+            </div>
+          </div>
+          <div class="profile-link-item" onclick="alert('Security: Two-Factor Authentication enabled.')">
+            <span>🔒 Security &amp; 2FA</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+          <div class="profile-link-item" onclick="alert('Support: Support ticket portal ready.')">
+            <span>💬 Help &amp; Community</span>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+
+
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 2A: ADMIN LOGIN VIEW
+           ======================================================== -->
+      <section class="admin-login-panel" id="panelAdminLogin" style="display: none;">
+        <div class="admin-login-card">
+          <div class="admin-shield-icon">🛡️</div>
+          <h2 class="admin-login-title">Admin Control Portal</h2>
+          <p class="admin-login-subtitle" style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px; text-align: center;">Administrator authentication required</p>
+
+          <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="admin-form" style="margin-top: 1rem;">
+            <div class="form-group">
+              <label for="adminUsername" class="form-label">Administrator ID / Username</label>
+              <div class="input-wrap">
+                <span class="input-ico">👤</span>
+                <input type="text" id="adminUsername" class="admin-input" placeholder="e.g. 400 @123" required autocomplete="username" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="adminPassword" class="form-label">Security Key / Password</label>
+              <div class="input-wrap">
+                <span class="input-ico">🔒</span>
+                <input type="password" id="adminPassword" class="admin-input" placeholder="••••" required autocomplete="current-password" />
+              </div>
+            </div>
+
+            <div class="admin-login-error" id="adminLoginError" style="display: none;">
+              ⚠️ Invalid administrator credentials. Access denied!
+            </div>
+
+            <button type="submit" class="btn-admin-submit" id="btnAdminLogin">
+              <span>Authenticate &amp; Open Admin 🚀</span>
+            </button>
+
+            <div class="login-credentials-hint" style="margin-top: 0.85rem; font-size: 0.72rem; color: #94a3b8; text-align: center; background: rgba(15, 23, 42, 0.6); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px dashed rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: space-between;">
+              <span>Default: <code>400 @123</code> &bull; <code>0911</code></span>
+              <button type="button" class="btn-quick-fill" onclick="quickFillProfileAdmin()" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Auto-Fill</button>
+            </div>
+
+            <button type="button" onclick="switchProfileTab('profile')" style="background: transparent; border: none; color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 0.8rem; text-decoration: underline; width: 100%;">
+              &larr; Back to Player Profile
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VIEW 2B: FULL MOBILE ADMIN CONTROL PANEL
+           ======================================================== -->
+      <section class="admin-dashboard-panel" id="panelAdminDashboard" style="display: none;">
+        
+        <!-- Top Admin Status Header -->
+        <div class="admin-dash-header">
+          <div class="admin-dash-title-wrap">
+            <span class="admin-root-pill">● ROOT ADMIN ACTIVE</span>
+            <h2 class="admin-dash-title" id="adminActivePageTitle">Edit Task &amp; Missions</h2>
+          </div>
+          <button class="btn-admin-logout" onclick="adminLogout()" title="Sign Out of Admin">
+            <span>Sign Out 🔒</span>
+          </button>
+        </div>
+
+        <!-- 1. SUBVIEW: EDIT TASK -->
+        <div class="admin-sub-view" id="adminSubTasks">
+          <div class="admin-sub-toolbar">
+            <button class="btn-admin-action-primary" onclick="openCreateTaskModal()">
+              <span>＋ Add Mission</span>
+            </button>
+            <button class="btn-admin-action-secondary" onclick="resetPlayerCooldowns()">
+              <span>🔄 Reset Cooldowns</span>
+            </button>
+          </div>
+          <div class="admin-search-box" style="margin: 0.5rem 0;">
+            <span class="search-ico">🔍</span>
+            <input type="text" id="adminTaskSearch" placeholder="Filter tasks..." oninput="handleAdminTaskSearch(this.value)">
+          </div>
+          <div class="admin-tasks-container" id="adminTasksList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- 2. SUBVIEW: ALL USERS -->
+        <div class="admin-sub-view" id="adminSubUsers" style="display: none;">
+          <div class="admin-metrics-row">
+            <div class="admin-metric-mini">
+              <span class="mini-lbl">REGISTERED</span>
+              <span class="mini-val" style="color: #38bdf8;" id="adminTotalUsers">0</span>
+            </div>
+            <div class="admin-metric-mini">
+              <span class="mini-lbl">ACTIVE</span>
+              <span class="mini-val" style="color: #34d399;" id="adminActiveUsers">0</span>
+            </div>
+            <div class="admin-metric-mini">
+              <span class="mini-lbl">ALL COINS</span>
+              <span class="mini-val" style="color: #fbbf24;" id="adminTotalCoins">0 🪙</span>
+            </div>
+          </div>
+          <div class="admin-sub-toolbar" style="margin-top: 0.5rem;">
+            <button class="btn-admin-action-secondary" onclick="quickAwardAllPlayers(1000)">
+              <span>🎁 +1,000 Coins to All</span>
+            </button>
+          </div>
+          <div class="admin-search-box" style="margin: 0.5rem 0;">
+            <span class="search-ico">🔍</span>
+            <input type="text" id="adminUserSearch" placeholder="Search player name..." oninput="handleAdminUserSearch(this.value)">
+          </div>
+          <div class="admin-users-container" id="adminUsersList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- 3. SUBVIEW: REQUESTS -->
+        <div class="admin-sub-view" id="adminSubWithdraw" style="display: none;">
+          <div class="filter-pills-row" style="margin-bottom: 0.6rem;">
+            <button class="filter-pill active" onclick="filterAdminWithdrawals('all', this)">All (<span id="cntWdAll">0</span>)</button>
+            <button class="filter-pill" onclick="filterAdminWithdrawals('pending', this)">⏳ Pending (<span id="cntWdPending">0</span>)</button>
+            <button class="filter-pill" onclick="filterAdminWithdrawals('approved', this)">✅ Approved (<span id="cntWdApproved">0</span>)</button>
+            <button class="filter-pill" onclick="filterAdminWithdrawals('rejected', this)">❌ Rejected (<span id="cntWdRejected">0</span>)</button>
+          </div>
+          <div class="admin-withdrawals-container" id="adminWithdrawalsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- 4. SUBVIEW: EVENT -->
+        <div class="admin-sub-view" id="adminSubEvent" style="display: none;">
+          <div class="admin-event-card">
+            <div class="admin-event-badge">🏆 GLOBAL 3-MONTH CHAMPIONSHIP</div>
+            <div class="admin-event-timer-grid">
+              <div class="timer-box"><span id="adminTimerDays">00</span><small>DAYS</small></div>
+              <div class="timer-box"><span id="adminTimerHours">00</span><small>HOURS</small></div>
+              <div class="timer-box"><span id="adminTimerMins">00</span><small>MINS</small></div>
+              <div class="timer-box"><span id="adminTimerSecs">00</span><small>SECS</small></div>
+            </div>
+            <div style="font-size: 0.72rem; color: #94a3b8; text-align: center; margin: 0.65rem 0;">
+              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>5,000 ⭐</b>, 2nd <b>2,000 ⭐</b>, 3rd <b>1,000 ⭐</b>
+            </div>
+            <button class="btn-admin-action-danger" onclick="adminResetLeaderboardSeason()">
+              <span>🔄 Restart 3-Month Season (Reset Event)</span>
+            </button>
+          </div>
+          <div class="section-title" style="margin-top: 0.9rem;">Qualified Event Contenders</div>
+          <div id="adminEventPlayersList" class="admin-event-contenders-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Below Menu Bar (Shop, Leaderboard, Home Center, Wallet, Profile Active) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link -->
+      <a href="../leaderboard/index.html" class="below-menu-item" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link (Active) -->
+      <a href="../profile/index.html" class="below-menu-item active" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+    <!-- Admin Bottom Menu Bar (Swapped dynamically when Admin Control Panel is open) -->
+    <nav class="admin-menu-bar" id="adminMenuBar" aria-label="Admin Navigation" style="display: none;">
+      <!-- 1. Edit Task -->
+      <button type="button" class="admin-menu-item active" id="adminMenuTasks" onclick="switchAdminSubView('tasks')" title="Edit Tasks &amp; Missions">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Edit Task</span>
+        <span class="admin-nav-counter" id="adminMenuTaskCount">0</span>
+      </button>
+
+      <!-- 2. All Users -->
+      <button type="button" class="admin-menu-item" id="adminMenuUsers" onclick="switchAdminSubView('users')" title="All Users">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <span class="menu-label">All Users</span>
+        <span class="admin-nav-counter" id="adminMenuUserCount">0</span>
+      </button>
+
+      <!-- 3. Requests -->
+      <button type="button" class="admin-menu-item" id="adminMenuWithdraw" onclick="switchAdminSubView('withdraw')" title="Withdrawal Requests">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+        </div>
+        <span class="menu-label">Requests</span>
+        <span class="admin-nav-counter" id="adminMenuPendingCount" style="background: #f59e0b;">0</span>
+      </button>
+
+      <!-- 4. Event -->
+      <button type="button" class="admin-menu-item" id="adminMenuEvent" onclick="switchAdminSubView('event')" title="Leaderboard Event">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <span class="menu-label">Event</span>
+      </button>
+
+      <!-- 5. Exit Admin (Back to Profile) -->
+      <button type="button" class="admin-menu-item btn-exit-admin-tab" id="adminMenuExit" onclick="exitAdminToProfile()" title="Exit Admin Portal">
+        <div class="menu-icon-wrap" style="background: linear-gradient(135deg, #be185d 0%, #831843 100%); border-color: #f472b6;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+        </div>
+        <span class="menu-label" style="color: #f472b6;">Exit</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ========================================================================
+       INVITE FRIENDS POPUP MODAL (Matching Image 2 with Code Edit)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="inviteFriendsModalOverlay" onclick="handleInviteModalBackdropClick(event)">
+    <div class="profile-modal-box invite-modal-wrapper" onclick="event.stopPropagation()">
+      
+      <!-- Modal Exit Header Bar with Back/Close Arrow for Exit -->
+      <div class="invite-modal-exit-bar">
+        <button type="button" class="btn-invite-exit-arrow" onclick="closeInviteFriendsModal()" aria-label="Exit Invite Friends Modal" id="btnInviteTopExitArrow" title="Click to Exit">
+          <svg class="exit-arrow-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span class="exit-arrow-text">Exit</span>
+        </button>
+        <span class="invite-modal-nav-title">Invite Friends &amp; Earn</span>
+        <button type="button" class="btn-invite-exit-circle" onclick="closeInviteFriendsModal()" aria-label="Close window" title="Close">✕</button>
+      </div>
+
+      <div class="invite-friends-card popup-card">
+        <div class="invite-header-badge">
+          <span class="invite-fire-icon">🔥</span>
+          <span>REFERRAL PROGRAM</span>
+        </div>
+        
+        <div class="invite-hero-content">
+          <div class="invite-title-row">
+            <div class="invite-gift-icon">🎁</div>
+            <div>
+              <h3 class="invite-title">Invite Friends &amp; Earn</h3>
+              <p class="invite-subtitle">Get <b class="gold-text">+100 🪙 Only</b> for every friend who joins!</p>
+            </div>
+          </div>
+
+          <!-- Referral Stats Row -->
+          <div class="referral-stats-grid">
+            <div class="ref-stat-card">
+              <span class="ref-stat-val" id="refTotalInvited">0</span>
+              <span class="ref-stat-lbl">Friends Joined</span>
+            </div>
+            <div class="ref-stat-card">
+              <span class="ref-stat-val text-gold" id="refCoinsEarned">0 🪙</span>
+              <span class="ref-stat-lbl">Bonus Coins Won</span>
+            </div>
+            <div class="ref-stat-card">
+              <span class="ref-stat-val text-gold" id="refRewardRate">+100 🪙</span>
+              <span class="ref-stat-lbl">Reward Per Friend</span>
+            </div>
+          </div>
+          <!-- Hidden fallback for legacy refStarsEarned element to prevent null refs -->
+          <span id="refStarsEarned" style="display: none;">0 ⭐</span>
+
+          <!-- Share Referral Code Box with EDIT feature (Unique per profile) -->
+          <div class="invite-code-container">
+            <div class="invite-code-label-row">
+              <span class="invite-code-label">YOUR PROFILE'S UNIQUE CODE</span>
+              <span class="invite-pill-bonus">+100 COINS PER INVITE</span>
+            </div>
+
+            <!-- Standard Code Display View -->
+            <div class="invite-code-pill" id="codeDisplayRow">
+              <span class="invite-code-text" id="userReferralCode">NOVA-4730</span>
+              <div class="code-action-btns">
+                <button type="button" class="btn-edit-code" onclick="toggleEditReferralCode(true)" title="Edit your referral code">
+                  <span>✏️ Edit</span>
+                </button>
+                <button type="button" class="btn-copy-code" id="btnCopyCode" onclick="copyReferralCode()">
+                  <span id="copyCodeText">Copy Code</span>
+                  <span class="copy-icon">📋</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Edit Code Box (When "Edit" clicked) -->
+            <div class="invite-code-edit-box" id="codeEditRow" style="display: none;">
+              <input type="text" id="inputCustomReferralCode" class="input-custom-code" placeholder="Enter custom code..." maxlength="16" />
+              <button type="button" class="btn-save-custom-code" onclick="saveCustomReferralCode()">Save ✓</button>
+              <button type="button" class="btn-cancel-custom-code" onclick="toggleEditReferralCode(false)">✕</button>
+            </div>
+          </div>
+
+          <!-- Share Referral Link Box -->
+          <div class="invite-link-container">
+            <span class="invite-code-label">YOUR INVITE LINK</span>
+            <div class="invite-link-row">
+              <input type="text" class="invite-link-input" id="inviteLinkInput" readonly value="http://127.0.0.1:5500/?ref=NOVA-4730">
+              <button type="button" class="btn-copy-link" id="btnCopyLink" onclick="copyReferralLink()">
+                <span id="copyLinkText">Copy</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Social Quick Share Row -->
+          <div class="social-share-row">
+            <button type="button" class="btn-social-share btn-whatsapp" onclick="shareOnWhatsApp()">
+              <span>💬 WhatsApp</span>
+            </button>
+            <button type="button" class="btn-social-share btn-telegram" onclick="shareOnTelegram()">
+              <span>✈️ Telegram</span>
+            </button>
+            <button type="button" class="btn-social-share btn-native" onclick="nativeShareInvite()">
+              <span>🔗 Share...</span>
+            </button>
+          </div>
+
+          <!-- Redeem Friend's Code Box with Login Check & Firebase Verification -->
+          <div class="redeem-code-box">
+            <div class="redeem-header">
+              <span>🎁 Have a Friend's Unique Invite Code?</span>
+              <span class="redeem-badge">+100 🪙 Win</span>
+            </div>
+
+            <!-- User Login Status Check Bar (Hidden for auto-login) -->
+            <div class="referral-user-check" id="referralUserCheck" style="display: none !important;">
+              <div class="user-check-info">
+                <span class="user-check-icon" id="userCheckIcon">🟢</span>
+                <span class="user-check-text" id="userCheckText">Account: <b>Task Earner</b> (Logged In)</span>
+              </div>
+              <button type="button" class="btn-check-login-action" id="btnQuickLoginAction" onclick="togglePlayerLoginState()">Sign Out</button>
+            </div>
+
+            <!-- Step 1: Input Code & Verify with Firebase -->
+            <div class="redeem-input-row" id="redeemInputRow">
+              <input 
+                type="text" 
+                id="inputFriendReferralCode" 
+                class="redeem-input" 
+                placeholder="ENTER FRIEND'S REFERRAL CODE" 
+                maxlength="16"
+                autocomplete="off"
+                autocapitalize="characters"
+                spellcheck="false"
+              />
+              <button type="button" class="btn-verify-code" id="btnVerifyReferralCode" onclick="handleVerifyFriendCode()">
+                <span id="btnVerifyText">Verify Code 🔍</span>
+              </button>
+            </div>
+
+            <!-- Verification Status (Firebase cloud checks & errors) -->
+            <div class="referral-verify-status" id="referralVerifyStatus" style="display: none;"></div>
+
+            <!-- Step 2: "than after a cliam are show" -> Revealed only after Firebase verification & Login check -->
+            <div class="referral-claim-row" id="referralClaimRow" style="display: none;">
+              <button type="button" class="btn-claim-coins pulse-gold" id="btnClaimReferralCode" onclick="handleClaimReferralReward()">
+                <span class="claim-gift-icon">🎁</span>
+                <span class="claim-btn-label">CLAIM +100 🪙 BONUS</span>
+                <span class="claim-sparkle-icon">✨</span>
+              </button>
+            </div>
+
+            <!-- Redemption Confirmed Message -->
+            <div class="redeem-success-msg" id="redeemSuccessMsg" style="display: none;"></div>
+          </div>
+
+
+
+          <!-- Recent Referrals Activity List -->
+          <div class="recent-referrals-box">
+            <div class="recent-referrals-header">
+              <span>Recent Invited Friends</span>
+              <span class="referral-count-tag" id="refListCount">0 Friends</span>
+            </div>
+            <div class="recent-referrals-list" id="recentReferralsList">
+              <!-- Dynamically rendered -->
+            </div>
+          </div>
+
+          <!-- Bottom Action Exit Button with Arrow -->
+          <div class="invite-modal-bottom-exit-row">
+            <button type="button" class="btn-invite-bottom-exit" onclick="closeInviteFriendsModal()" id="btnInviteBottomExit">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>Exit / Close Window</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       TELEGRAM USER AUTHORIZATION SUITE (MTProto auth.sendCode / auth.signIn / QR / Passkey)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="playerLoginModalOverlay" onclick="handlePlayerLoginModalBackdropClick(event)">
+    <div class="profile-modal-box tg-auth-modal-wrapper" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closePlayerLoginModal()">✕</button>
+
+      <!-- Telegram / Firebase Auth Header -->
+      <div class="tg-auth-header">
+        <div class="tg-auth-icon-wrap" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.45); box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);">
+          <span style="font-size: 1.5rem;">🔥</span>
+        </div>
+        <h3 class="tg-auth-title" id="tgAuthMainTitle">Firebase &amp; Player Auth</h3>
+        <p class="tg-auth-subtitle" id="tgAuthSubtitle">Firebase Auth (Email/Pass) &bull; Cloud Firestore: taskads-f894a</p>
+      </div>
+
+      <!-- Navigation Tabs (Firebase Email, Phone, QR, Passkey, Bot, Test DC) -->
+      <div class="tg-auth-tabs" id="tgAuthTabsRow">
+        <button type="button" class="tg-auth-tab-btn active" id="tabBtnTgFirebaseEmail" onclick="switchTgAuthTab('firebase_email')">🔥 Email / Pass</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnTgPhone" onclick="switchTgAuthTab('phone')">📱 Phone</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnTgQr" onclick="switchTgAuthTab('qr')">📷 QR Code</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnTgPasskey" onclick="switchTgAuthTab('passkey')">🔑 Passkey</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnTgBot" onclick="switchTgAuthTab('bot')">🤖 Bot</button>
+      </div>
+
+      <!-- Hidden compatibility input for legacy forms -->
+      <input type="hidden" id="inputPlayerLoginUsername" value="Player" />
+
+      <!-- ====================================================================
+           VIEW 0: FIREBASE AUTHENTICATION (EMAIL & PASSWORD)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewFirebaseEmail">
+        <!-- Firebase Project & Cloud Info Banner -->
+        <div class="fb-project-badge-row">
+          <span class="fb-badge-icon">🔥</span>
+          <div class="fb-badge-info">
+            <span class="fb-badge-title">Firebase Email/Password Backend</span>
+            <span class="fb-badge-meta">Project: <b>taskads-f894a</b> &bull; App: <b>1:365573359165:web:...</b></span>
+          </div>
+        </div>
+
+        <!-- Mode Toggle: Sign In vs Sign Up -->
+        <div class="fb-auth-mode-switcher">
+          <button type="button" class="fb-mode-btn active" id="btnFbModeSignIn" onclick="setFbAuthMode('signin')">Sign In</button>
+          <button type="button" class="fb-mode-btn" id="btnFbModeSignUp" onclick="setFbAuthMode('signup')">Create Account (Sign Up)</button>
+        </div>
+
+        <!-- Signed-in State Box (Shown when user is currently authenticated with Firebase) -->
+        <div class="fb-logged-in-box" id="fbLoggedInBox" style="display: none;">
+          <div class="fb-logged-in-header">
+            <span class="fb-status-pulse">🟢</span>
+            <span style="font-weight: 700; color: #10b981; font-size: 0.8rem;">Authenticated with Firebase</span>
+          </div>
+          <div class="fb-user-details-card">
+            <div class="fb-detail-row"><span class="fb-detail-lbl">Email:</span> <span class="fb-detail-val" id="fbUserDetailEmail">-</span></div>
+            <div class="fb-detail-row"><span class="fb-detail-lbl">Username:</span> <span class="fb-detail-val" id="fbUserDetailName">-</span></div>
+            <div class="fb-detail-row"><span class="fb-detail-lbl">User UID:</span> <span class="fb-detail-val code" id="fbUserDetailUid">-</span></div>
+            <div class="fb-detail-row"><span class="fb-detail-lbl">Firestore Sync:</span> <span class="fb-detail-val" style="color: #38bdf8;">users/{uid} Synced ☁️</span></div>
+          </div>
+          <button type="button" class="btn-fb-signout" onclick="handleFirebaseSignOut()">
+            <span>Sign Out of Firebase</span>
+          </button>
+        </div>
+
+        <!-- Form Box -->
+        <div class="fb-form-box" id="fbAuthFormBox">
+          <!-- Optional Display Name field for Sign Up -->
+          <div class="tg-field-label" id="lblFbDisplayName" style="display: none;">Player Display Name / Username</div>
+          <div class="tg-auth-phone-input-wrap" id="wrapFbDisplayName" style="display: none; margin-bottom: 0.65rem;">
+            <span class="tg-phone-dial-code">👤</span>
+            <input type="text" id="fbInputDisplayName" class="tg-phone-input" placeholder="e.g. NovaStriker" maxlength="30" autocomplete="nickname" />
+          </div>
+
+          <!-- Email Input -->
+          <div class="tg-field-label">Email Address</div>
+          <div class="tg-auth-phone-input-wrap" style="margin-bottom: 0.65rem;">
+            <span class="tg-phone-dial-code">📧</span>
+            <input type="email" id="fbInputEmail" class="tg-phone-input" placeholder="player@example.com" autocomplete="email" />
+          </div>
+
+          <!-- Password Input -->
+          <div class="tg-field-label">Password (min 6 characters)</div>
+          <div class="tg-auth-phone-input-wrap" style="margin-bottom: 0.65rem; position: relative;">
+            <span class="tg-phone-dial-code">🔒</span>
+            <input type="password" id="fbInputPassword" class="tg-phone-input" placeholder="••••••••" autocomplete="current-password" />
+            <button type="button" class="btn-toggle-pwd" onclick="toggleFbPasswordVisibility('fbInputPassword')" title="Show/Hide Password">👁️</button>
+          </div>
+
+          <!-- Confirm Password (Sign Up Only) -->
+          <div class="tg-field-label" id="lblFbConfirmPassword" style="display: none;">Confirm Password</div>
+          <div class="tg-auth-phone-input-wrap" id="wrapFbConfirmPassword" style="display: none; margin-bottom: 0.65rem; position: relative;">
+            <span class="tg-phone-dial-code">🔑</span>
+            <input type="password" id="fbInputConfirmPassword" class="tg-phone-input" placeholder="Repeat password" autocomplete="new-password" />
+            <button type="button" class="btn-toggle-pwd" onclick="toggleFbPasswordVisibility('fbInputConfirmPassword')" title="Show/Hide Password">👁️</button>
+          </div>
+
+
+          <!-- Status Message / Alert box -->
+          <div class="fb-auth-msg-banner" id="fbAuthMsgBanner" style="display: none;"></div>
+
+          <!-- Action Submit Button -->
+          <button type="button" class="btn-tg-primary" id="btnFbSubmitAuth" onclick="handleFirebaseEmailAuthSubmit()" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-top: 0.85rem;">
+            <span id="btnFbSubmitText">Sign In with Email</span>
+            <span style="font-size: 1.1rem; margin-left: 4px;">🔥</span>
+          </button>
+
+          <!-- Password Reset Link -->
+          <div class="fb-forgot-row" id="fbForgotRow" style="text-align: center; margin-top: 0.65rem;">
+            <button type="button" class="fb-link-btn" onclick="handleFirebasePasswordReset()">Forgot Password? Reset via Email</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 1: PHONE LOGIN (auth.sendCode)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewPhone">
+        <div class="tg-field-label">Country &amp; Phone Number</div>
+        <div class="tg-auth-country-row">
+          <select id="tgAuthCountrySelect" class="tg-country-select" onchange="handleTgCountrySelectChange()">
+            <option value="+1" data-flag="🇺🇸" data-country="United States">🇺🇸 United States (+1)</option>
+            <option value="+91" data-flag="🇮🇳" data-country="India" selected>🇮🇳 India (+91)</option>
+            <option value="+44" data-flag="🇬🇧" data-country="United Kingdom">🇬🇧 United Kingdom (+44)</option>
+            <option value="+998" data-flag="🇺🇿" data-country="Uzbekistan">🇺🇿 Uzbekistan (+998)</option>
+            <option value="+49" data-flag="🇩🇪" data-country="Germany">🇩🇪 Germany (+49)</option>
+            <option value="+971" data-flag="🇦🇪" data-country="United Arab Emirates">🇦🇪 UAE (+971)</option>
+            <option value="+55" data-flag="🇧🇷" data-country="Brazil">🇧🇷 Brazil (+55)</option>
+            <option value="+7" data-flag="🇷🇺" data-country="Russia">🇷🇺 Russia (+7)</option>
+            <option value="+1" data-flag="🇨🇦" data-country="Canada">🇨🇦 Canada (+1)</option>
+            <option value="+61" data-flag="🇦🇺" data-country="Australia">🇦🇺 Australia (+61)</option>
+          </select>
+        </div>
+
+        <div class="tg-auth-phone-input-wrap">
+          <span class="tg-phone-dial-code" id="tgPhoneDialCodeDisplay">+91</span>
+          <input type="tel" id="tgAuthPhoneInput" class="tg-phone-input" placeholder="98765 43210" maxlength="15" autocomplete="tel" value="9876543210" />
+        </div>
+
+        <!-- Code Delivery Method Preference (CodeSettings) -->
+        <div class="tg-field-label" style="margin-top: 0.75rem;">Code Delivery Channel</div>
+        <div class="tg-delivery-channel-row">
+          <select id="tgCodeDeliverySelect" class="tg-country-select">
+            <option value="app" selected>📱 Telegram App Notification (auth.sentCodeTypeApp)</option>
+            <option value="sms">💬 SMS Text Message (auth.sentCodeTypeSms)</option>
+            <option value="email">📧 Verified Email (auth.sentCodeTypeEmailCode)</option>
+            <option value="fragment">💎 Fragment SMS (auth.sentCodeTypeFragmentSms)</option>
+            <option value="call">📞 Synthesized Voice Call (auth.sentCodeTypeCall)</option>
+          </select>
+        </div>
+
+        <!-- Future Auth Token Quick Login Option -->
+        <div class="tg-future-token-box" id="tgFutureTokenBox" style="display: none;">
+          <div style="font-size: 0.76rem; color: #38bdf8; font-weight: 700;">⚡ Stored Future Auth Token Found</div>
+          <div style="font-size: 0.68rem; color: #94a3b8; margin-top: 2px;">Instant authorization without SMS verification code.</div>
+          <button type="button" class="btn-tg-token-login" onclick="handleFutureTokenLogin()">Fast Unlock with Token 🚀</button>
+        </div>
+
+
+        <button type="button" class="btn-tg-primary" id="btnTgSendCode" onclick="handleSendTgCode()">
+          <span>Next (auth.sendCode)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">→</span>
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 2: CODE VERIFICATION (auth.signIn)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewCode" style="display: none;">
+        <div class="tg-back-row">
+          <button type="button" class="tg-back-btn" onclick="backToTgAuthView('phone')">← Back to Phone</button>
+          <span class="tg-code-type-pill" id="tgCodeTypeBadge">📱 Telegram App</span>
+        </div>
+
+        <div class="tg-code-dest-banner" id="tgCodeDestBanner">
+          We sent a code to the <b>Telegram app</b> on your other device at <span id="tgDisplayDestPhone" style="color: #38bdf8;">+91 98765 43210</span>.
+        </div>
+
+        <!-- 5 PIN Digit Input Boxes -->
+        <div class="tg-pin-inputs-row" id="tgPinInputsRow">
+          <input type="text" maxlength="1" class="tg-pin-box" id="tgPin1" inputmode="numeric" autocomplete="one-time-code" oninput="handlePinInput(1, event)" onkeydown="handlePinKeydown(1, event)" />
+          <input type="text" maxlength="1" class="tg-pin-box" id="tgPin2" inputmode="numeric" oninput="handlePinInput(2, event)" onkeydown="handlePinKeydown(2, event)" />
+          <input type="text" maxlength="1" class="tg-pin-box" id="tgPin3" inputmode="numeric" oninput="handlePinInput(3, event)" onkeydown="handlePinKeydown(3, event)" />
+          <input type="text" maxlength="1" class="tg-pin-box" id="tgPin4" inputmode="numeric" oninput="handlePinInput(4, event)" onkeydown="handlePinKeydown(4, event)" />
+          <input type="text" maxlength="1" class="tg-pin-box" id="tgPin5" inputmode="numeric" oninput="handlePinInput(5, event)" onkeydown="handlePinKeydown(5, event)" />
+        </div>
+
+
+
+        <!-- Resend Code Timer -->
+        <div class="tg-resend-row">
+          <span id="tgResendTimerText" style="font-size: 0.72rem; color: #94a3b8;">Resend code in <b id="tgResendSeconds" style="color: #38bdf8;">45s</b></span>
+          <button type="button" class="tg-link-action" id="btnTgResendCode" style="display: none;" onclick="resendTgCode()">Send code via SMS (auth.resendCode)</button>
+        </div>
+
+        <!-- Invalidation Security Notice -->
+        <div class="tg-security-warning-box">
+          <span style="font-size: 0.95rem;">🔒</span>
+          <div>
+            <b>Security Guard (account.invalidateSignInCodes)</b>: Never share this code with anyone. Messages from official ID <b>777000</b> will be immediately invalidated if shared or forwarded.
+          </div>
+        </div>
+
+        <button type="button" class="btn-tg-primary" id="btnTgVerifyCode" onclick="handleVerifyTgCode()">
+          <span>Verify &amp; Sign In (auth.signIn)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">✓</span>
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 3: 2FA CLOUD PASSWORD (auth.checkPassword / SESSION_PASSWORD_NEEDED)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthView2FA" style="display: none;">
+        <div class="tg-back-row">
+          <button type="button" class="tg-back-btn" onclick="backToTgAuthView('code')">← Back to Code</button>
+          <span class="tg-code-type-pill" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">🔐 2FA Cloud Password</span>
+        </div>
+
+        <div style="text-align: center; margin: 0.8rem 0 0.5rem 0;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.3rem;">🔐</div>
+          <h4 style="color: #ffffff; font-size: 1.05rem; font-weight: 800; margin: 0;">Two-Step Verification</h4>
+          <p style="color: #94a3b8; font-size: 0.74rem; margin-top: 4px; line-height: 1.4;">
+            This account is protected with an additional 2FA cloud password (<code>SESSION_PASSWORD_NEEDED</code>).
+          </p>
+        </div>
+
+        <div class="tg-auth-phone-input-wrap" style="position: relative; margin-top: 0.75rem;">
+          <input type="password" id="tg2faPasswordInput" class="tg-phone-input" placeholder="Enter cloud password" autocomplete="current-password" />
+          <button type="button" class="tg-pwd-eye-btn" onclick="toggleTgPasswordVisibility('tg2faPasswordInput', this)">👁️</button>
+        </div>
+
+        <div class="tg-pwd-hint-row">
+          <span>💡 <b>Password Hint:</b> <span id="tgPwdHintDisplay">Nova Vault Secret Key</span></span>
+        </div>
+
+        <button type="button" class="btn-tg-primary" style="margin-top: 1rem;" onclick="handleVerifyTg2FA()">
+          <span>Unlock Account (auth.checkPassword)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">🔓</span>
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 4: NEW USER REGISTRATION (auth.signUp / auth.authorizationSignUpRequired)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewSignUp" style="display: none;">
+        <div class="tg-back-row">
+          <button type="button" class="tg-back-btn" onclick="backToTgAuthView('phone')">← Back</button>
+          <span class="tg-code-type-pill" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">✨ New Account</span>
+        </div>
+
+        <div style="text-align: center; margin: 0.6rem 0 0.8rem 0;">
+          <div style="font-size: 2rem; margin-bottom: 0.2rem;">👤</div>
+          <h4 style="color: #ffffff; font-size: 1.05rem; font-weight: 800; margin: 0;">Create Telegram Account</h4>
+          <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 3px;">
+            No account found for this phone number. Enter your name to register (<code>auth.signUp</code>).
+          </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label">First Name *</label>
+            <input type="text" id="tgSignUpFirstName" class="admin-form-input" placeholder="John" required maxlength="30" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Last Name</label>
+            <input type="text" id="tgSignUpLastName" class="admin-form-input" placeholder="Doe" maxlength="30" />
+          </div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top: 0.5rem;">
+          <label class="admin-form-label">Choose Avatar Icon</label>
+          <div style="display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.2rem 0;" id="tgSignUpAvatarRow">
+            <!-- Emojis: ⚡, 👑, 💎, 🚀, 🦊, 🦁, 🎯, 🤖 populated dynamically -->
+          </div>
+        </div>
+
+        <button type="button" class="btn-tg-primary" style="margin-top: 0.8rem;" onclick="handleCompleteTgSignUp()">
+          <span>Create Account &amp; Sign In (auth.signUp)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">✓</span>
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 5: QR CODE LOGIN (auth.exportLoginToken / auth.importLoginToken)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewQR" style="display: none;">
+        <div class="tg-qr-box">
+          <div class="tg-qr-laser-line"></div>
+          <!-- Clean Telegram SVG QR Mockup with logo -->
+          <svg viewBox="0 0 160 160" width="140" height="140" class="tg-qr-svg">
+            <rect width="160" height="160" rx="12" fill="#0b1329" />
+            <!-- Corner marker TL -->
+            <rect x="15" y="15" width="35" height="35" rx="6" fill="#38bdf8" />
+            <rect x="22" y="22" width="21" height="21" rx="3" fill="#0b1329" />
+            <rect x="26" y="26" width="13" height="13" rx="2" fill="#38bdf8" />
+            <!-- Corner marker TR -->
+            <rect x="110" y="15" width="35" height="35" rx="6" fill="#38bdf8" />
+            <rect x="117" y="22" width="21" height="21" rx="3" fill="#0b1329" />
+            <rect x="121" y="26" width="13" height="13" rx="2" fill="#38bdf8" />
+            <!-- Corner marker BL -->
+            <rect x="15" y="110" width="35" height="35" rx="6" fill="#38bdf8" />
+            <rect x="22" y="117" width="21" height="21" rx="3" fill="#0b1329" />
+            <rect x="26" y="121" width="13" height="13" rx="2" fill="#38bdf8" />
+            <!-- Pattern grid elements -->
+            <rect x="60" y="20" width="10" height="10" fill="#38bdf8" />
+            <rect x="80" y="20" width="10" height="10" fill="#38bdf8" />
+            <rect x="60" y="40" width="10" height="10" fill="#38bdf8" />
+            <rect x="75" y="35" width="10" height="10" fill="#38bdf8" />
+            <rect x="90" y="40" width="10" height="10" fill="#38bdf8" />
+            <rect x="20" y="60" width="10" height="10" fill="#38bdf8" />
+            <rect x="35" y="75" width="10" height="10" fill="#38bdf8" />
+            <rect x="20" y="90" width="10" height="10" fill="#38bdf8" />
+            <rect x="115" y="60" width="10" height="10" fill="#38bdf8" />
+            <rect x="130" y="75" width="10" height="10" fill="#38bdf8" />
+            <rect x="115" y="90" width="10" height="10" fill="#38bdf8" />
+            <rect x="60" y="115" width="10" height="10" fill="#38bdf8" />
+            <rect x="80" y="125" width="10" height="10" fill="#38bdf8" />
+            <rect x="100" y="115" width="10" height="10" fill="#38bdf8" />
+            <rect x="120" y="120" width="10" height="10" fill="#38bdf8" />
+            <!-- Center Telegram logo badge -->
+            <circle cx="80" cy="80" r="18" fill="#0284c7" />
+            <path d="M74 80l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <div class="tg-qr-instructions">
+          <div class="tg-step-row"><span>1</span> Open <b>Telegram</b> on your phone</div>
+          <div class="tg-step-row"><span>2</span> Go to <b>Settings &gt; Devices &gt; Link Desktop Device</b></div>
+          <div class="tg-step-row"><span>3</span> Point your camera at this QR code</div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 0.6rem 0;">
+          <span style="font-size: 0.72rem; color: #94a3b8;">Token expires in: <b id="tgQrTimerText" style="color: #38bdf8;">28s</b></span>
+          <button type="button" class="tg-link-action" onclick="refreshTgQrToken()">Refresh Token 🔄</button>
+        </div>
+
+        <button type="button" class="btn-tg-primary" onclick="simulateQrLoginApprove()">
+          <span>Simulate Mobile Scan &amp; Authorize (auth.importLoginToken)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">⚡</span>
+        </button>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 6: PASSKEY BIOMETRIC LOGIN (auth.initPasskeyLogin)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewPasskey" style="display: none;">
+        <div class="tg-passkey-box">
+          <div class="tg-passkey-ripple"></div>
+          <div class="tg-passkey-icon">🛡️</div>
+          <h4 style="color: #ffffff; font-size: 1.05rem; font-weight: 800; margin: 0.4rem 0 0.2rem 0;">Passkey &amp; Biometrics</h4>
+          <p style="color: #94a3b8; font-size: 0.74rem; line-height: 1.4; margin: 0 0 1rem 0;">
+            Sign in instantly without passwords using Touch ID, Face ID, or Windows Hello (<code>auth.finishPasskeyLogin</code>).
+          </p>
+          <button type="button" class="btn-tg-primary" onclick="handlePasskeyAuth()">
+            <span>Authenticate with Passkey / Biometrics</span>
+            <span style="font-size: 1.1rem; margin-left: 4px;">👆</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           VIEW 7: BOT TOKEN LOGIN (auth.importBotAuthorization)
+           ==================================================================== -->
+      <div class="tg-auth-view" id="tgAuthViewBot" style="display: none;">
+        <div style="text-align: center; margin: 0.5rem 0 0.8rem 0;">
+          <div style="font-size: 2rem; margin-bottom: 0.2rem;">🤖</div>
+          <h4 style="color: #ffffff; font-size: 1.05rem; font-weight: 800; margin: 0;">Bot Token Login</h4>
+          <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 3px;">
+            Log in using a bot token obtained from <b>@BotFather</b> (<code>auth.importBotAuthorization</code>).
+          </p>
+        </div>
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Bot API Token</label>
+          <input type="text" id="tgBotTokenInput" class="admin-form-input" placeholder="e.g. 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11" autocomplete="off" />
+        </div>
+
+        <button type="button" class="btn-tg-primary" style="margin-top: 0.8rem;" onclick="handleBotTokenAuth()">
+          <span>Authorize Bot Session (auth.importBotAuthorization)</span>
+          <span style="font-size: 1.1rem; margin-left: 4px;">🚀</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       ACTIVE DEVICES & SESSIONS MODAL (account.getAuthorizations / account.resetAuthorization)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="tgActiveSessionsModalOverlay" onclick="handleActiveSessionsModalBackdrop(event)">
+    <div class="profile-modal-box tg-sessions-modal-wrapper" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeTgActiveSessionsModal()">✕</button>
+
+      <div class="tg-sessions-header">
+        <div class="tg-auth-icon-wrap" style="background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.4);">
+          <span style="font-size: 1.3rem;">📱</span>
+        </div>
+        <h3 class="tg-auth-title">Active Devices &amp; Sessions</h3>
+        <p class="tg-auth-subtitle"><code>account.getAuthorizations</code> &bull; Terminate or confirm sessions</p>
+      </div>
+
+      <!-- Current Active Session Card -->
+      <div class="tg-session-card current">
+        <div class="tg-session-top">
+          <div class="tg-session-device">
+            <span class="tg-session-type-icon">💻</span>
+            <div>
+              <div class="tg-session-title">Chrome on Windows 11</div>
+              <div class="tg-session-app">Telegram Web K &bull; v2.4 (Official)</div>
+            </div>
+          </div>
+          <span class="tg-session-badge-current">CURRENT</span>
+        </div>
+        <div class="tg-session-meta">
+          <span>🌐 192.168.1.104</span>
+          <span>📍 New Delhi, India</span>
+          <span>⏱️ Active Now</span>
+        </div>
+        <div class="tg-session-authkey">
+          Key Identifier: <code id="tgCurrentAuthKeyId">auth_key_#8841a9bc</code>
+        </div>
+      </div>
+
+      <!-- Connected Sessions List -->
+      <div class="tg-field-label" style="margin: 0.8rem 0 0.4rem 0;">Other Active Sessions</div>
+      <div class="tg-sessions-list" id="tgOtherSessionsList">
+        <!-- Session 1 -->
+        <div class="tg-session-card" id="sessionCardAndroid">
+          <div class="tg-session-top">
+            <div class="tg-session-device">
+              <span class="tg-session-type-icon">📱</span>
+              <div>
+                <div class="tg-session-title">Samsung Galaxy S24 Ultra</div>
+                <div class="tg-session-app">Telegram for Android 10.9 &bull; v10.9.1</div>
+              </div>
+            </div>
+            <button type="button" class="btn-terminate-single" onclick="terminateSingleSession('sessionCardAndroid')">Terminate</button>
+          </div>
+          <div class="tg-session-meta">
+            <span>🌐 103.21.244.12</span>
+            <span>📍 Mumbai, India</span>
+            <span>⏱️ 12m ago</span>
+          </div>
+        </div>
+
+        <!-- Session 2 -->
+        <div class="tg-session-card" id="sessionCardMac">
+          <div class="tg-session-top">
+            <div class="tg-session-device">
+              <span class="tg-session-type-icon">💻</span>
+              <div>
+                <div class="tg-session-title">MacBook Pro (M3 Max)</div>
+                <div class="tg-session-app">Telegram Desktop macOS &bull; v5.2</div>
+              </div>
+            </div>
+            <button type="button" class="btn-terminate-single" onclick="terminateSingleSession('sessionCardMac')">Terminate</button>
+          </div>
+          <div class="tg-session-meta">
+            <span>🌐 49.36.128.91</span>
+            <span>📍 Bengaluru, India</span>
+            <span>⏱️ 2h ago</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Future Auth Tokens Stored Count -->
+      <div class="tg-future-tokens-counter">
+        <span>🔒 <b>Future Auth Tokens Cached:</b> <span id="tgFutureTokensCount" style="color: #38bdf8;">1 / 20</span> (Auto-evicts &gt; 20)</span>
+      </div>
+
+      <!-- Session Actions -->
+      <div style="display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.8rem;">
+        <button type="button" class="btn-terminate-all-sessions" onclick="terminateAllOtherTgSessions()">
+          🛑 Terminate All Other Sessions (account.resetAuthorization)
+        </button>
+        <button type="button" class="btn-simulate-new-auth" onclick="triggerSimulatedNewAuthAlert()">
+          🔔 Simulate New Login Alert (updateNewAuthorization)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       NEW LOGIN CONFIRMATION MODAL (updateNewAuthorization)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="tgNewSessionConfirmModal" style="display: none; z-index: 10000;">
+    <div class="profile-modal-box" style="max-width: 320px; text-align: center; border-color: rgba(245, 158, 11, 0.5);" onclick="event.stopPropagation()">
+      <div style="font-size: 2.2rem; margin-bottom: 0.4rem;">⚠️</div>
+      <h3 style="color: #ffffff; font-size: 1.05rem; font-weight: 800; margin: 0;">New Authorization Detected</h3>
+      <p style="color: #cbd5e1; font-size: 0.72rem; margin: 0.4rem 0 0.8rem 0; line-height: 1.4;">
+        A new session was just authorized on <b>Telegram Web (Firefox / Frankfurt, Germany)</b> at IP <code>185.220.101.5</code>.
+      </p>
+      <div style="display: flex; gap: 0.5rem; justify-content: center;">
+        <button type="button" class="btn-tg-primary" style="padding: 0.5rem 0.8rem; font-size: 0.75rem;" onclick="confirmNewSessionAlert(true)">
+          ✓ Yes, It Was Me
+        </button>
+        <button type="button" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; border-radius: 10px; padding: 0.5rem 0.8rem; font-size: 0.75rem; font-weight: 800; cursor: pointer;" onclick="confirmNewSessionAlert(false)">
+          ✕ Terminate Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       EDIT TELEGRAM PROFILE MODAL (Name, Username, Bio, Birthday, Note, Avatar)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="editTgProfileModalOverlay" onclick="handleEditTgProfileModalBackdrop(event)">
+    <div class="profile-modal-box" onclick="event.stopPropagation()" style="max-height: 90vh; overflow-y: auto;">
+      <button class="modal-close-btn" onclick="closeEditTgProfileModal()">✕</button>
+      <div style="padding: 1.25rem 1rem;">
+        <div style="text-align: center; margin-bottom: 1rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: #fff;">Edit Telegram Profile</h3>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Customize your name, username handle, bio &amp; avatar</p>
+        </div>
+
+        <form id="editTgProfileForm" onsubmit="saveEditTgProfileForm(event)">
+          <!-- Avatar picker row -->
+          <div class="admin-form-group">
+            <label class="admin-form-label">Profile Avatar Icon</label>
+            <div style="display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.35rem 0;" id="tgAvatarOptionList">
+              <!-- Emojis: ⚡, 👤, 👑, 💎, 🚀, 🦊, 🦁, 🎯, 🤖, 💻 populated by JS -->
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="inputTgFirstName">First Name *</label>
+              <input type="text" id="inputTgFirstName" class="admin-form-input" required maxlength="30" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="inputTgLastName">Last Name</label>
+              <input type="text" id="inputTgLastName" class="admin-form-input" maxlength="30" />
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="inputTgUsername">Username (@username) *</label>
+            <div class="input-wrap" style="position: relative;">
+              <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #38bdf8; font-weight: 700; font-family: monospace;">@</span>
+              <input type="text" id="inputTgUsername" class="admin-form-input" style="padding-left: 26px;" required maxlength="25" />
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="inputTgBio">Bio (About) <small style="color: #94a3b8;">(Max 70 chars)</small></label>
+            <input type="text" id="inputTgBio" class="admin-form-input" maxlength="70" placeholder="e.g. Web Task Champion & Crypto Typist" />
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="inputTgBirthday">Birthday</label>
+              <input type="text" id="inputTgBirthday" class="admin-form-input" placeholder="e.g. Oct 12" maxlength="20" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label" for="inputTgChannel">Personal Channel</label>
+              <input type="text" id="inputTgChannel" class="admin-form-input" placeholder="e.g. @NovaChannel" maxlength="35" />
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="inputTgNote">Private Note <small style="color: #94a3b8;">(Only visible to you)</small></label>
+            <input type="text" id="inputTgNote" class="admin-form-input" placeholder="e.g. Daily goal: 100 tasks" maxlength="100" />
+          </div>
+
+          <div class="admin-modal-footer">
+            <button type="button" class="btn-admin-modal-cancel" onclick="closeEditTgProfileModal()">Cancel</button>
+            <button type="submit" class="btn-admin-modal-submit">Save Changes ✓</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       EMOJI STATUS PICKER MODAL (account.updateEmojiStatus MTProto Specification)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="emojiStatusModalOverlay" onclick="handleEmojiStatusModalBackdrop(event)">
+    <div class="profile-modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeEmojiStatusPicker()">✕</button>
+      <div style="padding: 1.25rem 1rem;">
+        <div style="text-align: center; margin-bottom: 0.85rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: #fff;">Choose Emoji Status</h3>
+          <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Display a Telegram Premium status badge next to your name</p>
+        </div>
+
+        <div class="tg-emoji-picker-grid" id="tgEmojiPickerGrid">
+          <!-- Dynamically populated -->
+        </div>
+
+        <button type="button" class="btn-admin-modal-cancel" style="width: 100%;" onclick="closeEmojiStatusPicker()">Close</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Admin Modal 1: Create / Edit Task Modal -->
+  <div class="admin-modal-overlay" id="adminTaskModalOverlay" onclick="handleTaskModalBackdropClick(event)">
+    <div class="admin-modal-card" onclick="event.stopPropagation()">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title" id="adminTaskModalHeading">Create New Task Mission</h3>
+        <button type="button" class="btn-close-modal" onclick="closeAdminTaskModal()">✕</button>
+      </div>
+      <form id="adminTaskModalForm" onsubmit="handleSaveAdminTaskForm(event)" class="admin-modal-body">
+        <input type="hidden" id="taskEditId" value="" />
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputTitle">Task Title *</label>
+          <input type="text" id="taskInputTitle" class="admin-form-input" placeholder="e.g. Subscribe to Nova Official Channel" required />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputDesc">Task Instructions / Description</label>
+          <input type="text" id="taskInputDesc" class="admin-form-input" placeholder="e.g. Watch video, like, and get code from end of video" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputUrl">Target URL / Link *</label>
+          <input type="url" id="taskInputUrl" class="admin-form-input" placeholder="https://youtube.com/..." required />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="taskInputCoins">Reward Coins (🪙) *</label>
+            <input type="number" id="taskInputCoins" class="admin-form-input" min="10" step="10" value="100" required />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="taskInputStars">Reward Stars (⭐) *</label>
+            <input type="number" id="taskInputStars" class="admin-form-input" min="0" step="1" value="5" required />
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="taskInputCategory">Category</label>
+            <select id="taskInputCategory" class="admin-form-select">
+              <option value="youtube">📺 YouTube</option>
+              <option value="telegram">✈️ Telegram</option>
+              <option value="partner">🤝 Partner</option>
+              <option value="website">🌐 Website</option>
+              <option value="app">📱 App Install</option>
+              <option value="daily">📅 Daily WebTask</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="taskInputTimer">Timer Wait (Sec)</label>
+            <input type="number" id="taskInputTimer" class="admin-form-input" min="5" max="300" value="10" />
+          </div>
+        </div>
+        <div class="admin-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="admin-form-label" for="taskInputSecret">Secret Verification Code</label>
+            <button type="button" class="btn-card-action" style="padding: 1px 6px; font-size: 0.65rem;" onclick="generateRandomTaskCode()">🎲 Generate</button>
+          </div>
+          <input type="text" id="taskInputSecret" class="admin-form-input" placeholder="e.g. NOVA-7821 (Leave empty for instant)" />
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminTaskModal()">Cancel</button>
+          <button type="submit" class="btn-admin-modal-submit" id="btnAdminSaveTask">Save Mission ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Modal 2: Edit User Coins & Status Modal -->
+  <div class="admin-modal-overlay" id="adminUserModalOverlay" onclick="handleUserModalBackdropClick(event)">
+    <div class="admin-modal-card" onclick="event.stopPropagation()">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title">Edit Player Balance &amp; Status</h3>
+        <button type="button" class="btn-close-modal" onclick="closeAdminUserModal()">✕</button>
+      </div>
+      <form id="adminUserModalForm" onsubmit="handleSaveAdminUserForm(event)" class="admin-modal-body">
+        <input type="hidden" id="userEditId" value="" />
+        <div style="display: flex; align-items: center; gap: 0.75rem; background: #060e24; padding: 0.65rem; border-radius: 10px; border: 1px solid #1e293b;">
+          <span style="font-size: 1.8rem;" id="userEditAvatar">⚡</span>
+          <div>
+            <div style="font-weight: 800; color: #ffffff;" id="userEditName">Player</div>
+            <div style="font-size: 0.7rem; color: #94a3b8;" id="userEditLevel">LVL 1 • NOVICE</div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditCoins">Coins (🪙)</label>
+            <input type="number" id="userEditCoins" class="admin-form-input" min="0" step="50" required />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditStars">Stars (⭐)</label>
+            <input type="number" id="userEditStars" class="admin-form-input" min="0" step="1" required />
+          </div>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="userEditStatus">Account Status</label>
+          <select id="userEditStatus" class="admin-form-select">
+            <option value="active">Active Player 🟢</option>
+            <option value="suspended">Suspended / Banned 🔴</option>
+          </select>
+        </div>
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-card-action danger" onclick="handleDeleteUserFromModal()" style="padding: 0.65rem 0.8rem;">Delete</button>
+          <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminUserModal()">Cancel</button>
+          <button type="submit" class="btn-admin-modal-submit">Save Changes ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FLOATING TELEGRAM IN-APP PUSH BANNER (Real-time Push Updates)
+       ======================================================================== -->
+  <div class="tg-push-banner-container" id="tgPushBannerContainer" style="display: none;" onclick="handlePushBannerClick()">
+    <div class="tg-push-banner-box">
+      <div class="tg-push-banner-top">
+        <div class="tg-push-banner-app">
+          <div class="tg-push-banner-icon" id="tgPushBannerIcon">💬</div>
+          <span class="tg-push-banner-appname" id="tgPushBannerSender">Telegram</span>
+        </div>
+        <div class="tg-push-banner-meta">
+          <span class="tg-push-banner-time">now</span>
+          <button type="button" class="tg-push-banner-close" onclick="dismissPushBanner(event)">✕</button>
+        </div>
+      </div>
+      <div class="tg-push-banner-title" id="tgPushBannerTitle">New Message</div>
+      <div class="tg-push-banner-body" id="tgPushBannerBody">You have a new message</div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       TELEGRAM PUSH NOTIFICATIONS CENTER MODAL (MTProto Handling PUSH-notifications)
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="tgPushNotificationsModalOverlay" onclick="handlePushModalBackdrop(event)">
+    <div class="profile-modal-box tg-push-modal-wrapper" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeTgPushNotificationsModal()">✕</button>
+
+      <!-- Header -->
+      <div class="tg-auth-header">
+        <div class="tg-auth-icon-wrap" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4);">
+          <span style="font-size: 1.35rem;">🔔</span>
+        </div>
+        <h3 class="tg-auth-title">Push Notifications (MTProto)</h3>
+        <p class="tg-auth-subtitle"><code>account.registerDevice</code> &bull; Web Push (RFC 8291) &bull; FCM / APNS</p>
+      </div>
+
+      <!-- Push Modal Tabs -->
+      <div class="tg-auth-tabs">
+        <button type="button" class="tg-auth-tab-btn active" id="tabBtnPushStatus" onclick="switchPushModalTab('status')">⚙️ Status &amp; Token</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnPushSim" onclick="switchPushModalTab('sim')">⚡ Simulator</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnPushPrefs" onclick="switchPushModalTab('prefs')">🎛️ Preferences</button>
+        <button type="button" class="tg-auth-tab-btn" id="tabBtnPushLogs" onclick="switchPushModalTab('logs')">📋 History Log</button>
+      </div>
+
+      <!-- TAB 1: DEVICE REGISTRATION & TOKEN STATUS -->
+      <div class="tg-push-tab-view" id="pushTabViewStatus">
+        <div class="tg-push-device-card">
+          <div class="tg-push-card-row">
+            <span class="tg-field-label" style="margin:0;">Subscription State</span>
+            <span class="tg-push-pill active" id="tgPushSubStateBadge">🟢 Registered (Valid 24h)</span>
+          </div>
+          <div class="tg-push-card-row" style="margin-top: 0.6rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8;">Token Type:</span>
+            <span style="font-size: 0.72rem; color: #ffffff; font-weight: 700;">10 - Web Push (RFC 8291)</span>
+          </div>
+          <div class="tg-push-card-row" style="margin-top: 0.4rem;">
+            <span style="font-size: 0.72rem; color: #94a3b8;">Encryption:</span>
+            <span style="font-size: 0.72rem; color: #38bdf8; font-weight: 700;">P-256 ECDH + MTProto v2</span>
+          </div>
+          <div class="tg-push-token-box" id="tgPushTokenDisplay">
+            endpoint: https://fcm.googleapis.com/fcm/send/web_push_98a72...<br/>
+            p256dh: BNq48aKM... | auth: s81j49Xz...
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.8rem;">
+          <button type="button" class="btn-tg-primary" onclick="handleRegisterDevice(true)">
+            <span>✓ Re-Register Device (account.registerDevice)</span>
+          </button>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <button type="button" class="btn-push-action secondary" onclick="handleUnregisterDevice()">
+              ✕ Unregister Device
+            </button>
+            <button type="button" class="btn-push-action permission" onclick="requestBrowserPushPermission()">
+              🔔 Browser Permission
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: LIVE MTPROTO PUSH SIMULATOR -->
+      <div class="tg-push-tab-view" id="pushTabViewSim" style="display: none;">
+        <div style="font-size: 0.72rem; color: #94a3b8; margin-bottom: 0.6rem;">
+          Click any MTProto event template to trigger an instant real-time notification with audio chime:
+        </div>
+
+        <!-- Simulation Grid -->
+        <div class="tg-sim-grid">
+          <!-- Stars & Gifts Category -->
+          <div class="tg-sim-card" onclick="simulatePushEvent('MESSAGE_STARGIFT', ['Pavel Durov', '100'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">MESSAGE_STARGIFT</span>
+              <span class="tg-sim-star">⭐ Stars</span>
+            </div>
+            <div class="tg-sim-text">Pavel sent you a Gift worth 100 Stars!</div>
+          </div>
+
+          <div class="tg-sim-card" onclick="simulatePushEvent('CHANNEL_MESSAGE_GIVEAWAY_STARS', ['Nova Channel', '5 winners', '500'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">CHANNEL_MESSAGE_GIVEAWAY_STARS</span>
+              <span class="tg-sim-star">⭐ Stars</span>
+            </div>
+            <div class="tg-sim-text">Nova Channel posted a giveaway of 500 stars!</div>
+          </div>
+
+          <div class="tg-sim-card" onclick="simulatePushEvent('MESSAGE_GIFTCODE', ['Alex', '3 months'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">MESSAGE_GIFTCODE</span>
+              <span style="color: #c084fc; font-size: 0.62rem; font-weight: 800;">🎁 Premium</span>
+            </div>
+            <div class="tg-sim-text">Alex sent you a Gift Code for 3m Telegram Premium</div>
+          </div>
+
+          <!-- Messages Category -->
+          <div class="tg-sim-card" onclick="simulatePushEvent('MESSAGE_TEXT', ['Telegram', 'Your authorization code is 78219'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">MESSAGE_TEXT</span>
+              <span style="color: #38bdf8; font-size: 0.62rem; font-weight: 800;">💬 Direct</span>
+            </div>
+            <div class="tg-sim-text">Telegram: Your authorization code is 78219</div>
+          </div>
+
+          <div class="tg-sim-card" onclick="simulatePushEvent('CHAT_MESSAGE_TEXT', ['Elena', 'Nova Tasks Global', 'Let\'s finish the daily task!'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">CHAT_MESSAGE_TEXT</span>
+              <span style="color: #38bdf8; font-size: 0.62rem; font-weight: 800;">👥 Group</span>
+            </div>
+            <div class="tg-sim-text">Elena @ Nova Tasks: Let's finish the daily task!</div>
+          </div>
+
+          <div class="tg-sim-card" onclick="simulatePushEvent('REACT_TEXT', ['David', '🔥', 'Welcome to Nova!'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">REACT_TEXT</span>
+              <span style="color: #f97316; font-size: 0.62rem; font-weight: 800;">🔥 Reaction</span>
+            </div>
+            <div class="tg-sim-text">David: 🔥 to your message "Welcome to Nova!"</div>
+          </div>
+
+          <!-- Calls Category -->
+          <div class="tg-sim-card" onclick="simulatePushEvent('PHONE_CALL_REQUEST', ['Anna Smith'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">PHONE_CALL_REQUEST</span>
+              <span style="color: #10b981; font-size: 0.62rem; font-weight: 800;">📞 Call</span>
+            </div>
+            <div class="tg-sim-text">Anna Smith is calling you!</div>
+          </div>
+
+          <!-- Security Category -->
+          <div class="tg-sim-card" onclick="simulatePushEvent('AUTH_REGION', ['Firefox Linux', 'Frankfurt, Germany'])">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">AUTH_REGION</span>
+              <span style="color: #ef4444; font-size: 0.62rem; font-weight: 800;">🔒 Security</span>
+            </div>
+            <div class="tg-sim-text">New login from unrecognized device Firefox Linux, location: Frankfurt</div>
+          </div>
+
+          <!-- Service Announcement Category -->
+          <div class="tg-sim-card" onclick="simulatePushEvent('MESSAGE_ANNOUNCEMENT', [], '⚡ Telegram Stars 2.0 update is live with 50% extra bonuses on referrals!')">
+            <div class="tg-sim-card-top">
+              <span class="tg-sim-type">MESSAGE_ANNOUNCEMENT</span>
+              <span style="color: #fbbf24; font-size: 0.62rem; font-weight: 800;">📢 Official</span>
+            </div>
+            <div class="tg-sim-text">Telegram Stars 2.0 update is live with 50% extra bonuses!</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: NOTIFICATION PREFERENCES -->
+      <div class="tg-push-tab-view" id="pushTabViewPrefs" style="display: none;">
+        <div class="tg-push-prefs-list">
+          <div class="tg-pref-row">
+            <div>
+              <div class="tg-pref-label">Private Messages (MESSAGE_TEXT)</div>
+              <div class="tg-pref-desc">Notifications for 1-on-1 private conversations</div>
+            </div>
+            <input type="checkbox" id="prefTgPrivateMsgs" class="tg-pref-toggle" checked onchange="savePushPreferences()" />
+          </div>
+
+          <div class="tg-pref-row">
+            <div>
+              <div class="tg-pref-label">Groups &amp; Channels (CHAT_MESSAGE_TEXT)</div>
+              <div class="tg-pref-desc">Mentions and new posts in subscribed channels</div>
+            </div>
+            <input type="checkbox" id="prefTgGroupMsgs" class="tg-pref-toggle" checked onchange="savePushPreferences()" />
+          </div>
+
+          <div class="tg-pref-row">
+            <div>
+              <div class="tg-pref-label">Stars &amp; Gifts (MESSAGE_STARGIFT)</div>
+              <div class="tg-pref-desc">Alerts when you receive Telegram Stars or Gifts</div>
+            </div>
+            <input type="checkbox" id="prefTgStarsGifts" class="tg-pref-toggle" checked onchange="savePushPreferences()" />
+          </div>
+
+          <div class="tg-pref-row">
+            <div>
+              <div class="tg-pref-label">Audio Chimes (sound1.mp3)</div>
+              <div class="tg-pref-desc">Play Telegram synthesized alert tone on receive</div>
+            </div>
+            <input type="checkbox" id="prefTgAudioChime" class="tg-pref-toggle" checked onchange="savePushPreferences()" />
+          </div>
+
+          <div class="tg-pref-row">
+            <div>
+              <div class="tg-pref-label">Message Previews</div>
+              <div class="tg-pref-desc">Show sender name and message content in banner</div>
+            </div>
+            <input type="checkbox" id="prefTgMsgPreviews" class="tg-pref-toggle" checked onchange="savePushPreferences()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: RECENT PUSH HISTORY LOG -->
+      <div class="tg-push-tab-view" id="pushTabViewLogs" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.72rem; color: #94a3b8;">Recent Incoming Notifications</span>
+          <button type="button" class="tg-link-action" onclick="clearPushHistory()">Clear History</button>
+        </div>
+        <div class="tg-push-logs-list" id="tgPushLogsList">
+          <!-- Populated by JS -->
+          <div style="text-align: center; color: #64748b; font-size: 0.74rem; padding: 1.5rem 0;">No notifications received yet.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Element -->
+  <div class="profile-toast" id="profileToast"></div>
+
+  <!-- Firebase Cloud Sync & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="../../telegram-stars.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

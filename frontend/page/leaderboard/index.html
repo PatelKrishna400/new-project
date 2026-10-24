@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Leaderboard — Global 3-Month Championship</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Mobile View Screen Shell -->
+  <div class="mobile-container">
+    
+    <!-- Top Header Bar -->
+    <header class="home-header">
+      <div class="header-user">
+        <div class="user-avatar">🏆</div>
+        <div class="user-meta">
+          <span class="user-name">Player</span>
+          <span class="user-level">GLOBAL RANKS</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="leaderboardCoinsTop">0</span>
+        </div>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="leaderboardStarsTop">0</span>
+        </div>
+      </div>
+    </header>
+
+
+    <!-- Page Content -->
+    <main class="page-content">
+
+      <!-- ========================================================
+           VIEW 1: LEADERBOARD (Top 1, 2, 3 Podium + In-Between Scrolling)
+           ======================================================== -->
+      <section class="leaderboard-view-panel" id="panelLeaderboard">
+
+        <!-- Leaderboard Active Session Tab Banner (Clickable to open Popup) -->
+        <div class="leaderboard-session-tab-card" id="leaderboardEventBanner" onclick="openLeaderboardSeasonModal()" role="button" tabindex="0" title="Click to view Season Details and Rewards">
+          <div class="session-tab-left">
+            <div class="session-tab-trophy-icon">🏆</div>
+            <div class="session-tab-info">
+              <h3 class="session-tab-title" id="eventTitleDisplay" style="margin: 0; font-size: 1.05rem;">Season 1: 3-Month Championship</h3>
+            </div>
+          </div>
+          <div class="session-tab-right">
+            <div class="session-timer-box" id="eventTimerWrap">
+              <span class="session-timer-ico">⏱️</span>
+              <span class="session-timer-clock font-mono" id="eventCountdownClock">--:--:--</span>
+            </div>
+            <div class="session-tab-arrow-cue">
+              <span>Details</span>
+              <span class="arrow-glyph">➔</span>
+            </div>
+          </div>
+          <!-- Hidden fallback for legacy counter element to prevent null refs -->
+          <span id="myEventTasksCount" style="display: none;">0 🎯</span>
+        </div>
+
+        <!-- Season Star Rewards Prize Pool Strip (Click to open Season Popup) -->
+        <div class="leaderboard-prizes-card" id="leaderboardPrizesCard" onclick="openLeaderboardSeasonModal()" role="button" tabindex="0" style="cursor: pointer;" title="Click to open Season Rewards popup">
+          <div class="prizes-card-header">
+            <span class="prizes-title">⭐ 3-MONTH SEASON STAR PRIZES</span>
+            <span class="prizes-pool-badge">21,500 ⭐ Total Pool</span>
+          </div>
+          <div class="prizes-grid">
+            <div class="prize-pill prize-1st">
+              <span class="prize-rank">🥇 1st Place</span>
+              <span class="prize-stars">+10,000 ⭐</span>
+            </div>
+            <div class="prize-pill prize-2nd">
+              <span class="prize-rank">🥈 2nd Place</span>
+              <span class="prize-stars">+5,000 ⭐</span>
+            </div>
+            <div class="prize-pill prize-3rd">
+              <span class="prize-rank">🥉 3rd-5th</span>
+              <span class="prize-stars">+1,000 ⭐</span>
+            </div>
+            <div class="prize-pill prize-mid">
+              <span class="prize-rank">🎖️ 6th-10th</span>
+              <span class="prize-stars">+500 ⭐</span>
+            </div>
+            <div class="prize-pill prize-low">
+              <span class="prize-rank">🏅 11th-20th</span>
+              <span class="prize-stars">+100 ⭐</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 100-Task Qualification Gate Banner -->
+        <div class="qualification-card" id="qualificationCard">
+          <div class="qualify-header">
+            <div class="qualify-status-pill" id="qualifyStatusPill">
+              <span class="qualify-icon" id="qualifyIcon">🔒</span>
+              <span class="qualify-text" id="qualifyStatusText">LEADERBOARD LOCKED</span>
+            </div>
+            <span class="qualify-req-tag">Rule: Complete 100 Web Tasks</span>
+          </div>
+
+          <div class="qualify-body">
+            <div class="qualify-title" id="qualifyTitle">Complete 100 Web Tasks to Enter</div>
+            <div class="qualify-desc" id="qualifyDesc">
+              Your name will appear on the Leaderboard once you complete 100 Web Tasks.
+            </div>
+
+            <!-- Animated Progress Bar -->
+            <div class="qualify-progress-container">
+              <div class="qualify-bar-track">
+                <div class="qualify-bar-fill" id="qualifyBarFill" style="width: 0%;"></div>
+              </div>
+              <div class="qualify-bar-labels">
+                <span id="qualifyProgressLabel">Progress: 0 / 100 Web Tasks (0%)</span>
+                <span id="qualifyRemainingLabel">100 more tasks needed</span>
+              </div>
+            </div>
+
+            <div class="qualify-action-row" id="qualifyActionRow">
+              <a href="../home/index.html" class="btn-go-tasks">
+                <span>⚡ Complete Web Tasks Now &rarr;</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top 1, 2, 3 Podium Showcase Stage -->
+        <div class="podium-showcase">
+          <div class="podium-title-row">
+            <span class="podium-live-dot"></span>
+            <span class="podium-heading">TOP 3 CHAMPIONS</span>
+            <span class="podium-season-tag" id="podiumSeasonTag">3-MONTH SEASON</span>
+          </div>
+
+          <div class="podium-pillars-row">
+
+            <!-- #2 Silver Rank (Left) -->
+            <div class="podium-pillar-col silver-col" id="podiumCol2">
+              <div class="podium-player-card" id="podiumCard2">
+                <span class="medal-icon">🥈</span>
+                <div class="pillar-avatar silver-avatar" id="podiumAvatar2">🥈</div>
+                <div class="pillar-player-name" id="podiumName2">Awaiting Contender</div>
+                <div class="pillar-prize-pill silver-prize">+5,000 ⭐</div>
+                <div class="pillar-task-count" id="podiumTasks2">0 🎯</div>
+                <div class="pillar-player-coins" id="podiumCoins2">0 🪙</div>
+              </div>
+              <div class="podium-block block-silver">
+                <span class="block-number">2</span>
+              </div>
+            </div>
+
+            <!-- #1 Gold Rank Champion (Center - Highest) -->
+            <div class="podium-pillar-col gold-col" id="podiumCol1">
+              <div class="podium-player-card" id="podiumCard1">
+                <div class="crown-icon">👑</div>
+                <span class="medal-icon gold-medal">🥇</span>
+                <div class="pillar-avatar gold-avatar" id="podiumAvatar1">👑</div>
+                <div class="pillar-player-name gold-name" id="podiumName1">Awaiting Champion</div>
+                <div class="pillar-prize-pill gold-prize">+10,000 ⭐</div>
+                <div class="pillar-task-count gold-tasks" id="podiumTasks1">0 🎯</div>
+                <div class="pillar-player-coins gold-coins" id="podiumCoins1">0 🪙</div>
+              </div>
+              <div class="podium-block block-gold">
+                <span class="block-number gold-number">1</span>
+              </div>
+            </div>
+
+            <!-- #3 Bronze Rank (Right) -->
+            <div class="podium-pillar-col bronze-col" id="podiumCol3">
+              <div class="podium-player-card" id="podiumCard3">
+                <span class="medal-icon">🥉</span>
+                <div class="pillar-avatar bronze-avatar" id="podiumAvatar3">🥉</div>
+                <div class="pillar-player-name" id="podiumName3">Awaiting Challenger</div>
+                <div class="pillar-prize-pill bronze-prize">+1,000 ⭐</div>
+                <div class="pillar-task-count" id="podiumTasks3">0 🎯</div>
+                <div class="pillar-player-coins" id="podiumCoins3">0 🪙</div>
+              </div>
+              <div class="podium-block block-bronze">
+                <span class="block-number">3</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- In-Between Scrollable Rankings Section Header -->
+        <div class="ranks-section-header">
+          <h2 class="ranks-section-title">Contenders</h2>
+          <span class="ranks-count-tag">Ranks #4 &ndash; #20 (Scroll &darr;)</span>
+        </div>
+
+        <!-- In-Between Scrollable Rankings List ("between scrolling throw show") -->
+        <div class="ranks-scrollable-container" id="ranksScrollContainer">
+          <div class="empty-ranks-box" id="emptyRanksPlaceholder">
+            <div class="empty-ranks-icon">🏆</div>
+            <div class="empty-ranks-title">Leaderboard Awaiting Competitors</div>
+            <div class="empty-ranks-desc">Complete 100 Web Tasks to claim your rank and win up to 10,000 ⭐!</div>
+            <a href="../home/index.html" class="btn-qualify-now">Complete Web Tasks &rarr;</a>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+
+
+    <!-- Sticky User Real-Time Rank Bar (Above Menu Bar) -->
+    <div class="sticky-user-rank-bar" id="stickyUserRankBar" title="Click to view your position in leaderboard">
+      <div class="user-rank-left">
+        <span class="user-rank-badge" id="myLiveRankBadge">#--</span>
+        <div class="user-rank-avatar" id="myLiveRankAvatar">⚡</div>
+        <div class="user-rank-meta">
+          <div class="user-rank-name-row">
+            <span class="user-rank-name" id="myLiveRankName">Player</span>
+            <span class="user-rank-you-pill">YOU</span>
+          </div>
+          <span class="user-rank-status-sub" id="myLiveRankSub">Real-Time Standing</span>
+        </div>
+      </div>
+      <div class="user-rank-right">
+        <div class="user-rank-coins" id="myLiveRankCoins">0 🪙</div>
+        <div class="user-rank-stars" id="myLiveRankStars">0 ⭐</div>
+      </div>
+    </div>
+
+    <!-- Below Menu Bar (Shop, Leaderboard Active, Home Center, Wallet, Profile) -->
+    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+      
+      <!-- 1. Shop Page Link -->
+      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Shop</span>
+      </a>
+
+      <!-- 2. Leaderboard Page Link (Active) -->
+      <a href="../leaderboard/index.html" class="below-menu-item active" id="menuLeaderboard" title="Leaderboard">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Ranks</span>
+      </a>
+
+      <!-- 3. Home Page Link (Center) -->
+      <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
+        <div class="center-home-icon-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <span class="menu-label">Home</span>
+      </a>
+
+      <!-- 4. Wallet Page Link -->
+      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+          </svg>
+        </div>
+        <span class="menu-label">Wallet</span>
+      </a>
+
+      <!-- 5. Profile Page Link -->
+      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+        <div class="menu-icon-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <span class="menu-label">Profile</span>
+      </a>
+
+    </nav>
+
+    <!-- ==========================================================================
+         LEADERBOARD SEASON & REWARDS POPUP MODAL
+         Triggered by clicking the Session Banner Tab (#leaderboardEventBanner)
+         Shows:
+         1. 100 Tasks Completed Requirement -> Participated Status
+         2. Watch Ads Reward Button + 6-Hour Cooldown Renewal Timer (100 Ads Quota)
+         3. Season Finish -> Rank-Wise Reward Claim Gate (Requires 100 Ads to Claim)
+         ========================================================================== -->
+    <div class="season-modal-overlay" id="leaderboardSeasonModalOverlay" style="display: none;" onclick="handleSeasonModalBackdropClick(event)">
+      <div class="season-modal-box" onclick="event.stopPropagation()">
+        
+        <!-- Modal Top Handle & Close Button -->
+        <div class="season-modal-drag-bar"></div>
+        <button type="button" class="season-modal-close-btn" onclick="closeLeaderboardSeasonModal()" aria-label="Close modal">✕</button>
+
+        <!-- Modal Header -->
+        <div class="season-modal-header">
+          <div class="season-modal-badge">
+            <span class="season-badge-dot"></span>
+            <span id="modalSeasonStatusText">SEASON 1 • GLOBAL EVENT ACTIVE</span>
+          </div>
+          <h2 class="season-modal-title" id="modalSeasonTitle">Season 1: 3-Month Championship</h2>
+          <div class="season-modal-timer-pill">
+            <span class="timer-ico">⏱️</span>
+            <span class="timer-desc">Session Time Left:</span>
+            <span class="timer-time font-mono" id="modalSeasonCountdown">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- Modal Body Scroll Container -->
+        <div class="season-modal-body">
+
+          <!-- ==========================================
+               PART 1: 100 WEB TASKS PARTICIPATION GATE
+               ========================================== -->
+          <div class="season-section-card" id="seasonParticipationCard">
+            <div class="section-card-header">
+              <div class="section-card-title-row">
+                <span class="section-card-icon">📋</span>
+                <div class="section-card-title-wrap">
+                  <h3 class="section-card-title">1. Tasks Participation Requirement</h3>
+                </div>
+              </div>
+              <div class="participation-status-pill locked" id="participationStatusPill">
+                <span id="participationStatusIcon">🔒</span>
+                <span id="participationStatusText">NOT PARTICIPATED</span>
+              </div>
+            </div>
+
+            <div class="section-card-body">
+              <div class="season-progress-bar-wrap">
+                <div class="season-progress-header">
+                  <span class="progress-lbl">Web Tasks Completed:</span>
+                  <span class="progress-val font-mono text-blue" id="modalTasksProgressText">0 / 100</span>
+                </div>
+                <div class="season-bar-track">
+                  <div class="season-bar-fill fill-blue" id="modalTasksProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="season-progress-sub" id="modalTasksRemainingText">100 more tasks needed to participate</div>
+              </div>
+
+              <div class="season-action-row" id="participationActionRow">
+                <a href="../home/index.html" class="btn-season-action btn-go-tasks-modal">
+                  <span>⚡ Complete Web Tasks Now ➔</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               PART 2: WATCH ADS REWARD (100 ADS QUOTA WITH 6-HOUR TIMER)
+               ========================================== -->
+          <div class="season-section-card" id="seasonAdsRewardCard">
+            <div class="section-card-header">
+              <div class="section-card-title-row">
+                <span class="section-card-icon">📺</span>
+                <div class="section-card-title-wrap">
+                  <h3 class="section-card-title">2. Watch Ads &amp; Collect Rewards</h3>
+                </div>
+              </div>
+              <div class="quota-badge" id="seasonAdsQuotaBadge">
+                <span id="seasonAdsCountBadge">0 / 100 ADS</span>
+              </div>
+            </div>
+
+            <div class="section-card-body">
+              <div class="season-progress-bar-wrap">
+                <div class="season-progress-header">
+                  <span class="progress-lbl">Season Ads Watched (Quota: 100):</span>
+                  <span class="progress-val font-mono text-amber" id="modalAdsProgressText">0 / 100 (0%)</span>
+                </div>
+                <div class="season-bar-track">
+                  <div class="season-bar-fill fill-amber" id="modalAdsProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="season-progress-sub" id="modalAdsRemainingText">100 ads left to unlock rank reward claim</div>
+              </div>
+
+              <!-- Watch Ad Action Box & 6-Hour Cooldown Timer -->
+              <div class="season-ad-action-box">
+                <div class="season-cooldown-info">
+                  <div class="cooldown-label-group">
+                    <span class="cooldown-ico">⏳</span>
+                    <span class="cooldown-lbl">6-Hour Ad Renewal Timer:</span>
+                  </div>
+                  <span class="cooldown-val font-mono" id="seasonAdCooldownClock">Ready to Watch ✓</span>
+                </div>
+
+                <button type="button" class="btn-season-watch-ad" id="btnSeasonWatchAd" onclick="handleSeasonWatchAd()">
+                  <span class="watch-ad-play-ico">▶</span>
+                  <span id="btnSeasonWatchAdText">Watch Ad (+50 Coins &amp; +1 Quota)</span>
+                </button>
+                <div class="ad-reward-pill-tip">🎁 Reward: +50 Coins 🪙 • Cooldown: 6 Hours • Quota: 100 Clicks Total</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==========================================
+               PART 3: LEADERBOARD FINISH & RANK-WISE REWARD CLAIM (100 ADS TO CLAIM)
+               ========================================== -->
+          <div class="season-section-card" id="seasonRankClaimCard">
+            <div class="section-card-header">
+              <div class="section-card-title-row">
+                <span class="section-card-icon">⭐</span>
+                <div class="section-card-title-wrap">
+                  <h3 class="section-card-title">3. Season Finish &amp; Rank-Wise Claim</h3>
+                </div>
+              </div>
+              <div class="rank-prize-badge" id="modalUserRankBadge">
+                <span id="modalUserRankText">Rank #--</span>
+              </div>
+            </div>
+
+            <div class="section-card-body">
+              <!-- Current Standing & Potential Star Reward -->
+              <div class="season-user-standing-box">
+                <div class="standing-left">
+                  <div class="standing-lbl">YOUR LEADERBOARD STANDING:</div>
+                  <div class="standing-rank-name" id="modalStandingRankName">Not Ranked (Complete 100 Tasks)</div>
+                </div>
+                <div class="standing-right">
+                  <div class="standing-lbl">QUALIFYING PRIZE:</div>
+                  <div class="standing-prize-stars" id="modalStandingPrizeStars">+0 ⭐</div>
+                </div>
+              </div>
+
+              <!-- Rank Prize Tiers Summary Table -->
+              <div class="modal-prizes-mini-grid">
+                <div class="prize-mini-item">🥇 1st: <span>10,000 ⭐</span></div>
+                <div class="prize-mini-item">🥈 2nd: <span>5,000 ⭐</span></div>
+                <div class="prize-mini-item">🥉 3rd-5th: <span>1,000 ⭐</span></div>
+                <div class="prize-mini-item">🎖️ 6-10: <span>500 ⭐</span></div>
+                <div class="prize-mini-item">🏅 11-20: <span>100 ⭐</span></div>
+              </div>
+
+              <!-- Claim Gate Box (Requires 100 Ads Watched!) -->
+              <div class="season-claim-gate-box">
+                <div class="claim-req-warning" id="modalClaimWarning">
+                  <span class="warning-ico">⚠️</span>
+                  <span id="modalClaimWarningText">Requirement: You must watch 100 Ads before you can claim your Season Rank Reward! (Current: 0 / 100 Ads)</span>
+                </div>
+
+                <button type="button" class="btn-claim-season-reward locked" id="btnClaimSeasonRankReward" onclick="handleClaimSeasonRankReward()" disabled>
+                  <span id="btnClaimSeasonRewardText">🔒 Claim Rank Reward (100 Ads Required)</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="season-modal-footer">
+          <button type="button" class="btn-season-modal-close" onclick="closeLeaderboardSeasonModal()">Close Details</button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Firebase Cloud Sync & Analytics Connection -->
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

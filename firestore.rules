@@ -1,0 +1,203 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId} (matches Firebase Auth request.auth.uid)
+// Fields:
+//   - uid: string (required, immutable) - Firebase Auth User UID
+//   - email: string (required, valid email format) - User Email address
+//   - displayName: string (optional, 1-60 chars) - Player username
+//   - avatar: string (optional, 1-10 chars) - Selected emoji avatar
+//   - coins: number (required, >= 0) - Earned task game coins
+//   - stars: number (required, >= 0) - Telegram stars balance
+//   - tasksCompleted: number (optional, >= 0) - Completed web tasks count
+//   - adsWatched: number (optional, >= 0) - Watched ads count
+//   - sunflowerLife: number (optional, >= 0) - Sunflower game life
+//   - sunflowerCoins: number (optional, >= 0) - Sunflower produced coins
+//   - createdAt: number (optional, timestamp ms, immutable)
+//   - updatedAt: number (optional, timestamp ms)
+//
+// Collection: system
+// Document ID: tasks_config, leaderboard_event, etc.
+// Fields:
+//   - tasks: list of map items (web tasks configuration)
+//   - eventName: string (optional)
+//   - endTime: number (optional)
+//   - updatedAt: number (optional)
+//
+// Collection: referral_codes
+// Document ID: {code} (e.g. VORTEX-100)
+// Fields:
+//   - code: string (required, uppercase, 3-20 chars)
+//   - userId: string (required, creator user UID)
+//   - userName: string (optional, 1-60 chars)
+//   - rewardCoins: number (required, >= 0)
+//   - updatedAt: number (optional)
+//
+// Collection: referral_redemptions
+// Document ID: {code}_{userId}
+// Fields:
+//   - code: string (required)
+//   - redeemedByUserId: string (required, matches request.auth.uid)
+//   - redeemedByUserName: string (optional)
+//   - rewardCoins: number (required)
+//   - redeemedAt: number (required)
+//
+// Collection: withdrawals
+// Document ID: {withdrawalId}
+// Fields:
+//   - userId: string (required, matches request.auth.uid)
+//   - email: string (required, valid email)
+//   - amount: number (required, > 0)
+//   - type: string (required, voucher / cashout)
+//   - status: string (required, pending / completed / rejected)
+//   - requestedAt: number (required)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isNonNegativeNumber(field) {
+      return !(field in request.resource.data) || 
+             (request.resource.data[field] is number && request.resource.data[field] >= 0);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['email']) &&
+             isValidEmail(data.email) &&
+             isValidOptionalString('displayName', 1, 60) &&
+             isValidOptionalString('avatar', 1, 10) &&
+             isNonNegativeNumber('coins') &&
+             isNonNegativeNumber('stars') &&
+             isNonNegativeNumber('tasksCompleted') &&
+             isNonNegativeNumber('adsWatched');
+    }
+
+    function isValidReferralCode(data) {
+      return hasRequiredFields(['code', 'userId', 'rewardCoins']) &&
+             data.code is string && data.code.size() >= 3 && data.code.size() <= 20 &&
+             data.userId is string && data.userId.size() > 0 &&
+             data.rewardCoins is number && data.rewardCoins >= 0;
+    }
+
+    function isValidReferralRedemption(data) {
+      return hasRequiredFields(['code', 'redeemedByUserId', 'rewardCoins', 'redeemedAt']) &&
+             data.code is string && data.code.size() >= 3 &&
+             data.redeemedByUserId is string && data.redeemedByUserId == request.auth.uid &&
+             data.rewardCoins is number && data.rewardCoins >= 0;
+    }
+
+    function isValidWithdrawal(data) {
+      return hasRequiredFields(['userId', 'email', 'amount', 'type', 'status']) &&
+             data.userId == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.amount is number && data.amount > 0 &&
+             data.status in ['pending', 'completed', 'rejected'];
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. Users collection: private profile and progression balances
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged();
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && areImmutableFieldsUnchanged(['uid', 'createdAt']);
+      allow delete: if true;
+    }
+
+    // 2. System configurations: task lists, live events
+    // Readable by authenticated users; client modifications restricted
+    match /system/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // 3. Referral Codes registry
+    match /referral_codes/{code} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidReferralCode(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && isValidReferralCode(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      allow delete: if true;
+    }
+
+    // 4. Referral Redemptions log
+    match /referral_redemptions/{redemptionId} {
+      allow read: if isAuthenticated() && (resource.data.redeemedByUserId == request.auth.uid || resource.data.ownerUserId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidReferralRedemption(request.resource.data);
+      allow update: if false;
+      allow delete: if true;
+    }
+
+    // 5. Withdrawals collection
+    match /withdrawals/{withdrawalId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidWithdrawal(request.resource.data);
+      allow update: if false;
+      allow delete: if true;
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
