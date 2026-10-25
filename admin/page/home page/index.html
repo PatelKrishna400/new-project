@@ -102,6 +102,13 @@
           <span class="nav-text">Wallet Requests</span>
           <span class="nav-counter badge-amber" id="navPendingWithdrawCounter">0</span>
         </button>
+
+        <!-- 4. Ads Configuration Tab (Fourth) -->
+        <button class="nav-item" id="navItemAds" onclick="switchAdminPage('ads')">
+          <span class="nav-icon">📢</span>
+          <span class="nav-text">Ads Manager</span>
+          <span class="nav-counter" id="navAdsCounter" style="background:#f59e0b; color:#000;">Active</span>
+        </button>
       </nav>
 
       <!-- Sidebar Footer / Live Sync & Logout -->
@@ -384,6 +391,114 @@
                 </tbody>
               </table>
             </div>
+          </div>
+
+        </section>
+
+        <!-- ====================================================================
+             PAGE SECTION 4: ADS CONFIGURATION & METRICS
+             ==================================================================== -->
+        <section class="admin-page-section" id="pageSectionAds">
+          
+          <div class="content-header-row">
+            <div>
+              <h2 class="section-title">📢 Ads Configuration &amp; Metrics</h2>
+              <p class="section-subtitle">Configure ad smartlinks, monetization scripts, view click metrics, and test live ad clicks.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn-primary" onclick="testAdLink()">
+                <span>🚀 Test Open Ad</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Ad Metrics Stat Cards -->
+          <div class="stats-overview-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">TOTAL AD CLICKS</span>
+                <span class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">👆</span>
+              </div>
+              <div class="stat-value" id="adminTotalAdClicks">0</div>
+              <div class="stat-sub">Real-time tracked player clicks</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">PLAYER AD REWARDS</span>
+                <span class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🎁</span>
+              </div>
+              <div class="stat-value" id="adminTotalAdRewards">0</div>
+              <div class="stat-sub">+5 game plays &amp; coins granted</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">AD ENGINE STATUS</span>
+                <span class="stat-icon-wrap" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">⚡</span>
+              </div>
+              <div class="stat-value" id="adminAdStatusDisplay" style="color: #34d399; font-size: 1.25rem;">ONLINE</div>
+              <div class="stat-sub">Direct link / Interstitial ready</div>
+            </div>
+          </div>
+
+          <!-- Ad Settings Form Card -->
+          <div class="data-table-card" style="padding: 1.5rem;">
+            <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin-bottom: 0.4rem;">Backend Ad Provider &amp; URL Settings</h3>
+            <p style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 1.2rem;">All "Watch Ad" buttons across games (Lucky Dice, Scratch, Spin, Plinko, Coin, Mines, Under Over) and Shop will automatically use these settings.</p>
+
+            <form id="adminAdConfigForm" onsubmit="handleSaveAdConfig(event)">
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label class="form-label" for="adminAdUrlInput" style="color: #f59e0b;">Ad Smartlink / Target URL *</label>
+                  <input type="url" id="adminAdUrlInput" class="form-input font-mono" placeholder="https://monetag.com or direct smartlink URL" required style="font-size: 0.9rem;">
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="form-label" for="adminAdProviderSelect">Ad Provider Type</label>
+                  <select id="adminAdProviderSelect" class="form-input">
+                    <option value="direct_link">Direct Link / Smartlink</option>
+                    <option value="monetag">Monetag Script / Tag</option>
+                    <option value="custom_sponsor">Custom Sponsor URL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group flex-1">
+                  <label class="form-label" for="adminAdOpenMethodSelect">Open Method</label>
+                  <select id="adminAdOpenMethodSelect" class="form-input">
+                    <option value="new_tab">Open in New Tab (_blank)</option>
+                    <option value="same_window">Same Window</option>
+                  </select>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label class="form-label" for="adminAdCountdownInput">Reward Timer (Seconds)</label>
+                  <input type="number" id="adminAdCountdownInput" class="form-input font-mono" min="1" max="60" value="5" required>
+                </div>
+              </div>
+
+              <div class="form-check-row" style="margin-top: 0.8rem; margin-bottom: 1.2rem;">
+                <label class="switch-wrap">
+                  <input type="checkbox" id="adminAdEnabledToggle" checked>
+                  <span class="switch-slider"></span>
+                </label>
+                <div class="switch-label-wrap">
+                  <span class="switch-label-title">Enable Ads Across All Games &amp; Pages</span>
+                  <span class="switch-label-sub">When active, players can click Watch Ad to get +5 extra plays and earn coins.</span>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                <button type="button" class="btn-primary" onclick="testAdLink()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #ffffff;">
+                  Test Ad Link ↗
+                </button>
+                <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000;">
+                  Save Ad Configuration 💾
+                </button>
+              </div>
+            </form>
           </div>
 
         </section>

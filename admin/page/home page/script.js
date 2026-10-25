@@ -128,11 +128,12 @@ function handleAdminLogout() {
 function switchAdminPage(pageKey) {
   currentAdminPage = pageKey;
 
-  // Update Navigation Active Class (3 Tabs: tasks, users, withdraw)
+  // Update Navigation Active Class (4 Tabs: tasks, users, withdraw, ads)
   const navItems = {
     tasks: document.getElementById('navItemTasks'),
     users: document.getElementById('navItemUsers'),
-    withdraw: document.getElementById('navItemWithdraw')
+    withdraw: document.getElementById('navItemWithdraw'),
+    ads: document.getElementById('navItemAds')
   };
 
   Object.keys(navItems).forEach(key => {
@@ -147,7 +148,8 @@ function switchAdminPage(pageKey) {
   const names = {
     tasks: 'Tasks Management',
     users: 'All Users',
-    withdraw: 'Wallet Requests'
+    withdraw: 'Wallet Requests',
+    ads: 'Ads Manager'
   };
   if (breadcrumb) breadcrumb.textContent = names[pageKey] || 'Tasks';
 
@@ -155,7 +157,8 @@ function switchAdminPage(pageKey) {
   const pages = {
     tasks: document.getElementById('pageSectionTasks'),
     users: document.getElementById('pageSectionUsers'),
-    withdraw: document.getElementById('pageSectionWithdraw')
+    withdraw: document.getElementById('pageSectionWithdraw'),
+    ads: document.getElementById('pageSectionAds')
   };
 
   Object.keys(pages).forEach(key => {
@@ -185,6 +188,7 @@ function renderCurrentPage() {
   if (currentAdminPage === 'tasks') renderAdminTasks();
   else if (currentAdminPage === 'users') renderUsersTable();
   else if (currentAdminPage === 'withdraw') renderWithdrawalsTable();
+  else if (currentAdminPage === 'ads') renderAdsConfigPage();
 }
 
 // ============================================================================
@@ -1368,3 +1372,101 @@ window.addEventListener('storage', (e) => {
     updateAllMetricsAndBadges();
   }
 });
+// ============================================================================
+// 8. ADS CONFIGURATION & METRICS CONTROLLER
+// ============================================================================
+
+const DEFAULT_AD_CONFIG = {
+  enabled: true,
+  provider: 'direct_link',
+  adUrl: 'https://monetag.com',
+  openMethod: 'new_tab',
+  countdownSeconds: 5,
+  scriptCode: ''
+};
+
+function getAdminAdConfig() {
+  try {
+    const raw = localStorage.getItem('task_game_ad_config');
+    if (raw) return { ...DEFAULT_AD_CONFIG, ...JSON.parse(raw) };
+  } catch (e) {}
+  return DEFAULT_AD_CONFIG;
+}
+
+function renderAdsConfigPage() {
+  const cfg = getAdminAdConfig();
+  const urlInput = document.getElementById('adminAdUrlInput');
+  const providerSelect = document.getElementById('adminAdProviderSelect');
+  const openMethodSelect = document.getElementById('adminAdOpenMethodSelect');
+  const countdownInput = document.getElementById('adminAdCountdownInput');
+  const enabledToggle = document.getElementById('adminAdEnabledToggle');
+
+  if (urlInput) urlInput.value = cfg.adUrl || 'https://monetag.com';
+  if (providerSelect) providerSelect.value = cfg.provider || 'direct_link';
+  if (openMethodSelect) openMethodSelect.value = cfg.openMethod || 'new_tab';
+  if (countdownInput) countdownInput.value = cfg.countdownSeconds || 5;
+  if (enabledToggle) enabledToggle.checked = cfg.enabled !== false;
+
+  // Render metrics
+  const totalClicks = parseInt(localStorage.getItem('task_admin_ads_clicked_count') || '0', 10);
+  const totalRewards = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10);
+
+  const clicksEl = document.getElementById('adminTotalAdClicks');
+  const rewardsEl = document.getElementById('adminTotalAdRewards');
+  const statusEl = document.getElementById('adminAdStatusDisplay');
+
+  if (clicksEl) clicksEl.innerText = totalClicks.toLocaleString();
+  if (rewardsEl) rewardsEl.innerText = totalRewards.toLocaleString();
+  if (statusEl) {
+    statusEl.innerText = cfg.enabled !== false ? 'ONLINE' : 'PAUSED';
+    statusEl.style.color = cfg.enabled !== false ? '#34d399' : '#f87171';
+  }
+}
+
+function handleSaveAdConfig(e) {
+  if (e) e.preventDefault();
+  const url = document.getElementById('adminAdUrlInput')?.value.trim() || 'https://monetag.com';
+  const provider = document.getElementById('adminAdProviderSelect')?.value || 'direct_link';
+  const openMethod = document.getElementById('adminAdOpenMethodSelect')?.value || 'new_tab';
+  const countdown = parseInt(document.getElementById('adminAdCountdownInput')?.value || '5', 10);
+  const enabled = document.getElementById('adminAdEnabledToggle')?.checked !== false;
+
+  const newConfig = {
+    enabled,
+    provider,
+    adUrl: url,
+    openMethod,
+    countdownSeconds: countdown
+  };
+
+  localStorage.setItem('task_game_ad_config', JSON.stringify(newConfig));
+
+  try {
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'AD_CONFIG_UPDATED', config: newConfig, timestamp: Date.now() });
+    bc.close();
+  } catch (err) {}
+
+  showAdminNotification('Ad Configuration Saved', 'All game Watch Ad buttons updated live!', 'success');
+  renderAdsConfigPage();
+}
+
+function testAdLink() {
+  const cfg = getAdminAdConfig();
+  const url = cfg.adUrl || 'https://monetag.com';
+
+  // Increment metrics
+  const currentClicks = parseInt(localStorage.getItem('task_admin_ads_clicked_count') || '0', 10) + 1;
+  localStorage.setItem('task_admin_ads_clicked_count', currentClicks.toString());
+
+  try {
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'AD_CLICKED', totalClicks: currentClicks, timestamp: Date.now() });
+    bc.close();
+  } catch (err) {}
+
+  // Open Ad URL
+  window.open(url, '_blank', 'noopener,noreferrer');
+  showAdminNotification('Ad Opened in New Tab', 'Opening ad in new tab...', 'info');
+  renderAdsConfigPage();
+}

@@ -5,6 +5,7 @@ import {
   getAuth, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
+  signInAnonymously,
   signOut, 
   onAuthStateChanged, 
   updateProfile,
@@ -318,24 +319,86 @@ function subscribeToAuth(callback) {
 }
 
 /**
+ * Get or create persistent Unique ID for current player (supports Auth UID or device UID)
+ */
+function getEffectivePlayerUid() {
+  if (auth && auth.currentUser && auth.currentUser.uid) {
+    return auth.currentUser.uid;
+  }
+  let uid = localStorage.getItem('player_uid');
+  if (!uid || uid === 'null' || uid === 'undefined') {
+    uid = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+    localStorage.setItem('player_uid', uid);
+  }
+  return uid;
+}
+
+/**
+ * Update all DOM balance indicators across any active page and tab in real time
+ */
+function updateAllDomBalances(coins, stars) {
+  const c = typeof coins === 'number' ? coins : parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+  const s = typeof stars === 'number' ? stars : parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  const coinsFmt = Number(c || 0).toLocaleString();
+  const starsFmt = Number(s || 0).toLocaleString();
+
+  // All known coin DOM IDs across all games, hub, shop, wallet
+  const coinElements = [
+    'userCoinsTop', 'walletCoinsTop', 'shopCoinsDisplay', 'gameCoinsDisplay', 
+    'tabSfCoins', 'tabSfSolarCoins', 'headerCoins', 'statCoinsVal', 'sfCoinDisplay',
+    'playerCoinsDisplay', 'heroCoinsDisplay', 'lobbyCoinsDisplay'
+  ];
+  coinElements.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'INPUT') el.value = c;
+      else if (id === 'tabSfCoins') el.textContent = `${coinsFmt} 🍯`;
+      else if (id === 'tabSfSolarCoins') el.textContent = `${coinsFmt} 🪙`;
+      else el.textContent = coinsFmt;
+    }
+  });
+
+  // All known star DOM IDs across all games, hub, shop, wallet, leaderboard
+  const starElements = [
+    'userStarsTop', 'walletStarsTop', 'shopStarsDisplay', 'shopStarsDisplayTop', 
+    'statStarsVal', 'headerStars', 'playerStarsDisplay', 'lobbyStarsDisplay'
+  ];
+  starElements.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'INPUT') el.value = s;
+      else el.textContent = starsFmt;
+    }
+  });
+}
+
+/**
  * Save current user profile & balances to Firestore (users/{uid})
  */
 async function saveCurrentProfileToFirestore(userInstance = null) {
+  if (!db) return false;
   const currentUser = userInstance || (auth ? auth.currentUser : null);
-  if (!db || !currentUser) return false;
+  const uid = currentUser ? currentUser.uid : getEffectivePlayerUid();
+  if (!uid) return false;
 
   try {
-    const coins = parseInt(localStorage.getItem('user_coins') || '0', 10);
-    const stars = parseInt(localStorage.getItem('user_stars') || '0', 10);
-    const tasksCompleted = parseInt(localStorage.getItem('completed_tasks_count') || '0', 10);
-    const adsWatched = parseInt(localStorage.getItem('ads_watched_count') || '0', 10);
-    const displayName = localStorage.getItem('player_username') || currentUser.displayName || 'Player';
-    const avatar = localStorage.getItem('player_avatar') || '⚡';
+    const coinsRaw = localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0';
+    const starsRaw = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0';
+    const tasksRaw = localStorage.getItem('completed_tasks_count') || localStorage.getItem('task_game_total_tasks_completed') || '0';
+    const adsRaw = localStorage.getItem('ads_watched_count') || localStorage.getItem('task_game_ads_watched_count') || '0';
 
-    const userRef = doc(db, 'users', currentUser.uid);
+    const coins = parseInt(coinsRaw, 10);
+    const stars = parseInt(starsRaw, 10);
+    const tasksCompleted = parseInt(tasksRaw, 10);
+    const adsWatched = parseInt(adsRaw, 10);
+    const displayName = localStorage.getItem('player_username') || (currentUser ? currentUser.displayName : 'Player');
+    const avatar = localStorage.getItem('player_avatar') || '⚡';
+    const email = currentUser && currentUser.email ? currentUser.email : (localStorage.getItem('player_email') || '');
+
+    const userRef = doc(db, 'users', String(uid));
     await setDoc(userRef, {
-      uid: currentUser.uid,
-      email: currentUser.email,
+      uid: String(uid),
+      email: email,
       displayName: displayName,
       avatar: avatar,
       coins: isNaN(coins) ? 0 : coins,
@@ -351,6 +414,102 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
     return false;
   }
 }
+
+let userDocUnsubscribe = null;
+/**
+ * Real-time listener for current user's profile in Firestore
+ */
+function startRealtimeUserSync() {
+  if (!db) return null;
+  const uid = getEffectivePlayerUid();
+  if (!uid) return null;
+
+  if (userDocUnsubscribe) {
+    userDocUnsubscribe();
+    userDocUnsubscribe = null;
+  }
+
+  try {
+    const userRef = doc(db, 'users', String(uid));
+    userDocUnsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data() || {};
+        let changed = false;
+
+        if (typeof cloudData.coins === 'number') {
+          const currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+          if (cloudData.coins !== currentCoins) {
+            localStorage.setItem('task_game_coins', cloudData.coins.toString());
+            localStorage.setItem('user_coins', cloudData.coins.toString());
+            changed = true;
+          }
+        }
+
+        if (typeof cloudData.stars === 'number') {
+          const currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+          if (cloudData.stars !== currentStars) {
+            localStorage.setItem('task_game_stars', cloudData.stars.toString());
+            localStorage.setItem('user_stars', cloudData.stars.toString());
+            changed = true;
+          }
+        }
+
+        if (typeof cloudData.tasksCompleted === 'number') {
+          localStorage.setItem('completed_tasks_count', cloudData.tasksCompleted.toString());
+          localStorage.setItem('task_game_total_tasks_completed', cloudData.tasksCompleted.toString());
+        }
+
+        if (typeof cloudData.adsWatched === 'number') {
+          localStorage.setItem('ads_watched_count', cloudData.adsWatched.toString());
+          localStorage.setItem('task_game_ads_watched_count', cloudData.adsWatched.toString());
+        }
+
+        if (cloudData.displayName && cloudData.displayName !== 'Player') {
+          localStorage.setItem('player_username', cloudData.displayName);
+        }
+
+        if (cloudData.avatar) {
+          localStorage.setItem('player_avatar', cloudData.avatar);
+        }
+
+        updateAllDomBalances();
+
+        if (changed) {
+          try {
+            const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+            ch.postMessage({ type: 'COINS_SYNCED', timestamp: Date.now() });
+          } catch (e) {}
+        }
+      } else {
+        // Document does not exist in Firestore yet, initialize it
+        saveCurrentProfileToFirestore();
+      }
+    }, (err) => {
+      console.log("[Firebase] User real-time sync running in offline cache mode.");
+    });
+
+    return userDocUnsubscribe;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Debounced auto-sync when local balances change
+let cloudBalanceTimer = null;
+function scheduleCloudBalanceSync() {
+  if (cloudBalanceTimer) clearTimeout(cloudBalanceTimer);
+  cloudBalanceTimer = setTimeout(() => {
+    saveCurrentProfileToFirestore();
+  }, 450);
+}
+
+// Listen to storage events across tabs to save to Firestore
+window.addEventListener('storage', (e) => {
+  if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
+    scheduleCloudBalanceSync();
+    updateAllDomBalances();
+  }
+});
 
 /**
  * Format Firebase Auth error codes into helpful user messages
@@ -807,6 +966,129 @@ function listenToCloudLeaderboardEvent(callback) {
   }
 }
 
+/**
+ * Save withdrawal to Firestore (withdrawals/{id})
+ */
+async function saveWithdrawalToCloud(withdrawalData) {
+  if (!db || !withdrawalData) return false;
+  try {
+    const id = withdrawalData.id || ('wd_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+    const wdRef = doc(db, 'withdrawals', String(id));
+    const payload = {
+      ...withdrawalData,
+      id: String(id),
+      userId: getEffectivePlayerUid(),
+      playerName: localStorage.getItem('player_username') || 'Player',
+      createdAt: withdrawalData.createdAt || Date.now(),
+      status: withdrawalData.status || 'pending',
+      updatedAt: Date.now()
+    };
+    await setDoc(wdRef, payload, { merge: true });
+    console.log('[Firebase] Withdrawal saved to Firestore cloud:', id);
+    return true;
+  } catch (err) {
+    console.warn('[Firebase] Could not save withdrawal to cloud:', err.message);
+    return false;
+  }
+}
+
+/**
+ * Real-time listener for withdrawals in Firestore
+ */
+function listenToCloudWithdrawals(callback) {
+  if (!db) return null;
+  try {
+    const wdCol = collection(db, 'withdrawals');
+    return onSnapshot(wdCol, (snapshot) => {
+      const list = [];
+      snapshot.forEach((d) => {
+        list.push({ id: d.id, ...d.data() });
+      });
+      if (typeof callback === 'function') {
+        callback(list);
+      }
+    }, () => {});
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Save Admin Ad configuration to Firestore (system/ad_config)
+ */
+async function saveAdConfigToCloud(config) {
+  if (!db || !config) return false;
+  try {
+    const adRef = doc(db, 'system', 'ad_config');
+    await setDoc(adRef, {
+      ...config,
+      updatedAt: Date.now()
+    }, { merge: true });
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * Real-time listener for Ad config in Firestore
+ */
+function listenToCloudAdConfig(callback) {
+  if (!db) return null;
+  try {
+    const adRef = doc(db, 'system', 'ad_config');
+    return onSnapshot(adRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data) {
+          localStorage.setItem('task_game_ad_config', JSON.stringify(data));
+          if (typeof callback === 'function') callback(data);
+        }
+      }
+    }, () => {});
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Real-time listener for Leaderboard Users in Firestore
+ */
+function listenToLeaderboardFromCloud(callback) {
+  if (!db) return null;
+  try {
+    const usersCol = collection(db, 'users');
+    return onSnapshot(usersCol, (snapshot) => {
+      const users = [];
+      snapshot.forEach((d) => {
+        const u = d.data();
+        if (u) {
+          users.push({
+            id: d.id,
+            name: u.displayName || 'Player',
+            avatar: u.avatar || '⚡',
+            stars: typeof u.stars === 'number' ? u.stars : 0,
+            coins: typeof u.coins === 'number' ? u.coins : 0,
+            tasksCompleted: typeof u.tasksCompleted === 'number' ? u.tasksCompleted : 0,
+            adsWatched: typeof u.adsWatched === 'number' ? u.adsWatched : 0,
+            updatedAt: u.updatedAt || 0
+          });
+        }
+      });
+      // Sort by stars descending, then tasks completed descending
+      users.sort((a, b) => (b.stars - a.stars) || (b.tasksCompleted - a.tasksCompleted));
+      if (users.length > 0) {
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+      }
+      if (typeof callback === 'function') {
+        callback(users);
+      }
+    }, () => {});
+  } catch (e) {
+    return null;
+  }
+}
+
 // Global Objects on Window
 window.Firebase = {
   app,
@@ -814,19 +1096,27 @@ window.Firebase = {
   db,
   auth,
   config: firebaseConfig,
-  // Auth methods
+  // Player & Auth methods
+  getEffectivePlayerUid,
+  updateAllDomBalances,
+  startRealtimeUserSync,
+  saveCurrentProfileToFirestore,
   signUpWithEmail,
   signInWithEmail,
   signOutUser,
   sendPasswordReset,
   subscribeToAuth,
-  saveCurrentProfileToFirestore,
   // Cloud Firestore methods
   saveTasksToCloud,
   listenToCloudTasks,
   listenToCloudUsers,
+  listenToLeaderboardFromCloud,
   saveUserToCloud,
   deleteUserFromCloud,
+  saveWithdrawalToCloud,
+  listenToCloudWithdrawals,
+  saveAdConfigToCloud,
+  listenToCloudAdConfig,
   registerReferralCodeInCloud,
   verifyReferralCodeInCloud,
   redeemReferralCodeInCloud,
@@ -850,14 +1140,33 @@ window.firebaseDb = db;
 window.firebaseAuth = auth;
 window.firebaseAnalytics = analytics;
 
-// Automatically start cloud listener
+// Automatically initialize real-time cloud sync across the current page/tab
 try {
+  // 1. Start user document real-time listener
+  startRealtimeUserSync();
+
+  // 2. Start cloud tasks real-time listener
   listenToCloudTasks((tasks) => {
     if (typeof window.renderTasks === 'function') {
       window.renderTasks();
     }
   });
-} catch (e) {}
+
+  // 3. Start ad config real-time listener
+  listenToCloudAdConfig();
+
+  // 4. Update DOM with initial balances
+  updateAllDomBalances();
+
+  // 5. Try anonymous sign-in if not signed in yet
+  if (auth && !auth.currentUser) {
+    try {
+      signInAnonymously(auth).catch(() => {});
+    } catch (e) {}
+  }
+} catch (e) {
+  console.warn('[Firebase] Auto-sync notice:', e.message);
+}
 
 // Dispatch global ready event
 window.dispatchEvent(new CustomEvent('firebase:ready', {
@@ -870,16 +1179,25 @@ export {
   db, 
   auth,
   firebaseConfig, 
+  getEffectivePlayerUid,
+  updateAllDomBalances,
+  startRealtimeUserSync,
+  saveCurrentProfileToFirestore,
   signUpWithEmail,
   signInWithEmail,
   signOutUser,
   sendPasswordReset,
   subscribeToAuth,
-  saveCurrentProfileToFirestore,
   saveTasksToCloud, 
   listenToCloudTasks,
   listenToCloudUsers,
+  listenToLeaderboardFromCloud,
+  saveUserToCloud,
   deleteUserFromCloud,
+  saveWithdrawalToCloud,
+  listenToCloudWithdrawals,
+  saveAdConfigToCloud,
+  listenToCloudAdConfig,
   registerReferralCodeInCloud,
   verifyReferralCodeInCloud,
   redeemReferralCodeInCloud,

@@ -1,28 +1,44 @@
 /**
  * LUCKY SPIN GAME LOGIC — NOVA ARCADE SUITE
- * 12-Wedges Fortune Wheel • Gold ×5 Jackpot • Coin Sync
+ * 12-Wedges Fortune Wheel • 50% Win Rate • 10 Daily Free Plays + Watch Ad System
  */
 
+const GAME_ID = 'lucky_spin';
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 5;
+
 let balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-let currentBet = 50;
+let currentBet = 20;
 let soundEnabled = true;
 let isWheelSpinning = false;
 let wheelRotationAngle = 0;
 
-// Wedges Definition
+// Wedges Definition (12 Wedges matching Image 5)
+// 0: Gold ×5
+// 1: Bust ×0
+// 2: Violet ×1 (stake back)
+// 3: Bust ×0
+// 4: Lavender ×0.5
+// 5: Bust ×0
+// 6: Deep violet ×2
+// 7: Bust ×0
+// 8: Violet ×1 (stake back)
+// 9: Bust ×0
+// 10: Lavender ×0.5
+// 11: Bust ×0
 const WHEEL_WEDGES = [
-  { label: '×5', mult: 5, color: '#eab308', text: '#000000' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' },
-  { label: '×1', mult: 1, color: '#7c3aed', text: '#ffffff' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' },
-  { label: '×0.5', mult: 0.5, color: '#a78bfa', text: '#000000' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' },
-  { label: '×2', mult: 2, color: '#581c87', text: '#ffffff' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' },
-  { label: '×1', mult: 1, color: '#7c3aed', text: '#ffffff' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' },
-  { label: '×0.5', mult: 0.5, color: '#a78bfa', text: '#000000' },
-  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888' }
+  { label: '×5', mult: 5, color: '#eab308', text: '#000000', name: 'Gold wedge' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' },
+  { label: '×1', mult: 1, color: '#7c3aed', text: '#ffffff', name: 'Violet' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' },
+  { label: '×0.5', mult: 0.5, color: '#a78bfa', text: '#000000', name: 'Lavender' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' },
+  { label: '×2', mult: 2, color: '#581c87', text: '#ffffff', name: 'Deep violet' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' },
+  { label: '×1', mult: 1, color: '#7c3aed', text: '#ffffff', name: 'Violet' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' },
+  { label: '×0.5', mult: 0.5, color: '#a78bfa', text: '#000000', name: 'Lavender' },
+  { label: '×0', mult: 0, color: '#1f1a2e', text: '#888888', name: 'Bust' }
 ];
 
 // Web Audio API Synthesizer
@@ -86,20 +102,100 @@ function addFreeCoins() {
   balance += 200;
   saveBalance();
   updateBalanceUI();
+  updateActionButtonState();
   showToast('Bonus Credited', '+200 Free Coins added to your pouch!', '🎁');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
+// Daily Plays Tracker (10 Free Plays / Day)
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getPlaysUsedToday() {
+  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function getRemainingPlays() {
+  const totalAllowed = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, totalAllowed - used);
+}
+
+function recordPlayUsed() {
+  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+  updateDailyPlaysUI();
+}
+
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+  updateDailyPlaysUI();
+}
+
+function updateDailyPlaysUI() {
+  const remaining = getRemainingPlays();
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const display = document.getElementById('dailyPlaysDisplay');
+  if (display) {
+    display.innerText = `${remaining}/${total}`;
+    display.style.color = remaining <= 0 ? '#ef4444' : '#c084fc';
+  }
+  updateActionButtonState();
+}
+
+function checkDailyPlaysClick() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+  } else {
+    showToast('Daily Free Plays', `${getRemainingPlays()} free plays remaining today.`, '🎯');
+  }
+}
+
+// Action Button State
+function updateActionButtonState() {
+  const btn = document.getElementById('btnSpinWheel');
+  if (!btn) return;
+
+  const remaining = getRemainingPlays();
+  if (remaining <= 0) {
+    btn.innerText = '▶ Watch Ad to Play (0/10)';
+    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
+    btn.style.color = '#451a03';
+  } else if (balance < currentBet) {
+    btn.innerText = 'Buy coins (+200 Free)';
+    btn.style.background = 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)';
+    btn.style.color = '#ffffff';
+  } else {
+    btn.innerText = 'Spin Wheel';
+    btn.style.background = 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)';
+    btn.style.color = '#ffffff';
+  }
+}
+
+// Bet Chip Selector: 10, 20, 50, 100
 function setBet(amount) {
+  if (isWheelSpinning) return;
   playTone('tick');
-  currentBet = Math.min(2000, Math.max(30, amount));
+  currentBet = Math.min(1000, Math.max(10, amount));
   const betEl = document.getElementById('currentBetDisplay');
   if (betEl) betEl.innerText = currentBet;
   updateActiveChipUI();
+  updateActionButtonState();
 }
 
-function halveBet() { setBet(Math.floor(currentBet / 2)); }
-function doubleBet() { setBet(currentBet * 2); }
+function halveBet() { if (!isWheelSpinning) setBet(Math.floor(currentBet / 2)); }
+function doubleBet() { if (!isWheelSpinning) setBet(currentBet * 2); }
 
 function updateActiveChipUI() {
   document.querySelectorAll('.bet-chip').forEach(btn => {
@@ -168,25 +264,65 @@ function drawSpinWheel() {
   ctx.stroke();
 }
 
-function spinWheelGame() {
+function handleSpinAction() {
   if (isWheelSpinning) return;
 
-  if (balance < currentBet) {
-    showToast('Insufficient Coins', 'Tap the + button to claim free refill coins!', '⚠️');
-    playTone('lose');
+  // Check Daily Play Limit first
+  const remaining = getRemainingPlays();
+  if (remaining <= 0) {
+    openAdModal();
     return;
   }
+
+  // Check coin balance
+  if (balance < currentBet) {
+    addFreeCoins();
+    return;
+  }
+
+  spinWheelGame();
+}
+
+// 50% Win Rate Fortune Wheel Algorithm
+function spinWheelGame() {
+  if (isWheelSpinning) return;
 
   isWheelSpinning = true;
   balance -= currentBet;
   saveBalance();
   updateBalanceUI();
+  recordPlayUsed();
   playTone('roll');
 
+  const btn = document.getElementById('btnSpinWheel');
+  if (btn) btn.disabled = true;
+
+  // STRICT 50% WIN RATE CALIBRATION
+  const isWin = Math.random() < 0.50;
+  let targetIndex;
+
+  if (isWin) {
+    // Pick from winning wedges: 0 (×5), 6 (×2), 2 or 8 (×1), 4 or 10 (×0.5)
+    const winPick = Math.random();
+    if (winPick < 0.08) {
+      targetIndex = 0; // ×5 jackpot
+    } else if (winPick < 0.35) {
+      targetIndex = 6; // ×2 deep violet
+    } else if (winPick < 0.70) {
+      targetIndex = Math.random() < 0.5 ? 2 : 8; // ×1 violet stake back
+    } else {
+      targetIndex = Math.random() < 0.5 ? 4 : 10; // ×0.5 lavender
+    }
+  } else {
+    // Pick from bust wedges (×0): 1, 3, 5, 7, 9, 11
+    const bustWedges = [1, 3, 5, 7, 9, 11];
+    targetIndex = bustWedges[Math.floor(Math.random() * bustWedges.length)];
+  }
+
   const canvas = document.getElementById('wheelCanvas');
-  const targetIndex = Math.floor(Math.random() * WHEEL_WEDGES.length);
   const sliceDeg = 360 / WHEEL_WEDGES.length;
 
+  // Pointer is at 270 degrees (top center). Calculate rotation angle to align wedge under pointer
   const targetDegInWheel = targetIndex * sliceDeg + sliceDeg / 2;
   const fullRotations = (Math.floor(Math.random() * 4) + 4) * 360;
   const finalAngle = fullRotations + (270 - targetDegInWheel);
@@ -204,11 +340,14 @@ function spinWheelGame() {
   setTimeout(() => {
     clearInterval(tickInterval);
     isWheelSpinning = false;
+    if (btn) btn.disabled = false;
+
     const wedge = WHEEL_WEDGES[targetIndex];
     const winAmount = Math.round(currentBet * wedge.mult);
     balance += winAmount;
     saveBalance();
     updateBalanceUI();
+    updateActionButtonState();
 
     if (wedge.mult >= 5) {
       if (window.confetti) confetti({ particleCount: 110, spread: 80 });
@@ -216,7 +355,7 @@ function spinWheelGame() {
       showToast('GOLD WEDGE!', `Hit ×5! Payout +${winAmount.toLocaleString()} 🪙`, '👑');
     } else if (wedge.mult > 0) {
       playTone('win');
-      showToast(`Landed on ${wedge.label}`, `Multiplier awarded! (+${winAmount.toLocaleString()} 🪙)`, '🎡');
+      showToast(`Landed on ${wedge.name} (${wedge.label})`, `Multiplier awarded! (+${winAmount.toLocaleString()} 🪙)`, '🎡');
     } else {
       playTone('lose');
       showToast('Bust Wedge', 'No luck on this spin! Stake lost.', '💀');
@@ -224,7 +363,7 @@ function spinWheelGame() {
   }, 3600);
 }
 
-// Rules Sheet Modal
+// Rules Sheet Modal (Exact match to Image 5)
 function toggleInfoModal() {
   playTone('click');
   const sheet = document.getElementById('infoModalSheet');
@@ -241,11 +380,94 @@ function toggleInfoModal() {
   }
 }
 
-// Init
-window.addEventListener('DOMContentLoaded', () => {
+// Watch Ad Modal System (Daily Play Limit)
+let isWatchingAd = false;
+let adCountdownInterval = null;
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  const initialView = document.getElementById('adInitialView');
+  const playerView = document.getElementById('adPlayerView');
+  if (!sheet || !overlay) return;
+
+  if (initialView) initialView.style.display = 'block';
+  if (playerView) playerView.style.display = 'none';
+
+  overlay.style.display = 'block';
+  sheet.classList.add('show');
+}
+
+function closeAdModal() {
+  if (isWatchingAd) return;
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (sheet) sheet.classList.remove('show');
+  if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
+}
+
+function startWatchingAd() {
+  if (isWatchingAd) return;
+  isWatchingAd = true;
+  playTone('click');
+
+  // Trigger backend ad service to open ad in new tab and record metrics
+  if (typeof window.openWatchAd === 'function') {
+    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
+  }
+
+  const initialView = document.getElementById('adInitialView');
+  const playerView = document.getElementById('adPlayerView');
+  const timerText = document.getElementById('adTimerText');
+  const progressFill = document.getElementById('adProgressFill');
+
+  if (initialView) initialView.style.display = 'none';
+  if (playerView) playerView.style.display = 'block';
+
+  let secondsLeft = 5;
+  if (timerText) timerText.innerText = `Reward in ${secondsLeft}s...`;
+  if (progressFill) progressFill.style.width = '0%';
+
+  const startTime = Date.now();
+  const totalDuration = 5000;
+
+  const progressInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const pct = Math.min(100, (elapsed / totalDuration) * 100);
+    if (progressFill) progressFill.style.width = `${pct}%`;
+  }, 50);
+
+  adCountdownInterval = setInterval(() => {
+    secondsLeft--;
+    playTone('tick');
+    if (timerText) timerText.innerText = secondsLeft > 0 ? `Reward in ${secondsLeft}s...` : 'Reward Unlocked! 🎉';
+
+    if (secondsLeft <= 0) {
+      clearInterval(adCountdownInterval);
+      clearInterval(progressInterval);
+      isWatchingAd = false;
+
+      // Credit +5 Bonus Plays
+      grantBonusPlays(BONUS_PLAYS_PER_AD);
+      if (window.confetti) confetti({ particleCount: 75, spread: 70 });
+      playTone('jackpot');
+      showToast('Reward Earned!', '+5 Extra Plays Unlocked! Keep playing!', '🎉');
+
+      setTimeout(() => {
+        closeAdModal();
+      }, 700);
+    }
+  }, 1000);
+}
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
   balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
   updateBalanceUI();
   updateActiveChipUI();
+  updateDailyPlaysUI();
   drawSpinWheel();
 
   window.addEventListener('storage', (e) => {

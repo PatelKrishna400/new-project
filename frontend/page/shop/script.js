@@ -210,6 +210,11 @@ function watchAdForCoins(btn) {
   btn.disabled = true;
   btn.textContent = 'Watching (3s)...';
 
+  // Trigger backend ad service to open ad in new tab and record clicks
+  if (typeof window.openWatchAd === 'function') {
+    window.openWatchAd({ context: 'shop_bonus' });
+  }
+
   let countdown = 3;
   const interval = setInterval(() => {
     countdown--;

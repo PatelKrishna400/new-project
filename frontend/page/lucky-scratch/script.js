@@ -8,7 +8,7 @@ const DAILY_FREE_PLAYS = 10;
 const BONUS_PLAYS_PER_AD = 5;
 
 let balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-let currentBet = 50;
+let currentBet = 20;
 let soundEnabled = true;
 let isScratchingCard = false;
 let scratchPurchased = false;
@@ -161,11 +161,11 @@ function updateActionButtonState() {
   }
 }
 
-// Bet Chip Selector: 30, 50, 100, 500
+// Bet Chip Selector: 10, 20, 50, 100
 function setBet(amount) {
   if (scratchPurchased) return;
   playTone('tick');
-  currentBet = Math.min(2000, Math.max(30, amount));
+  currentBet = Math.min(1000, Math.max(10, amount));
   const betEl = document.getElementById('currentBetDisplay');
   if (betEl) betEl.innerText = currentBet;
   updateActiveChipUI();
@@ -442,6 +442,11 @@ function startWatchingAd() {
   if (isWatchingAd) return;
   isWatchingAd = true;
   playTone('click');
+
+  // Trigger backend ad service to open ad in new tab and record metrics
+  if (typeof window.openWatchAd === 'function') {
+    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
+  }
 
   const initialView = document.getElementById('adInitialView');
   const playerView = document.getElementById('adPlayerView');

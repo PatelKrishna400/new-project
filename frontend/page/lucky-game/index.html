@@ -4,478 +4,658 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Lucky Arcade Suite — Multi-Game Hub</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- Tone.js for Native Audio Effects -->
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tone.js for Native Sound Effects -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            appDark: '#0e1117',
+            cardDark: '#161922',
+            subDark: '#202430',
+            borderDark: '#2a2f3e',
+            diceBlue: '#38bdf8',
+            scratchPink: '#fb7185',
+            spinPurple: '#a855f7',
+            plinkoCyan: '#06b6d4',
+            coinYellow: '#eab308',
+            minesMint: '#2dd4bf',
+            diceGreen: '#84cc16'
+          }
+        }
+      }
+    }
+  </script>
 </head>
-<body>
+<body class="flex justify-center min-h-screen bg-[#07090e]">
 
-  <!-- Mobile App Frame Shell -->
-  <div class="mobile-container">
+  <!-- Mobile App Frame Container -->
+  <div class="w-full max-w-md min-h-screen flex flex-col bg-[#11131a] border-x border-[#1e2230] relative shadow-2xl pb-6">
 
     <!-- Top Navigation Header -->
-    <header class="game-nav-header">
-      <div class="nav-left">
-        <a href="../games/index.html" class="nav-btn" title="Back to Games Arena">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
+    <header class="sticky top-0 z-30 bg-[#11131a]/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-[#1c202d]">
+      <div class="flex items-center gap-1.5">
+        <!-- Back Button (Games Arena if in Lobby; Back to Lobby if in game) -->
+        <a id="backToArenaBtn" href="../games/index.html" class="flex items-center gap-1 text-gray-300 hover:text-white px-2 py-1.5 rounded-full hover:bg-white/5 transition-all text-xs font-bold" title="Back to Games Arena">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Arena
         </a>
-        <button type="button" id="btnBackLobby" class="btn-back-lobby" onclick="switchTab('lobby')" title="Return to Lobby">
-          <span>🏛️</span>
-          <span>Lobby</span>
+        <button id="backToLobbyBtn" onclick="openLobbyTab()" class="hidden flex items-center gap-1 text-gray-200 hover:text-white px-2 py-1.5 rounded-full hover:bg-white/5 transition-all text-xs font-bold" title="Back to Lobby">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Lobby
         </button>
-        <button type="button" onclick="toggleInfoModal()" class="nav-btn" title="Rules & Sound">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
+        <button id="infoModalBtn" onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-[#1b1f2b] hover:bg-[#252a3b] flex items-center justify-center text-gray-400 hover:text-white transition-colors" title="Rules & How to Play">
+          <i data-lucide="info" class="w-4 h-4"></i>
         </button>
-        <div class="nav-title-wrap">
-          <span class="status-dot" id="statusDot"></span>
-          <h1 class="nav-title" id="navTitle">All Games</h1>
+        <div class="flex items-center gap-2 ml-1">
+          <span id="gameDot" class="w-2.5 h-2.5 rounded-full bg-diceBlue animate-pulse"></span>
+          <h1 id="gameTitleNav" class="text-sm font-extrabold tracking-wide text-white">All Games</h1>
         </div>
       </div>
 
-      <!-- Coin Balance Pill -->
-      <div class="balance-pill">
-        <span class="coin-icon">🪙</span>
-        <span class="coin-val" id="coinBalance">0</span>
-        <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Coins">+</button>
+      <!-- Coin Balance & Add Button -->
+      <div class="flex items-center gap-1.5 bg-[#181c27] border border-[#262b3a] px-3 py-1.5 rounded-full shadow-inner">
+        <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-[10px] font-black text-amber-950 shadow">🪙</span>
+        <span id="coinBalance" class="text-sm font-bold text-yellow-400 min-w-[32px] text-right">0</span>
+        <button onclick="addFreeCoins()" title="Add +200 Free Coins" class="ml-1 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs font-bold text-white transition-all active:scale-95">+</button>
       </div>
     </header>
 
-    <!-- Play Stage Area -->
-    <main class="play-stage">
+    <!-- Active Stage / Play Area -->
+    <main class="flex-1 px-4 py-3 flex flex-col justify-between">
 
-      <!-- ========================================================
-           0. LOBBY VIEW (7 ARCADE GAMES)
-           ======================================================== -->
-      <section class="game-view active lobby-view" id="view-lobby">
-        <div class="lobby-header">
-          <h2>Lucky Arcade Hub</h2>
-          <p>Pick any game to play inside the suite or tap play to jump straight in.</p>
+      <!-- ================= 0. ALL GAMES LOBBY VIEW (CARDS DISPLAY) ================= -->
+      <section id="game-lobby" class="game-view flex flex-col space-y-3">
+        <div class="mb-1">
+          <h2 class="text-xl font-black text-white">Choose a Game</h2>
+          <p class="text-xs text-gray-400">Tap any game card to play immediately. 10 free plays per game daily.</p>
         </div>
 
-        <div class="lobby-grid">
-          <!-- 1. Lucky Dice -->
-          <div class="game-card card-dice" onclick="switchTab('dice')">
-            <div class="game-card-head">
-              <div class="card-icon-box">🎲</div>
-              <span class="card-tag">Up to ×7</span>
+        <div class="grid grid-cols-2 gap-3 pb-2">
+
+          <!-- 1. Lucky Dice Card -->
+          <div onclick="switchTab('dice')" class="bg-gradient-to-b from-[#131d2e] to-[#0f1420] border border-[#21324d] hover:border-sky-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 group-hover:scale-110 transition-transform">🎲</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400">×7 Streak</span>
             </div>
             <div>
-              <div class="game-card-title">Lucky Dice</div>
-              <div class="game-card-desc">Roll 4-6 to multiply. Roll three 6s for the mega streak jackpot.</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-sky-300">Lucky Dice</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">Roll high & build 6 streaks</p>
             </div>
-            <button type="button" class="btn-card-play">Play Dice</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-sky-500 text-slate-950 font-black text-xs group-hover:bg-sky-400 transition-colors">Play</button>
           </div>
 
-          <!-- 2. Lucky Scratch -->
-          <div class="game-card card-scratch" onclick="switchTab('scratch')">
-            <div class="game-card-head">
-              <div class="card-icon-box">🎫</div>
-              <span class="card-tag">Up to ×15</span>
+          <!-- 2. Lucky Scratch Card -->
+          <div onclick="switchTab('scratch')" class="bg-gradient-to-b from-[#21141c] to-[#140e13] border border-[#3d1d2f] hover:border-rose-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 group-hover:scale-110 transition-transform">✨</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400">Up to ×15</span>
             </div>
             <div>
-              <div class="game-card-title">Lucky Scratch</div>
-              <div class="game-card-desc">Foil ticket scratch. Reveal hidden prizes up to 15× stake.</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-rose-300">Lucky Scratch</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">Scratch the foil to reveal prizes</p>
             </div>
-            <button type="button" class="btn-card-play">Play Scratch</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-rose-500 text-slate-950 font-black text-xs group-hover:bg-rose-400 transition-colors">Play</button>
           </div>
 
-          <!-- 3. Lucky Spin -->
-          <div class="game-card card-spin" onclick="switchTab('spin')">
-            <div class="game-card-head">
-              <div class="card-icon-box">🎡</div>
-              <span class="card-tag">Up to ×5</span>
+          <!-- 3. Lucky Spin Card -->
+          <div onclick="switchTab('spin')" class="bg-gradient-to-b from-[#1c1228] to-[#120d1c] border border-[#341d4c] hover:border-purple-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 group-hover:scale-110 transition-transform">🎡</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">Gold ×5</span>
             </div>
             <div>
-              <div class="game-card-title">Lucky Spin</div>
-              <div class="game-card-desc">12-wedge neon wheel. Stop on the gold wedge for big multiplier!</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-purple-300">Lucky Spin</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">12 wedges fortune wheel</p>
             </div>
-            <button type="button" class="btn-card-play">Play Spin</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-purple-500 text-slate-950 font-black text-xs group-hover:bg-purple-400 transition-colors">Play</button>
           </div>
 
-          <!-- 4. Gift Drop (Plinko) -->
-          <div class="game-card card-plinko" onclick="switchTab('plinko')">
-            <div class="game-card-head">
-              <div class="card-icon-box">🎁</div>
-              <span class="card-tag">Up to ×24</span>
+          <!-- 4. Gift Drop Plinko Card -->
+          <div onclick="switchTab('plinko')" class="bg-gradient-to-b from-[#0f1d26] to-[#0a131a] border border-[#1b3b4f] hover:border-cyan-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 group-hover:scale-110 transition-transform">🎁</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">Outer ×24</span>
             </div>
             <div>
-              <div class="game-card-title">Gift Drop</div>
-              <div class="game-card-desc">Peg pin physics. Drop gifts into high paying edge baskets.</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-cyan-300">Gift Drop</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">Peg bounce into payout slots</p>
             </div>
-            <button type="button" class="btn-card-play">Play Drop</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs group-hover:bg-cyan-300 transition-colors">Play</button>
           </div>
 
-          <!-- 5. Coin Flip -->
-          <div class="game-card card-coin" onclick="switchTab('coin')">
-            <div class="game-card-head">
-              <div class="card-icon-box">🪙</div>
-              <span class="card-tag">1.90× Double</span>
+          <!-- 5. Coin Flip Card -->
+          <div onclick="switchTab('coin')" class="bg-gradient-to-b from-[#221c0e] to-[#141008] border border-[#443818] hover:border-amber-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform">🪙</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">×1.9 Double</span>
             </div>
             <div>
-              <div class="game-card-title">Coin Flip</div>
-              <div class="game-card-desc">Call Heads or Tails in 3D tumble. Double your stake instantly.</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-amber-300">Coin Flip</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">Call Star or Gift & flip</p>
             </div>
-            <button type="button" class="btn-card-play">Play Flip</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-amber-400 text-amber-950 font-black text-xs group-hover:bg-amber-300 transition-colors">Play</button>
           </div>
 
-          <!-- 6. Gift Hunt (Mines) -->
-          <div class="game-card card-mines" onclick="switchTab('mines')">
-            <div class="game-card-head">
-              <div class="card-icon-box">💣</div>
-              <span class="card-tag">Multi-Stage</span>
+          <!-- 6. Mines Card -->
+          <div onclick="switchTab('mines')" class="bg-gradient-to-b from-[#0e1d1b] to-[#0a1413] border border-[#193d39] hover:border-teal-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-2xl p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 group-hover:scale-110 transition-transform">💣</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-400">Cash Out</span>
             </div>
             <div>
-              <div class="game-card-title">Gift Hunt</div>
-              <div class="game-card-desc">5×5 grid. Pick safe gifts, dodge hidden bombs, cash out anytime.</div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-teal-300">Gift Hunt</h3>
+              <p class="text-[11px] text-gray-400 mt-0.5">Hunt gifts & dodge bombs</p>
             </div>
-            <button type="button" class="btn-card-play">Play Hunt</button>
+            <button class="mt-3 w-full py-1.5 rounded-xl bg-teal-400 text-slate-950 font-black text-xs group-hover:bg-teal-300 transition-colors">Play</button>
           </div>
+
         </div>
 
-        <!-- 7. Under Over (Full Width Card) -->
-        <div class="card-underover" onclick="switchTab('underover')">
-          <div style="display:flex; align-items:center; gap:0.75rem;">
-            <div class="card-icon-box">📊</div>
+        <!-- 7. Under Over Full Width Card -->
+        <div onclick="switchTab('underover')" class="w-full bg-gradient-to-r from-[#172412] to-[#0e170a] border border-[#2e4722] hover:border-lime-400 p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex items-center justify-between shadow-lg">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-2.5 rounded-xl bg-lime-500/10 border border-lime-500/20 group-hover:scale-110 transition-transform">🟢</span>
             <div>
-              <div style="display:flex; align-items:center;">
-                <div class="game-card-title" style="font-size:0.95rem;">Under Over</div>
-                <span class="card-tag">Up to ×95</span>
+              <div class="flex items-center gap-2">
+                <h3 class="font-extrabold text-base text-white group-hover:text-lime-300">Under Over</h3>
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-lime-500/20 text-lime-400">Up to ×95</span>
               </div>
-              <div class="game-card-desc">Slide probability threshold from 0 to 99. Dynamic multiplier odds.</div>
+              <p class="text-xs text-gray-400 mt-0.5">Drag slider threshold & roll 0 to 99</p>
             </div>
           </div>
-          <button type="button" class="btn-card-play">Play Under Over</button>
+          <button class="px-5 py-2 rounded-xl bg-lime-400 text-lime-950 font-black text-xs group-hover:bg-lime-300 transition-colors">Play</button>
         </div>
       </section>
 
-      <!-- ========================================================
-           1. DICE VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-dice" style="gap:1rem;">
-        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 0.2rem;">
-          <span style="font-size:0.75rem; color:#94a3b8; font-weight:700;">Roll 4-6 to multiply</span>
-          <span id="diceStreakBadge" style="font-size:0.72rem; font-weight:800; color:#38bdf8; background:rgba(56,189,248,0.15); border:1px solid #38bdf8; padding:0.2rem 0.5rem; border-radius:999px;">Streak: 0 🔥</span>
+      <!-- ================= 1. LUCKY DICE GAME ================= -->
+      <section id="game-dice" class="game-view hidden flex flex-col items-center">
+        <!-- 3D Dice Display Box -->
+        <div class="w-full bg-gradient-to-b from-[#131d2e] to-[#0f1420] border border-[#21324d] rounded-3xl p-6 flex flex-col items-center justify-center min-h-[220px] shadow-lg relative overflow-hidden">
+          <div class="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none"></div>
+          
+          <div class="dice-3d py-4">
+            <div id="cube" class="cube">
+              <!-- Face 1 -->
+              <div class="cube-face face-1">
+                <span class="pip"></span>
+              </div>
+              <!-- Face 6 -->
+              <div class="cube-face face-6">
+                <div class="grid grid-cols-2 grid-rows-3 w-full h-full">
+                  <span class="pip"></span><span class="pip"></span>
+                  <span class="pip"></span><span class="pip"></span>
+                  <span class="pip"></span><span class="pip"></span>
+                </div>
+              </div>
+              <!-- Face 2 -->
+              <div class="cube-face face-2">
+                <div class="grid grid-cols-2 w-full h-full">
+                  <span class="pip self-start justify-self-start"></span>
+                  <span class="pip self-end justify-self-end"></span>
+                </div>
+              </div>
+              <!-- Face 5 -->
+              <div class="cube-face face-5">
+                <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+                  <span class="pip col-start-1 row-start-1"></span>
+                  <span class="pip col-start-3 row-start-1"></span>
+                  <span class="pip col-start-2 row-start-2"></span>
+                  <span class="pip col-start-1 row-start-3"></span>
+                  <span class="pip col-start-3 row-start-3"></span>
+                </div>
+              </div>
+              <!-- Face 3 -->
+              <div class="cube-face face-3">
+                <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+                  <span class="pip col-start-1 row-start-1"></span>
+                  <span class="pip col-start-2 row-start-2"></span>
+                  <span class="pip col-start-3 row-start-3"></span>
+                </div>
+              </div>
+              <!-- Face 4 -->
+              <div class="cube-face face-4">
+                <div class="grid grid-cols-2 grid-rows-2 w-full h-full">
+                  <span class="pip"></span><span class="pip"></span>
+                  <span class="pip"></span><span class="pip"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p id="diceRollHint" class="mt-4 text-xs font-semibold text-sky-300/80 tracking-wide">Roll high. A six pays ×2.</p>
         </div>
 
-        <div class="dice-3d">
-          <div id="cube" class="cube">
-            <div class="cube-face face-1"><span class="pip"></span></div>
-            <div class="cube-face face-6">
-              <span class="pip"></span><span class="pip"></span>
-              <span class="pip"></span><span class="pip"></span>
-              <span class="pip"></span><span class="pip"></span>
-            </div>
-            <div class="cube-face face-2">
-              <span class="pip" style="align-self:flex-start; justify-self:flex-start;"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-end;"></span>
-            </div>
-            <div class="cube-face face-5">
-              <span class="pip" style="align-self:flex-start; justify-self:flex-start;"></span>
-              <span class="pip" style="align-self:flex-start; justify-self:flex-end;"></span>
-              <span class="pip"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-start;"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-end;"></span>
-            </div>
-            <div class="cube-face face-3">
-              <span class="pip" style="align-self:flex-start; justify-self:flex-start;"></span>
-              <span class="pip"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-end;"></span>
-            </div>
-            <div class="cube-face face-4">
-              <span class="pip" style="align-self:flex-start; justify-self:flex-start;"></span>
-              <span class="pip" style="align-self:flex-start; justify-self:flex-end;"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-start;"></span>
-              <span class="pip" style="align-self:flex-end; justify-self:flex-end;"></span>
-            </div>
+        <!-- Dice Multipliers Table Bar -->
+        <div class="w-full grid grid-cols-6 gap-1.5 mt-3 bg-[#151923] p-2 rounded-2xl border border-[#212636]">
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1b202d] text-center">
+            <span class="text-xs text-gray-400 font-bold">⚀</span>
+            <span class="text-[11px] font-extrabold text-gray-300">×0</span>
+          </div>
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1b202d] text-center">
+            <span class="text-xs text-gray-400 font-bold">⚁</span>
+            <span class="text-[11px] font-extrabold text-gray-300">×0.3</span>
+          </div>
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1b202d] text-center">
+            <span class="text-xs text-gray-400 font-bold">⚂</span>
+            <span class="text-[11px] font-extrabold text-gray-300">×0.6</span>
+          </div>
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1b202d] text-center">
+            <span class="text-xs text-gray-400 font-bold">⚃</span>
+            <span class="text-[11px] font-extrabold text-gray-300">×1.2</span>
+          </div>
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1b202d] text-center">
+            <span class="text-xs text-gray-400 font-bold">⚄</span>
+            <span class="text-[11px] font-extrabold text-gray-300">×1.5</span>
+          </div>
+          <div class="flex flex-col items-center py-1 rounded-xl bg-[#1e293b] text-center border border-sky-500/40">
+            <span class="text-xs text-sky-400 font-bold">⚅</span>
+            <span class="text-[11px] font-extrabold text-sky-400">×2</span>
           </div>
         </div>
 
-        <div id="diceResultText" style="font-size:0.85rem; font-weight:800; color:#38bdf8; text-align:center; min-height:1.4rem;">Tap Roll Dice to play</div>
-      </section>
-
-      <!-- ========================================================
-           2. SCRATCH VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-scratch" style="gap:1rem;">
-        <div style="font-size:0.75rem; color:#94a3b8; font-weight:700; text-align:center;">Buy card & scratch the golden foil layer</div>
-
-        <div style="position:relative; width:260px; height:180px; margin:0 auto; border-radius:18px; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.6); border:1.5px solid #fb7185;">
-          <!-- Underlying Hidden Prize Card -->
-          <div style="position:absolute; inset:0; background:linear-gradient(135deg, #1f101a 0%, #301728 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.25rem;">
-            <div id="scratchPrizeIcon" style="font-size:2.4rem;">🎉</div>
-            <div id="scratchPrizeTier" style="font-size:1rem; font-weight:900; color:#fb7185;">Winner!</div>
-            <div id="scratchPrizeMult" style="font-size:1.15rem; font-weight:900; color:#ffffff;">×2.00</div>
+        <!-- Six Streak Status Card -->
+        <div class="w-full mt-3 bg-[#161a25] border border-[#22283a] rounded-2xl p-3.5 flex items-center justify-between">
+          <div>
+            <h4 class="text-sm font-bold text-white">Six streak</h4>
+            <p class="text-[11px] text-gray-400">Three 6s in a row pays <span class="text-sky-400 font-bold">×7</span></p>
           </div>
-
-          <!-- Canvas Scratch Foil Layer -->
-          <canvas id="scratchCanvas" width="260" height="180" style="position:absolute; inset:0; z-index:2;"></canvas>
-
-          <!-- Overlay helper text -->
-          <div id="scratchOverlayMsg" style="position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; pointer-events:none; font-size:0.85rem; font-weight:900; color:#ffffff; text-shadow:0 2px 4px rgba(0,0,0,0.8);">
-            Tap "Buy Card" First
+          <div class="flex items-center gap-1.5" id="diceStreakIndicators">
+            <div class="w-6 h-3 rounded-md bg-[#252c3f]"></div>
+            <div class="w-6 h-3 rounded-md bg-[#252c3f]"></div>
+            <div class="w-6 h-3 rounded-md bg-[#252c3f]"></div>
           </div>
         </div>
       </section>
 
-      <!-- ========================================================
-           3. SPIN VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-spin" style="gap:1rem;">
-        <div style="font-size:0.75rem; color:#94a3b8; font-weight:700; text-align:center;">12 Lucky Wedges — Aim for Gold 5×!</div>
+      <!-- ================= 2. LUCKY SCRATCH GAME ================= -->
+      <section id="game-scratch" class="game-view hidden flex flex-col items-center">
+        <div class="w-full relative bg-[#1c1421] border border-[#3b1d31] rounded-3xl p-3 flex flex-col items-center justify-center min-h-[250px] shadow-lg overflow-hidden">
+          
+          <!-- Background Hidden Prize Card -->
+          <div id="scratchPrizeCard" class="w-full h-56 rounded-2xl flex flex-col items-center justify-center text-center p-4 bg-gradient-to-br from-[#9d174d] via-[#be123c] to-[#4c0519] border border-rose-400/30">
+            <span id="scratchIcon" class="text-4xl animate-bounce">💎</span>
+            <h3 id="scratchMultiplierLabel" class="text-3xl font-extrabold text-white mt-2">×5</h3>
+            <span id="scratchTierLabel" class="text-xs uppercase font-extrabold tracking-widest text-rose-200">Big Win</span>
+            <p id="scratchWinAmountText" class="text-sm font-bold text-yellow-300 mt-1">+250 Coins</p>
+          </div>
 
-        <div style="position:relative; width:260px; height:260px; margin:0 auto; display:flex; align-items:center; justify-content:center;">
-          <div class="wheel-pointer"></div>
-          <canvas id="wheelCanvas" width="260" height="260"></canvas>
+          <!-- Scratch Canvas Covering Prize -->
+          <canvas id="scratchCanvas" width="360" height="224" class="absolute inset-x-3 top-3 rounded-2xl cursor-pointer"></canvas>
         </div>
 
-        <div id="spinResultText" style="font-size:0.85rem; font-weight:800; color:#a855f7; text-align:center; min-height:1.4rem;">Tap Spin Wheel to play</div>
+        <p class="mt-3 text-xs font-medium text-rose-300/80">Prizes up to <b class="text-rose-400">×15</b> hide under the foil</p>
+
+        <!-- Scratch Payouts Info strip -->
+        <div class="w-full mt-3 bg-[#161a25] border border-[#251e2c] rounded-2xl p-3 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-400">Jackpot: <b class="text-rose-400">×15</b></span>
+          <span class="text-gray-400">Big: <b class="text-rose-300">×5</b></span>
+          <span class="text-gray-400">Win: <b class="text-gray-200">×2</b></span>
+          <span class="text-gray-400">Return: <b class="text-gray-400">×1</b></span>
+        </div>
       </section>
 
-      <!-- ========================================================
-           4. PLINKO VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-plinko" style="gap:0.75rem;">
-        <div style="font-size:0.75rem; color:#94a3b8; font-weight:700; text-align:center;">Drop gifts through pegs into multiplier buckets</div>
+      <!-- ================= 3. LUCKY SPIN WHEEL GAME ================= -->
+      <section id="game-spin" class="game-view hidden flex flex-col items-center">
+        <div class="w-full bg-[#181226] border border-[#30214a] rounded-3xl p-4 flex flex-col items-center justify-center min-h-[255px] shadow-lg relative overflow-hidden">
+          
+          <!-- Pointer -->
+          <div class="absolute top-2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-yellow-400 drop-shadow-[0_2px_8px_rgba(250,204,21,0.8)]"></div>
 
-        <div style="width:100%; display:flex; justify-content:center; background:#0b131a; border-radius:18px; border:1px solid #1a3242; padding:0.5rem; overflow:hidden;">
-          <canvas id="plinkoCanvas" width="340" height="280"></canvas>
+          <!-- Canvas Wheel -->
+          <canvas id="wheelCanvas" width="230" height="230" class="rounded-full shadow-2xl transition-transform ease-out"></canvas>
+          <p id="spinResultHint" class="mt-3 text-xs font-medium text-purple-300">Twelve wedges, one gold 5×</p>
         </div>
 
-        <div id="plinkoResultText" style="font-size:0.82rem; font-weight:800; color:#06b6d4; text-align:center; min-height:1.4rem;">Tap Drop Gift to launch</div>
+        <!-- Spin Wedges Legend -->
+        <div class="w-full grid grid-cols-4 gap-2 mt-3 text-[11px] font-bold text-center">
+          <div class="bg-[#241a38] p-2 rounded-xl border border-yellow-500/40 text-yellow-300">Gold ×5</div>
+          <div class="bg-[#241a38] p-2 rounded-xl border border-purple-500/40 text-purple-300">Deep ×2</div>
+          <div class="bg-[#241a38] p-2 rounded-xl text-purple-400">Violet ×1</div>
+          <div class="bg-[#241a38] p-2 rounded-xl text-gray-500">Bust ×0</div>
+        </div>
       </section>
 
-      <!-- ========================================================
-           5. COIN VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-coin" style="gap:1rem;">
-        <!-- Side Selector -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; width:100%;">
-          <button type="button" id="btnSideHeads" onclick="selectCoinSide('heads')" style="padding:0.65rem; border-radius:12px; background:rgba(234,179,8,0.2); border:2px solid #eab308; color:#fef08a; font-size:0.85rem; font-weight:900; cursor:pointer;">
-            ⭐ Heads (1.9×)
+      <!-- ================= 4. PLINKO / GIFT DROP GAME ================= -->
+      <section id="game-plinko" class="game-view hidden flex flex-col items-center">
+        <div class="w-full bg-[#0d1724] border border-[#17304e] rounded-3xl p-3 flex flex-col items-center justify-center shadow-lg relative overflow-hidden">
+          <canvas id="plinkoCanvas" width="340" height="230" class="w-full max-w-full rounded-2xl"></canvas>
+        </div>
+
+        <p class="mt-2 text-xs font-medium text-cyan-300/80">Drop gifts down pegs and chase the outer <b class="text-cyan-400">×24</b> edges</p>
+
+        <!-- Multipliers list preview -->
+        <div class="w-full flex items-center justify-between text-[10px] font-extrabold px-1 mt-2 text-gray-400">
+          <span class="text-cyan-400">24×</span>
+          <span class="text-sky-300">5×</span>
+          <span>2×</span>
+          <span>1.2×</span>
+          <span>0.7×</span>
+          <span class="text-gray-500">0.25×</span>
+          <span>0.7×</span>
+          <span>1.2×</span>
+          <span>2×</span>
+          <span class="text-sky-300">5×</span>
+          <span class="text-cyan-400">24×</span>
+        </div>
+      </section>
+
+      <!-- ================= 5. COIN FLIP GAME ================= -->
+      <section id="game-coin" class="game-view hidden flex flex-col items-center">
+        <div class="w-full bg-[#1b1912] border border-[#3b321c] rounded-3xl p-6 flex flex-col items-center justify-center min-h-[220px] shadow-lg relative overflow-hidden">
+          
+          <!-- 3D Flipping Coin -->
+          <div class="w-28 h-28 relative rounded-full dice-3d">
+            <div id="coinElement" class="w-full h-full rounded-full coin-flipper relative border-4 border-yellow-300/60 shadow-[0_0_35px_rgba(234,179,8,0.35)] flex items-center justify-center bg-gradient-to-tr from-amber-600 via-yellow-400 to-amber-200">
+              <span id="coinFaceSymbol" class="text-5xl select-none">⭐</span>
+            </div>
+          </div>
+
+          <p id="coinOutcomeText" class="mt-4 text-xs font-bold text-yellow-200">Call heads or tails, flip, double up.</p>
+        </div>
+
+        <!-- Coin Choice Selection -->
+        <div class="w-full grid grid-cols-2 gap-3 mt-3">
+          <button onclick="selectCoinSide('heads')" id="btnHeads" class="coin-pick-btn py-3 px-4 rounded-2xl bg-amber-500/20 border-2 border-yellow-400 flex items-center justify-center gap-2 font-bold text-sm text-yellow-300 transition-all">
+            <span>⭐</span> Heads (Star)
           </button>
-          <button type="button" id="btnSideTails" onclick="selectCoinSide('tails')" style="padding:0.65rem; border-radius:12px; background:#181c26; border:1px solid #2b3345; color:#94a3b8; font-size:0.85rem; font-weight:900; cursor:pointer;">
-            🎁 Tails (1.9×)
+          <button onclick="selectCoinSide('tails')" id="btnTails" class="coin-pick-btn py-3 px-4 rounded-2xl bg-[#191d29] border border-[#2b3145] flex items-center justify-center gap-2 font-bold text-sm text-gray-400 transition-all">
+            <span>🎁</span> Tails (Gift)
           </button>
         </div>
-
-        <!-- 3D Coin -->
-        <div style="perspective:600px; padding:0.8rem 0;">
-          <div id="coin3D" class="coin-element">
-            <span style="font-size:2.4rem;" id="coinFaceIcon">⭐</span>
-          </div>
-        </div>
-
-        <div id="coinResultText" style="font-size:0.85rem; font-weight:800; color:#eab308; text-align:center; min-height:1.4rem;">Pick a side & tap Flip Coin</div>
       </section>
 
-      <!-- ========================================================
-           6. MINES VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-mines" style="gap:0.75rem;">
-        <!-- Bomb Count Picker -->
-        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 0.2rem;">
-          <span style="font-size:0.72rem; color:#94a3b8; font-weight:700;">Hidden Bombs:</span>
-          <div style="display:flex; gap:0.35rem;">
-            <button type="button" id="btnBomb3" onclick="setMinesBombCount(3)" style="padding:0.25rem 0.55rem; border-radius:8px; background:#1a2b27; border:1px solid #2b453e; color:#cbd5e1; font-size:0.72rem; font-weight:800; cursor:pointer;">3</button>
-            <button type="button" id="btnBomb5" onclick="setMinesBombCount(5)" style="padding:0.25rem 0.55rem; border-radius:8px; background:rgba(45,212,191,0.25); border:1.5px solid #2dd4bf; color:#2dd4bf; font-size:0.72rem; font-weight:800; cursor:pointer;">5</button>
-            <button type="button" id="btnBomb10" onclick="setMinesBombCount(10)" style="padding:0.25rem 0.55rem; border-radius:8px; background:#1a2b27; border:1px solid #2b453e; color:#cbd5e1; font-size:0.72rem; font-weight:800; cursor:pointer;">10</button>
+      <!-- ================= 6. GIFT HUNT (MINES) GAME ================= -->
+      <section id="game-mines" class="game-view hidden flex flex-col items-center">
+        <!-- 5x5 Mines Grid -->
+        <div class="w-full bg-[#0c1819] border border-[#18393b] rounded-3xl p-3 flex flex-col items-center justify-center shadow-lg">
+          <div id="minesGrid" class="grid grid-cols-5 gap-2 w-full max-w-[320px]">
+            <!-- 25 tiles generated via JS -->
           </div>
         </div>
 
-        <!-- Active Multiplier & Cashout Pill -->
-        <div style="display:flex; align-items:center; justify-content:space-between; width:100%; background:#101a18; border:1px solid #1c332e; border-radius:12px; padding:0.45rem 0.8rem;">
-          <span style="font-size:0.72rem; color:#94a3b8;">Current Multiplier: <b id="minesCurrentMult" style="color:#2dd4bf; font-size:0.85rem;">×1.00</b></span>
-          <span style="font-size:0.72rem; color:#94a3b8;">Cashout: <b id="minesCashoutAmount" style="color:#facc15; font-size:0.85rem;">0 🪙</b></span>
-        </div>
-
-        <!-- 5x5 Minefield Grid -->
-        <div class="mines-grid" id="minesGrid"></div>
-      </section>
-
-      <!-- ========================================================
-           7. UNDER OVER VIEW
-           ======================================================== -->
-      <section class="game-view" id="view-underover" style="gap:0.85rem;">
-        <!-- Mode Switch: Under vs Over -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; width:100%;">
-          <button type="button" id="btnUoUnder" onclick="setUnderOverMode('under')" style="padding:0.6rem; border-radius:12px; background:rgba(163,230,53,0.25); border:2px solid #a3e635; color:#bef264; font-size:0.85rem; font-weight:900; cursor:pointer;">
-            ▼ Roll Under
-          </button>
-          <button type="button" id="btnUoOver" onclick="setUnderOverMode('over')" style="padding:0.6rem; border-radius:12px; background:#161d2b; border:1px solid #293447; color:#94a3b8; font-size:0.85rem; font-weight:900; cursor:pointer;">
-            ▲ Roll Over
-          </button>
-        </div>
-
-        <!-- Huge Rolled Number Screen -->
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#121814; border:1.5px solid #283d21; border-radius:20px; padding:1.2rem; width:100%;">
-          <div id="underOverResultNum" style="font-size:3.5rem; font-weight:900; color:#a3e635; line-height:1; text-shadow:0 0 20px rgba(163,230,53,0.5);">50</div>
-          <div style="font-size:0.72rem; color:#94a3b8; margin-top:0.35rem;">Target: <b id="underOverThresholdDisplay" style="color:#ffffff;">Under 50</b></div>
-        </div>
-
-        <!-- Interactive Range Slider -->
-        <div style="width:100%; padding:0.2rem 0;">
-          <input type="range" id="underOverSlider" min="2" max="98" value="50" oninput="onUnderOverSliderChange(this.value)">
-          <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:#64748b; font-weight:700; margin-top:0.25rem;">
-            <span>2 (95× Max)</span>
-            <span>50 (1.9× Balanced)</span>
-            <span>98 (1.02× Safe)</span>
+        <!-- Mines Active Status Bar -->
+        <div class="w-full mt-3 bg-[#151f24] border border-[#1f353d] rounded-2xl p-3 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] text-gray-400 block font-medium">Current Payout</span>
+            <span id="minesCurrentMultiplier" class="text-lg font-black text-emerald-400">×1.00</span>
           </div>
-        </div>
-
-        <!-- Live Probability & Odds Table -->
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.4rem; width:100%;">
-          <div style="background:#131822; border:1px solid #222c3d; border-radius:10px; padding:0.45rem; text-align:center;">
-            <div style="font-size:0.62rem; color:#94a3b8;">Win Chance</div>
-            <div id="uoWinChanceText" style="font-size:0.88rem; font-weight:900; color:#38bdf8;">50%</div>
-          </div>
-          <div style="background:#131822; border:1px solid #222c3d; border-radius:10px; padding:0.45rem; text-align:center;">
-            <div style="font-size:0.62rem; color:#94a3b8;">Multiplier</div>
-            <div id="uoMultiplierText" style="font-size:0.88rem; font-weight:900; color:#a3e635;">×1.90</div>
-          </div>
-          <div style="background:#131822; border:1px solid #222c3d; border-radius:10px; padding:0.45rem; text-align:center;">
-            <div style="font-size:0.62rem; color:#94a3b8;">To Win</div>
-            <div id="uoToWinText" style="font-size:0.88rem; font-weight:900; color:#facc15;">95 🪙</div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">Bombs:</span>
+            <select id="minesBombCountSelect" onchange="resetMinesGame()" class="bg-[#1f2c33] border border-[#2e4753] text-teal-300 rounded-lg text-xs font-bold py-1 px-2 focus:outline-none">
+              <option value="3">3 Bombs</option>
+              <option value="5" selected>5 Bombs</option>
+              <option value="10">10 Bombs</option>
+            </select>
           </div>
         </div>
       </section>
 
-      <!-- ========================================================
-           SHARED BET CONTROLS CONTAINER (Inside all games)
-           ======================================================== -->
-      <div class="shared-controls-card" id="sharedControlsCard" style="display:none;">
-        <div class="bet-limits-row">
-          <span>Min: <b>30</b></span>
-          <span>Max: <b>2,000</b></span>
-        </div>
-
-        <!-- Chips Row -->
-        <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="30" onclick="setBet(30)">🪙 30</button>
-          <button type="button" class="bet-chip active" data-val="50" onclick="setBet(50)">🪙 50</button>
-          <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">🪙 100</button>
-          <button type="button" class="bet-chip" data-val="250" onclick="setBet(250)">🪙 250</button>
-        </div>
-
-        <!-- Bet Adjuster Bar -->
-        <div class="bet-adjuster-bar">
-          <button type="button" class="adj-btn" onclick="halveBet()">½ Half</button>
-          <div class="current-bet-display">
-            <span style="font-size:1.1rem;">🪙</span>
-            <span class="current-bet-val" id="currentBetDisplay">50</span>
+      <!-- ================= 7. UNDER OVER GAME ================= -->
+      <section id="game-underover" class="game-view hidden flex flex-col items-center">
+        <!-- Number & Result View -->
+        <div class="w-full bg-[#121b0e] border border-[#253d1b] rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg relative">
+          <!-- Big Rolled Number Display -->
+          <div class="flex flex-col items-center">
+            <span id="underOverResultNum" class="text-6xl font-black text-lime-400 tracking-tighter">50</span>
+            <p id="underOverPrompt" class="text-xs font-semibold text-lime-300/80 mt-1">Roll between 0 and 99</p>
           </div>
-          <button type="button" class="adj-btn" onclick="doubleBet()">2× Double</button>
+
+          <!-- Threshold Visual Bar -->
+          <div class="w-full mt-4">
+            <div class="flex justify-between text-[11px] font-bold text-gray-400 mb-1">
+              <span>0</span>
+              <span id="underOverBarLabel" class="text-lime-400">Target: 50</span>
+              <span>99</span>
+            </div>
+            <div class="w-full h-2.5 bg-gray-800 rounded-full relative overflow-hidden">
+              <div id="underOverFillBar" class="h-full bg-lime-500 rounded-full w-1/2 transition-all"></div>
+            </div>
+          </div>
         </div>
 
-        <!-- Main Primary Action Play Button -->
-        <button type="button" id="primaryPlayBtn" class="btn-primary-play" onclick="handlePrimaryAction()">
-          Play Game
+        <!-- Direction Buttons (Under vs Over) -->
+        <div class="w-full grid grid-cols-2 gap-2 mt-3">
+          <button onclick="setUnderOverMode('under')" id="btnUOunder" class="py-2.5 px-3 rounded-2xl bg-lime-500/20 border-2 border-lime-500 text-lime-300 font-bold text-xs flex items-center justify-center gap-1 transition-all">
+            Under <span id="uoThresholdUnderLabel">50</span>
+          </button>
+          <button onclick="setUnderOverMode('over')" id="btnUOover" class="py-2.5 px-3 rounded-2xl bg-[#171c26] border border-[#273042] text-gray-400 font-bold text-xs flex items-center justify-center gap-1 transition-all">
+            Over <span id="uoThresholdOverLabel">50</span>
+          </button>
+        </div>
+
+        <!-- Threshold Slider Control -->
+        <div class="w-full mt-3 bg-[#151a24] border border-[#22293b] rounded-2xl p-3">
+          <div class="flex justify-between items-center text-xs font-bold mb-2">
+            <span class="text-gray-400">Threshold</span>
+            <span id="sliderValueText" class="text-white text-sm">50</span>
+          </div>
+          <input id="uoSlider" type="range" min="2" max="98" value="50" oninput="onThresholdChange(this.value)" class="w-full">
+          <div class="flex justify-between text-[10px] font-semibold text-gray-500 mt-1">
+            <span>Safer</span>
+            <span>Riskier</span>
+          </div>
+        </div>
+
+        <!-- Stat Badges (Win chance, Payout, To win) -->
+        <div class="w-full grid grid-cols-3 gap-2 mt-2">
+          <div class="bg-[#161a25] border border-[#22283a] rounded-xl p-2 text-center">
+            <span class="text-[10px] text-gray-400 block font-medium">Win chance</span>
+            <span id="uoWinChanceText" class="text-xs font-bold text-white">50%</span>
+          </div>
+          <div class="bg-[#161a25] border border-[#22283a] rounded-xl p-2 text-center">
+            <span class="text-[10px] text-gray-400 block font-medium">Payout</span>
+            <span id="uoMultiplierText" class="text-xs font-black text-lime-400">×1.90</span>
+          </div>
+          <div class="bg-[#161a25] border border-[#22283a] rounded-xl p-2 text-center">
+            <span class="text-[10px] text-gray-400 block font-medium">To win</span>
+            <span id="uoToWinText" class="text-xs font-bold text-yellow-400">95 🪙</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SHARED CONTROLS (BET & ACTION) ================= -->
+      <div id="sharedControlsContainer" class="w-full mt-4 space-y-3">
+        <!-- Min/Max Bet Range Info & Daily Plays Badge -->
+        <div class="flex items-center justify-between text-xs font-semibold px-2 text-gray-400">
+          <div class="flex items-center gap-1.5">
+            <span>Min</span>
+            <span class="text-white font-bold">10 🪙</span>
+          </div>
+          
+          <!-- Daily Plays Indicator Badge (10 free plays/day limit) -->
+          <div onclick="checkDailyPlaysClick()" id="dailyPlaysBadge" class="flex items-center gap-1.5 bg-[#1a2133] border border-[#2e3b5e] hover:border-sky-400 px-2.5 py-1 rounded-full cursor-pointer transition-all" title="10 free plays per day. Tap to watch sponsored ads for +5 extra plays!">
+            <span class="text-xs">🎯</span>
+            <span class="text-[11px] font-extrabold text-sky-300" id="dailyPlaysDisplay">Plays: 10/10</span>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <span>Max</span>
+            <span class="text-white font-bold">1,000 🪙</span>
+          </div>
+        </div>
+
+        <!-- Quick Bet Chips Selector -->
+        <div class="grid grid-cols-4 gap-2">
+          <button onclick="setBet(10)" class="bet-chip py-2 rounded-xl bg-[#1a1e2b] border border-[#282f44] text-xs font-bold text-gray-300 hover:text-white transition-all flex items-center justify-center gap-1">
+            10 <span class="text-[10px]">🪙</span>
+          </button>
+          <button onclick="setBet(20)" class="bet-chip active-chip py-2 rounded-xl bg-sky-500/20 border-2 border-sky-400 text-xs font-black text-sky-300 transition-all flex items-center justify-center gap-1">
+            20 <span class="text-[10px]">🪙</span>
+          </button>
+          <button onclick="setBet(50)" class="bet-chip py-2 rounded-xl bg-[#1a1e2b] border border-[#282f44] text-xs font-bold text-gray-300 hover:text-white transition-all flex items-center justify-center gap-1">
+            50 <span class="text-[10px]">🪙</span>
+          </button>
+          <button onclick="setBet(100)" class="bet-chip py-2 rounded-xl bg-[#1a1e2b] border border-[#282f44] text-xs font-bold text-gray-300 hover:text-white transition-all flex items-center justify-center gap-1">
+            100 <span class="text-[10px]">🪙</span>
+          </button>
+        </div>
+
+        <!-- Custom Bet Adjuster Bar (1/2, Coin Value, 2X) -->
+        <div class="flex items-center justify-between bg-[#141722] border border-[#24293a] rounded-2xl px-4 py-2">
+          <button onclick="halveBet()" class="text-sm font-bold text-gray-400 hover:text-white px-2 py-1 active:scale-95 transition-all">½</button>
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 text-sm">🪙</span>
+            <span id="currentBetDisplay" class="text-base font-black text-white">20</span>
+          </div>
+          <button onclick="doubleBet()" class="text-sm font-bold text-gray-400 hover:text-white px-2 py-1 active:scale-95 transition-all">2×</button>
+        </div>
+
+        <!-- Primary Action Button (Roll / Scratch / Spin / Drop / Flip / Play) -->
+        <button id="primaryPlayBtn" onclick="handlePrimaryAction()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 font-black text-lg tracking-wide shadow-[0_8px_20px_rgba(56,189,248,0.3)] active:scale-[0.98] transition-all">
+          Roll Dice
         </button>
 
-        <!-- Cashout Button (Used for Mines) -->
-        <button type="button" id="btnCashout" class="btn-cashout" onclick="cashoutMinesGame()">
-          Cash Out Coins
+        <!-- Secondary Cashout Button (used in Mines) -->
+        <button id="cashoutBtn" onclick="cashoutMines()" class="hidden w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 text-emerald-950 font-black text-base shadow-lg active:scale-95 transition-all">
+          Cash Out (<span id="cashoutAmountText">0</span> 🪙)
         </button>
       </div>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
-      <a href="../shop/index.html" class="below-menu-item" title="Shop">
-        <span>🛍️</span>
-        <span class="menu-label">Shop</span>
-      </a>
-      <a href="../leaderboard/index.html" class="below-menu-item" title="Leaderboard">
-        <span>🏆</span>
-        <span class="menu-label">Ranks</span>
-      </a>
-      <a href="../home/index.html" class="below-menu-item center-home-btn" title="Home">
-        <div class="center-home-icon-wrap">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
+    <!-- ================= RULES BOTTOM SHEET MODAL ================= -->
+    <div id="infoModalOverlay" class="fixed inset-0 bg-black/75 z-40 backdrop-blur-sm hidden transition-opacity" onclick="toggleInfoModal()"></div>
+    
+    <div id="infoModalSheet" class="fixed inset-x-0 bottom-0 max-w-md mx-auto z-50 bg-[#161821] border-t border-[#2d3245] rounded-t-3xl p-6 transform translate-y-full transition-transform duration-300 flex flex-col max-h-[85vh] overflow-y-auto no-scrollbar shadow-2xl">
+      
+      <!-- Drag handle -->
+      <div class="w-12 h-1.5 bg-gray-600 rounded-full mx-auto mb-4"></div>
+
+      <!-- Header with dot & close -->
+      <div class="flex items-center justify-between pb-3">
+        <div class="flex items-center gap-2">
+          <span id="sheetDot" class="w-2.5 h-2.5 rounded-full bg-diceBlue"></span>
+          <span class="text-xs uppercase font-extrabold tracking-wider text-gray-400">How to play</span>
         </div>
-        <span class="menu-label">Home</span>
-      </a>
-      <a href="../games/index.html" class="below-menu-item active" title="Games">
-        <span>🎮</span>
-        <span class="menu-label">Games</span>
-      </a>
-      <a href="../wallet/index.html" class="below-menu-item" title="Wallet">
-        <span>💳</span>
-        <span class="menu-label">Wallet</span>
-      </a>
-    </nav>
+        <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <h2 id="sheetTitle" class="text-2xl font-black text-white mt-1">Lucky Dice</h2>
+      <p id="sheetSubtitle" class="text-sm text-gray-400 mt-1 mb-5">Roll high. Three sixes in a row pay ×7.</p>
+
+      <!-- Steps 1-3 numbered instructions -->
+      <div class="space-y-4 mb-6">
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
+          <p id="sheetStep1" class="text-sm text-gray-300 font-medium">Set your bet and tap Roll.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
+          <p id="sheetStep2" class="text-sm text-gray-300 font-medium">Each face pays a fixed multiplier. The higher the face, the better.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</div>
+          <p id="sheetStep3" class="text-sm text-gray-300 font-medium">Roll three sixes in a row at the same bet for the ×7 jackpot. Changing the bet resets the streak.</p>
+        </div>
+      </div>
+
+      <!-- Multiplier Table in Bottom Sheet -->
+      <div id="sheetTable" class="bg-[#1c1f2c] rounded-2xl divide-y divide-[#262b3c] border border-[#2b3145] overflow-hidden mb-6">
+        <!-- Rendered dynamically for active game -->
+      </div>
+
+      <!-- Sound toggle switch -->
+      <div class="flex items-center justify-between py-2 border-t border-[#252b3b] mb-6">
+        <div class="flex items-center gap-3">
+          <i data-lucide="volume-2" class="w-5 h-5 text-gray-400"></i>
+          <div>
+            <h5 class="text-sm font-bold text-white">Sound effects</h5>
+            <p class="text-xs text-gray-400">On for all games</p>
+          </div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="soundToggleInput" checked class="sr-only peer" onchange="toggleSound(this.checked)">
+          <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+        </label>
+      </div>
+
+      <!-- Got it Dismiss button -->
+      <button onclick="toggleInfoModal()" id="sheetGotItBtn" class="w-full py-3.5 rounded-2xl bg-sky-500 hover:bg-sky-400 font-black text-black transition-all">
+        Got it
+      </button>
+    </div>
+
+    <!-- ================= WATCH ADS POPUP MODAL (DAILY PLAYS LIMIT) ================= -->
+    <div id="adModalOverlay" class="fixed inset-0 bg-black/80 z-50 backdrop-blur-sm hidden" onclick="closeAdModal()"></div>
+    <div id="adModalSheet" class="fixed inset-x-4 bottom-8 max-w-sm mx-auto z-50 bg-[#161922] border border-[#2a324b] rounded-3xl p-5 shadow-2xl hidden transform transition-all duration-300">
+      
+      <!-- Ad Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-[#252b3b]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">📺</span>
+          <span class="text-xs font-black uppercase tracking-wider text-amber-400">Daily Plays Limit Reached</span>
+        </div>
+        <button onclick="closeAdModal()" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Offer View (Default) -->
+      <div id="adInitialView" class="py-4 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+          🎬
+        </div>
+        <h3 class="text-lg font-black text-white">Daily 10 Free Plays Used</h3>
+        <p class="text-xs text-gray-400 mt-1 max-w-[270px] mx-auto">
+          Watch a quick sponsored ad to unlock <b class="text-yellow-400">+5 Extra Plays</b> immediately!
+        </p>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 gap-2 my-4">
+          <div class="bg-[#10141d] border border-[#20283c] rounded-xl p-2">
+            <span class="text-[10px] text-gray-400 block font-medium">Daily Limit</span>
+            <span class="text-xs font-extrabold text-gray-300">10 / Day</span>
+          </div>
+          <div class="bg-[#10141d] border border-amber-500/30 rounded-xl p-2">
+            <span class="text-[10px] text-gray-400 block font-medium">Ad Bonus</span>
+            <span class="text-xs font-black text-amber-400">+5 Plays</span>
+          </div>
+        </div>
+
+        <button onclick="startWatchingAd()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-[0_4px_16px_rgba(234,179,8,0.3)] active:scale-95 transition-all">
+          ▶️ Watch Ad (+5 Plays)
+        </button>
+      </div>
+
+      <!-- Playing Screen (Active while ad plays) -->
+      <div id="adPlayerView" class="py-4 text-center hidden">
+        <div class="w-full bg-[#0a0d14] border border-[#1e2538] rounded-2xl p-6 flex flex-col items-center justify-center">
+          <span class="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-2">📢 Sponsored Ad Playing</span>
+          <div class="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin my-2"></div>
+          <p id="adTimerText" class="text-sm font-extrabold text-amber-300 mt-2">Reward in 5s...</p>
+          <div class="w-full bg-gray-800 h-2 rounded-full mt-4 overflow-hidden">
+            <div id="adProgressFill" class="bg-gradient-to-r from-amber-400 to-yellow-400 h-full w-0 transition-all duration-100"></div>
+          </div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3">Sponsored ad opened in new tab. Keep page open to receive reward.</p>
+      </div>
+
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toastNotification" class="fixed top-16 inset-x-4 max-w-sm mx-auto z-50 bg-[#1e2333] border border-[#343d57] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform -translate-y-48 opacity-0 transition-all duration-300 pointer-events-none">
+      <span id="toastIcon" class="text-xl">🎉</span>
+      <div class="flex-1">
+        <h5 id="toastTitle" class="text-xs font-extrabold uppercase text-gray-400">Winner!</h5>
+        <p id="toastMessage" class="text-sm font-bold text-white">You rolled a Six (+100 🪙)</p>
+      </div>
+    </div>
 
   </div>
 
-  <!-- Rules Modal Bottom Sheet -->
-  <div class="modal-overlay" id="rulesModalOverlay" onclick="toggleInfoModal()"></div>
-  <div class="modal-sheet" id="rulesModalSheet">
-    <div class="drag-handle" id="dragHandle"></div>
-    <div class="sheet-head">
-      <div class="sheet-badge">
-        <span>📖</span>
-        <span>How to Play & Multipliers</span>
-      </div>
-      <button type="button" class="sheet-close-btn" onclick="toggleInfoModal()">✕</button>
-    </div>
-
-    <h2 class="sheet-title" id="sheetTitle">Arcade Suite</h2>
-    <p class="sheet-subtitle" id="sheetSubtitle">Pick any game to start playing.</p>
-
-    <div class="steps-list">
-      <div class="step-row">
-        <div class="step-num">1</div>
-        <div class="step-text" id="step1Text">Choose your bet chips between 30 and 2,000 coins.</div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">2</div>
-        <div class="step-text" id="step2Text">Tap the action button to initiate the round.</div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">3</div>
-        <div class="step-text" id="step3Text">All coin winnings are saved in real-time across the app.</div>
-      </div>
-    </div>
-
-    <!-- Multiplier Table -->
-    <div class="sheet-table" id="sheetTableBody"></div>
-
-    <!-- Sound Effects Toggle -->
-    <div class="sound-toggle-bar">
-      <div>
-        <div class="sound-title">Sound Effects</div>
-        <div class="sound-sub">Web Audio synthesizer feedback</div>
-      </div>
-      <label class="switch">
-        <input type="checkbox" id="soundToggleCheckbox" checked onchange="toggleSound(this.checked)">
-        <span class="slider-switch"></span>
-      </label>
-    </div>
-
-    <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it, Let's Play</button>
-  </div>
-
-  <!-- Toast Notification Bar -->
-  <div class="toast-bar" id="toastBar">
-    <div class="toast-icon" id="toastIcon">🪙</div>
-    <div>
-      <div class="toast-title" id="toastTitle">Notification</div>
-      <div class="toast-msg" id="toastMsg">Action completed.</div>
-    </div>
-  </div>
-
+  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

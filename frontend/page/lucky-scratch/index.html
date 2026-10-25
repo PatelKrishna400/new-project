@@ -87,12 +87,12 @@
 
       <!-- Bet Limits & Daily Plays Row -->
       <div class="bet-limits-row" style="margin-top:0.2rem;">
-        <span>Min bet <b id="minBetLabel">30 🪙</b></span>
+        <span>Min bet <b id="minBetLabel">10 🪙</b></span>
         <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
           <span>🎯 Plays Today:</span>
           <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
         </div>
-        <span>Max bet <b id="maxBetLabel">2,000 🪙</b></span>
+        <span>Max bet <b id="maxBetLabel">1,000 🪙</b></span>
       </div>
 
       <!-- Recent Rounds Card (Exact match to Screenshot 3) -->
@@ -105,12 +105,12 @@
 
       <!-- Bet Controls Card -->
       <div class="bet-controls-card">
-        <!-- Bet Chips Selector: 30, 50, 100, 500 -->
+        <!-- Bet Chips Selector: 10, 20, 50, 100 -->
         <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="30" onclick="setBet(30)">30 🪙</button>
-          <button type="button" class="bet-chip active" data-val="50" onclick="setBet(50)">50 🪙</button>
+          <button type="button" class="bet-chip" data-val="10" onclick="setBet(10)">10 🪙</button>
+          <button type="button" class="bet-chip active" data-val="20" onclick="setBet(20)">20 🪙</button>
+          <button type="button" class="bet-chip" data-val="50" onclick="setBet(50)">50 🪙</button>
           <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">100 🪙</button>
-          <button type="button" class="bet-chip" data-val="500" onclick="setBet(500)">500 🪙</button>
         </div>
 
         <!-- Custom Bet Adjuster -->
@@ -118,7 +118,7 @@
           <button type="button" class="adj-btn" onclick="halveBet()">½</button>
           <div class="current-bet-display">
             <span>🪙</span>
-            <span class="current-bet-val" id="currentBetDisplay">50</span>
+            <span class="current-bet-val" id="currentBetDisplay">20</span>
           </div>
           <button type="button" class="adj-btn" onclick="doubleBet()">2×</button>
         </div>
@@ -297,6 +297,7 @@
 
   </div>
 
+  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

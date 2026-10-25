@@ -106,16 +106,20 @@
       <!-- Bet Controls Card -->
       <div class="bet-controls-card">
         <div class="bet-limits-row">
-          <span>Min bet: <b>30 🪙</b></span>
-          <span>Max bet: <b>2,000 🪙</b></span>
+          <span>Min bet: <b>10 🪙</b></span>
+          <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
+            <span>🎯 Plays Today:</span>
+            <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
+          </div>
+          <span>Max bet: <b>1,000 🪙</b></span>
         </div>
 
         <!-- Bet Chips Selector -->
         <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="30" onclick="setBet(30)">30 🪙</button>
-          <button type="button" class="bet-chip active" data-val="50" onclick="setBet(50)">50 🪙</button>
+          <button type="button" class="bet-chip" data-val="10" onclick="setBet(10)">10 🪙</button>
+          <button type="button" class="bet-chip active" data-val="20" onclick="setBet(20)">20 🪙</button>
+          <button type="button" class="bet-chip" data-val="50" onclick="setBet(50)">50 🪙</button>
           <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">100 🪙</button>
-          <button type="button" class="bet-chip" data-val="500" onclick="setBet(500)">500 🪙</button>
         </div>
 
         <!-- Custom Bet Adjuster -->
@@ -123,7 +127,7 @@
           <button type="button" class="adj-btn" onclick="halveBet()">½</button>
           <div class="current-bet-display">
             <span>🪙</span>
-            <span class="current-bet-val" id="currentBetDisplay">50</span>
+            <span class="current-bet-val" id="currentBetDisplay">20</span>
           </div>
           <button type="button" class="adj-btn" onclick="doubleBet()">2×</button>
         </div>
@@ -239,6 +243,53 @@
       <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it</button>
     </div>
 
+    <!-- Daily Limit Watch Ad Modal Popup -->
+    <div id="adModalOverlay" class="modal-overlay" onclick="closeAdModal()"></div>
+    <div id="adModalSheet" class="ad-modal-card">
+      <div class="ad-modal-header">
+        <div class="ad-badge">
+          <span>📺</span>
+          <span>Daily Plays Limit</span>
+        </div>
+        <button type="button" class="ad-close-btn" onclick="closeAdModal()">&times;</button>
+      </div>
+
+      <!-- Initial Ad Offer Prompt -->
+      <div id="adInitialView">
+        <div class="ad-icon-hero">🎬</div>
+        <h3 class="ad-title">10 Daily Plays Used</h3>
+        <p class="ad-desc">You've reached your 10 free rolls limit for today! Watch a sponsored video ad to unlock <b style="color:#facc15;">+5 extra plays</b> instantly.</p>
+        
+        <div class="ad-plays-summary">
+          <div class="ad-stat-box">
+            <span class="ad-stat-label">Daily Limit</span>
+            <span class="ad-stat-val">10 Plays</span>
+          </div>
+          <div class="ad-stat-box">
+            <span class="ad-stat-label">Ad Reward</span>
+            <span class="ad-stat-val text-green">+5 Plays</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-watch-ad" onclick="startWatchingAd()">
+          <span>▶️ Watch Ad (+5 Plays)</span>
+        </button>
+      </div>
+
+      <!-- Video Player Simulator (Active when watching) -->
+      <div id="adPlayerView" style="display:none;">
+        <div class="ad-video-screen">
+          <div class="ad-sponsor-tag">📢 Sponsored Video Ad</div>
+          <div class="ad-spinner"></div>
+          <div class="ad-timer-text" id="adTimerText">Reward in 5s...</div>
+          <div class="ad-progress-bar-wrap">
+            <div class="ad-progress-bar-fill" id="adProgressFill"></div>
+          </div>
+        </div>
+        <p class="ad-notice">Please watch the full sponsor message to receive your reward...</p>
+      </div>
+    </div>
+
     <!-- Toast -->
     <div id="toastBar" class="toast-bar">
       <span class="toast-icon" id="toastIcon">🟢</span>
@@ -250,6 +301,7 @@
 
   </div>
 
+  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

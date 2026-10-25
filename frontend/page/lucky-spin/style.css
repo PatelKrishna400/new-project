@@ -594,8 +594,236 @@ input:checked + .slider-switch:before { transform: translateX(20px); }
   background: #a855f7;
   color: #ffffff;
   font-size: 0.95rem;
+.daily-plays-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.daily-plays-indicator:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+}
+
+.plays-badge-val {
+  color: #c084fc;
+  font-weight: 900;
+}
+
+/* Ad Modal Card */
+.ad-modal-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: 90%;
+  max-width: 380px;
+  background: #150f21;
+  border: 1.5px solid #36204d;
+  border-radius: 24px;
+  padding: 1.4rem;
+  z-index: 70;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px rgba(168, 85, 247, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ad-modal-card.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.ad-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.ad-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.ad-close-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ad-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ad-icon-hero {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.ad-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-align: center;
+}
+
+.ad-desc {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.4;
+  margin-top: 0.3rem;
+}
+
+.ad-plays-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.ad-stat-box {
+  background: #1e152e;
+  border: 1px solid #3d245c;
+  border-radius: 12px;
+  padding: 0.6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.ad-stat-label {
+  font-size: 0.62rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.ad-stat-val {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.text-green { color: #34d399 !important; }
+
+.btn-watch-ad {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  color: #451a03;
+  font-size: 0.92rem;
   font-weight: 900;
   cursor: pointer;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-watch-ad:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(234, 179, 8, 0.55);
+}
+
+.btn-watch-ad:active {
+  transform: scale(0.98);
+}
+
+.ad-video-screen {
+  background: #0d0817;
+  border: 1.5px solid #361b47;
+  border-radius: 16px;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0.8rem 0;
+}
+
+.ad-sponsor-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #c084fc;
+  background: rgba(192, 132, 252, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.ad-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(192, 132, 252, 0.2);
+  border-top-color: #a855f7;
+  border-radius: 50%;
+  animation: spinAnim 1s linear infinite;
+}
+
+@keyframes spinAnim {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ad-timer-text {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #facc15;
+}
+
+.ad-progress-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: #251838;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ad-progress-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #a855f7, #facc15);
+  border-radius: 999px;
+  transition: width 0.1s linear;
+}
+
+.ad-notice {
+  font-size: 0.68rem;
+  color: #64748b;
+  text-align: center;
 }
 
 /* Toast */

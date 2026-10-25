@@ -50,60 +50,105 @@
       </div>
 
       <!-- ========================================================
-           1. IDLE GAME TAB VIEW (SUNFLOWER HONEY BEE FARM)
+           1. IDLE GAME TAB VIEW (SUNFLOWER & HONEY BEE FARMS)
            ======================================================== -->
       <section class="game-category-view" id="idleGameSection">
         <div class="section-title-row">
-          <h2 class="section-title">Idle Farm</h2>
-          <span class="section-tag">Tap to Open</span>
+          <h2 class="section-title">Idle Farms</h2>
+          <span class="section-tag">2 Farms Available</span>
         </div>
 
-        <!-- HONEY BEE FARM GAME TAB (CLICK TO OPEN HONEY FARM) -->
-        <a href="../sunflower/index.html" class="sunflower-game-tab" id="sunflowerGameTab" title="Click to Open Honey Bee Farm">
-          <!-- Main Banner Artwork Stage -->
-          <div class="tab-artwork-stage">
-            <img src="../sunflower/sunflower-bg.png" alt="Honey Bee Farm Panorama" class="tab-artwork-img" />
-            <div class="tab-artwork-vignette"></div>
-            <div class="tab-artwork-overlay-content">
-              <div class="tab-floating-icon">🍯</div>
-              <div class="tab-artwork-titles">
-                <h3 class="tab-title">Honey Bee Farm</h3>
-                <span class="tab-tagline">Harvest Honey Pots & Bloom Gardens</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tab Body Details -->
-          <div class="tab-body">
-            <!-- Live Balances Preview -->
-            <div class="tab-stats-preview">
-              <div class="tab-stat-pill">
-                <span class="pill-label">Honey Pots</span>
-                <span class="pill-value text-amber" id="tabSfCoins">0 🍯</span>
-              </div>
-              <div class="tab-stat-pill">
-                <span class="pill-label">Seeds Ready</span>
-                <span class="pill-value text-emerald" id="tabSfSeeds">3 🌱</span>
-              </div>
-              <div class="tab-stat-pill">
-                <span class="pill-label">Flower Groves</span>
-                <span class="pill-value text-sky" id="tabSfBuckets">20 🌸</span>
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- 1. SUNFLOWER FARM GAME TAB -->
+          <a href="../sunflower/index.html" class="sunflower-game-tab" id="sunflowerGameTab" title="Click to Open Sunflower Farm">
+            <!-- Main Banner Artwork Stage -->
+            <div class="tab-artwork-stage">
+              <img src="../sunflower/sunflower-bg.png" alt="Sunflower Farm Panorama" class="tab-artwork-img" />
+              <div class="tab-artwork-vignette"></div>
+              <div class="tab-artwork-overlay-content">
+                <div class="tab-floating-icon" style="background: rgba(234, 179, 8, 0.3); border: 1.5px solid #facc15;">🌻</div>
+                <div class="tab-artwork-titles">
+                  <h3 class="tab-title" style="color: #fef08a;">Sunflower Farm</h3>
+                  <span class="tab-tagline">Grow Sunflowers, Harvest Solar Coins &amp; Rebirth</span>
+                </div>
               </div>
             </div>
 
-            <!-- 3D Interactive Launch Button -->
-            <div class="tab-action-wrap">
-              <div class="btn-launch-game">
-                <span class="launch-icon">🐝</span>
-                <span class="launch-text">CLICK TO OPEN HONEY BEE FARM</span>
-                <svg class="launch-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                  <polyline points="12 5 19 12 12 19"></polyline>
-                </svg>
+            <!-- Tab Body Details -->
+            <div class="tab-body">
+              <div class="tab-stats-preview">
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Solar Coins</span>
+                  <span class="pill-value text-amber" id="tabSfSolarCoins">0 🪙</span>
+                </div>
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Seeds Ready</span>
+                  <span class="pill-value text-emerald" id="tabSfSeedsSunflower">3 🌱</span>
+                </div>
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Water Buckets</span>
+                  <span class="pill-value text-sky" id="tabSfBucketsSunflower">20 💧</span>
+                </div>
+              </div>
+
+              <div class="tab-action-wrap">
+                <div class="btn-launch-game" style="background: linear-gradient(155deg, #f59e0b 0%, #d97706 50%, #b45309 100%);">
+                  <span class="launch-icon">🌻</span>
+                  <span class="launch-text">CLICK TO OPEN SUNFLOWER FARM</span>
+                  <svg class="launch-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
-        </a>
+          </a>
+
+          <!-- 2. HONEY BEE FARM GAME TAB -->
+          <a href="../sunflower/index.html?mode=honeybee" class="sunflower-game-tab" id="honeyBeeGameTab" title="Click to Open Honey Bee Farm" style="border-color: rgba(245, 158, 11, 0.45);">
+            <!-- Main Banner Artwork Stage -->
+            <div class="tab-artwork-stage">
+              <img src="../sunflower/sunflower-bg.png" alt="Honey Bee Farm Panorama" class="tab-artwork-img" />
+              <div class="tab-artwork-vignette" style="background: linear-gradient(180deg, rgba(20, 14, 5, 0.2) 0%, rgba(20, 14, 5, 0.9) 100%);"></div>
+              <div class="tab-artwork-overlay-content">
+                <div class="tab-floating-icon" style="background: rgba(245, 158, 11, 0.35); border: 1.5px solid #fbbf24;">🍯</div>
+                <div class="tab-artwork-titles">
+                  <h3 class="tab-title" style="color: #fed7aa;">Honey Bee Farm</h3>
+                  <span class="tab-tagline">Harvest Honey Pots &amp; Bloom Flower Gardens</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Body Details -->
+            <div class="tab-body">
+              <div class="tab-stats-preview">
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Honey Pots</span>
+                  <span class="pill-value text-amber" id="tabSfCoins">0 🍯</span>
+                </div>
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Honey Queens</span>
+                  <span class="pill-value text-emerald" id="tabSfSeeds">3 🐝</span>
+                </div>
+                <div class="tab-stat-pill">
+                  <span class="pill-label">Flower Groves</span>
+                  <span class="pill-value text-sky" id="tabSfBuckets">20 🌸</span>
+                </div>
+              </div>
+
+              <div class="tab-action-wrap">
+                <div class="btn-launch-game" style="background: linear-gradient(155deg, #d97706 0%, #b45309 50%, #78350f 100%);">
+                  <span class="launch-icon">🐝</span>
+                  <span class="launch-text">CLICK TO OPEN HONEY BEE FARM</span>
+                  <svg class="launch-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </a>
+        </div>
       </section>
 
       <!-- ========================================================

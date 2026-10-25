@@ -1,10 +1,14 @@
 /**
  * GIFT DROP (PLINKO) LOGIC — NOVA ARCADE SUITE
- * Peg Board Physics • 11 Payout Buckets • Outer ×24 Edges • Coin Sync
+ * Peg Board Physics • 50% Win Rate Calibration • 10 Plays/Day Limit + Watch Ad
  */
 
-let balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-let currentBet = 50;
+const GAME_ID = 'gift_drop';
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 5;
+
+let balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
+let currentBet = 20;
 let soundEnabled = true;
 let isDroppingPlinko = false;
 
@@ -19,7 +23,7 @@ function initAudio() {
         oscillator: { type: "triangle" },
         envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.2 }
       }).toDestination();
-    } catch(e) {}
+    } catch (e) {}
   }
 }
 
@@ -55,6 +59,7 @@ function toggleSound(checked) {
 function updateBalanceUI() {
   const el = document.getElementById('coinBalance');
   if (el) el.innerText = balance.toLocaleString();
+  updateActionButtonState();
 }
 
 function saveBalance() {
@@ -75,9 +80,83 @@ function addFreeCoins() {
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
+// Daily Plays Tracker (10 Free Plays / Day)
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function getPlaysUsedToday() {
+  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+
+function recordPlayUsed() {
+  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+  updateDailyPlaysUI();
+}
+
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+  updateDailyPlaysUI();
+}
+
+function updateDailyPlaysUI() {
+  const remaining = getRemainingPlays();
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const display = document.getElementById('dailyPlaysDisplay');
+  if (display) {
+    display.innerText = `${remaining}/${total}`;
+    display.style.color = remaining <= 0 ? '#ef4444' : '#06b6d4';
+  }
+  updateActionButtonState();
+}
+
+function checkDailyPlaysClick() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+  } else {
+    showToast('Daily Free Plays', `${getRemainingPlays()} free drops remaining today.`, '🎯');
+  }
+}
+
+function updateActionButtonState() {
+  const btn = document.getElementById('btnDropGift');
+  if (!btn) return;
+  const remaining = getRemainingPlays();
+  if (remaining <= 0) {
+    btn.innerText = '▶ Watch Ad to Play (0/10)';
+    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
+    btn.style.color = '#451a03';
+  } else if (balance < currentBet) {
+    btn.innerText = 'Buy Coins (+200 Free)';
+    btn.style.background = 'linear-gradient(135deg, #06b6d4 0%, #0284c7 100%)';
+    btn.style.color = '#07090e';
+  } else {
+    btn.innerText = 'Drop Gift';
+    btn.style.background = 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)';
+    btn.style.color = '#07090e';
+  }
+}
+
 function setBet(amount) {
   playTone('tick');
-  currentBet = Math.min(2000, Math.max(30, amount));
+  currentBet = Math.min(1000, Math.max(10, amount));
   const betEl = document.getElementById('currentBetDisplay');
   if (betEl) betEl.innerText = currentBet;
   updateActiveChipUI();
@@ -144,16 +223,23 @@ function drawPlinkoBoard(ctx, w, h) {
   });
 }
 
+// 50% Win Rate Calibrated Gift Drop
 function dropPlinkoBall() {
   if (isDroppingPlinko) return;
 
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
+
   if (balance < currentBet) {
-    showToast('Insufficient Coins', 'Tap the + button to claim free refill coins!', '⚠️');
-    playTone('lose');
+    showToast('Insufficient Coins', 'Claimed free refill coins!', '🎁');
+    addFreeCoins();
     return;
   }
 
   isDroppingPlinko = true;
+  recordPlayUsed();
   balance -= currentBet;
   saveBalance();
   updateBalanceUI();
@@ -164,9 +250,24 @@ function dropPlinkoBall() {
   const w = canvas.width;
   const h = canvas.height;
 
+  // Exact 50% Win Rate Calibration:
+  // Win buckets: 0 (24x), 1 (5x), 2 (2x), 3 (1.2x), 7 (1.2x), 8 (2x), 9 (5x), 10 (24x)
+  // Loss buckets: 4 (0.7x), 5 (0.25x), 6 (0.7x)
+  const isWin = Math.random() < 0.50;
+  let targetBucket;
+  if (isWin) {
+    const winBuckets = [0, 1, 2, 3, 7, 8, 9, 10];
+    targetBucket = winBuckets[Math.floor(Math.random() * winBuckets.length)];
+  } else {
+    const loseBuckets = [4, 5, 6];
+    targetBucket = loseBuckets[Math.floor(Math.random() * loseBuckets.length)];
+  }
+
+  const bucketWidth = w / PLINKO_BUCKETS.length;
+  const targetX = targetBucket * bucketWidth + bucketWidth / 2;
+
   let x = w / 2;
   let y = 10;
-  let vx = (Math.random() - 0.5) * 1.5;
   let vy = 1.2;
 
   function animateDrop() {
@@ -174,18 +275,15 @@ function dropPlinkoBall() {
     drawPlinkoBoard(ctx, w, h);
 
     vy += 0.28;
-    x += vx;
     y += vy;
 
-    // Deflection off pegs
+    // Smooth physics path biased towards calibrated target
+    const progress = Math.min(1, y / (h - 32));
+    x = (w / 2) * (1 - progress) + targetX * progress + (Math.sin(y * 0.22) * 8 * (1 - progress));
+
     if (Math.random() < 0.26) {
-      vx += (Math.random() - 0.5) * 2;
       playTone('tick');
     }
-
-    // Keep inside boundaries
-    if (x < 15) { x = 15; vx = Math.abs(vx); }
-    if (x > w - 15) { x = w - 15; vx = -Math.abs(vx); }
 
     ctx.font = '18px serif';
     ctx.textAlign = 'center';
@@ -195,9 +293,7 @@ function dropPlinkoBall() {
       requestAnimationFrame(animateDrop);
     } else {
       isDroppingPlinko = false;
-      const bucketWidth = w / PLINKO_BUCKETS.length;
-      const bucketIndex = Math.min(PLINKO_BUCKETS.length - 1, Math.max(0, Math.floor(x / bucketWidth)));
-      const mult = PLINKO_BUCKETS[bucketIndex];
+      const mult = PLINKO_BUCKETS[targetBucket];
       const winAmount = Math.round(currentBet * mult);
       balance += winAmount;
       saveBalance();
@@ -237,11 +333,94 @@ function toggleInfoModal() {
   }
 }
 
+// Watch Ad Modal Controller (Daily Play Limit)
+let isWatchingAd = false;
+let adCountdownInterval = null;
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  const initialView = document.getElementById('adInitialView');
+  const playerView = document.getElementById('adPlayerView');
+  if (!sheet || !overlay) return;
+
+  if (initialView) initialView.style.display = 'block';
+  if (playerView) playerView.style.display = 'none';
+
+  overlay.style.display = 'block';
+  sheet.classList.add('show');
+}
+
+function closeAdModal() {
+  if (isWatchingAd) return;
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (sheet) sheet.classList.remove('show');
+  if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
+}
+
+function startWatchingAd() {
+  if (isWatchingAd) return;
+  isWatchingAd = true;
+  playTone('click');
+
+  // Trigger Backend Universal Ad Service
+  if (typeof window.openWatchAd === 'function') {
+    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
+  }
+
+  const initialView = document.getElementById('adInitialView');
+  const playerView = document.getElementById('adPlayerView');
+  const timerText = document.getElementById('adTimerText');
+  const progressFill = document.getElementById('adProgressFill');
+
+  if (initialView) initialView.style.display = 'none';
+  if (playerView) playerView.style.display = 'block';
+
+  let secondsLeft = 5;
+  if (timerText) timerText.innerText = `Reward in ${secondsLeft}s...`;
+  if (progressFill) progressFill.style.width = '0%';
+
+  const startTime = Date.now();
+  const totalDuration = 5000;
+
+  const progressInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const pct = Math.min(100, (elapsed / totalDuration) * 100);
+    if (progressFill) progressFill.style.width = `${pct}%`;
+  }, 50);
+
+  adCountdownInterval = setInterval(() => {
+    secondsLeft--;
+    playTone('tick');
+    if (timerText) timerText.innerText = secondsLeft > 0 ? `Reward in ${secondsLeft}s...` : 'Reward Unlocked! 🎉';
+
+    if (secondsLeft <= 0) {
+      clearInterval(adCountdownInterval);
+      clearInterval(progressInterval);
+      isWatchingAd = false;
+
+      // Credit +5 Bonus Plays
+      grantBonusPlays(BONUS_PLAYS_PER_AD);
+      if (window.confetti) confetti({ particleCount: 75, spread: 70 });
+      playTone('jackpot');
+      showToast('Reward Earned!', '+5 Extra Plays Unlocked! Keep playing!', '🎉');
+
+      setTimeout(() => {
+        closeAdModal();
+      }, 700);
+    }
+  }, 1000);
+}
+
 // Init
 window.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+  balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
   updateBalanceUI();
   updateActiveChipUI();
+  updateDailyPlaysUI();
 
   const canvas = document.getElementById('plinkoCanvas');
   if (canvas) {
@@ -251,7 +430,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'task_game_coins') {
-      balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
       updateBalanceUI();
     }
   });
@@ -259,7 +438,7 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const syncChannel = new BroadcastChannel('nova_task_sync');
     syncChannel.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
       updateBalanceUI();
     };
   } catch (e) {}
