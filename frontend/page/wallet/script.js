@@ -304,6 +304,14 @@ function handleConfirmBuy(event) {
     withdrawals.unshift(newOrder);
     localStorage.setItem(WITHDRAW_STORAGE_KEY, JSON.stringify(withdrawals));
 
+    // Save directly to Firebase Firestore cloud in real-time
+    if (window.Firebase && typeof window.Firebase.saveWithdrawalToCloud === 'function') {
+      window.Firebase.saveWithdrawalToCloud(newOrder);
+    }
+    if (window.Firebase && typeof window.Firebase.saveCurrentProfileToFirestore === 'function') {
+      window.Firebase.saveCurrentProfileToFirestore();
+    }
+
     // Real-time broadcast to Admin panel
     try {
       const syncChannel = new BroadcastChannel('nova_task_sync');
