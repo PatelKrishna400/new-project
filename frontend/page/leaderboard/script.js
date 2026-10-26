@@ -999,7 +999,7 @@ function updateSeasonModalData() {
       tasksRemainingText.textContent = `${needed} more task${needed === 1 ? '' : 's'} needed to participate in leaderboard.`;
       tasksRemainingText.style.color = '#94a3b8';
     }
-    if (participationActionRow) participationActionRow.style.display = 'block';
+    if (participationActionRow) participationActionRow.style.display = 'inline-flex';
   }
 
   // 2. Season Ads Quota (100 Ads with 6-Hour Cooldown)
@@ -1127,7 +1127,7 @@ function updateSeasonAdCooldownClock() {
   if (adsWatched >= 100) {
     if (cooldownClock) cooldownClock.textContent = 'Quota Complete (100/100) ✓';
     if (btnWatchAd) btnWatchAd.disabled = true;
-    if (btnWatchAdText) btnWatchAdText.textContent = '✅ 100 / 100 Ads Completed';
+    if (btnWatchAdText) btnWatchAdText.textContent = '✅ Completed (100/100)';
     return;
   }
 
@@ -1140,12 +1140,12 @@ function updateSeasonAdCooldownClock() {
 
     if (cooldownClock) cooldownClock.textContent = `Next Ad in: ${formatted}`;
     if (btnWatchAd) btnWatchAd.disabled = true;
-    if (btnWatchAdText) btnWatchAdText.textContent = `⏳ Cooldown (${formatted})`;
+    if (btnWatchAdText) btnWatchAdText.textContent = `⏳ ${formatted}`;
   } else {
     // Cooldown finished / Renewed!
     if (cooldownClock) cooldownClock.textContent = 'Ready to Watch ✓';
     if (btnWatchAd) btnWatchAd.disabled = false;
-    if (btnWatchAdText) btnWatchAdText.textContent = 'Watch Ad (+50 Coins & +1 Quota)';
+    if (btnWatchAdText) btnWatchAdText.textContent = 'Watch Ad (+50 🪙)';
   }
 }
 

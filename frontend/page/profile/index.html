@@ -104,13 +104,7 @@
             </div>
             <span class="invite-menu-pill">+100 🪙</span>
           </div>
-          <div class="profile-link-item" onclick="openTgPushNotificationsModal()" id="btnOpenPushNotificationsModal">
-            <span>🔔 Push Notifications &amp; Alerts</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span class="tg-push-status-badge" id="tgPushRegisteredBadge">WebPush: Active</span>
-              <span class="link-arrow">&rarr;</span>
-            </div>
-          </div>
+
           <div class="profile-link-item" onclick="alert('Security: Two-Factor Authentication enabled.')">
             <span>🔒 Security &amp; 2FA</span>
             <span class="link-arrow">&rarr;</span>
@@ -413,25 +407,12 @@
   <div class="profile-modal-overlay" id="inviteFriendsModalOverlay" onclick="handleInviteModalBackdropClick(event)">
     <div class="profile-modal-box invite-modal-wrapper" onclick="event.stopPropagation()">
       
-      <!-- Modal Exit Header Bar with Back/Close Arrow for Exit -->
-      <div class="invite-modal-exit-bar">
-        <button type="button" class="btn-invite-exit-arrow" onclick="closeInviteFriendsModal()" aria-label="Exit Invite Friends Modal" id="btnInviteTopExitArrow" title="Click to Exit">
-          <svg class="exit-arrow-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          <span class="exit-arrow-text">Exit</span>
-        </button>
-        <span class="invite-modal-nav-title">Invite Friends &amp; Earn</span>
+      <!-- Modal Exit Header Bar with Only Cross (Close ✕) Button -->
+      <div class="invite-modal-exit-bar" style="justify-content: flex-end;">
         <button type="button" class="btn-invite-exit-circle" onclick="closeInviteFriendsModal()" aria-label="Close window" title="Close">✕</button>
       </div>
 
       <div class="invite-friends-card popup-card">
-        <div class="invite-header-badge">
-          <span class="invite-fire-icon">🔥</span>
-          <span>REFERRAL PROGRAM</span>
-        </div>
-        
         <div class="invite-hero-content">
           <div class="invite-title-row">
             <div class="invite-gift-icon">🎁</div>
@@ -486,30 +467,6 @@
               <button type="button" class="btn-save-custom-code" onclick="saveCustomReferralCode()">Save ✓</button>
               <button type="button" class="btn-cancel-custom-code" onclick="toggleEditReferralCode(false)">✕</button>
             </div>
-          </div>
-
-          <!-- Share Referral Link Box -->
-          <div class="invite-link-container">
-            <span class="invite-code-label">YOUR INVITE LINK</span>
-            <div class="invite-link-row">
-              <input type="text" class="invite-link-input" id="inviteLinkInput" readonly value="http://127.0.0.1:5500/?ref=NOVA-4730">
-              <button type="button" class="btn-copy-link" id="btnCopyLink" onclick="copyReferralLink()">
-                <span id="copyLinkText">Copy</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Social Quick Share Row -->
-          <div class="social-share-row">
-            <button type="button" class="btn-social-share btn-whatsapp" onclick="shareOnWhatsApp()">
-              <span>💬 WhatsApp</span>
-            </button>
-            <button type="button" class="btn-social-share btn-telegram" onclick="shareOnTelegram()">
-              <span>✈️ Telegram</span>
-            </button>
-            <button type="button" class="btn-social-share btn-native" onclick="nativeShareInvite()">
-              <span>🔗 Share...</span>
-            </button>
           </div>
 
           <!-- Redeem Friend's Code Box with Login Check & Firebase Verification -->
@@ -1272,6 +1229,16 @@
           <div class="admin-form-group">
             <label class="admin-form-label" for="userEditStars">Stars (⭐)</label>
             <input type="number" id="userEditStars" class="admin-form-input" min="0" step="1" required />
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditSfCoins">Sunflower Coins (🌻)</label>
+            <input type="number" id="userEditSfCoins" class="admin-form-input" min="0" step="10" placeholder="0" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditSfBuckets">Water Buckets (💧)</label>
+            <input type="number" id="userEditSfBuckets" class="admin-form-input" min="0" step="1" placeholder="0" />
           </div>
         </div>
         <div class="admin-form-group">

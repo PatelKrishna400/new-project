@@ -152,49 +152,75 @@
             </div>
           </div>
 
-          <form class="buy-form" id="buyForm" onsubmit="handleConfirmBuy(event)">
-            <input type="hidden" id="buyParamRs" value="100">
-            <input type="hidden" id="buyParamStars" value="1000">
-            <input type="hidden" id="buyParamTitle" value="₹100 Amazon Gift Card">
-            <input type="hidden" id="buyParamImg" value="assets/amazon_100.jpg">
+          <!-- STEP 1: Two Progress Bars (Web Tasks + Stars Balance) -->
+          <div id="buyModalStep1" class="buy-modal-step">
+            <div class="step-subheading">Requirement Check (Step 1 of 2)</div>
 
-            <div class="form-group-wallet">
-              <label class="form-label-wallet" for="buyUserEmail">
-                <span>📧 Email Address *</span>
-              </label>
-              <input 
-                type="email" 
-                id="buyUserEmail" 
-                class="form-input-wallet" 
-                placeholder="yourname@gmail.com" 
-                required 
-                autocomplete="email"
-              />
-              <span class="input-hint-wallet">Claim code will be registered to this email</span>
+            <!-- Loading Bar 1: Website Tasks (e.g. 100 tasks needed for ₹100 card) -->
+            <div class="wallet-req-box">
+              <div class="wallet-req-header">
+                <span class="req-title">🌐 Web Tasks Completed</span>
+                <span class="req-val font-mono" style="color: #38bdf8;" id="buyReqTasksVal">0 / 100</span>
+              </div>
+              <div class="wallet-bar-track">
+                <div class="wallet-bar-fill fill-blue" id="buyReqTasksBar" style="width: 0%;"></div>
+              </div>
+              <div class="wallet-req-sub" id="buyReqTasksSub">100 website tasks required to unlock this voucher</div>
             </div>
 
-            <div class="form-group-wallet">
-              <label class="form-label-wallet" for="buyUserWhatsapp">
-                <span>💬 WhatsApp Number *</span>
-              </label>
-              <input 
-                type="tel" 
-                id="buyUserWhatsapp" 
-                class="form-input-wallet font-mono" 
-                placeholder="+91 9876543210" 
-                required 
-                autocomplete="tel"
-              />
-              <span class="input-hint-wallet">For instant delivery updates &amp; admin approval</span>
+            <!-- Loading Bar 2: Stars Balance (e.g. 1,000 Stars needed) -->
+            <div class="wallet-req-box">
+              <div class="wallet-req-header">
+                <span class="req-title">⭐ Stars Balance</span>
+                <span class="req-val font-mono" style="color: #fbbf24;" id="buyReqStarsVal">0 / 1,000</span>
+              </div>
+              <div class="wallet-bar-track">
+                <div class="wallet-bar-fill fill-gold" id="buyReqStarsBar" style="width: 0%;"></div>
+              </div>
+              <div class="wallet-req-sub" id="buyReqStarsSub">1,000 Stars needed to claim</div>
             </div>
 
-            <div class="buy-modal-actions">
+            <div class="buy-modal-actions" style="margin-top: 1rem;">
               <button type="button" class="btn-wallet-cancel" onclick="closeBuyModal()">Cancel</button>
-              <button type="submit" class="btn-wallet-submit" id="btnSubmitBuy">
-                <span>Submit &amp; Buy ⭐</span>
+              <button type="button" class="btn-wallet-submit" id="btnProceedToStep2" onclick="goToBuyStep2()">
+                <span>Proceed to Buy ➔</span>
               </button>
             </div>
-          </form>
+          </div>
+
+          <!-- STEP 2: Mobile Number Only -->
+          <div id="buyModalStep2" class="buy-modal-step" style="display: none;">
+            <div class="step-subheading">Delivery Mobile Number (Step 2 of 2)</div>
+
+            <form class="buy-form" id="buyForm" onsubmit="handleConfirmBuy(event)">
+              <input type="hidden" id="buyParamRs" value="100">
+              <input type="hidden" id="buyParamStars" value="1000">
+              <input type="hidden" id="buyParamTitle" value="₹100 Amazon Gift Card">
+              <input type="hidden" id="buyParamImg" value="assets/amazon_100.jpg">
+
+              <div class="form-group-wallet">
+                <label class="form-label-wallet" for="buyUserWhatsapp">
+                  <span>📱 Mobile / WhatsApp Number *</span>
+                </label>
+                <input 
+                  type="tel" 
+                  id="buyUserWhatsapp" 
+                  class="form-input-wallet font-mono" 
+                  placeholder="+91 9876543210" 
+                  required 
+                  autocomplete="tel"
+                />
+                <span class="input-hint-wallet">For instant delivery updates &amp; admin approval</span>
+              </div>
+
+              <div class="buy-modal-actions" style="margin-top: 1rem;">
+                <button type="button" class="btn-wallet-cancel" onclick="goToBuyStep1()">← Back</button>
+                <button type="submit" class="btn-wallet-submit" id="btnSubmitBuy">
+                  <span>Submit &amp; Buy ⭐</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
 

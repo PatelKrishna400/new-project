@@ -215,18 +215,107 @@ function openBuyModal(rsAmount, starCost, title, imgPath) {
   if (titleInput) titleInput.value = title;
   if (imgInput) imgInput.value = imgPath;
 
-  // Restore previous email or whatsapp if already stored
-  const savedEmail = localStorage.getItem('player_email') || '';
+  // Reset to Step 1
+  const step1 = document.getElementById('buyModalStep1');
+  const step2 = document.getElementById('buyModalStep2');
+  if (step1) step1.style.display = 'block';
+  if (step2) step2.style.display = 'none';
+
+  // 1. Loading Bar 1: Web Tasks Completed
+  const totalTasks = parseInt(localStorage.getItem('completed_tasks_count') || localStorage.getItem('task_game_total_tasks') || '0', 10);
+  const requiredTasks = rsAmount >= 100 ? rsAmount : 100;
+  const tasksPct = Math.min(100, Math.round((totalTasks / requiredTasks) * 100));
+
+  const tasksValEl = document.getElementById('buyReqTasksVal');
+  const tasksBarEl = document.getElementById('buyReqTasksBar');
+  const tasksSubEl = document.getElementById('buyReqTasksSub');
+  if (tasksValEl) tasksValEl.textContent = `${totalTasks} / ${requiredTasks} (${tasksPct}%)`;
+  if (tasksBarEl) tasksBarEl.style.width = `${tasksPct}%`;
+  if (tasksSubEl) {
+    if (totalTasks >= requiredTasks) {
+      tasksSubEl.textContent = `✅ ${requiredTasks} Website Tasks finished! Ready to claim.`;
+      tasksSubEl.style.color = '#34d399';
+    } else {
+      const needed = requiredTasks - totalTasks;
+      tasksSubEl.textContent = `🔒 ${needed} more website task${needed === 1 ? '' : 's'} needed to unlock buy button.`;
+      tasksSubEl.style.color = '#94a3b8';
+    }
+  }
+
+  // 2. Loading Bar 2: Stars Balance
+  userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  const starsPct = Math.min(100, Math.round((userStars / starCost) * 100));
+
+  const starsValEl = document.getElementById('buyReqStarsVal');
+  const starsBarEl = document.getElementById('buyReqStarsBar');
+  const starsSubEl = document.getElementById('buyReqStarsSub');
+  if (starsValEl) starsValEl.textContent = `${userStars.toLocaleString()} / ${starCost.toLocaleString()} (${starsPct}%)`;
+  if (starsBarEl) starsBarEl.style.width = `${starsPct}%`;
+  if (starsSubEl) {
+    if (userStars >= starCost) {
+      starsSubEl.textContent = `✅ Sufficient Stars balance available.`;
+      starsSubEl.style.color = '#34d399';
+    } else {
+      const neededStars = starCost - userStars;
+      starsSubEl.textContent = `🔒 Need ${neededStars.toLocaleString()} more Stars.`;
+      starsSubEl.style.color = '#f59e0b';
+    }
+  }
+
+  // Check qualifications to enable "Proceed to Buy" button
+  const canBuy = (totalTasks >= requiredTasks) && (userStars >= starCost);
+  const btnProceed = document.getElementById('btnProceedToStep2');
+  if (btnProceed) {
+    if (canBuy) {
+      btnProceed.disabled = false;
+      btnProceed.innerHTML = '<span>Proceed to Buy ➔</span>';
+      btnProceed.style.opacity = '1';
+      btnProceed.style.cursor = 'pointer';
+      btnProceed.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+    } else if (totalTasks < requiredTasks) {
+      btnProceed.disabled = true;
+      btnProceed.innerHTML = `<span>🔒 Complete ${requiredTasks} Tasks First</span>`;
+      btnProceed.style.opacity = '0.5';
+      btnProceed.style.cursor = 'not-allowed';
+      btnProceed.style.background = '#334155';
+    } else {
+      btnProceed.disabled = true;
+      btnProceed.innerHTML = `<span>🔒 Need ${starCost.toLocaleString()} Stars</span>`;
+      btnProceed.style.opacity = '0.5';
+      btnProceed.style.cursor = 'not-allowed';
+      btnProceed.style.background = '#334155';
+    }
+  }
+
+  // Pre-fill mobile number in step 2 (ensuring no "null")
   const savedWhatsapp = localStorage.getItem('player_whatsapp') || '';
-  const emailInput = document.getElementById('buyUserEmail');
   const waInput = document.getElementById('buyUserWhatsapp');
-  if (emailInput && !emailInput.value && savedEmail) emailInput.value = savedEmail;
-  if (waInput && !waInput.value && savedWhatsapp) waInput.value = savedWhatsapp;
+  if (waInput && savedWhatsapp && savedWhatsapp !== 'null') {
+    waInput.value = savedWhatsapp;
+  }
 
   if (modal) modal.classList.add('active');
-  setTimeout(() => {
-    if (emailInput) emailInput.focus();
-  }, 100);
+}
+
+function goToBuyStep2() {
+  const step1 = document.getElementById('buyModalStep1');
+  const step2 = document.getElementById('buyModalStep2');
+  if (step1) step1.style.display = 'none';
+  if (step2) step2.style.display = 'block';
+
+  const waInput = document.getElementById('buyUserWhatsapp');
+  if (waInput) {
+    const savedWhatsapp = localStorage.getItem('player_whatsapp') || '';
+    if (savedWhatsapp && savedWhatsapp !== 'null') waInput.value = savedWhatsapp;
+    setTimeout(() => waInput.focus(), 80);
+  }
+}
+
+function goToBuyStep1() {
+  const step1 = document.getElementById('buyModalStep1');
+  const step2 = document.getElementById('buyModalStep2');
+  if (step1) step1.style.display = 'block';
+  if (step2) step2.style.display = 'none';
 }
 
 function closeBuyModal() {
@@ -243,11 +332,10 @@ function handleConfirmBuy(event) {
   const title = document.getElementById('buyParamTitle').value || 'Amazon Gift Card';
   const imgPath = document.getElementById('buyParamImg').value || 'assets/amazon_100.jpg';
 
-  const email = document.getElementById('buyUserEmail').value.trim();
-  const whatsapp = document.getElementById('buyUserWhatsapp').value.trim();
+  const whatsapp = document.getElementById('buyUserWhatsapp')?.value.trim();
 
-  if (!email || !whatsapp) {
-    alert('Please enter both your Email and WhatsApp number.');
+  if (!whatsapp) {
+    alert('Please enter your Mobile / WhatsApp number.');
     return;
   }
 
@@ -264,9 +352,12 @@ function handleConfirmBuy(event) {
     return;
   }
 
-  // Save email and whatsapp for next purchase
-  localStorage.setItem('player_email', email);
+  // Save mobile number for next purchase
   localStorage.setItem('player_whatsapp', whatsapp);
+
+  // Fallback email safely without null
+  const rawEmail = localStorage.getItem('player_email');
+  const email = (rawEmail && rawEmail !== 'null') ? rawEmail : 'registered-user@taskgame.app';
 
   // Deduct stars
   userStars -= starCost;
@@ -336,7 +427,7 @@ function handleConfirmBuy(event) {
   if (modalTitle) modalTitle.textContent = title;
   if (modalCode) modalCode.textContent = claimCode;
   if (modalSub) {
-    modalSub.innerHTML = `Voucher registered for <strong style="color: #38bdf8;">${escapeHtml(email)}</strong> &bull; <strong style="color: #34d399;">${escapeHtml(whatsapp)}</strong>`;
+    modalSub.innerHTML = `Voucher registered for mobile: <strong style="color: #34d399;">${escapeHtml(whatsapp)}</strong>`;
   }
   if (btnCopy) {
     btnCopy.textContent = 'Copy';

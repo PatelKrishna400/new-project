@@ -1,3 +1,16 @@
+/* Core Resets */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
 /* Global Scrollbar Hiding */
 *::-webkit-scrollbar {
   display: none !important;
@@ -1872,7 +1885,7 @@ body {
 .invite-modal-exit-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 0.75rem 1rem 0.65rem 1rem;
   background: rgba(6, 15, 42, 0.95);
   border-bottom: 1.5px solid rgba(56, 189, 248, 0.25);

@@ -1,3 +1,16 @@
+/* Core Resets */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
 /* ==========================================================================
    SUNFLOWER SOLAR TYCOON PAGE STYLES (pages/sunflower/sunflower.css)
    ========================================================================== */

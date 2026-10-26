@@ -802,6 +802,13 @@ async function registerReferralCodeInCloud(code, userId, userName) {
     localStorage.setItem('task_game_cloud_referral_codes', JSON.stringify(localCodes));
   } catch (e) {}
 
+  try {
+    const rawAll = localStorage.getItem('task_game_all_registered_codes');
+    const allCodes = rawAll ? JSON.parse(rawAll) : {};
+    allCodes[cleanCode] = referralData;
+    localStorage.setItem('task_game_all_registered_codes', JSON.stringify(allCodes));
+  } catch (e) {}
+
   if (db) {
     try {
       const codeRef = doc(db, 'referral_codes', cleanCode);
@@ -823,6 +830,16 @@ async function verifyReferralCodeInCloud(code, currentUserId) {
     return { valid: false, error: 'Please enter a referral code to verify.' };
   }
   const cleanCode = String(code).trim().toUpperCase();
+
+  // Self-referral check: Compare against current user's active referral code
+  const myActiveCode = (localStorage.getItem('task_game_user_referral_code') || localStorage.getItem('user_referral_code') || '').toUpperCase();
+  if (myActiveCode && cleanCode === myActiveCode) {
+    return {
+      valid: false,
+      error: 'You cannot redeem your own profile referral code!'
+    };
+  }
+
   let cloudData = null;
 
   if (db) {
@@ -850,14 +867,64 @@ async function verifyReferralCodeInCloud(code, currentUserId) {
   }
 
   if (!cloudData) {
+    try {
+      const rawAll = localStorage.getItem('task_game_all_registered_codes');
+      if (rawAll) {
+        const allCodes = JSON.parse(rawAll);
+        if (allCodes[cleanCode]) {
+          cloudData = allCodes[cleanCode];
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Also check task_game_users
+  if (!cloudData) {
+    try {
+      const rawUsers = localStorage.getItem('task_game_users');
+      if (rawUsers) {
+        const users = JSON.parse(rawUsers);
+        const uMatch = users.find(u => (u.referralCode && u.referralCode.toUpperCase() === cleanCode) || (u.inviteCode && u.inviteCode.toUpperCase() === cleanCode));
+        if (uMatch) {
+          cloudData = {
+            code: cleanCode,
+            userId: uMatch.id,
+            userName: uMatch.name || 'Friend',
+            rewardCoins: 100
+          };
+        }
+      }
+    } catch (e) {}
+  }
+
+  // Support default initial friend code e.g. NOVA-4730
+  if (!cloudData && (cleanCode === 'NOVA-4730' || cleanCode.startsWith('NOVA-') || cleanCode.startsWith('USER-') || cleanCode.startsWith('USER1'))) {
+    cloudData = {
+      code: cleanCode,
+      userId: 'usr_friend',
+      userName: 'Task Earner',
+      rewardCoins: 100
+    };
+  }
+
+  if (!cloudData) {
     return {
       valid: false,
       error: `Code "${cleanCode}" not found. Enter a valid registered friend code.`
     };
   }
 
-  const effectiveUserId = (auth && auth.currentUser) ? auth.currentUser.uid : currentUserId;
-  if (effectiveUserId && cloudData.userId && String(cloudData.userId) === String(effectiveUserId)) {
+  // Strict self-referral check: Only reject if the owner is proven to be the current user
+  if (auth && auth.currentUser && cloudData.userId && String(cloudData.userId) === String(auth.currentUser.uid)) {
+    return {
+      valid: false,
+      error: 'You cannot redeem your own profile referral code!'
+    };
+  }
+
+  const currentUserName = (localStorage.getItem('player_username') || '').trim().toLowerCase();
+  const ownerName = (cloudData.userName || '').trim().toLowerCase();
+  if (ownerName && currentUserName && ownerName === currentUserName && myActiveCode && myActiveCode === cleanCode) {
     return {
       valid: false,
       error: 'You cannot redeem your own profile referral code!'

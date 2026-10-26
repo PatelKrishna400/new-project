@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * LUCKY ARCADE SUITE — MASTER MULTI-GAME CONTROLLER
+ * STAR GAME SUITE — MASTER MULTI-GAME CONTROLLER
  * 7 Arcade Classics • 50% Win Rate Calibration • 10 Plays/Day Limit + Watch Ad
  * ==========================================================================
  */
@@ -10,7 +10,7 @@ const BONUS_PLAYS_PER_AD = 5;
 
 // Global State
 let currentTab = 'lobby';
-let balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
+let balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 let currentBet = 20;
 let soundEnabled = true;
 
@@ -104,7 +104,7 @@ function updateBalanceUI() {
 }
 
 function saveBalance() {
-  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
+  localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
@@ -117,7 +117,7 @@ function addFreeCoins() {
   balance += 200;
   saveBalance();
   updateBalanceUI();
-  showToast('Bonus Added', '+200 free coins credited to your pouch!', '🎁');
+  showToast('Bonus Added', '+200 free stars credited to your pouch!', '⭐');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
@@ -194,7 +194,7 @@ function updateActionButtonState() {
     btn.innerText = '▶ Watch Ad to Play (0/10)';
     btn.className = 'w-full py-4 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black text-lg tracking-wide shadow-lg active:scale-[0.98] transition-all';
   } else if (balance < currentBet) {
-    btn.innerText = 'Get Free Refill (+200 🪙)';
+    btn.innerText = 'Get Free Refill (+200 ⭐)';
     btn.className = `w-full py-4 rounded-2xl bg-gradient-to-r ${cfg.btnClass} font-black text-lg tracking-wide shadow-lg active:scale-[0.98] transition-all`;
   } else {
     btn.innerText = cfg.btnText;
@@ -497,11 +497,13 @@ function openAdModal() {
   const playerView = document.getElementById('adPlayerView');
   if (!sheet || !overlay) return;
 
-  if (initialView) initialView.classList.remove('hidden');
-  if (playerView) playerView.classList.add('hidden');
+  if (initialView) { initialView.classList.remove('hidden'); initialView.style.display = 'block'; }
+  if (playerView) { playerView.classList.add('hidden'); playerView.style.display = 'none'; }
 
   overlay.classList.remove('hidden');
+  overlay.style.display = 'block';
   sheet.classList.remove('hidden');
+  sheet.style.display = 'block';
 }
 
 function closeAdModal() {
@@ -509,8 +511,8 @@ function closeAdModal() {
   playTone('click');
   const overlay = document.getElementById('adModalOverlay');
   const sheet = document.getElementById('adModalSheet');
-  if (sheet) sheet.classList.add('hidden');
-  if (overlay) overlay.classList.add('hidden');
+  if (sheet) { sheet.classList.add('hidden'); sheet.style.display = 'none'; }
+  if (overlay) { overlay.classList.add('hidden'); overlay.style.display = 'none'; }
 }
 
 function startWatchingAd() {
@@ -570,15 +572,49 @@ function startWatchingAd() {
 // Bet Controls
 function setBet(amount) {
   playTone('tick');
-  currentBet = Math.min(1000, Math.max(10, amount));
+  currentBet = Math.min(2000, Math.max(10, amount));
   const el = document.getElementById('currentBetDisplay');
   if (el) el.innerText = currentBet;
   updateActiveChipUI();
   if (currentTab === 'underover') updateUnderOverCalculations();
 }
 
-function halveBet() { setBet(Math.floor(currentBet / 2)); }
-function doubleBet() { setBet(currentBet * 2); }
+const BET_STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000];
+
+function stepDownBet() {
+  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
+  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
+  if (typeof isSpinning !== 'undefined' && isSpinning) return;
+  if (typeof isRolling !== 'undefined' && isRolling) return;
+  if (typeof isPlaying !== 'undefined' && isPlaying) return;
+  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+
+  const lower = BET_STEPS.filter(s => s < currentBet);
+  if (lower.length > 0) {
+    setBet(lower[lower.length - 1]);
+  } else {
+    setBet(BET_STEPS[0]);
+  }
+}
+
+function stepUpBet() {
+  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
+  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
+  if (typeof isSpinning !== 'undefined' && isSpinning) return;
+  if (typeof isRolling !== 'undefined' && isRolling) return;
+  if (typeof isPlaying !== 'undefined' && isPlaying) return;
+  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+
+  const higher = BET_STEPS.filter(s => s > currentBet);
+  if (higher.length > 0) {
+    setBet(higher[0]);
+  } else {
+    setBet(BET_STEPS[BET_STEPS.length - 1]);
+  }
+}
+
+function halveBet() { stepDownBet(); }
+function doubleBet() { stepUpBet(); }
 
 function updateActiveChipUI() {
   document.querySelectorAll('.bet-chip').forEach(btn => {
@@ -660,10 +696,17 @@ function rollDiceGame() {
 
   const cube = document.getElementById('cube');
 
-  // Exact 50% Win Rate Calibration:
-  // 50% Win: Faces 4 (x1.2), 5 (x1.5), 6 (x2.0)
-  // 50% Loss: Faces 1 (x0), 2 (x0.3), 3 (x0.6)
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   let rolledFace;
   if (isWin) {
     const winFaces = [4, 5, 6];
@@ -690,20 +733,31 @@ function rollDiceGame() {
     }
     updateDiceStreakUI();
 
-    let wonAmount = Math.round(currentBet * baseMult);
+    let grossWin = Math.round(currentBet * baseMult);
     if (diceStreak === 3) {
-      wonAmount = Math.round(currentBet * 7); // Jackpot x7
+      grossWin = Math.round(currentBet * 7); // Jackpot x7
       diceStreak = 0;
       updateDiceStreakUI();
+    }
+
+    // 0.1% Tax Cut on Winnings (min 1 star if gross > 0)
+    let wonAmount = 0;
+    let taxAmount = 0;
+    if (grossWin > 0) {
+      taxAmount = Math.max(1, Math.round(grossWin * 0.001));
+      wonAmount = Math.max(0, grossWin - taxAmount);
+    }
+
+    if (grossWin >= Math.round(currentBet * 7)) {
       if (window.confetti) confetti({ particleCount: 100, spread: 80 });
       playTone('jackpot');
-      showToast('JACKPOT!', `Three Sixes in a row! Paid ×7 (+${wonAmount} 🪙)`, '🔥');
+      showToast('JACKPOT!', `Three Sixes! Paid +${wonAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🔥');
     } else if (baseMult > 1) {
       playTone('win');
-      showToast('Winner!', `Rolled a ${rolledFace}! Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎉');
+      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🎉');
     } else if (baseMult > 0) {
       playTone('win');
-      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎲');
+      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} ⭐, tax: -${taxAmount} ⭐)`, '🎲');
     } else {
       playTone('lose');
       showToast('Rolled a One', 'Face 1 pays ×0. Better luck next roll!', '💀');
@@ -774,8 +828,17 @@ function buyScratchCard() {
   scratchPurchased = true;
   playTone('roll');
 
-  // Exact 50% Win Rate Calibration:
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   if (isWin) {
     const winRoll = Math.random();
     if (winRoll < 0.08) {
@@ -785,7 +848,7 @@ function buyScratchCard() {
     } else if (winRoll < 0.80) {
       scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
     } else {
-      scratchPrize = { tier: 'Money Back', mult: 1, icon: '🪙' };
+      scratchPrize = { tier: 'Money Back', mult: 1, icon: '⭐' };
     }
   } else {
     scratchPrize = { tier: 'Bust', mult: 0, icon: '💨' };
@@ -795,7 +858,7 @@ function buyScratchCard() {
   document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
   document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
   const winCoin = Math.round(currentBet * scratchPrize.mult);
-  document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+  document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Stars` : `0 Stars`;
 
   initScratchCard(true);
   const btn = document.getElementById('primaryPlayBtn');
@@ -848,7 +911,13 @@ function revealScratchFinish(canvas, ctx) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   scratchPurchased = false;
-  const winAmount = Math.round(currentBet * scratchPrize.mult);
+  const grossWin = Math.round(currentBet * scratchPrize.mult);
+  let taxAmount = 0;
+  let winAmount = 0;
+  if (grossWin > 0) {
+    taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+    winAmount = Math.max(0, grossWin - taxAmount);
+  }
   balance += winAmount;
   saveBalance();
   updateBalanceUI();
@@ -856,10 +925,10 @@ function revealScratchFinish(canvas, ctx) {
   if (scratchPrize.mult >= 5) {
     if (window.confetti) confetti({ particleCount: 80, spread: 70 });
     playTone('jackpot');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
   } else if (scratchPrize.mult > 0) {
     playTone('win');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
   } else {
     playTone('lose');
     showToast('Bust', 'No prize under foil. Better luck next time!', '💨');
@@ -944,10 +1013,17 @@ function spinWheelGame() {
 
   const canvas = document.getElementById('wheelCanvas');
 
-  // Exact 50% Win Rate Calibration:
-  // 50% Win wedges: index 0 (x5), 2 (x1), 6 (x2), 8 (x1)
-  // 50% Loss wedges: index 1, 3, 4 (x0.5), 5, 7, 9, 10 (x0.5), 11
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   let targetIndex;
   if (isWin) {
     const winWedges = [0, 2, 6, 8];
@@ -977,7 +1053,14 @@ function spinWheelGame() {
     clearInterval(tickInterval);
     isWheelSpinning = false;
     const wedge = WHEEL_WEDGES[targetIndex];
-    const winAmount = Math.round(currentBet * wedge.mult);
+    const grossWin = Math.round(currentBet * wedge.mult);
+    let taxAmount = 0;
+    let winAmount = 0;
+    if (grossWin > 0) {
+      taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+      winAmount = Math.max(0, grossWin - taxAmount);
+    }
+
     balance += winAmount;
     saveBalance();
     updateBalanceUI();
@@ -985,10 +1068,10 @@ function spinWheelGame() {
     if (wedge.mult >= 5) {
       if (window.confetti) confetti({ particleCount: 100, spread: 75 });
       playTone('jackpot');
-      showToast('GOLD WEDGE!', `Hit ×5! Payout +${winAmount} 🪙`, '👑');
+      showToast('GOLD WEDGE!', `Hit ×5! Payout +${winAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '👑');
     } else if (wedge.mult > 0) {
       playTone('win');
-      showToast(`Landed on ${wedge.label}`, `Multiplier awarded! (+${winAmount} 🪙)`, '🎡');
+      showToast(`Landed on ${wedge.label}`, `Won +${winAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🎡');
     } else {
       playTone('lose');
       showToast('Bust Wedge', 'No luck on this spin! Stake lost.', '💀');
@@ -1055,10 +1138,17 @@ function dropPlinkoBall() {
   const w = canvas.width;
   const h = canvas.height;
 
-  // Exact 50% Win Rate Calibration:
-  // Win buckets: 0 (24x), 1 (5x), 2 (2x), 3 (1.2x), 7 (1.2x), 8 (2x), 9 (5x), 10 (24x)
-  // Loss buckets: 4 (0.7x), 5 (0.25x), 6 (0.7x)
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   let targetBucket;
   if (isWin) {
     const winBuckets = [0, 1, 2, 3, 7, 8, 9, 10];
@@ -1100,7 +1190,14 @@ function dropPlinkoBall() {
     } else {
       isDroppingPlinko = false;
       const mult = PLINKO_BUCKETS[targetBucket];
-      const winAmount = Math.round(currentBet * mult);
+      const grossWin = Math.round(currentBet * mult);
+      let taxAmount = 0;
+      let winAmount = 0;
+      if (grossWin > 0) {
+        taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+        winAmount = Math.max(0, grossWin - taxAmount);
+      }
+
       balance += winAmount;
       saveBalance();
       updateBalanceUI();
@@ -1108,10 +1205,10 @@ function dropPlinkoBall() {
       if (mult >= 5) {
         if (window.confetti) confetti({ particleCount: 90, spread: 70 });
         playTone('jackpot');
-        showToast('EDGE SHOT!', `Landed on ×${mult}! Won ${winAmount} 🪙`, '🎁');
+        showToast('EDGE SHOT!', `Landed on ×${mult}! Won ${winAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🎁');
       } else if (mult > 0) {
         playTone('win');
-        showToast('Gift Landed', `Paid ×${mult} (${winAmount} 🪙)`, '🎁');
+        showToast('Gift Landed', `Paid ×${mult} (+${winAmount} ⭐, tax: -${taxAmount} ⭐)`, '🎁');
       } else {
         playTone('lose');
       }
@@ -1154,8 +1251,17 @@ function flipCoinGame() {
   const coinEl = document.getElementById('coinElement');
   const symbolEl = document.getElementById('coinFaceSymbol');
 
-  // Exact 50% Win Rate Calibration:
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   const outcome = isWin ? coinSelectedSide : (coinSelectedSide === 'heads' ? 'tails' : 'heads');
 
   if (coinEl) coinEl.style.transform = 'rotateY(1800deg) scale(1.15)';
@@ -1174,13 +1280,16 @@ function flipCoinGame() {
     isCoinFlipping = false;
 
     if (outcome === coinSelectedSide) {
-      const winAmount = Math.round(currentBet * 1.9);
+      const grossWin = Math.round(currentBet * 1.9);
+      const taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+      const winAmount = Math.max(0, grossWin - taxAmount);
+
       balance += winAmount;
       saveBalance();
       updateBalanceUI();
       if (window.confetti) confetti({ particleCount: 60, spread: 60 });
       playTone('win');
-      showToast('Correct Call!', `${outcome.toUpperCase()} landed! Paid ×1.9 (+${winAmount} 🪙)`, '🪙');
+      showToast('Correct Call!', `${outcome.toUpperCase()} landed! Paid ×1.9 (+${winAmount} ⭐, 0.1% tax: -${taxAmount} ⭐)`, '⭐');
     } else {
       playTone('lose');
       showToast('Wrong Call', `Coin was ${outcome.toUpperCase()}. Stake lost!`, '💨');
@@ -1251,6 +1360,20 @@ function tapMinesTile(index) {
   const tileData = minesGridData[index];
   if (tileData.revealed) return;
 
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% survival probability
+  // Total star balance >= 5,000  -> 20% survival probability
+  // Below 5,000 stars            -> default game board odds
+  if (balance >= 5000) {
+    const survivalRate = (balance >= 10000) ? 0.10 : 0.20;
+    const isSafe = Math.random() < survivalRate;
+    if (!isSafe && !tileData.isBomb) {
+      tileData.isBomb = true; // Trigger bomb
+    } else if (isSafe && tileData.isBomb) {
+      tileData.isBomb = false; // Lucky safe pick
+    }
+  }
+
   const tileEl = document.getElementById(`mine-tile-${index}`);
   tileData.revealed = true;
 
@@ -1274,7 +1397,9 @@ function tapMinesTile(index) {
     const multDisplay = document.getElementById('minesCurrentMultiplier');
     if (multDisplay) multDisplay.innerText = `×${currentMult}`;
 
-    const currentWin = Math.round(currentBet * currentMult);
+    const grossCurrentWin = Math.round(currentBet * currentMult);
+    const currentTax = Math.max(1, Math.round(grossCurrentWin * 0.001));
+    const currentWin = Math.max(0, grossCurrentWin - currentTax);
     const cashText = document.getElementById('cashoutAmountText');
     if (cashText) cashText.innerText = currentWin;
   }
@@ -1285,14 +1410,21 @@ function cashoutMines() {
   isMinesActive = false;
   const multDisplay = document.getElementById('minesCurrentMultiplier');
   const multStr = multDisplay ? multDisplay.innerText.replace('×', '') : '1.0';
-  const winAmount = Math.round(currentBet * parseFloat(multStr));
+  const grossWin = Math.round(currentBet * parseFloat(multStr));
+  let taxAmount = 0;
+  let winAmount = 0;
+  if (grossWin > 0) {
+    taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+    winAmount = Math.max(0, grossWin - taxAmount);
+  }
+
   balance += winAmount;
   saveBalance();
   updateBalanceUI();
 
   if (window.confetti) confetti({ particleCount: 75, spread: 65 });
   playTone('jackpot');
-  showToast('Cashed Out!', `Secured ×${multStr} (+${winAmount} 🪙)`, '💰');
+  showToast('Cashed Out!', `Secured ×${multStr} (+${winAmount} ⭐, 0.1% tax: -${taxAmount} ⭐)`, '⭐');
 
   revealAllMines();
   document.getElementById('primaryPlayBtn')?.classList.remove('hidden');
@@ -1359,7 +1491,7 @@ function updateUnderOverCalculations() {
 
   if (cText) cText.innerText = `${winChance}%`;
   if (mText) mText.innerText = `×${payout}`;
-  if (wText) wText.innerText = `${toWin} 🪙`;
+  if (wText) wText.innerText = `${toWin} ⭐`;
 }
 
 function rollUnderOverGame() {
@@ -1379,8 +1511,17 @@ function rollUnderOverGame() {
     counter++;
   }, 70);
 
-  // Exact 50% Win Rate Calibration:
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   let finalNumber;
   if (isWin) {
     if (uoDirection === 'under') {
@@ -1405,13 +1546,16 @@ function rollUnderOverGame() {
     const payout = parseFloat((95 / Math.max(1, winChance)).toFixed(2));
 
     if (isWin) {
-      const winAmount = Math.round(currentBet * payout);
+      const grossWin = Math.round(currentBet * payout);
+      const taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+      const winAmount = Math.max(0, grossWin - taxAmount);
+
       balance += winAmount;
       saveBalance();
       updateBalanceUI();
       if (window.confetti) confetti({ particleCount: 70, spread: 60 });
       playTone('win');
-      showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} 🪙 (×${payout})`, '🎯');
+      showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} ⭐ (×${payout}, 0.1% tax: -${taxAmount} ⭐)`, '🎯');
     } else {
       playTone('lose');
       showToast('Missed!', `Rolled ${finalNumber}. Condition not met.`, '❌');
@@ -1423,14 +1567,14 @@ function rollUnderOverGame() {
 // INITIALIZATION ON DOM READY
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
+  balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
   updateBalanceUI();
   updateActiveChipUI();
   switchTab('lobby');
 
   window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_coins') {
-      balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
+    if (e.key === 'task_game_stars') {
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     }
   });
@@ -1438,8 +1582,8 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const syncChannel = new BroadcastChannel('nova_task_sync');
     syncChannel.onmessage = (e) => {
-      if (e.data && (e.data.type === 'BALANCES_UPDATED' || e.data.type === 'COINS_UPDATED')) {
-        balance = parseInt(localStorage.getItem('task_game_coins') || '500', 10);
+      if (e.data && (e.data.type === 'BALANCES_UPDATED' || e.data.type === 'STARS_UPDATED')) {
+        balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
         updateBalanceUI();
       }
     };

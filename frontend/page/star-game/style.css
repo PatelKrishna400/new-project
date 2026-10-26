@@ -1,5 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+/* Core Resets */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+
 * {
   font-family: 'Plus Jakarta Sans', sans-serif;
   user-select: none;
@@ -109,4 +123,40 @@ input[type=range]::-webkit-slider-runnable-track {
 /* Ad Modal Animation */
 .ad-modal-card {
   transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* Micro-interactions & Tactile controls */
+button, .cursor-pointer {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+.bet-chip, .chips-grid button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bet-chip:hover, .chips-grid button:hover {
+  transform: translateY(-2px);
+}
+
+.bet-chip:active, .chips-grid button:active {
+  transform: scale(0.94);
+}
+
+.game-view {
+  animation: fadeInStage 0.25s ease-out;
+}
+
+@keyframes fadeInStage {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,3 +1,16 @@
+/* Core Resets */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  outline: none;
+  background: none;
+}
+
 /* Global Scrollbar Hiding */
 *::-webkit-scrollbar {
   display: none !important;
@@ -171,10 +184,14 @@ body {
 }
 
 .top-tab-btn.active#tabBtnLucky {
-  background: linear-gradient(155deg, #9333ea 0%, #6b21a8 50%, #170826 100%);
-  color: #fef08a;
-  border: 1px solid rgba(192, 132, 252, 0.6);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5), inset 0 1.5px 1px rgba(233, 213, 255, 0.5);
+  background: linear-gradient(135deg, #78350f 0%, #b45309 45%, #d97706 100%);
+  color: #ffffff;
+  border: 1.5px solid #fde047;
+  box-shadow: 
+    0 4px 16px rgba(217, 119, 6, 0.5),
+    inset 0 1.5px 1px rgba(254, 240, 138, 0.6),
+    0 0 15px rgba(245, 158, 11, 0.35);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .tab-icon {
@@ -209,105 +226,136 @@ body {
   width: 100%;
 }
 
-/* Master Lucky Suite Hero Card */
-.lucky-suite-hero-card {
-  position: relative;
-  background: linear-gradient(155deg, #1e1338 0%, #0d122b 50%, #080c1d 100%);
-  border: 1.5px solid rgba(168, 85, 247, 0.45);
-  border-radius: 20px;
-  padding: 1.15rem;
-  text-decoration: none;
-  color: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 24px rgba(168, 85, 247, 0.2);
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  cursor: pointer;
-}
 
-.lucky-suite-hero-card:hover {
-  transform: translateY(-3px) scale(1.01);
-  border-color: #c084fc;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.8), 0 0 32px rgba(168, 85, 247, 0.4);
-}
 
-.lucky-hero-glow {
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.lucky-hero-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  position: relative;
-  z-index: 2;
-}
-
-.lucky-hero-badge {
+/* Merged Single-Line Bottom Bar for Idle Farms */
+.tab-merged-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: #facc15;
+  gap: 0.65rem;
+  background: rgba(6, 14, 36, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 14px;
+  padding: 0.45rem 0.65rem;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
 }
 
-.lucky-hero-tag {
-  background: rgba(168, 85, 247, 0.25);
-  border: 1px solid rgba(168, 85, 247, 0.5);
-  color: #e9d5ff;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.62rem;
-  letter-spacing: 0.05em;
-}
-
-.lucky-hero-title {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
-}
-
-.lucky-hero-desc {
-  font-size: 0.72rem;
-  color: #cbd5e1;
-  line-height: 1.4;
-}
-
-.btn-open-suite {
+.tab-merged-stats {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-  border: 1px solid #c084fc;
-  color: #ffffff;
-  font-size: 0.82rem;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: space-around;
+}
+
+.merged-stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.btn-merged-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.76rem;
   font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
   letter-spacing: 0.03em;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
   transition: all 0.2s ease;
 }
 
-.lucky-suite-hero-card:hover .btn-open-suite {
-  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
-  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.6);
-  transform: translateY(-1px);
+.sf-launch-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
-/* Grid of 7 Dedicated Arcade Game Cards */
+.hb-launch-btn {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.sunflower-game-tab:hover .btn-merged-launch {
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.1);
+}
+
+/* ==========================================================================
+   STAR GAMES ARCADE SUITE (PREMIUM DESIGN)
+   ========================================================================== */
+.star-games-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding: 0.2rem 0.1rem;
+}
+
+.star-games-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.star-games-heading {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 0.15rem 0;
+  letter-spacing: -0.01em;
+}
+
+.star-games-sub {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.star-games-header-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 12px;
+  padding: 0.35rem 0.7rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+}
+
+.badge-num {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+}
+
+.badge-lbl {
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+/* Grid of 7 Dedicated Arcade Game Cards (Premium Finish) */
 .lucky-games-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -319,155 +367,172 @@ body {
   flex-direction: column;
   justify-content: space-between;
   border-radius: 18px;
-  padding: 0.85rem;
+  padding: 0.95rem;
   text-decoration: none;
   color: #f8fafc;
-  min-height: 150px;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  min-height: 168px;
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.08);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .lucky-card:hover {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-4px) scale(1.02);
 }
 
 .lucky-card:active {
-  transform: scale(0.98);
+  transform: scale(0.97) translateY(1px);
 }
 
 .lucky-card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.55rem;
 }
 
 .lucky-card-icon {
   font-size: 1.45rem;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.lucky-card:hover .lucky-card-icon {
+  transform: scale(1.08) rotate(3deg);
 }
 
 .lucky-mult-pill {
   font-size: 0.62rem;
   font-weight: 900;
   text-transform: uppercase;
-  padding: 0.15rem 0.5rem;
+  padding: 0.22rem 0.58rem;
   border-radius: 999px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .lucky-card-title {
-  font-size: 0.88rem;
+  font-size: 0.96rem;
   font-weight: 800;
   color: #ffffff;
+  margin-top: 0.1rem;
 }
 
 .lucky-card-desc {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: #94a3b8;
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
   line-height: 1.3;
 }
 
 .btn-card-launch {
-  margin-top: 0.65rem;
+  margin-top: 0.75rem;
   width: 100%;
-  padding: 0.45rem;
-  border-radius: 10px;
+  padding: 0.54rem;
+  border-radius: 12px;
   border: none;
-  font-size: 0.74rem;
+  font-size: 0.84rem;
   font-weight: 900;
   text-align: center;
   cursor: pointer;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+}
+
+.lucky-card:hover .btn-card-launch {
+  filter: brightness(1.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
 }
 
 /* Card 1: Lucky Dice */
 .lucky-card-dice {
-  background: linear-gradient(165deg, #101c2e 0%, #0a111c 100%);
-  border: 1.5px solid rgba(56, 189, 248, 0.3);
+  background: linear-gradient(165deg, #0d1a2d 0%, #080f1a 100%);
+  border: 1.5px solid rgba(14, 165, 233, 0.35);
 }
-.lucky-card-dice:hover { border-color: #38bdf8; box-shadow: 0 8px 24px rgba(56, 189, 248, 0.25); }
-.lucky-card-dice .lucky-card-icon { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); }
-.pill-dice { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
-.btn-launch-dice { background: #38bdf8; color: #07090e; }
+.lucky-card-dice:hover { border-color: #38bdf8; box-shadow: 0 8px 24px rgba(14, 165, 233, 0.3); }
+.lucky-card-dice .lucky-card-icon { background: #0f243d; border: 1px solid rgba(56, 189, 248, 0.3); }
+.pill-dice { background: #0284c7; color: #ffffff; }
+.btn-launch-dice { background: #00a2ff; color: #000000; }
 
 /* Card 2: Lucky Scratch */
 .lucky-card-scratch {
-  background: linear-gradient(165deg, #22121b 0%, #120a0f 100%);
-  border: 1.5px solid rgba(251, 113, 133, 0.3);
+  background: linear-gradient(165deg, #260e1b 0%, #15070f 100%);
+  border: 1.5px solid rgba(244, 63, 94, 0.35);
 }
-.lucky-card-scratch:hover { border-color: #fb7185; box-shadow: 0 8px 24px rgba(251, 113, 133, 0.25); }
-.lucky-card-scratch .lucky-card-icon { background: rgba(251, 113, 133, 0.15); border: 1px solid rgba(251, 113, 133, 0.35); }
-.pill-scratch { background: rgba(251, 113, 133, 0.2); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.4); }
-.btn-launch-scratch { background: #fb7185; color: #07090e; }
+.lucky-card-scratch:hover { border-color: #fb7185; box-shadow: 0 8px 24px rgba(244, 63, 94, 0.3); }
+.lucky-card-scratch .lucky-card-icon { background: #2d0f1b; border: 1px solid rgba(251, 113, 133, 0.3); }
+.pill-scratch { background: #be123c; color: #ffffff; }
+.btn-launch-scratch { background: #ff2d55; color: #ffffff; }
 
 /* Card 3: Lucky Spin */
 .lucky-card-spin {
-  background: linear-gradient(165deg, #1b1029 0%, #0e0917 100%);
-  border: 1.5px solid rgba(168, 85, 247, 0.3);
+  background: linear-gradient(165deg, #1f0e33 0%, #10061c 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.35);
 }
-.lucky-card-spin:hover { border-color: #a855f7; box-shadow: 0 8px 24px rgba(168, 85, 247, 0.25); }
-.lucky-card-spin .lucky-card-icon { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); }
-.pill-spin { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
-.btn-launch-spin { background: #a855f7; color: #ffffff; }
+.lucky-card-spin:hover { border-color: #c084fc; box-shadow: 0 8px 24px rgba(168, 85, 247, 0.3); }
+.lucky-card-spin .lucky-card-icon { background: #26113b; border: 1px solid rgba(168, 85, 247, 0.3); }
+.pill-spin { background: #7e22ce; color: #ffffff; }
+.btn-launch-spin { background: #9d4edd; color: #ffffff; }
 
 /* Card 4: Gift Drop */
 .lucky-card-plinko {
-  background: linear-gradient(165deg, #0e1c25 0%, #081117 100%);
-  border: 1.5px solid rgba(6, 182, 212, 0.3);
+  background: linear-gradient(165deg, #091d26 0%, #040e13 100%);
+  border: 1.5px solid rgba(6, 182, 212, 0.35);
 }
-.lucky-card-plinko:hover { border-color: #06b6d4; box-shadow: 0 8px 24px rgba(6, 182, 212, 0.25); }
-.lucky-card-plinko .lucky-card-icon { background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35); }
-.pill-plinko { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4); }
-.btn-launch-plinko { background: #06b6d4; color: #07090e; }
+.lucky-card-plinko:hover { border-color: #22d3ee; box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3); }
+.lucky-card-plinko .lucky-card-icon { background: #092834; border: 1px solid rgba(6, 182, 212, 0.3); }
+.pill-plinko { background: #0e7490; color: #ffffff; }
+.btn-launch-plinko { background: #00c8e0; color: #000000; }
 
 /* Card 5: Coin Flip */
 .lucky-card-coin {
-  background: linear-gradient(165deg, #221a0d 0%, #120e06 100%);
-  border: 1.5px solid rgba(234, 179, 8, 0.3);
+  background: linear-gradient(165deg, #261908 0%, #140d04 100%);
+  border: 1.5px solid rgba(245, 158, 11, 0.35);
 }
-.lucky-card-coin:hover { border-color: #eab308; box-shadow: 0 8px 24px rgba(234, 179, 8, 0.25); }
-.lucky-card-coin .lucky-card-icon { background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); }
-.pill-coin { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
-.btn-launch-coin { background: #eab308; color: #451a03; }
+.lucky-card-coin:hover { border-color: #fbbf24; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3); }
+.lucky-card-coin .lucky-card-icon { background: #332107; border: 1px solid rgba(245, 158, 11, 0.3); }
+.pill-coin { background: #b45309; color: #ffffff; }
+.btn-launch-coin { background: #f59e0b; color: #000000; }
 
-/* Card 6: Mines */
+/* Card 6: Mines (Gift Hunt) */
 .lucky-card-mines {
-  background: linear-gradient(165deg, #0d1e1c 0%, #071211 100%);
-  border: 1.5px solid rgba(45, 212, 191, 0.3);
+  background: linear-gradient(165deg, #0a1f1b 0%, #05100e 100%);
+  border: 1.5px solid rgba(20, 184, 166, 0.35);
 }
-.lucky-card-mines:hover { border-color: #2dd4bf; box-shadow: 0 8px 24px rgba(45, 212, 191, 0.25); }
-.lucky-card-mines .lucky-card-icon { background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); }
-.pill-mines { background: rgba(45, 212, 191, 0.2); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); }
-.btn-launch-mines { background: #2dd4bf; color: #022c22; }
+.lucky-card-mines:hover { border-color: #2dd4bf; box-shadow: 0 8px 24px rgba(20, 184, 166, 0.3); }
+.lucky-card-mines .lucky-card-icon { background: #0c2b23; border: 1px solid rgba(20, 184, 166, 0.3); }
+.pill-mines { background: #0f766e; color: #ffffff; }
+.btn-launch-mines { background: #14b8a6; color: #000000; }
 
 /* Card 7: Under Over Full Width */
 .lucky-card-full {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(90deg, #142210 0%, #0b1509 100%);
+  background: linear-gradient(90deg, #13220e 0%, #091307 100%);
   border: 1.5px solid rgba(132, 204, 22, 0.35);
   border-radius: 18px;
   padding: 0.95rem 1rem;
   text-decoration: none;
   color: #f8fafc;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .lucky-card-full:hover {
-  transform: translateY(-3px) scale(1.01);
-  border-color: #84cc16;
-  box-shadow: 0 8px 24px rgba(132, 204, 22, 0.25);
+  transform: translateY(-4px) scale(1.01);
+  border-color: #a3e635;
+  box-shadow: 0 8px 26px rgba(132, 204, 22, 0.35);
 }
 .lucky-card-full:active {
   transform: scale(0.98);
@@ -479,21 +544,38 @@ body {
   margin-bottom: 0;
   width: 100%;
 }
+.lucky-full-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+.lucky-full-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.lucky-full-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
 .lucky-card-full .lucky-card-icon {
-  background: rgba(132, 204, 22, 0.15);
+  background: #1a2f0c;
   border: 1px solid rgba(132, 204, 22, 0.35);
   flex-shrink: 0;
 }
 .pill-underover {
-  background: rgba(132, 204, 22, 0.2);
-  color: #a3e635;
-  border: 1px solid rgba(132, 204, 22, 0.4);
+  background: #3f6212;
+  color: #ffffff;
 }
 .btn-launch-underover {
   background: #84cc16;
-  color: #1a2e05;
-  padding: 0.45rem 1rem;
+  color: #000000;
+  padding: 0.55rem 1.35rem;
   width: auto;
+  margin-top: 0;
+  white-space: nowrap;
 }
 
 /* Hero Banner */

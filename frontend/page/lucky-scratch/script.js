@@ -7,7 +7,7 @@ const GAME_ID = 'lucky_scratch';
 const DAILY_FREE_PLAYS = 10;
 const BONUS_PLAYS_PER_AD = 5;
 
-let balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+let balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 let currentBet = 20;
 let soundEnabled = true;
 let isScratchingCard = false;
@@ -64,7 +64,7 @@ function updateBalanceUI() {
 }
 
 function saveBalance() {
-  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
+  localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
@@ -77,7 +77,7 @@ function addFreeCoins() {
   balance += 200;
   saveBalance();
   updateBalanceUI();
-  showToast('Bonus Credited', '+200 Free Coins added to your pouch!', '🎁');
+  showToast('Bonus Credited', '+200 Free Stars added to your pouch!', '⭐');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
@@ -151,7 +151,7 @@ function updateActionButtonState() {
     btn.style.background = 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)';
     btn.style.color = '#ffffff';
   } else if (balance < currentBet) {
-    btn.innerText = 'Buy coins (+200 Free)';
+    btn.innerText = 'Buy stars (+200 Free)';
     btn.style.background = 'linear-gradient(135deg, #fb7185 0%, #be123c 100%)';
     btn.style.color = '#ffffff';
   } else {
@@ -165,15 +165,49 @@ function updateActionButtonState() {
 function setBet(amount) {
   if (scratchPurchased) return;
   playTone('tick');
-  currentBet = Math.min(1000, Math.max(10, amount));
+  currentBet = Math.min(2000, Math.max(10, amount));
   const betEl = document.getElementById('currentBetDisplay');
   if (betEl) betEl.innerText = currentBet;
   updateActiveChipUI();
   updateActionButtonState();
 }
 
-function halveBet() { if (!scratchPurchased) setBet(Math.floor(currentBet / 2)); }
-function doubleBet() { if (!scratchPurchased) setBet(currentBet * 2); }
+const BET_STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000];
+
+function stepDownBet() {
+  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
+  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
+  if (typeof isSpinning !== 'undefined' && isSpinning) return;
+  if (typeof isRolling !== 'undefined' && isRolling) return;
+  if (typeof isPlaying !== 'undefined' && isPlaying) return;
+  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+
+  const lower = BET_STEPS.filter(s => s < currentBet);
+  if (lower.length > 0) {
+    setBet(lower[lower.length - 1]);
+  } else {
+    setBet(BET_STEPS[0]);
+  }
+}
+
+function stepUpBet() {
+  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
+  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
+  if (typeof isSpinning !== 'undefined' && isSpinning) return;
+  if (typeof isRolling !== 'undefined' && isRolling) return;
+  if (typeof isPlaying !== 'undefined' && isPlaying) return;
+  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+
+  const higher = BET_STEPS.filter(s => s > currentBet);
+  if (higher.length > 0) {
+    setBet(higher[0]);
+  } else {
+    setBet(BET_STEPS[BET_STEPS.length - 1]);
+  }
+}
+
+function halveBet() { stepDownBet(); }
+function doubleBet() { stepUpBet(); }
 
 function updateActiveChipUI() {
   document.querySelectorAll('.bet-chip').forEach(btn => {
@@ -190,12 +224,19 @@ function updateActiveChipUI() {
 function showToast(title, msg, icon = '✨') {
   const toast = document.getElementById('toastBar');
   if (!toast) return;
-  document.getElementById('toastTitle').innerText = title;
-  document.getElementById('toastMsg').innerText = msg;
-  document.getElementById('toastIcon').innerText = icon;
+  const tTitle = document.getElementById('toastTitle');
+  const tMsg = document.getElementById('toastMsg');
+  const tIcon = document.getElementById('toastIcon');
+  if (tTitle) tTitle.innerText = title;
+  if (tMsg) tMsg.innerText = msg;
+  if (tIcon && icon) tIcon.innerText = icon;
 
-  toast.classList.add('show');
-  setTimeout(() => { toast.classList.remove('show'); }, 2600);
+  toast.style.display = 'flex';
+  setTimeout(() => { toast.classList.add('show'); }, 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => { toast.style.display = 'none'; }, 300);
+  }, 2600);
 }
 
 // Canvas Foil Logic
@@ -259,7 +300,7 @@ function buyScratchCard() {
   }
 
   if (balance < currentBet) {
-    showToast('Insufficient Coins', 'Claimed free refill coins!', '🎁');
+    showToast('Insufficient Stars', 'Claimed free refill stars!', '⭐');
     addFreeCoins();
     return;
   }
@@ -271,10 +312,17 @@ function buyScratchCard() {
   scratchPurchased = true;
   playTone('roll');
 
-  // Exact 50% Win Rate Calibration:
-  // 50% Win: Jackpot (x15), Big win (x5), Winner (x2), Money back (x1)
-  // 50% Bust: Bust (x0)
-  const isWin = Math.random() < 0.50;
+  // Dynamic Win Rate Calibration:
+  // Total star balance >= 10,000 -> 10% win probability
+  // Total star balance >= 5,000  -> 20% win probability
+  // Below 5,000 stars            -> 50% win probability
+  let winProbability = 0.50;
+  if (balance >= 10000) {
+    winProbability = 0.10;
+  } else if (balance >= 5000) {
+    winProbability = 0.20;
+  }
+  const isWin = Math.random() < winProbability;
   if (isWin) {
     const winRoll = Math.random();
     if (winRoll < 0.08) {
@@ -284,7 +332,7 @@ function buyScratchCard() {
     } else if (winRoll < 0.65) {
       scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
     } else {
-      scratchPrize = { tier: 'Money back', mult: 1, icon: '🪙' };
+      scratchPrize = { tier: 'Money back', mult: 1, icon: '⭐' };
     }
   } else {
     scratchPrize = { tier: 'Bust', mult: 0, icon: '💨' };
@@ -294,7 +342,7 @@ function buyScratchCard() {
   document.getElementById('prizeMultiplier').innerText = `×${scratchPrize.mult}`;
   document.getElementById('prizeTier').innerText = scratchPrize.tier;
   const winCoin = Math.round(currentBet * scratchPrize.mult);
-  document.getElementById('prizeWinCoins').innerText = winCoin > 0 ? `+${winCoin.toLocaleString()} Coins` : '0 Coins';
+  document.getElementById('prizeWinCoins').innerText = winCoin > 0 ? `+${winCoin.toLocaleString()} Stars` : '0 Stars';
 
   initScratchCanvas(true);
   updateActionButtonState();
@@ -354,15 +402,21 @@ function revealFullPrize(canvas, ctx) {
   canvas.ontouchmove = null;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const winAmount = Math.round(currentBet * scratchPrize.mult);
+  const grossWin = Math.round(currentBet * scratchPrize.mult);
+  let taxAmount = 0;
+  let winAmount = 0;
+  if (grossWin > 0) {
+    taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
+    winAmount = Math.max(0, grossWin - taxAmount);
+  }
 
   if (scratchPrize.mult >= 5) {
     if (window.confetti) confetti({ particleCount: 110, spread: 80 });
     playTone('jackpot');
-    showToast('BIG WIN!', `${scratchPrize.tier}! Won ${winAmount.toLocaleString()} 🪙`, scratchPrize.icon);
+    showToast('BIG WIN!', `${scratchPrize.tier}! Won ${winAmount.toLocaleString()} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
   } else if (scratchPrize.mult > 0) {
     playTone('win');
-    showToast(scratchPrize.tier, `Awarded ${winAmount.toLocaleString()} 🪙!`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Awarded ${winAmount.toLocaleString()} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
   } else {
     playTone('lose');
     showToast('Bust Card', 'No prize this time! Try another card.', '💨');
@@ -383,7 +437,7 @@ function revealFullPrize(canvas, ctx) {
 }
 
 function recordRecentRound(tier, mult, wonAmount) {
-  const roundText = mult > 0 ? `${tier} (×${mult}) · +${wonAmount.toLocaleString()} 🪙` : `${tier} (×0) · 0 🪙`;
+  const roundText = mult > 0 ? `${tier} (×${mult}) · +${wonAmount.toLocaleString()} ⭐` : `${tier} (×0) · 0 ⭐`;
   recentRounds.unshift(roundText);
   if (recentRounds.length > 3) recentRounds.pop();
 
@@ -403,13 +457,16 @@ function toggleInfoModal() {
   const isOpen = sheet.classList.contains('open');
   if (isOpen) {
     sheet.classList.remove('open');
-    setTimeout(() => { overlay.style.display = 'none'; }, 280);
+    setTimeout(() => {
+      overlay.style.display = 'none';
+      sheet.style.display = 'none';
+    }, 280);
   } else {
     overlay.style.display = 'block';
+    sheet.style.display = 'block';
     setTimeout(() => { sheet.classList.add('open'); }, 10);
   }
 }
-
 // Watch Ad Modal System (Daily Play Limit)
 let isWatchingAd = false;
 let adCountdownInterval = null;
@@ -426,7 +483,8 @@ function openAdModal() {
   if (playerView) playerView.style.display = 'none';
 
   overlay.style.display = 'block';
-  sheet.classList.add('show');
+  sheet.style.display = 'block';
+  setTimeout(() => { sheet.classList.add('show'); }, 10);
 }
 
 function closeAdModal() {
@@ -434,8 +492,12 @@ function closeAdModal() {
   playTone('click');
   const overlay = document.getElementById('adModalOverlay');
   const sheet = document.getElementById('adModalSheet');
-  if (sheet) sheet.classList.remove('show');
+  if (sheet) {
+    sheet.classList.remove('show');
+    setTimeout(() => { sheet.style.display = 'none'; }, 250);
+  }
   if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
+}, 250);
 }
 
 function startWatchingAd() {
@@ -494,15 +556,15 @@ function startWatchingAd() {
 
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+  balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
   updateBalanceUI();
   updateActiveChipUI();
   updateDailyPlaysUI();
   initScratchCanvas(false);
 
   window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_coins') {
-      balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+    if (e.key === 'task_game_stars') {
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     }
   });
@@ -510,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const syncChannel = new BroadcastChannel('nova_task_sync');
     syncChannel.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     };
   } catch (e) {}

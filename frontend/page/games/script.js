@@ -578,7 +578,7 @@ window.switchGameCategory = function(category) {
   const tabBtnIdle = document.getElementById('tabBtnIdle');
   const tabBtnLucky = document.getElementById('tabBtnLucky');
 
-  if (category === 'lucky') {
+  if (category === 'lucky' || category === 'star') {
     if (idleSection) idleSection.style.display = 'none';
     if (luckySection) luckySection.style.display = 'flex';
     if (tabBtnIdle) {
@@ -589,7 +589,7 @@ window.switchGameCategory = function(category) {
       tabBtnLucky.classList.add('active');
       tabBtnLucky.setAttribute('aria-selected', 'true');
     }
-    localStorage.setItem('task_games_active_tab', 'lucky');
+    localStorage.setItem('task_games_active_tab', 'star');
   } else {
     if (idleSection) idleSection.style.display = 'flex';
     if (luckySection) luckySection.style.display = 'none';
