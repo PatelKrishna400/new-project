@@ -1,22 +1,20 @@
 /**
- * LUCKY SCRATCH GAME LOGIC — NOVA ARCADE SUITE
- * Canvas Foil Touch/Mouse Scratch • 50% Calibrated Win Rate • 10 Daily Plays Limit + Watch Ad
+ * LUCKY SCRATCH GAME LOGIC — EXACT MATCH TO SCREENSHOTS 4 & 5
+ * Satin Rose Card with Diamond Stars Watermark • Foil Scratching • Recent Rounds • 50% Win Rate Calibration
  */
 
-const GAME_ID = 'lucky_scratch';
-const DAILY_FREE_PLAYS = 10;
-const BONUS_PLAYS_PER_AD = 5;
-
-let balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-let currentBet = 20;
-let soundEnabled = true;
-let isScratchingCard = false;
+const MIN_BET = 30;
+const MAX_BET = 2000;
+let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
+let currentBet = 50;
 let scratchPurchased = false;
 let scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
-let recentRounds = [];
+let soundEnabled = true;
+let scratchRecentHistory = [];
 
 // Web Audio API Synthesizer
 let synth = null;
+
 function initAudio() {
   if (!synth && window.Tone) {
     try {
@@ -65,6 +63,7 @@ function updateBalanceUI() {
 
 function saveBalance() {
   localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
+  localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
@@ -72,508 +71,346 @@ function saveBalance() {
   } catch (e) {}
 }
 
-function addFreeCoins() {
+function addFreeCoins(amount = 200) {
   playTone('win');
-  balance += 200;
+  balance += amount;
   saveBalance();
   updateBalanceUI();
-  showToast('Bonus Credited', '+200 Free Stars added to your pouch!', '⭐');
+  showToast('Coins Credited', `+${amount} free coins added!`, '🪙');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
-// Daily Plays Tracker (10 Free Plays / Day)
-function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function getPlaysUsedToday() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getBonusPlaysToday() {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getRemainingPlays() {
-  const totalAllowed = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const used = getPlaysUsedToday();
-  return Math.max(0, totalAllowed - used);
-}
-
-function recordPlayUsed() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  const used = getPlaysUsedToday() + 1;
-  localStorage.setItem(key, used.toString());
-  updateDailyPlaysUI();
-}
-
-function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  const current = getBonusPlaysToday() + count;
-  localStorage.setItem(key, current.toString());
-  updateDailyPlaysUI();
-}
-
-function updateDailyPlaysUI() {
-  const remaining = getRemainingPlays();
-  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const display = document.getElementById('dailyPlaysDisplay');
-  if (display) {
-    display.innerText = `${remaining}/${total}`;
-    display.style.color = remaining <= 0 ? '#ef4444' : '#fb7185';
-  }
-  updateActionButtonState();
-}
-
-function checkDailyPlaysClick() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-  } else {
-    showToast('Daily Free Plays', `${getRemainingPlays()} free plays remaining today.`, '🎯');
+function openBuyCoinsModal() {
+  playTone('click');
+  const overlay = document.getElementById('buyCoinsModalOverlay');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
   }
 }
 
-// Action Button State
+function closeBuyCoinsModal() {
+  playTone('click');
+  const overlay = document.getElementById('buyCoinsModalOverlay');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+
+function claimFreeRefill() {
+  addFreeCoins(200);
+  closeBuyCoinsModal();
+}
+
 function updateActionButtonState() {
-  const btn = document.getElementById('btnBuyCard');
+  const btn = document.getElementById('primaryPlayBtn');
   if (!btn) return;
 
-  const remaining = getRemainingPlays();
-  if (remaining <= 0) {
-    btn.innerText = '▶ Watch Ad to Play (0/10)';
-    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
-    btn.style.color = '#451a03';
-  } else if (scratchPurchased) {
-    btn.innerText = 'Scratch Foil to Reveal';
-    btn.style.background = 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)';
-    btn.style.color = '#ffffff';
-  } else if (balance < currentBet) {
-    btn.innerText = 'Buy stars (+200 Free)';
-    btn.style.background = 'linear-gradient(135deg, #fb7185 0%, #be123c 100%)';
-    btn.style.color = '#ffffff';
+  if (balance < currentBet) {
+    btn.innerText = 'Buy coins';
+    btn.className = 'primary-cta-btn bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-[0_8px_24px_rgba(244,63,94,0.35)]';
   } else {
     btn.innerText = 'Buy card';
-    btn.style.background = 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)';
-    btn.style.color = '#07090e';
+    btn.className = 'primary-cta-btn bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-[0_8px_24px_rgba(244,63,94,0.35)]';
   }
 }
 
-// Bet Chip Selector: 10, 20, 50, 100
+// Bet Controls (Screenshot 5 Match)
 function setBet(amount) {
-  if (scratchPurchased) return;
   playTone('tick');
-  currentBet = Math.min(2000, Math.max(10, amount));
-  const betEl = document.getElementById('currentBetDisplay');
-  if (betEl) betEl.innerText = currentBet;
+  currentBet = Math.min(MAX_BET, Math.max(MIN_BET, amount));
+  const el = document.getElementById('currentBetDisplay');
+  if (el) el.innerText = currentBet;
   updateActiveChipUI();
   updateActionButtonState();
 }
 
-const BET_STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000];
-
-function stepDownBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
-
-  const lower = BET_STEPS.filter(s => s < currentBet);
-  if (lower.length > 0) {
-    setBet(lower[lower.length - 1]);
-  } else {
-    setBet(BET_STEPS[0]);
-  }
+function halveBet() {
+  if (scratchPurchased) return;
+  setBet(Math.max(MIN_BET, Math.round(currentBet / 2)));
 }
 
-function stepUpBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
-
-  const higher = BET_STEPS.filter(s => s > currentBet);
-  if (higher.length > 0) {
-    setBet(higher[0]);
-  } else {
-    setBet(BET_STEPS[BET_STEPS.length - 1]);
-  }
+function doubleBet() {
+  if (scratchPurchased) return;
+  setBet(Math.min(MAX_BET, currentBet * 2));
 }
-
-function halveBet() { stepDownBet(); }
-function doubleBet() { stepUpBet(); }
 
 function updateActiveChipUI() {
-  document.querySelectorAll('.bet-chip').forEach(btn => {
-    const val = parseInt(btn.dataset.val || btn.innerText, 10);
+  document.querySelectorAll('.bet-pill-btn').forEach(btn => {
+    const val = parseInt(btn.getAttribute('data-val') || '0', 10);
     if (val === currentBet) {
       btn.classList.add('active');
+      btn.style.borderColor = '#fb7185';
+      btn.style.boxShadow = '0 0 16px rgba(251, 113, 133, 0.3)';
     } else {
       btn.classList.remove('active');
+      btn.style.borderColor = '';
+      btn.style.boxShadow = '';
     }
   });
 }
 
-// Toast
-function showToast(title, msg, icon = '✨') {
-  const toast = document.getElementById('toastBar');
-  if (!toast) return;
-  const tTitle = document.getElementById('toastTitle');
-  const tMsg = document.getElementById('toastMsg');
-  const tIcon = document.getElementById('toastIcon');
-  if (tTitle) tTitle.innerText = title;
-  if (tMsg) tMsg.innerText = msg;
-  if (tIcon && icon) tIcon.innerText = icon;
-
-  toast.style.display = 'flex';
-  setTimeout(() => { toast.classList.add('show'); }, 10);
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => { toast.style.display = 'none'; }, 300);
-  }, 2600);
-}
-
-// Canvas Foil Logic
-function initScratchCanvas(purchased = false) {
-  const canvas = document.getElementById('scratchCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
-
-  ctx.globalCompositeOperation = 'source-over';
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, '#f43f5e');
-  grad.addColorStop(0.5, '#e11d48');
-  grad.addColorStop(1, '#9f1239');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  // Decorative dots
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-  for (let i = 25; i < w; i += 45) {
-    for (let j = 25; j < h; j += 45) {
-      ctx.beginPath();
-      ctx.arc(i, j, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // Label text
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 18px "Plus Jakarta Sans"';
-  ctx.textAlign = 'center';
-  ctx.fillText(purchased ? 'SCRATCH TO REVEAL' : 'TAP BUY CARD TO PLAY', w / 2, h / 2 + 6);
-
-  if (purchased) {
-    enableScratching(canvas, ctx);
-  }
-}
-
-function handleScratchAction() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-    return;
-  }
-  if (balance < currentBet) {
-    addFreeCoins();
-    return;
-  }
-  if (!scratchPurchased) {
-    buyScratchCard();
-  }
-}
-
-// Buy Scratch Card with 50% Win Rate Calibration
-function buyScratchCard() {
-  if (scratchPurchased) return;
-
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-    return;
-  }
-
-  if (balance < currentBet) {
-    showToast('Insufficient Stars', 'Claimed free refill stars!', '⭐');
-    addFreeCoins();
-    return;
-  }
-
-  recordPlayUsed();
-  balance -= currentBet;
-  saveBalance();
-  updateBalanceUI();
-  scratchPurchased = true;
-  playTone('roll');
-
-  // Dynamic Win Rate Calibration:
-  // Total star balance >= 10,000 -> 10% win probability
-  // Total star balance >= 5,000  -> 20% win probability
-  // Below 5,000 stars            -> 50% win probability
-  let winProbability = 0.50;
-  if (balance >= 10000) {
-    winProbability = 0.10;
-  } else if (balance >= 5000) {
-    winProbability = 0.20;
-  }
-  const isWin = Math.random() < winProbability;
-  if (isWin) {
-    const winRoll = Math.random();
-    if (winRoll < 0.08) {
-      scratchPrize = { tier: 'Jackpot', mult: 15, icon: '👑' };
-    } else if (winRoll < 0.28) {
-      scratchPrize = { tier: 'Big win', mult: 5, icon: '💎' };
-    } else if (winRoll < 0.65) {
-      scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
-    } else {
-      scratchPrize = { tier: 'Money back', mult: 1, icon: '⭐' };
-    }
-  } else {
-    scratchPrize = { tier: 'Bust', mult: 0, icon: '💨' };
-  }
-
-  document.getElementById('prizeIcon').innerText = scratchPrize.icon;
-  document.getElementById('prizeMultiplier').innerText = `×${scratchPrize.mult}`;
-  document.getElementById('prizeTier').innerText = scratchPrize.tier;
-  const winCoin = Math.round(currentBet * scratchPrize.mult);
-  document.getElementById('prizeWinCoins').innerText = winCoin > 0 ? `+${winCoin.toLocaleString()} Stars` : '0 Stars';
-
-  initScratchCanvas(true);
-  updateActionButtonState();
-  showToast('Card Purchased', 'Drag across foil to reveal your prize!', '🎫');
-}
-
-function enableScratching(canvas, ctx) {
-  let isDown = false;
-  let scratchedCount = 0;
-
-  function scratchPoint(x, y) {
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(x, y, 22, 0, Math.PI * 2);
-    ctx.fill();
-
-    scratchedCount++;
-    if (scratchedCount % 8 === 0) playTone('tick');
-
-    if (scratchedCount >= 38) {
-      revealFullPrize(canvas, ctx);
-    }
-  }
-
-  canvas.onmousedown = (e) => {
-    isDown = true;
-    const rect = canvas.getBoundingClientRect();
-    scratchPoint((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
-  };
-  window.onmouseup = () => { isDown = false; };
-  canvas.onmousemove = (e) => {
-    if (!isDown) return;
-    const rect = canvas.getBoundingClientRect();
-    scratchPoint((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
-  };
-
-  canvas.ontouchstart = (e) => {
-    isDown = true;
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    scratchPoint((touch.clientX - rect.left) * (canvas.width / rect.width), (touch.clientY - rect.top) * (canvas.height / rect.height));
-  };
-  canvas.ontouchend = () => { isDown = false; };
-  canvas.ontouchmove = (e) => {
-    if (!isDown) return;
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0];
-    scratchPoint((touch.clientX - rect.left) * (canvas.width / rect.width), (touch.clientY - rect.top) * (canvas.height / rect.height));
-  };
-}
-
-function revealFullPrize(canvas, ctx) {
-  canvas.onmousedown = null;
-  canvas.onmousemove = null;
-  canvas.ontouchstart = null;
-  canvas.ontouchmove = null;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const grossWin = Math.round(currentBet * scratchPrize.mult);
-  let taxAmount = 0;
-  let winAmount = 0;
-  if (grossWin > 0) {
-    taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
-    winAmount = Math.max(0, grossWin - taxAmount);
-  }
-
-  if (scratchPrize.mult >= 5) {
-    if (window.confetti) confetti({ particleCount: 110, spread: 80 });
-    playTone('jackpot');
-    showToast('BIG WIN!', `${scratchPrize.tier}! Won ${winAmount.toLocaleString()} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
-  } else if (scratchPrize.mult > 0) {
-    playTone('win');
-    showToast(scratchPrize.tier, `Awarded ${winAmount.toLocaleString()} ⭐ (0.1% tax: -${taxAmount} ⭐)`, scratchPrize.icon);
-  } else {
-    playTone('lose');
-    showToast('Bust Card', 'No prize this time! Try another card.', '💨');
-  }
-
-  // Record Recent Round History
-  recordRecentRound(scratchPrize.tier, scratchPrize.mult, winAmount);
-
-  balance += winAmount;
-  saveBalance();
-  updateBalanceUI();
-
-  setTimeout(() => {
-    scratchPurchased = false;
-    initScratchCanvas(false);
-    updateActionButtonState();
-  }, 3200);
-}
-
-function recordRecentRound(tier, mult, wonAmount) {
-  const roundText = mult > 0 ? `${tier} (×${mult}) · +${wonAmount.toLocaleString()} ⭐` : `${tier} (×0) · 0 ⭐`;
-  recentRounds.unshift(roundText);
-  if (recentRounds.length > 3) recentRounds.pop();
-
-  const body = document.getElementById('recentRoundsBody');
-  if (body) {
-    body.innerHTML = recentRounds.map((r, i) => `<div style="padding:0.2rem 0; color:${i === 0 ? '#ffffff' : '#94a3b8'}; font-weight:${i === 0 ? '800' : '600'};">${r}</div>`).join('');
-  }
-}
-
-// Rules Sheet Modal (Exact match to Image 4)
+// Rules Sheet Modal Controller (Screenshot 4 Match)
 function toggleInfoModal() {
   playTone('click');
   const sheet = document.getElementById('infoModalSheet');
   const overlay = document.getElementById('infoModalOverlay');
   if (!sheet || !overlay) return;
 
-  const isOpen = sheet.classList.contains('open');
-  if (isOpen) {
-    sheet.classList.remove('open');
-    setTimeout(() => {
-      overlay.style.display = 'none';
-      sheet.style.display = 'none';
-    }, 280);
+  const isHidden = overlay.classList.contains('hidden');
+  if (isHidden) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
   } else {
-    overlay.style.display = 'block';
-    sheet.style.display = 'block';
-    setTimeout(() => { sheet.classList.add('open'); }, 10);
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
   }
 }
-// Watch Ad Modal System (Daily Play Limit)
-let isWatchingAd = false;
-let adCountdownInterval = null;
 
-function openAdModal() {
-  playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  if (!sheet || !overlay) return;
+// Toast System
+function showToast(title, msg, icon = '✨') {
+  const toast = document.getElementById('toastNotification');
+  if (!toast) return;
+  document.getElementById('toastTitle').innerText = title;
+  document.getElementById('toastMessage').innerText = msg;
+  document.getElementById('toastIcon').innerText = icon;
 
-  if (initialView) initialView.style.display = 'block';
-  if (playerView) playerView.style.display = 'none';
-
-  overlay.style.display = 'block';
-  sheet.style.display = 'block';
-  setTimeout(() => { sheet.classList.add('show'); }, 10);
+  toast.style.display = 'flex';
+  toast.classList.remove('-translate-y-48', 'opacity-0');
+  toast.classList.add('translate-y-0', 'opacity-100');
+  setTimeout(() => {
+    toast.classList.remove('translate-y-0', 'opacity-100');
+    toast.classList.add('-translate-y-48', 'opacity-0');
+    setTimeout(() => { toast.style.display = 'none'; }, 300);
+  }, 2600);
 }
 
-function closeAdModal() {
-  if (isWatchingAd) return;
-  playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  if (sheet) {
-    sheet.classList.remove('show');
-    setTimeout(() => { sheet.style.display = 'none'; }, 250);
+// Scratch Action Handling
+function handleScratchAction() {
+  if (balance < currentBet) {
+    openBuyCoinsModal();
+    return;
   }
-  if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
-}, 250);
+  buyScratchCard();
 }
 
-function startWatchingAd() {
-  if (isWatchingAd) return;
-  isWatchingAd = true;
-  playTone('click');
+function initScratchCard(purchased = false) {
+  const canvas = document.getElementById('scratchCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
 
-  // Trigger backend ad service to open ad in new tab and record metrics
-  if (typeof window.openWatchAd === 'function') {
-    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
-  }
+  canvas.style.opacity = '1';
+  ctx.globalCompositeOperation = 'source-over';
 
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  const timerText = document.getElementById('adTimerText');
-  const progressFill = document.getElementById('adProgressFill');
+  // Satin Rose-Pink Gradient
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, '#f43f5e');
+  grad.addColorStop(0.5, '#db2777');
+  grad.addColorStop(1, '#9d174d');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
 
-  if (initialView) initialView.style.display = 'none';
-  if (playerView) playerView.style.display = 'block';
-
-  let secondsLeft = 5;
-  if (timerText) timerText.innerText = `Reward in ${secondsLeft}s...`;
-  if (progressFill) progressFill.style.width = '0%';
-
-  const startTime = Date.now();
-  const totalDuration = 5000;
-
-  const progressInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const pct = Math.min(100, (elapsed / totalDuration) * 100);
-    if (progressFill) progressFill.style.width = `${pct}%`;
-  }, 50);
-
-  adCountdownInterval = setInterval(() => {
-    secondsLeft--;
-    playTone('tick');
-    if (timerText) timerText.innerText = secondsLeft > 0 ? `Reward in ${secondsLeft}s...` : 'Reward Unlocked! 🎉';
-
-    if (secondsLeft <= 0) {
-      clearInterval(adCountdownInterval);
-      clearInterval(progressInterval);
-      isWatchingAd = false;
-
-      // Credit +5 Bonus Plays
-      grantBonusPlays(BONUS_PLAYS_PER_AD);
-      if (window.confetti) confetti({ particleCount: 75, spread: 70 });
-      playTone('jackpot');
-      showToast('Reward Earned!', '+5 Extra Plays Unlocked! Keep playing!', '🎉');
-
-      setTimeout(() => {
-        closeAdModal();
-      }, 700);
+  // Delicate Star Diamond Pattern (Screenshot 5)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+  for (let i = 25; i < w; i += 40) {
+    for (let j = 20; j < h; j += 40) {
+      ctx.beginPath();
+      ctx.moveTo(i, j - 4);
+      ctx.lineTo(i + 3, j);
+      ctx.lineTo(i, j + 4);
+      ctx.lineTo(i - 3, j);
+      ctx.closePath();
+      ctx.fill();
     }
-  }, 1000);
+  }
+
+  // Frosted Center Pill: "LUCKY SCRATCH"
+  const pillW = 220;
+  const pillH = 46;
+  const pillX = (w - pillW) / 2;
+  const pillY = (h - pillH) / 2 - 10;
+  const radius = 23;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(pillX, pillY, pillW, pillH, radius);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.fill();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.stroke();
+  ctx.restore();
+
+  // "LUCKY SCRATCH" Text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '900 16px "Plus Jakarta Sans"';
+  ctx.textAlign = 'center';
+  ctx.fillText('LUCKY SCRATCH', w / 2, pillY + 29);
+
+  // Subtitle
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+  ctx.font = '600 12px "Plus Jakarta Sans"';
+  ctx.fillText(purchased ? 'Scratch the foil to reveal' : 'Buy a card to play', w / 2, pillY + 68);
+
+  if (purchased) {
+    enableScratching(canvas, ctx);
+  }
 }
 
-// Initialization
-document.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+function buyScratchCard() {
+  if (scratchPurchased) return;
+  balance -= currentBet;
+  saveBalance();
   updateBalanceUI();
-  updateActiveChipUI();
-  updateDailyPlaysUI();
-  initScratchCanvas(false);
+  scratchPurchased = true;
+  playTone('roll');
 
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-      updateBalanceUI();
+  let winProbability = 0.50;
+  if (balance >= 10000) winProbability = 0.10;
+  else if (balance >= 5000) winProbability = 0.20;
+
+  const isWin = Math.random() < winProbability;
+  if (isWin) {
+    const winRoll = Math.random();
+    if (winRoll < 0.08) {
+      scratchPrize = { tier: 'Jackpot', mult: 15, icon: '👑' };
+    } else if (winRoll < 0.40) {
+      scratchPrize = { tier: 'Big Win', mult: 5, icon: '💎' };
+    } else if (winRoll < 0.80) {
+      scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
+    } else {
+      scratchPrize = { tier: 'Money Back', mult: 1, icon: '⭐' };
     }
-  });
+  } else {
+    scratchPrize = { tier: 'Bust', mult: 0, icon: '💨' };
+  }
 
-  try {
-    const syncChannel = new BroadcastChannel('nova_task_sync');
-    syncChannel.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-      updateBalanceUI();
+  document.getElementById('scratchIcon').innerText = scratchPrize.icon;
+  document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
+  document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
+  const winCoin = Math.round(currentBet * scratchPrize.mult);
+  document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+
+  initScratchCard(true);
+  const btn = document.getElementById('primaryPlayBtn');
+  if (btn) {
+    btn.innerText = 'Scratch Card Above';
+    btn.disabled = true;
+  }
+}
+
+function enableScratching(canvas, ctx) {
+  let isDrawing = false;
+  let scratchedCount = 0;
+
+  function scratchAt(x, y) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 24, 0, Math.PI * 2);
+    ctx.fill();
+    playTone('tick');
+
+    scratchedCount++;
+    if (scratchedCount > 24) {
+      revealScratchFinish(canvas, ctx);
+    }
+  }
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
     };
-  } catch (e) {}
+  }
+
+  canvas.onmousedown = (e) => { isDrawing = true; const p = getPos(e); scratchAt(p.x, p.y); };
+  window.onmouseup = () => { isDrawing = false; };
+  canvas.onmousemove = (e) => { if (isDrawing) { const p = getPos(e); scratchAt(p.x, p.y); } };
+
+  canvas.ontouchstart = (e) => { isDrawing = true; const p = getPos(e); scratchAt(p.x, p.y); };
+  window.ontouchend = () => { isDrawing = false; };
+  canvas.ontouchmove = (e) => { if (isDrawing) { const p = getPos(e); scratchAt(p.x, p.y); } };
+}
+
+function revealScratchFinish(canvas, ctx) {
+  canvas.onmousedown = canvas.onmousemove = canvas.ontouchstart = canvas.ontouchmove = null;
+  canvas.style.opacity = '0';
+  setTimeout(() => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, 400);
+
+  scratchPurchased = false;
+  const grossWin = Math.round(currentBet * scratchPrize.mult);
+  let taxAmount = 0;
+  let winAmount = 0;
+  if (grossWin > 0) {
+    taxAmount = Math.max(1, Math.round(grossWin * 0.001));
+    winAmount = Math.max(0, grossWin - taxAmount);
+  }
+  balance += winAmount;
+  saveBalance();
+  updateBalanceUI();
+
+  // Record in recent rounds (Screenshot 5 Match)
+  addScratchRecentRound(scratchPrize, winAmount);
+
+  if (scratchPrize.mult >= 5) {
+    if (window.confetti) confetti({ particleCount: 80, spread: 70 });
+    playTone('jackpot');
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+  } else if (scratchPrize.mult > 0) {
+    playTone('win');
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+  } else {
+    playTone('lose');
+    showToast('Bust', 'No prize under foil. Better luck next time!', '💨');
+  }
+
+  const playBtn = document.getElementById('primaryPlayBtn');
+  if (playBtn) {
+    playBtn.innerText = 'Buy card';
+    playBtn.disabled = false;
+  }
+}
+
+function addScratchRecentRound(prize, win) {
+  scratchRecentHistory.unshift({ tier: prize.tier, mult: prize.mult, win, icon: prize.icon });
+  if (scratchRecentHistory.length > 5) scratchRecentHistory.pop();
+
+  const container = document.getElementById('scratchRecentRounds');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="flex items-center gap-1.5 flex-wrap">
+      ${scratchRecentHistory.map(r => `
+        <span class="recent-round-badge">
+          <span>${r.icon}</span>
+          <span>×${r.mult}</span>
+          <span class="${r.mult > 0 ? 'text-amber-400' : 'text-gray-400'}">${r.mult > 0 ? '+' + r.win : 'Bust'}</span>
+        </span>
+      `).join('')}
+    </div>
+  `;
+}
+
+// DOM Ready
+window.addEventListener('DOMContentLoaded', () => {
+  const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
+  balance = parseInt(storedStars || '10', 10);
+
+  updateBalanceUI();
+  setBet(50);
+  initScratchCard(false);
+
+  if (window.lucide) lucide.createIcons();
 });

@@ -3,282 +3,391 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Gift Hunt (Mines) — Arcade Suite</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Mines — Telegram Arcade Suite</title>
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../star-game/style.css">
+  
+  <style>
+    /* 6x6 Glossy Beveled Dark Tiles (Screenshot 1 & 2 Match) */
+    .mine-tile-6x6 {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      background: radial-gradient(circle at 50% 25%, #2a2d36 0%, #15171e 65%, #0e1015 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 2px solid rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 3px 6px rgba(0, 0, 0, 0.45);
+    }
+    .mine-tile-6x6::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 15%;
+      right: 15%;
+      height: 25%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+    .mine-tile-6x6:hover {
+      background: radial-gradient(circle at 50% 25%, #343844 0%, #1c1f28 65%, #12141a 100%);
+      transform: translateY(-1px);
+    }
+    .mine-tile-6x6:active {
+      transform: scale(0.92);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+    .mine-tile-6x6.revealed-star {
+      background: radial-gradient(circle at 50% 30%, #fef08a 0%, #eab308 50%, #854d0e 100%);
+      border-color: #fde047;
+      box-shadow: 0 0 18px rgba(234, 179, 8, 0.7);
+      animation: popTile 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .mine-tile-6x6.revealed-bomb {
+      background: radial-gradient(circle at 50% 30%, #f43f5e 0%, #be123c 60%, #4c0519 100%);
+      border-color: #fb7185;
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.8);
+      animation: shakeTile 0.4s ease;
+    }
+    .mine-tile-6x6.disabled {
+      pointer-events: none;
+      opacity: 0.55;
+    }
+
+    /* Bomb Selector Pill active states (Screenshot 2 Match) */
+    .bomb-pill-btn {
+      background: #14161d;
+      border: 1px solid #232734;
+      border-radius: 12px;
+      color: #94a3b8;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 0;
+      transition: all 0.15s ease;
+    }
+    .bomb-pill-btn.active {
+      background: #1e1520;
+      border: 2px solid #f43f5e;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.45);
+    }
+
+    /* Bottom Navigation Bar Styles matching Telegram Mini-App */
+    .telegram-bottom-nav {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #090b10;
+      border-top: 1px solid #1a1e28;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 12px 14px 12px;
+      z-index: 50;
+    }
+    .nav-tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      position: relative;
+      transition: color 0.15s ease;
+    }
+    .nav-tab-item.active {
+      color: #ffffff;
+    }
+    .nav-tab-item:hover {
+      color: #e2e8f0;
+    }
+    .nav-tab-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: #f43f5e;
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+  </style>
 </head>
-<body>
+<body class="flex justify-center min-h-screen bg-[#000000] text-white select-none">
 
-  <!-- Mobile App Frame Shell -->
-  <div class="mobile-container">
+  <div class="app-frame theme-mines max-w-[420px] w-full min-h-screen bg-[#050608] flex flex-col justify-between border-x border-[#141720]" id="appMainFrame">
 
-    <!-- Top Nav Header -->
-    <header class="game-nav-header">
-      <div class="nav-left">
-        <!-- Back Button Pill -->
-        <a href="../games/index.html" class="nav-back-pill" title="Back to Games Arena">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
+    <!-- Top Navigation Header (Screenshot 1 & 2 Match) -->
+    <header class="sticky top-0 z-40 bg-[#050608]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#141720]">
+      <div class="flex items-center gap-2">
+        <a href="../games/index.html" class="flex items-center gap-1 text-white font-extrabold text-sm hover:opacity-80 transition-opacity">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
           <span>Back</span>
         </a>
-        <!-- Info Button (i) -->
-        <button type="button" onclick="toggleInfoModal()" class="nav-info-btn" title="How to play">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-        </button>
       </div>
 
-      <!-- Center Title with Glowing Mint Dot -->
-      <div class="nav-title-wrap">
-        <span class="status-dot"></span>
-        <h1 class="nav-title">Gift Hunt</h1>
-      </div>
+      <!-- Referral Pill (Screenshot 1 & 2 Match) -->
+      <button type="button" onclick="openReferralModal()" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-900/40 to-fuchsia-900/30 border border-purple-500/40 text-purple-200 text-xs font-black tracking-wider shadow-[0_0_12px_rgba(168,85,247,0.25)] hover:border-purple-400 transition-all active:scale-95">
+        <i data-lucide="link" class="w-3.5 h-3.5"></i>
+        <span>REFERRAL</span>
+      </button>
 
-      <!-- Right Controls: Star Pill -->
-      <div class="nav-right">
-        <div class="balance-pill" title="Star Balance">
-          <span class="coin-icon">⭐</span>
-          <span class="coin-val" id="coinBalance">0</span>
-          <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Stars">+</button>
+      <div class="flex items-center gap-2">
+        <!-- Balance Pill (Screenshot 1 & 2 Match: 1 ⭐) -->
+        <div onclick="openBuyCoinsModal()" class="flex items-center gap-1.5 bg-[#f59e0b] text-[#1c1917] px-3 py-1 rounded-full font-black text-xs shadow-[0_2px_10px_rgba(245,158,11,0.35)] cursor-pointer active:scale-95 transition-all">
+          <span id="starBalanceDisplay">10</span>
+          <span class="text-sm">⭐</span>
+        </div>
+
+        <div class="flex items-center text-gray-400">
+          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
+            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
     </header>
 
-    <!-- Main Play Stage Area -->
-    <main class="play-stage">
-
-      <!-- 5x5 Mines Board Box -->
-      <div class="mines-stage-box">
-        <div class="mines-grid" id="minesGrid">
-          <!-- 25 tiles dynamically generated -->
-        </div>
-      </div>
-
-      <!-- Mines Status Bar -->
-      <div class="mines-status-bar">
-        <div>
-          <span class="multiplier-tag">Current Multiplier</span>
-          <div class="multiplier-val" id="currentMultiplierText">×1.00</div>
-        </div>
-        <div class="bomb-selector-wrap">
-          <span class="bomb-label">Bombs:</span>
-          <select id="bombCountSelect" class="bomb-select" onchange="onBombCountChange(this.value)">
-            <option value="3">3 Bombs</option>
-            <option value="5" selected>5 Bombs</option>
-            <option value="10">10 Bombs</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Bet Controls Card -->
-      <div class="bet-controls-card">
-        <div class="bet-limits-row">
-          <span>Min bet: <b>10 ⭐</b></span>
-          <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
-            <span>🎯 Plays Today:</span>
-            <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
-          </div>
-          <span>Max bet: <b>2,000 ⭐</b></span>
-        </div>
-
-        <!-- Bet Chips Selector -->
-        <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="10" onclick="setBet(10)">10 ⭐</button>
-          <button type="button" class="bet-chip active" data-val="20" onclick="setBet(20)">20 ⭐</button>
-          <button type="button" class="bet-chip" data-val="50" onclick="setBet(50)">50 ⭐</button>
-          <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">100 ⭐</button>
-        </div>
-
-        <!-- Custom Bet Adjuster -->
-        <div class="bet-adjuster-bar">
-          <button type="button" class="adj-btn" id="btnBetDown" onclick="stepDownBet()" aria-label="Decrease Bet" title="Decrease Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-          <div class="current-bet-display">
-            <span>⭐</span>
-            <span class="current-bet-val" id="currentBetDisplay">20</span>
-          </div>
-          <button type="button" class="adj-btn" id="btnBetUp" onclick="stepUpBet()" aria-label="Increase Bet" title="Increase Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
-        </div>
-
-        <!-- Primary Start Button -->
-        <button type="button" class="btn-primary-play" id="btnStartHunt" onclick="startMinesHunt()">
-          Start Hunt
-        </button>
-
-        <!-- Secondary Cashout Button -->
-        <button type="button" class="btn-cashout" id="btnCashout" onclick="cashoutMines()">
-          Cash Out (<span id="cashoutAmountText">0</span> ⭐)
+    <!-- Sub-Header: MINES Title + Sound Toggle + Verify Fairness -->
+    <div class="px-4 pt-3 pb-1 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-black italic tracking-wider text-white">MINES</h1>
+        <button type="button" onclick="toggleSoundEffect()" id="soundBtn" class="w-8 h-8 rounded-full bg-[#12141c] border border-[#202534] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="Toggle Sound">
+          <i data-lucide="volume-2" id="soundIcon" class="w-4 h-4"></i>
         </button>
       </div>
+
+      <button type="button" onclick="openFairnessModal()" class="px-3.5 py-1.5 rounded-full bg-[#12151e] border border-[#242b3d] text-gray-200 text-xs font-black tracking-wider hover:bg-[#1a1f2c] hover:border-gray-400 transition-all active:scale-95">
+        VERIFY FAIRNESS
+      </button>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 px-4 py-2 flex flex-col justify-between">
+
+      <!-- 6x6 Tile Grid Stage Box (Screenshot 1 & 2 Match: 36 Tiles) -->
+      <div class="w-full bg-[#0a0c10] border border-[#161a24] rounded-3xl p-3 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden">
+        
+        <!-- 6x6 Tiles Grid (36 Tiles) -->
+        <div id="minesGrid" class="grid grid-cols-6 gap-1.5 w-full max-w-[340px] my-1">
+          <!-- 36 tiles dynamically rendered -->
+        </div>
+
+        <div id="activeRoundStatus" class="text-xs font-extrabold text-teal-300 mt-2 tracking-wide text-center hidden">
+          Next Gem: <span id="nextMultiplierPreview" class="text-white font-black">×1.12</span>
+        </div>
+      </div>
+
+      <!-- Currency Switcher: Stars vs Gifts (Screenshot 1 & 2 Match) -->
+      <div class="w-full my-2.5 bg-[#10131b] border border-[#1d222e] rounded-full p-1 flex items-center">
+        <button type="button" onclick="setCurrency('stars')" id="currencyStarsBtn" class="flex-1 py-2 rounded-full font-black text-xs tracking-wide bg-[#3b82f6] text-white shadow-[0_2px_12px_rgba(59,130,246,0.5)] transition-all">
+          Stars
+        </button>
+        <button type="button" onclick="setCurrency('gifts')" id="currencyGiftsBtn" class="flex-1 py-2 rounded-full font-black text-xs tracking-wide text-gray-400 hover:text-white transition-all">
+          Gifts
+        </button>
+      </div>
+
+      <!-- Stake Display Card (Screenshot 1 & 2 Match) -->
+      <div class="w-full bg-[#0e1118] border border-[#1a1f2c] rounded-2xl p-3.5 flex flex-col items-center justify-center relative mb-2.5 shadow-md">
+        <div class="flex items-center gap-2">
+          <span id="stakeDisplayNumber" class="text-4xl font-black text-[#f43f5e] tracking-tight">50</span>
+          <span class="text-3xl select-none drop-shadow-[0_0_12px_rgba(245,158,11,0.6)]">⭐</span>
+        </div>
+        <p id="stakeWarningText" class="text-xs font-bold text-[#f43f5e] mt-1 tracking-wide hidden">Minimum stake is 50</p>
+
+        <!-- Bet Quick Buttons: 50 | 500 | 1000 | 5000 -->
+        <div class="grid grid-cols-4 gap-2 w-full mt-3">
+          <button type="button" onclick="setMinesBet(50)" class="py-2.5 rounded-xl bg-[#141722] border border-[#222838] text-white font-black text-xs hover:border-gray-400 transition-all active:scale-95" data-bet="50">50</button>
+          <button type="button" onclick="setMinesBet(500)" class="py-2.5 rounded-xl bg-[#141722] border border-[#222838] text-white font-black text-xs hover:border-gray-400 transition-all active:scale-95" data-bet="500">500</button>
+          <button type="button" onclick="setMinesBet(1000)" class="py-2.5 rounded-xl bg-[#141722] border border-[#222838] text-white font-black text-xs hover:border-gray-400 transition-all active:scale-95" data-bet="1000">1000</button>
+          <button type="button" onclick="setMinesBet(5000)" class="py-2.5 rounded-xl bg-[#141722] border border-[#222838] text-white font-black text-xs hover:border-gray-400 transition-all active:scale-95" data-bet="5000">5000</button>
+        </div>
+
+        <!-- Quick Multipliers: 1/2 | x2 | MAX -->
+        <div class="grid grid-cols-3 gap-2 w-full mt-2">
+          <button type="button" onclick="halveMinesBet()" class="py-2 rounded-xl bg-[#141722] border border-[#222838] text-gray-300 font-extrabold text-xs hover:text-white transition-all active:scale-95">½</button>
+          <button type="button" onclick="doubleMinesBet()" class="py-2 rounded-xl bg-[#141722] border border-[#222838] text-gray-300 font-extrabold text-xs hover:text-white transition-all active:scale-95">×2</button>
+          <button type="button" onclick="maxMinesBet()" class="py-2 rounded-xl bg-[#141722] border border-[#222838] text-gray-300 font-extrabold text-xs hover:text-white transition-all active:scale-95">MAX</button>
+        </div>
+      </div>
+
+      <!-- Bombs Selector Drawer (Screenshot 2 Match: 1 to 12 Buttons + Top Multiplier) -->
+      <div class="w-full bg-[#0e1118] border border-[#1a1f2c] rounded-2xl p-3.5 mb-2.5 shadow-md">
+        <div class="flex items-center justify-between mb-2 px-1">
+          <span class="text-xs font-black uppercase tracking-wider text-gray-400">BOMBS</span>
+          <span id="topMultiplierText" class="text-xs font-black text-[#eab308] tracking-wide">Top 3.17×</span>
+        </div>
+
+        <!-- 12 Bomb buttons (2 rows of 6) -->
+        <div class="grid grid-cols-6 gap-2">
+          <button type="button" onclick="selectBombCount(1)" class="bomb-pill-btn" data-bomb="1">1</button>
+          <button type="button" onclick="selectBombCount(2)" class="bomb-pill-btn" data-bomb="2">2</button>
+          <button type="button" onclick="selectBombCount(3)" class="bomb-pill-btn active" data-bomb="3">3</button>
+          <button type="button" onclick="selectBombCount(4)" class="bomb-pill-btn" data-bomb="4">4</button>
+          <button type="button" onclick="selectBombCount(5)" class="bomb-pill-btn" data-bomb="5">5</button>
+          <button type="button" onclick="selectBombCount(6)" class="bomb-pill-btn" data-bomb="6">6</button>
+          <button type="button" onclick="selectBombCount(7)" class="bomb-pill-btn" data-bomb="7">7</button>
+          <button type="button" onclick="selectBombCount(8)" class="bomb-pill-btn" data-bomb="8">8</button>
+          <button type="button" onclick="selectBombCount(9)" class="bomb-pill-btn" data-bomb="9">9</button>
+          <button type="button" onclick="selectBombCount(10)" class="bomb-pill-btn" data-bomb="10">10</button>
+          <button type="button" onclick="selectBombCount(11)" class="bomb-pill-btn" data-bomb="11">11</button>
+          <button type="button" onclick="selectBombCount(12)" class="bomb-pill-btn" data-bomb="12">12</button>
+        </div>
+      </div>
+
+      <!-- Primary Action CTA Button: START (Gold) / CASHOUT -->
+      <button id="primaryActionBtn" onclick="handleMinesPrimaryAction()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#f59e0b] hover:to-[#d97706] text-white font-black text-lg tracking-wider uppercase shadow-[0_8px_24px_rgba(217,119,6,0.4)] active:scale-[0.98] transition-all">
+        START
+      </button>
+
+      <button id="cashoutActionBtn" onclick="cashoutCurrentRound()" class="hidden w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg tracking-wider uppercase shadow-[0_8px_24px_rgba(16,185,129,0.5)] active:scale-[0.98] transition-all">
+        CASHOUT (<span id="cashoutAmountDisplay">0</span> ⭐)
+      </button>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="below-menu-bar" aria-label="Bottom Navigation">
-      <a href="../shop/index.html" class="below-menu-item" title="Shop">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <path d="M16 10a4 4 0 0 1-8 0"></path>
-        </svg>
+    <!-- Telegram Bottom Navigation Bar (Screenshot 1, 2, 3, 4 Match) -->
+    <nav class="telegram-bottom-nav">
+      <a href="../home/index.html" class="nav-tab-item">
+        <i data-lucide="hourglass" class="w-5 h-5"></i>
+        <span>Main</span>
+      </a>
+      <a href="../home/index.html" class="nav-tab-item">
+        <span class="nav-tab-badge">NEW</span>
+        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        <span>Tasks</span>
+      </a>
+      <a href="../star-game/index.html" class="nav-tab-item active">
+        <i data-lucide="disc" class="w-5 h-5 text-white"></i>
+        <span class="text-white">Spin</span>
+      </a>
+      <a href="../shop/index.html" class="nav-tab-item">
+        <i data-lucide="store" class="w-5 h-5"></i>
         <span>Shop</span>
       </a>
-      <a href="../leaderboard/index.html" class="below-menu-item" title="Leaderboard">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-          <path d="M4 22h16"></path>
-          <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-        </svg>
-        <span>Ranks</span>
-      </a>
-      <a href="../home/index.html" class="below-menu-item center-home-btn" title="Home">
-        <div class="center-home-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-        </div>
-        <span>Home</span>
-      </a>
-      <a href="../wallet/index.html" class="below-menu-item" title="Wallet">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-          <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-        </svg>
-        <span>Wallet</span>
-      </a>
-      <a href="../profile/index.html" class="below-menu-item" title="Profile">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <span>Profile</span>
+      <a href="javascript:void(0)" onclick="openHistoryModal()" class="nav-tab-item">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span>History</span>
       </a>
     </nav>
 
-    <!-- Rules Bottom Sheet Modal -->
-    <div id="infoModalOverlay" class="modal-overlay" style="display: none;" onclick="toggleInfoModal()"></div>
-    <div id="infoModalSheet" class="modal-sheet" style="display: none;">
-      <div class="drag-handle"></div>
-      <div class="sheet-head">
-        <div class="sheet-badge">
-          <span class="status-dot"></span>
-          <span>How to play</span>
+    <!-- ================= PROVABLY FAIR MODAL ================= -->
+    <div id="fairnessOverlay" class="modal-overlay hidden" onclick="closeFairnessModal()"></div>
+    <div id="fairnessSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-5 h-5 text-teal-400"></i>
+          <h3 class="text-sm font-black text-white">Verify Provable Fairness</h3>
         </div>
-        <button type="button" class="sheet-close-btn" onclick="toggleInfoModal()">&times;</button>
-      </div>
-
-      <h2 class="sheet-title">Gift Hunt (Mines)</h2>
-      <p class="sheet-subtitle">Reveal gifts, dodge bombs, cash out anytime.</p>
-
-      <div class="steps-list">
-        <div class="step-row">
-          <div class="step-num">1</div>
-          <p class="step-text">Select bomb count (3, 5, or 10 bombs) and tap Start Hunt.</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">2</div>
-          <p class="step-text">Tap tiles to uncover hidden gifts 🎁. Each gift raises your payout multiplier.</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">3</div>
-          <p class="step-text">Tap Cash Out anytime to bank your winnings! Hitting a bomb 💣 explodes the round.</p>
-        </div>
-      </div>
-
-      <!-- Multiplier Table in Sheet -->
-      <div class="sheet-table">
-        <div class="sheet-table-row"><span>More Bombs (10)</span><span>Faster multiplier explosion</span></div>
-        <div class="sheet-table-row"><span>Balanced (5)</span><span>Great standard risk/reward</span></div>
-        <div class="sheet-table-row"><span>Fewer Bombs (3)</span><span>Safer, steady growth</span></div>
-      </div>
-
-      <!-- Sound Toggle Bar -->
-      <div class="sound-toggle-bar">
-        <div class="sound-label-wrap">
-          <span style="font-size:1.1rem;">🔊</span>
-          <div>
-            <h5 class="sound-title">Sound Effects</h5>
-            <p class="sound-sub">Native Web Audio Synthesizer</p>
-          </div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" checked onchange="toggleSound(this.checked)">
-          <span class="slider-switch"></span>
-        </label>
-      </div>
-
-      <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it</button>
-    </div>
-
-    <!-- Daily Limit Watch Ad Modal Popup -->
-    <div id="adModalOverlay" class="modal-overlay" style="display: none;" onclick="closeAdModal()"></div>
-    <div id="adModalSheet" class="ad-modal-card" style="display: none;">
-      <div class="ad-modal-header">
-        <div class="ad-badge">
-          <span>📺</span>
-          <span>Daily Plays Limit</span>
-        </div>
-        <button type="button" class="ad-close-btn" onclick="closeAdModal()">&times;</button>
-      </div>
-
-      <!-- Initial Ad Offer Prompt -->
-      <div id="adInitialView">
-        <div class="ad-icon-hero">🎬</div>
-        <h3 class="ad-title">10 Daily Plays Used</h3>
-        <p class="ad-desc">You've reached your 10 free hunts limit for today! Watch a sponsored video ad to unlock <b style="color:#facc15;">+5 extra plays</b> instantly.</p>
-        
-        <div class="ad-plays-summary">
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Daily Limit</span>
-            <span class="ad-stat-val">10 Plays</span>
-          </div>
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Ad Reward</span>
-            <span class="ad-stat-val text-green">+5 Plays</span>
-          </div>
-        </div>
-
-        <button type="button" class="btn-watch-ad" onclick="startWatchingAd()">
-          <span>▶️ Watch Ad (+5 Plays)</span>
+        <button onclick="closeFairnessModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-
-      <!-- Video Player Simulator (Active when watching) -->
-      <div id="adPlayerView" style="display:none;">
-        <div class="ad-video-screen">
-          <div class="ad-sponsor-tag">📢 Sponsored Video Ad</div>
-          <div class="ad-spinner"></div>
-          <div class="ad-timer-text" id="adTimerText">Reward in 5s...</div>
-          <div class="ad-progress-bar-wrap">
-            <div class="ad-progress-bar-fill" id="adProgressFill"></div>
+      <div class="py-4 space-y-3.5 text-xs">
+        <div>
+          <label class="text-gray-400 font-bold block mb-1">Server Seed (SHA-256 Hash):</label>
+          <div class="bg-[#10141e] border border-[#20283c] rounded-xl p-2.5 text-gray-300 font-mono text-[11px] break-all select-all" id="serverSeedHashDisplay">
+            7a9c8b3e5f214d60a1e4c7b89d02e3f45a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d
           </div>
         </div>
-        <p class="ad-notice">Please watch the full sponsor message to receive your reward...</p>
+        <div>
+          <label class="text-gray-400 font-bold block mb-1">Client Seed:</label>
+          <input type="text" id="clientSeedInput" value="player_nova_telegram_seed" class="w-full bg-[#10141e] border border-[#20283c] rounded-xl p-2.5 text-white font-mono text-xs focus:border-teal-400 outline-none">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-gray-400 font-bold">Nonce:</span>
+          <span class="text-white font-mono font-bold" id="nonceDisplay">1</span>
+        </div>
+        <div class="bg-teal-500/10 border border-teal-500/20 rounded-xl p-3 text-teal-300 text-[11px] leading-relaxed">
+          The bomb layout is deterministically hashed prior to your first click. Neither player nor server can manipulate outcome mid-round.
+        </div>
+        <button onclick="closeFairnessModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-500 text-slate-950 font-black text-xs">
+          Confirmed Fair
+        </button>
       </div>
     </div>
 
-    <!-- Toast -->
-    <div id="toastBar" class="toast-bar" style="display: none;">
-      <span class="toast-icon" id="toastIcon">💣</span>
-      <div>
-        <h5 class="toast-title" id="toastTitle">Notification</h5>
-        <p class="toast-msg" id="toastMsg">Ready to play</p>
+    <!-- ================= REFERRAL MODAL ================= -->
+    <div id="referralOverlay" class="modal-overlay hidden" onclick="closeReferralModal()"></div>
+    <div id="referralSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-5 h-5 text-purple-400"></i>
+          <h3 class="text-sm font-black text-white">Invite Friends &amp; Earn Stars</h3>
+        </div>
+        <button onclick="closeReferralModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="py-4 space-y-4 text-xs">
+        <div class="bg-purple-950/30 border border-purple-500/30 rounded-2xl p-4 flex items-center gap-3">
+          <span class="text-4xl">🎁</span>
+          <div>
+            <h4 class="text-sm font-black text-purple-200">+40 Stars for Every Friend!</h4>
+            <p class="text-[11px] text-gray-400 mt-0.5">When your friend joins and plays their first game, you both instantly get +40 Stars.</p>
+          </div>
+        </div>
+        <div>
+          <label class="text-gray-400 font-bold block mb-1.5">Your Referral Link:</label>
+          <div class="flex items-center gap-2">
+            <input type="text" readonly value="https://t.me/stargame_bot?start=ref_184920" class="flex-1 bg-[#10141e] border border-[#20283c] rounded-xl p-2.5 text-purple-300 font-mono text-xs select-all outline-none">
+            <button onclick="copyReferralLink()" id="copyRefBtn" class="px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs transition-all active:scale-95">
+              Copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Free Coins Refill Modal -->
+    <div id="buyCoinsModalOverlay" class="modal-overlay hidden" onclick="closeBuyCoinsModal()"></div>
+    <div id="buyCoinsModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">⭐</span>
+          <h3 class="text-sm font-black text-white">Refill Stars &amp; Coins</h3>
+        </div>
+        <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="py-4 space-y-3">
+        <div onclick="claimFreeRefill()" class="bg-[#111622] border border-[#232d42] hover:border-amber-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">⭐</span>
+            <div>
+              <h4 class="text-sm font-black text-white">Free Daily Bonus</h4>
+              <p class="text-xs text-gray-400">Claim +200 free stars instantly</p>
+            </div>
+          </div>
+          <button class="px-3.5 py-1.5 rounded-xl bg-amber-400 text-slate-950 font-black text-xs shadow-md">Claim</button>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

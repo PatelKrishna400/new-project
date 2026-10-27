@@ -1,21 +1,18 @@
 /**
- * LUCKY DICE GAME LOGIC — NOVA ARCADE SUITE
- * 3D Rolling Cube • 50% Win Rate Calibration • 10 Daily Plays Limit + Watch Ad
+ * LUCKY DICE GAME LOGIC — EXACT MATCH TO SCREENSHOTS 1 & 2
+ * 3D Rolling Cube • Multiplier Tiles with Pip Dots • Six Streak • 50% Win Rate Calibration
  */
 
-const GAME_ID = 'lucky_dice';
-const DAILY_FREE_PLAYS = 10;
-const BONUS_PLAYS_PER_AD = 5;
-
-let balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-let currentBet = 20;
+const MIN_BET = 30;
+const MAX_BET = 2000;
+let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
+let currentBet = 50;
 let diceStreak = 0;
 let isRollingDice = false;
 let soundEnabled = true;
 
 // Web Audio API Synthesizer
 let synth = null;
-let noiseSynth = null;
 
 function initAudio() {
   if (!synth && window.Tone) {
@@ -23,10 +20,6 @@ function initAudio() {
       synth = new Tone.PolySynth(Tone.Synth, {
         oscillator: { type: "triangle" },
         envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.2 }
-      }).toDestination();
-      noiseSynth = new Tone.NoiseSynth({
-        noise: { type: 'white' },
-        envelope: { attack: 0.005, decay: 0.05, sustain: 0 }
       }).toDestination();
     } catch(e) {}
   }
@@ -69,6 +62,7 @@ function updateBalanceUI() {
 
 function saveBalance() {
   localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
+  localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
@@ -76,169 +70,132 @@ function saveBalance() {
   } catch (e) {}
 }
 
-function addFreeCoins() {
+function addFreeCoins(amount = 200) {
   playTone('win');
-  balance += 200;
+  balance += amount;
   saveBalance();
   updateBalanceUI();
-  showToast('Bonus Credited', '+200 Free Stars added to your pouch!', '⭐');
+  showToast('Coins Credited', `+${amount} free coins added!`, '🪙');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
-// Daily Plays Tracker (10 Free Plays / Day)
-function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function getPlaysUsedToday() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getBonusPlaysToday() {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getRemainingPlays() {
-  const totalAllowed = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const used = getPlaysUsedToday();
-  return Math.max(0, totalAllowed - used);
-}
-
-function recordPlayUsed() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  const used = getPlaysUsedToday() + 1;
-  localStorage.setItem(key, used.toString());
-  updateDailyPlaysUI();
-}
-
-function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  const current = getBonusPlaysToday() + count;
-  localStorage.setItem(key, current.toString());
-  updateDailyPlaysUI();
-}
-
-function updateDailyPlaysUI() {
-  const remaining = getRemainingPlays();
-  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const display = document.getElementById('dailyPlaysDisplay');
-  if (display) {
-    display.innerText = `${remaining}/${total}`;
-    display.style.color = remaining <= 0 ? '#ef4444' : '#38bdf8';
-  }
-  updateActionButtonState();
-}
-
-function checkDailyPlaysClick() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-  } else {
-    showToast('Daily Free Plays', `${getRemainingPlays()} free plays remaining today.`, '🎯');
+function openBuyCoinsModal() {
+  playTone('click');
+  const overlay = document.getElementById('buyCoinsModalOverlay');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
   }
 }
 
-// Action Button State
+function closeBuyCoinsModal() {
+  playTone('click');
+  const overlay = document.getElementById('buyCoinsModalOverlay');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+
+function claimFreeRefill() {
+  addFreeCoins(200);
+  closeBuyCoinsModal();
+}
+
 function updateActionButtonState() {
-  const btn = document.getElementById('btnRollDice');
+  const btn = document.getElementById('primaryPlayBtn');
   if (!btn) return;
 
-  const remaining = getRemainingPlays();
-  if (remaining <= 0) {
-    btn.innerText = '▶ Watch Ad to Play (0/10)';
-    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
-    btn.style.color = '#451a03';
-  } else if (balance < currentBet) {
-    btn.innerText = 'Get Stars (+200 Free)';
-    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
-    btn.style.color = '#451a03';
+  if (balance < currentBet) {
+    btn.innerText = 'Buy coins';
+    btn.className = 'primary-cta-btn bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 shadow-[0_8px_24px_rgba(56,189,248,0.35)]';
   } else {
-    btn.innerText = 'Roll Dice';
-    btn.style.background = 'linear-gradient(135deg, #38bdf8 0%, #2563eb 100%)';
-    btn.style.color = '#07090e';
+    btn.innerText = 'Roll';
+    btn.className = 'primary-cta-btn bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 shadow-[0_8px_24px_rgba(56,189,248,0.35)]';
   }
 }
 
-// Bet Chip Selector: 10, 20, 50, 100
+// Bet Controls (Screenshot 2 Match)
 function setBet(amount) {
   playTone('tick');
-  currentBet = Math.min(2000, Math.max(10, amount));
-  const betEl = document.getElementById('currentBetDisplay');
-  if (betEl) betEl.innerText = currentBet;
+  currentBet = Math.min(MAX_BET, Math.max(MIN_BET, amount));
+  const el = document.getElementById('currentBetDisplay');
+  if (el) el.innerText = currentBet;
   updateActiveChipUI();
   updateActionButtonState();
 }
 
-const BET_STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000];
-
-function stepDownBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
-
-  const lower = BET_STEPS.filter(s => s < currentBet);
-  if (lower.length > 0) {
-    setBet(lower[lower.length - 1]);
-  } else {
-    setBet(BET_STEPS[0]);
-  }
+function halveBet() {
+  if (isRollingDice) return;
+  setBet(Math.max(MIN_BET, Math.round(currentBet / 2)));
 }
 
-function stepUpBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
-
-  const higher = BET_STEPS.filter(s => s > currentBet);
-  if (higher.length > 0) {
-    setBet(higher[0]);
-  } else {
-    setBet(BET_STEPS[BET_STEPS.length - 1]);
-  }
+function doubleBet() {
+  if (isRollingDice) return;
+  setBet(Math.min(MAX_BET, currentBet * 2));
 }
-
-function halveBet() { stepDownBet(); }
-function doubleBet() { stepUpBet(); }
 
 function updateActiveChipUI() {
-  document.querySelectorAll('.bet-chip').forEach(btn => {
-    const val = parseInt(btn.dataset.val || btn.innerText, 10);
+  document.querySelectorAll('.bet-pill-btn').forEach(btn => {
+    const val = parseInt(btn.getAttribute('data-val') || '0', 10);
     if (val === currentBet) {
       btn.classList.add('active');
+      btn.style.borderColor = '#38bdf8';
+      btn.style.boxShadow = '0 0 16px rgba(56, 189, 248, 0.3)';
     } else {
       btn.classList.remove('active');
+      btn.style.borderColor = '';
+      btn.style.boxShadow = '';
     }
   });
 }
 
-// Toast
+// Rules Sheet Modal Controller (Screenshot 1 Match)
+function toggleInfoModal() {
+  playTone('click');
+  const sheet = document.getElementById('infoModalSheet');
+  const overlay = document.getElementById('infoModalOverlay');
+  if (!sheet || !overlay) return;
+
+  const isHidden = overlay.classList.contains('hidden');
+  if (isHidden) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  } else {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+
+// Toast System
 function showToast(title, msg, icon = '🎲') {
-  const toast = document.getElementById('toastBar');
+  const toast = document.getElementById('toastNotification');
   if (!toast) return;
-  const tTitle = document.getElementById('toastTitle');
-  const tMsg = document.getElementById('toastMsg');
-  const tIcon = document.getElementById('toastIcon');
-  if (tTitle) tTitle.innerText = title;
-  if (tMsg) tMsg.innerText = msg;
-  if (tIcon && icon) tIcon.innerText = icon;
+  document.getElementById('toastTitle').innerText = title;
+  document.getElementById('toastMessage').innerText = msg;
+  document.getElementById('toastIcon').innerText = icon;
 
   toast.style.display = 'flex';
-  setTimeout(() => { toast.classList.add('show'); }, 10);
+  toast.classList.remove('-translate-y-48', 'opacity-0');
+  toast.classList.add('translate-y-0', 'opacity-100');
   setTimeout(() => {
-    toast.classList.remove('show');
+    toast.classList.remove('translate-y-0', 'opacity-100');
+    toast.classList.add('-translate-y-48', 'opacity-0');
     setTimeout(() => { toast.style.display = 'none'; }, 300);
   }, 2600);
 }
 
-// 3D Dice Rotations
+// Dice Action Handling
+function handleDiceAction() {
+  if (balance < currentBet) {
+    openBuyCoinsModal();
+    return;
+  }
+  rollDiceGame();
+}
+
 const DICE_ROTATIONS = {
   1: { x: 0, y: 0 },
   6: { x: 0, y: 180 },
@@ -249,53 +206,21 @@ const DICE_ROTATIONS = {
 };
 const DICE_MULTIPLIERS = { 1: 0, 2: 0.3, 3: 0.6, 4: 1.2, 5: 1.5, 6: 2 };
 
-// Primary Action Click Dispatcher
-function handleDiceAction() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-    return;
-  }
-  if (balance < currentBet) {
-    addFreeCoins();
-    return;
-  }
-  rollDiceGame();
-}
-
-// 50% Win Rate Calibrated Dice Roll
 function rollDiceGame() {
   if (isRollingDice) return;
-
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
-    return;
-  }
-
-  if (balance < currentBet) {
-    showToast('Insufficient Stars', 'Claimed free refill stars!', '⭐');
-    addFreeCoins();
-    return;
-  }
-
   isRollingDice = true;
-  recordPlayUsed();
   balance -= currentBet;
   saveBalance();
   updateBalanceUI();
   playTone('roll');
 
   const cube = document.getElementById('cube');
+  cube.classList.remove('face-pose-3');
 
-  // Dynamic Win Rate Calibration:
-  // Total star balance >= 10,000 -> 10% win probability
-  // Total star balance >= 5,000  -> 20% win probability
-  // Below 5,000 stars            -> 50% win probability
   let winProbability = 0.50;
-  if (balance >= 10000) {
-    winProbability = 0.10;
-  } else if (balance >= 5000) {
-    winProbability = 0.20;
-  }
+  if (balance >= 10000) winProbability = 0.10;
+  else if (balance >= 5000) winProbability = 0.20;
+
   const isWin = Math.random() < winProbability;
   let rolledFace;
   if (isWin) {
@@ -316,21 +241,23 @@ function rollDiceGame() {
     isRollingDice = false;
     const baseMult = DICE_MULTIPLIERS[rolledFace];
 
+    // Highlight rolled multiplier tile
+    highlightDiceMultiplierTile(rolledFace);
+
     if (rolledFace === 6) {
       diceStreak++;
     } else {
       diceStreak = 0;
     }
-    updateStreakUI();
+    updateDiceStreakUI();
 
     let grossWin = Math.round(currentBet * baseMult);
     if (diceStreak === 3) {
       grossWin = Math.round(currentBet * 7); // Jackpot x7
       diceStreak = 0;
-      updateStreakUI();
+      updateDiceStreakUI();
     }
 
-    // 0.1% Tax Cut on Winnings (min 1 star if gross > 0)
     let wonAmount = 0;
     let taxAmount = 0;
     if (grossWin > 0) {
@@ -339,15 +266,15 @@ function rollDiceGame() {
     }
 
     if (grossWin >= Math.round(currentBet * 7)) {
-      if (window.confetti) confetti({ particleCount: 120, spread: 80 });
+      if (window.confetti) confetti({ particleCount: 100, spread: 80 });
       playTone('jackpot');
-      showToast('JACKPOT!', `Three Sixes! Paid +${wonAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🔥');
+      showToast('JACKPOT!', `Three Sixes in a row! Paid +${wonAmount} 🪙`, '🔥');
     } else if (baseMult > 1) {
       playTone('win');
-      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} ⭐ (0.1% tax: -${taxAmount} ⭐)`, '🎉');
+      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} 🪙`, '🎉');
     } else if (baseMult > 0) {
       playTone('win');
-      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} ⭐, tax: -${taxAmount} ⭐)`, '🎲');
+      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎲');
     } else {
       playTone('lose');
       showToast('Rolled a One', 'Face 1 pays ×0. Better luck next roll!', '💀');
@@ -356,147 +283,45 @@ function rollDiceGame() {
     balance += wonAmount;
     saveBalance();
     updateBalanceUI();
-  }, 1200);
+  }, 1250);
 }
 
-function updateStreakUI() {
-  const dots = document.getElementById('streakDots')?.children;
-  if (!dots) return;
+function highlightDiceMultiplierTile(faceNum) {
+  for (let i = 1; i <= 6; i++) {
+    const tile = document.getElementById(`multTile${i}`);
+    if (!tile) continue;
+    if (i === faceNum) {
+      tile.style.borderColor = '#38bdf8';
+      tile.style.backgroundColor = 'rgba(56, 189, 248, 0.15)';
+      tile.style.boxShadow = '0 0 14px rgba(56, 189, 248, 0.4)';
+    } else {
+      tile.style.borderColor = 'transparent';
+      tile.style.backgroundColor = '#171c2a';
+      tile.style.boxShadow = 'none';
+    }
+  }
+}
+
+function updateDiceStreakUI() {
+  const container = document.getElementById('diceStreakIndicators');
+  if (!container) return;
+  const indicators = container.children;
   for (let i = 0; i < 3; i++) {
     if (i < diceStreak) {
-      dots[i].classList.add('active');
+      indicators[i].classList.add('active');
     } else {
-      dots[i].classList.remove('active');
+      indicators[i].classList.remove('active');
     }
   }
 }
 
-// Rules Sheet Modal (Exact match to Image 1)
-function toggleInfoModal() {
-  playTone('click');
-  const sheet = document.getElementById('infoModalSheet');
-  const overlay = document.getElementById('infoModalOverlay');
-  if (!sheet || !overlay) return;
+// DOM Ready
+window.addEventListener('DOMContentLoaded', () => {
+  const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
+  balance = parseInt(storedStars || '10', 10);
 
-  const isOpen = sheet.classList.contains('open');
-  if (isOpen) {
-    sheet.classList.remove('open');
-    setTimeout(() => {
-      overlay.style.display = 'none';
-      sheet.style.display = 'none';
-    }, 280);
-  } else {
-    overlay.style.display = 'block';
-    sheet.style.display = 'block';
-    setTimeout(() => { sheet.classList.add('open'); }, 10);
-  }
-}
-// Watch Ad Modal System (Daily Play Limit)
-let isWatchingAd = false;
-let adCountdownInterval = null;
-
-function openAdModal() {
-  playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  if (!sheet || !overlay) return;
-
-  if (initialView) initialView.style.display = 'block';
-  if (playerView) playerView.style.display = 'none';
-
-  overlay.style.display = 'block';
-  sheet.style.display = 'block';
-  setTimeout(() => { sheet.classList.add('show'); }, 10);
-}
-
-function closeAdModal() {
-  if (isWatchingAd) return;
-  playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  if (sheet) {
-    sheet.classList.remove('show');
-    setTimeout(() => { sheet.style.display = 'none'; }, 250);
-  }
-  if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
-}, 250);
-}
-
-function startWatchingAd() {
-  if (isWatchingAd) return;
-  isWatchingAd = true;
-  playTone('click');
-
-  // Trigger backend ad service to open ad in new tab and record metrics
-  if (typeof window.openWatchAd === 'function') {
-    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
-  }
-
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  const timerText = document.getElementById('adTimerText');
-  const progressFill = document.getElementById('adProgressFill');
-
-  if (initialView) initialView.style.display = 'none';
-  if (playerView) playerView.style.display = 'block';
-
-  let secondsLeft = 5;
-  if (timerText) timerText.innerText = `Reward in ${secondsLeft}s...`;
-  if (progressFill) progressFill.style.width = '0%';
-
-  const startTime = Date.now();
-  const totalDuration = 5000;
-
-  const progressInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const pct = Math.min(100, (elapsed / totalDuration) * 100);
-    if (progressFill) progressFill.style.width = `${pct}%`;
-  }, 50);
-
-  adCountdownInterval = setInterval(() => {
-    secondsLeft--;
-    playTone('tick');
-    if (timerText) timerText.innerText = secondsLeft > 0 ? `Reward in ${secondsLeft}s...` : 'Reward Unlocked! 🎉';
-
-    if (secondsLeft <= 0) {
-      clearInterval(adCountdownInterval);
-      clearInterval(progressInterval);
-      isWatchingAd = false;
-
-      // Credit +5 Bonus Plays
-      grantBonusPlays(BONUS_PLAYS_PER_AD);
-      if (window.confetti) confetti({ particleCount: 75, spread: 70 });
-      playTone('jackpot');
-      showToast('Reward Earned!', '+5 Extra Plays Unlocked! Keep playing!', '🎉');
-
-      setTimeout(() => {
-        closeAdModal();
-      }, 700);
-    }
-  }, 1000);
-}
-
-// Initialization
-document.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
   updateBalanceUI();
-  updateActiveChipUI();
-  updateDailyPlaysUI();
+  setBet(50);
 
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-      updateBalanceUI();
-    }
-  });
-
-  try {
-    const syncChannel = new BroadcastChannel('nova_task_sync');
-    syncChannel.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-      updateBalanceUI();
-    };
-  } catch (e) {}
+  if (window.lucide) lucide.createIcons();
 });

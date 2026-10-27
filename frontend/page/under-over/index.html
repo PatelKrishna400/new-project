@@ -4,311 +4,394 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Under Over — Arcade Suite</title>
-  <link rel="stylesheet" href="style.css">
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../star-game/style.css">
+  
+  <style>
+    /* Custom Slider & Track styles for Under Over */
+    .uo-track-container {
+      position: relative;
+      width: 100%;
+      height: 18px;
+      background: #141822;
+      border: 1px solid #232d40;
+      border-radius: 9999px;
+      overflow: visible;
+    }
+    .uo-track-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #65a30d 0%, #84cc16 60%, #a3e635 100%);
+      border-radius: 9999px;
+      transition: width 0.15s ease;
+      box-shadow: 0 0 12px rgba(163, 230, 53, 0.4);
+    }
+    .uo-track-fill.over-mode {
+      left: auto;
+      right: 0;
+    }
+    .uo-needle {
+      position: absolute;
+      top: -4px;
+      width: 4px;
+      height: 26px;
+      background: #ffffff;
+      border-radius: 2px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 2px 5px rgba(0,0,0,0.5);
+      z-index: 10;
+      transition: left 0.15s ease;
+    }
+    .uo-roll-marker {
+      position: absolute;
+      top: -12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 3px solid #84cc16;
+      box-shadow: 0 0 16px rgba(132, 204, 22, 0.9);
+      transform: translateX(-50%);
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      color: #0b0e15;
+    }
+    /* Slider styling matching Screenshot 1 */
+    .slider-lime-track {
+      position: relative;
+      height: 10px;
+      border-radius: 9999px;
+      background: #19202f;
+      display: flex;
+      align-items: center;
+    }
+    .slider-lime-fill {
+      height: 100%;
+      background: #84cc16;
+      border-radius: 9999px;
+      pointer-events: none;
+    }
+    input[type=range].lime-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 10px;
+      background: transparent;
+      outline: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 0;
+      z-index: 5;
+    }
+    input[type=range].lime-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #bef264 0%, #84cc16 70%, #4d7c0f 100%);
+      box-shadow: 0 0 12px rgba(163, 230, 53, 0.8), inset 0 2px 3px rgba(255,255,255,0.7);
+      cursor: pointer;
+      border: 2px solid #ffffff;
+    }
+  </style>
 </head>
-<body>
+<body class="flex justify-center min-h-screen bg-[#06080d]">
 
-  <!-- Mobile App Frame Shell -->
-  <div class="mobile-container">
+  <div class="app-frame theme-underover" id="appMainFrame">
 
-    <!-- Top Nav Header -->
-    <header class="game-nav-header">
-      <div class="nav-left">
-        <!-- Back Button Pill -->
-        <a href="../games/index.html" class="nav-back-pill" title="Back to Games Arena">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
+    <!-- Top Header (Screenshot 1 Match) -->
+    <header class="sticky top-0 z-40 bg-[#0b0e15]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b2232]">
+      <div class="flex items-center gap-2">
+        <a href="../star-game/index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#151923] border border-[#232a3a] text-xs font-extrabold text-gray-200 hover:text-white transition-all active:scale-95">
+          <i data-lucide="arrow-left" class="w-4 h-4 text-gray-300"></i>
           <span>Back</span>
         </a>
-        <!-- Info Button (i) -->
-        <button type="button" onclick="toggleInfoModal()" class="nav-info-btn" title="How to play">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
+        <button type="button" onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-[#151923] border border-[#232a3a] hover:bg-[#1f2636] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="How to play">
+          <i data-lucide="info" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Center Title with Glowing Lime Dot -->
-      <div class="nav-title-wrap">
-        <span class="status-dot"></span>
-        <h1 class="nav-title">Under Over</h1>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#84cc16] shadow-[0_0_10px_#84cc16] animate-pulse"></span>
+        <h1 class="text-sm font-black tracking-wide text-white">Under Over</h1>
       </div>
 
-      <!-- Right Controls: Star Pill -->
-      <div class="nav-right">
-        <div class="balance-pill" title="Star Balance">
-          <span class="coin-icon">⭐</span>
-          <span class="coin-val" id="coinBalance">0</span>
-          <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Stars">+</button>
+      <div class="flex items-center gap-1.5">
+        <div class="header-balance-pill" title="Coin Balance">
+          <span class="text-xs">🪙</span>
+          <span id="coinBalance" class="text-xs font-black text-white min-w-[20px] text-right">10</span>
+          <button type="button" onclick="openBuyCoinsModal()" class="coin-plus-btn" title="Add Coins">+</button>
+        </div>
+        <div class="flex items-center gap-1 text-gray-400 pl-0.5">
+          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
+            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
     </header>
 
-    <!-- Main Play Stage Area -->
-    <main class="play-stage">
-
-      <!-- Big Number Result Box -->
-      <div class="underover-stage-box">
-        <div class="big-number-display" id="bigNumberDisplay">50</div>
-        <p class="underover-hint">Roll between 0 and 99</p>
-
-        <!-- Visual Threshold Bar -->
-        <div class="target-bar-wrap">
-          <div class="target-labels-row">
-            <span>0</span>
-            <span id="barTargetLabel">Target: 50</span>
-            <span>99</span>
+    <main class="flex-1 px-3.5 py-3 flex flex-col justify-between">
+      
+      <div class="space-y-3">
+        <!-- 1. Top Display: Dual Digit Cards, Payout Pill & Progress Track (Screenshot 5 Match) -->
+        <div class="w-full bg-[#111722] border border-[#1e2536] rounded-3xl p-4 shadow-xl relative overflow-hidden flex flex-col items-center">
+          <!-- Dual Digit Cards (e.g. 0 0) -->
+          <div class="flex items-center justify-center gap-3.5 my-2">
+            <div class="w-24 h-28 rounded-3xl bg-gradient-to-b from-[#18212e] to-[#111722] border border-[#26354a] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.5)]">
+              <span id="uoDigitLeft" class="text-6xl font-black text-white tracking-tighter select-none">0</span>
+            </div>
+            <div class="w-24 h-28 rounded-3xl bg-gradient-to-b from-[#18212e] to-[#111722] border border-[#26354a] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.5)]">
+              <span id="uoDigitRight" class="text-6xl font-black text-white tracking-tighter select-none">0</span>
+            </div>
           </div>
-          <div class="bar-track">
-            <div class="bar-fill" id="barFill"></div>
+
+          <!-- Centered Payout Pill (e.g. ×1.90 payout) -->
+          <div class="flex justify-center mb-3">
+            <div class="px-3.5 py-1 rounded-full bg-[#162016] border border-lime-500/30 flex items-center gap-1.5 shadow-[0_0_12px_rgba(132,204,22,0.15)]">
+              <span id="uoPayoutPill" class="text-xs font-black text-lime-400">×1.90</span>
+              <span class="text-[11px] font-bold text-gray-400">payout</span>
+            </div>
+          </div>
+
+          <!-- Progress Track with Needle -->
+          <div class="w-full px-1">
+            <div class="uo-track-container">
+              <div id="uoProgressFill" class="uo-track-fill" style="width: 50%;"></div>
+              <div id="uoNeedle" class="uo-needle" style="left: 50%;"></div>
+              <div id="uoRollMarker" class="uo-roll-marker" style="left: 50%;">50</div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs font-extrabold text-gray-400 mt-2">
+              <span>0</span>
+              <span id="uoThresholdCenterLabel" class="text-white font-black text-xs">Under 50</span>
+              <span>99</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Under vs Over Mode Direction Buttons -->
-      <div class="direction-buttons-grid">
-        <button type="button" onclick="setUnderOverMode('under')" id="btnUnder" class="direction-btn active">
-          Under <span id="lblThresholdUnder">50</span>
-        </button>
-        <button type="button" onclick="setUnderOverMode('over')" id="btnOver" class="direction-btn">
-          Over <span id="lblThresholdOver">50</span>
-        </button>
-      </div>
-
-      <!-- Range Slider Control Card -->
-      <div class="slider-card">
-        <div class="slider-head">
-          <span>Threshold</span>
-          <b id="sliderValueText">50</b>
-        </div>
-        <input type="range" min="2" max="98" value="50" oninput="onThresholdChange(this.value)">
-        <div class="slider-foot">
-          <span>Safer</span>
-          <span>Riskier</span>
-        </div>
-      </div>
-
-      <!-- Stat Badges Grid -->
-      <div class="badges-grid">
-        <div class="stat-badge-box">
-          <span class="badge-tag">Win Chance</span>
-          <span class="badge-val" id="winChanceBadge">50%</span>
-        </div>
-        <div class="stat-badge-box">
-          <span class="badge-tag">Payout</span>
-          <span class="badge-val payout" id="payoutBadge">×1.90</span>
-        </div>
-        <div class="stat-badge-box">
-          <span class="badge-tag">To Win</span>
-          <span class="badge-val towin" id="toWinBadge">95 ⭐</span>
-        </div>
-      </div>
-
-      <!-- Bet Controls Card -->
-      <div class="bet-controls-card">
-        <div class="bet-limits-row">
-          <span>Min bet: <b>10 ⭐</b></span>
-          <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
-            <span>🎯 Plays Today:</span>
-            <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
+        <!-- 2. Direction Selection (Screenshot 1 Match) -->
+        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl p-3.5">
+          <span class="text-xs font-black text-gray-400 block mb-2 tracking-wide">Direction</span>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" onclick="setUnderOverMode('under')" id="btnUOunder" class="py-3 px-3 rounded-xl bg-lime-500/10 border-2 border-lime-500 text-lime-400 font-black text-sm transition-all shadow-[0_0_16px_rgba(132,204,22,0.25)]">
+              Under <span id="lblThresholdUnder">50</span>
+            </button>
+            <button type="button" onclick="setUnderOverMode('over')" id="btnUOover" class="py-3 px-3 rounded-xl bg-[#171c28] border border-[#232c3f] text-gray-400 font-black text-sm transition-all hover:text-white">
+              Over <span id="lblThresholdOver">50</span>
+            </button>
           </div>
-          <span>Max bet: <b>2,000 ⭐</b></span>
-        </div>
 
-        <!-- Bet Chips Selector -->
-        <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="10" onclick="setBet(10)">10 ⭐</button>
-          <button type="button" class="bet-chip active" data-val="20" onclick="setBet(20)">20 ⭐</button>
-          <button type="button" class="bet-chip" data-val="50" onclick="setBet(50)">50 ⭐</button>
-          <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">100 ⭐</button>
-        </div>
+          <!-- 3. Threshold Slider Section (Screenshot 1 Match) -->
+          <div class="mt-4">
+            <div class="flex justify-between items-center text-xs font-bold mb-2">
+              <span class="text-gray-400 font-extrabold">Threshold</span>
+              <span id="sliderValueText" class="text-white text-base font-black">50</span>
+            </div>
 
-        <!-- Custom Bet Adjuster -->
-        <div class="bet-adjuster-bar">
-          <button type="button" class="adj-btn" id="btnBetDown" onclick="stepDownBet()" aria-label="Decrease Bet" title="Decrease Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-          <div class="current-bet-display">
-            <span>⭐</span>
-            <span class="current-bet-val" id="currentBetDisplay">20</span>
+            <div class="relative w-full py-2">
+              <div class="slider-lime-track">
+                <div id="sliderFillBar" class="slider-lime-fill" style="width: 50%;"></div>
+              </div>
+              <input id="uoSlider" type="range" min="1" max="99" value="50" oninput="onThresholdChange(this.value)" class="lime-range">
+            </div>
+
+            <div class="flex justify-between text-[11px] font-bold text-gray-500 mt-0.5 px-0.5">
+              <span>Safer</span>
+              <span>Riskier</span>
+            </div>
           </div>
-          <button type="button" class="adj-btn" id="btnBetUp" onclick="stepUpBet()" aria-label="Increase Bet" title="Increase Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+
+          <!-- 4. Three Stats Badges in a Row (Screenshot 1 Match) -->
+          <div class="grid grid-cols-3 gap-2 mt-4">
+            <div class="bg-[#171c28] border border-[#232c3f] rounded-xl py-2 px-1 text-center">
+              <span class="text-[10px] text-gray-400 font-bold block">Win chance</span>
+              <span id="uoWinChanceText" class="text-sm font-black text-lime-400">50%</span>
+            </div>
+            <div class="bg-[#171c28] border border-[#232c3f] rounded-xl py-2 px-1 text-center">
+              <span class="text-[10px] text-gray-400 font-bold block">Payout</span>
+              <span id="uoMultiplierText" class="text-sm font-black text-lime-400">×1.90</span>
+            </div>
+            <div class="bg-[#171c28] border border-[#232c3f] rounded-xl py-2 px-1 text-center">
+              <span class="text-[10px] text-gray-400 font-bold block">To win</span>
+              <span id="uoToWinText" class="text-sm font-black text-lime-400">95</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Roll Action Button -->
-        <button type="button" class="btn-primary-play" id="btnRollNumber" onclick="rollUnderOverGame()">
-          Roll Number
+        <!-- 5. Min / Max Bet Row (Screenshot 1 Match) -->
+        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-4">
+            <span class="text-gray-400 font-semibold">Min bet</span>
+            <span class="text-white font-extrabold flex items-center gap-1">30 <span class="text-xs">🪙</span></span>
+          </div>
+          <div class="h-4 w-[1px] bg-[#1e2536]"></div>
+          <div class="flex items-center gap-4">
+            <span class="text-gray-400 font-semibold">Max bet</span>
+            <span class="text-white font-extrabold flex items-center gap-1">2,000 <span class="text-xs">🪙</span></span>
+          </div>
+        </div>
+
+        <!-- 6. Recent Rounds Card (Screenshot 1 Match) -->
+        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-3">
+          <h4 class="text-xs font-extrabold text-white">Recent rounds</h4>
+          <div id="uoRecentRounds" class="text-xs text-gray-400 mt-1.5 flex items-center gap-2 overflow-x-auto py-0.5">
+            No rounds yet. Place your first bet.
+          </div>
+        </div>
+
+        <!-- 7. Quick Bet Chips (Screenshot 1 Match) -->
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="setBet(30)" class="bet-pill-btn" data-val="30">
+            30 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(50)" class="bet-pill-btn active" data-val="50">
+            50 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(100)" class="bet-pill-btn" data-val="100">
+            100 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(500)" class="bet-pill-btn" data-val="500">
+            500 <span class="text-[11px]">🪙</span>
+          </button>
+        </div>
+
+        <!-- 8. Stepper: 1/2 | Coin 50 | 2x (Screenshot 1 Match) -->
+        <div class="flex items-center justify-between bg-[#121622] border border-[#1e2536] rounded-2xl px-3 py-1.5">
+          <button type="button" onclick="halveBet()" class="bet-adj-btn" title="Halve Bet">
+            ½
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 text-sm">🪙</span>
+            <span id="currentBetDisplay" class="text-base font-black text-white">50</span>
+          </div>
+          <button type="button" onclick="doubleBet()" class="bet-adj-btn" title="Double Bet">
+            2×
+          </button>
+        </div>
+
+        <!-- 9. Primary Action CTA Button (Screenshot 1 Match) -->
+        <button id="primaryPlayBtn" onclick="handlePrimaryAction()" class="primary-cta-btn bg-gradient-to-r from-lime-400 to-green-500 hover:from-lime-300 hover:to-green-400 text-lime-950 shadow-[0_8px_24px_rgba(132,204,22,0.35)]">
+          Buy coins
         </button>
       </div>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="below-menu-bar" aria-label="Bottom Navigation">
-      <a href="../shop/index.html" class="below-menu-item" title="Shop">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <path d="M16 10a4 4 0 0 1-8 0"></path>
-        </svg>
-        <span>Shop</span>
-      </a>
-      <a href="../leaderboard/index.html" class="below-menu-item" title="Leaderboard">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-          <path d="M4 22h16"></path>
-          <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-        </svg>
-        <span>Ranks</span>
-      </a>
-      <a href="../home/index.html" class="below-menu-item center-home-btn" title="Home">
-        <div class="center-home-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
+    <!-- ================= "HOW TO PLAY" BOTTOM SHEET (Screenshot 4 Match) ================= -->
+    <div id="infoModalOverlay" class="modal-overlay hidden" onclick="toggleInfoModal()"></div>
+    <div id="infoModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+
+      <div class="flex items-center justify-between pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#84cc16] shadow-[0_0_8px_#84cc16]"></span>
+          <span class="text-xs uppercase font-extrabold tracking-wider text-gray-400">How to play</span>
         </div>
-        <span>Home</span>
-      </a>
-      <a href="../wallet/index.html" class="below-menu-item" title="Wallet">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-          <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-        </svg>
-        <span>Wallet</span>
-      </a>
-      <a href="../profile/index.html" class="below-menu-item" title="Profile">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <span>Profile</span>
-      </a>
-    </nav>
-
-    <!-- Rules Bottom Sheet Modal -->
-    <div id="infoModalOverlay" class="modal-overlay" style="display: none;" onclick="toggleInfoModal()"></div>
-    <div id="infoModalSheet" class="modal-sheet" style="display: none;">
-      <div class="drag-handle"></div>
-      <div class="sheet-head">
-        <div class="sheet-badge">
-          <span class="status-dot"></span>
-          <span>How to play</span>
-        </div>
-        <button type="button" class="sheet-close-btn" onclick="toggleInfoModal()">&times;</button>
-      </div>
-
-      <h2 class="sheet-title">Under Over</h2>
-      <p class="sheet-subtitle">Set a threshold, pick a side, roll 0–99.</p>
-
-      <div class="steps-list">
-        <div class="step-row">
-          <div class="step-num">1</div>
-          <p class="step-text">Drag the threshold slider anywhere from 2 to 98.</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">2</div>
-          <p class="step-text">Choose Under (roll below target wins) or Over (roll above target wins).</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">3</div>
-          <p class="step-text">Riskier conditions award higher multipliers up to ×95!</p>
-        </div>
-      </div>
-
-      <!-- Multiplier Table in Sheet -->
-      <div class="sheet-table">
-        <div class="sheet-table-row"><span>Under 50</span><span>50% · ×1.90</span></div>
-        <div class="sheet-table-row"><span>Under 25</span><span>25% · ×3.80</span></div>
-        <div class="sheet-table-row"><span>Under 10</span><span>10% · ×9.50</span></div>
-        <div class="sheet-table-row" style="background:rgba(132,204,22,0.15);"><span style="color:#a3e635; font-weight:800;">Under 2 / Over 98</span><span style="color:#a3e635; font-weight:900;">1% · ×95</span></div>
-      </div>
-
-      <!-- Sound Toggle Bar -->
-      <div class="sound-toggle-bar">
-        <div class="sound-label-wrap">
-          <span style="font-size:1.1rem;">🔊</span>
-          <div>
-            <h5 class="sound-title">Sound Effects</h5>
-            <p class="sound-sub">Native Web Audio Synthesizer</p>
-          </div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" checked onchange="toggleSound(this.checked)">
-          <span class="slider-switch"></span>
-        </label>
-      </div>
-
-      <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it</button>
-    </div>
-
-    <!-- Daily Limit Watch Ad Modal Popup -->
-    <div id="adModalOverlay" class="modal-overlay" style="display: none;" onclick="closeAdModal()"></div>
-    <div id="adModalSheet" class="ad-modal-card" style="display: none;">
-      <div class="ad-modal-header">
-        <div class="ad-badge">
-          <span>📺</span>
-          <span>Daily Plays Limit</span>
-        </div>
-        <button type="button" class="ad-close-btn" onclick="closeAdModal()">&times;</button>
-      </div>
-
-      <!-- Initial Ad Offer Prompt -->
-      <div id="adInitialView">
-        <div class="ad-icon-hero">🎬</div>
-        <h3 class="ad-title">10 Daily Plays Used</h3>
-        <p class="ad-desc">You've reached your 10 free rolls limit for today! Watch a sponsored video ad to unlock <b style="color:#facc15;">+5 extra plays</b> instantly.</p>
-        
-        <div class="ad-plays-summary">
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Daily Limit</span>
-            <span class="ad-stat-val">10 Plays</span>
-          </div>
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Ad Reward</span>
-            <span class="ad-stat-val text-green">+5 Plays</span>
-          </div>
-        </div>
-
-        <button type="button" class="btn-watch-ad" onclick="startWatchingAd()">
-          <span>▶️ Watch Ad (+5 Plays)</span>
+        <button onclick="toggleInfoModal()" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Video Player Simulator (Active when watching) -->
-      <div id="adPlayerView" style="display:none;">
-        <div class="ad-video-screen">
-          <div class="ad-sponsor-tag">📢 Sponsored Video Ad</div>
-          <div class="ad-spinner"></div>
-          <div class="ad-timer-text" id="adTimerText">Reward in 5s...</div>
-          <div class="ad-progress-bar-wrap">
-            <div class="ad-progress-bar-fill" id="adProgressFill"></div>
+      <h2 class="text-2xl font-black text-white mt-0.5">Under Over</h2>
+      <p class="text-xs text-gray-400 mt-1 mb-5">Set a threshold, pick a side, roll 0–99.</p>
+
+      <div class="space-y-3.5 mb-5">
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-lime-500/15 border border-lime-500/30 text-lime-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Drag the threshold anywhere from 1 to 99.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-lime-500/15 border border-lime-500/30 text-lime-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Choose Under (roll below the threshold wins) or Over (roll above wins). Hitting the threshold exactly always loses.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-lime-500/15 border border-lime-500/30 text-lime-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">The payout is 0.95 divided by your win chance. Riskier picks pay more, up to ×95.</p>
+        </div>
+      </div>
+
+      <!-- Multiplier Table (Screenshot 4 Match) -->
+      <div class="bg-[#10141e] rounded-2xl divide-y divide-[#1d2436] border border-[#222a3e] overflow-hidden mb-5 text-xs font-semibold">
+        <div class="px-4 py-3 flex items-center justify-between">
+          <span class="text-gray-300 font-medium">Under 50</span>
+          <span class="text-white font-black">50% • ×1.90</span>
+        </div>
+        <div class="px-4 py-3 flex items-center justify-between">
+          <span class="text-gray-300 font-medium">Under 25</span>
+          <span class="text-white font-black">25% • ×3.80</span>
+        </div>
+        <div class="px-4 py-3 flex items-center justify-between">
+          <span class="text-gray-300 font-medium">Under 10</span>
+          <span class="text-white font-black">10% • ×9.50</span>
+        </div>
+        <div class="px-4 py-3 flex items-center justify-between">
+          <span class="text-gray-300 font-medium">Under 1 / Over 98</span>
+          <span class="text-white font-black">1% • ×95</span>
+        </div>
+      </div>
+
+      <!-- Sound Toggle -->
+      <div class="flex items-center justify-between py-2.5 border-t border-[#1e2536] mb-5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="volume-2" class="w-5 h-5 text-gray-400"></i>
+          <div>
+            <h5 class="text-xs font-black text-white">Sound effects</h5>
+            <p class="text-[11px] text-gray-400">On for all games</p>
           </div>
         </div>
-        <p class="ad-notice">Please watch the full sponsor message to receive your reward...</p>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="soundToggleInput" checked class="sr-only peer" onchange="toggleSound(this.checked)">
+          <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lime-500"></div>
+        </label>
       </div>
+
+      <button onclick="toggleInfoModal()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-lime-400 to-green-500 font-black text-lime-950 transition-all shadow-lg text-sm">
+        Got it
+      </button>
     </div>
 
-    <!-- Toast -->
-    <div id="toastBar" class="toast-bar" style="display: none;">
-      <span class="toast-icon" id="toastIcon">🟢</span>
-      <div>
-        <h5 class="toast-title" id="toastTitle">Notification</h5>
-        <p class="toast-msg" id="toastMsg">Ready to play</p>
+    <!-- Free Coins Refill Modal -->
+    <div id="buyCoinsModalOverlay" class="modal-overlay hidden" onclick="closeBuyCoinsModal()"></div>
+    <div id="buyCoinsModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🪙</span>
+          <h3 class="text-sm font-black text-white">Get More Coins</h3>
+        </div>
+        <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="py-4 space-y-3">
+        <div onclick="claimFreeRefill()" class="bg-[#111622] border border-[#232d42] hover:border-lime-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-2 rounded-xl bg-lime-500/10 border border-lime-500/20">⭐</span>
+            <div>
+              <h4 class="text-sm font-black text-white">Free Instant Refill</h4>
+              <p class="text-xs text-gray-400">Claim +200 free coins instantly</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-xl bg-lime-400 text-lime-950 font-black text-xs">Claim</button>
+        </div>
       </div>
     </div>
 
   </div>
 
-  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

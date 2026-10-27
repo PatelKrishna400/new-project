@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pandemic — Telegram Arcade Suite</title>
+  <script type="module" src="../../firebase-config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../star-game/style.css">
+  
+  <style>
+    /* Milestone Track Nodes (Screenshot 3 Match) */
+    .milestone-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .node-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #141722;
+      border: 1px solid #242b3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    }
+    .node-circle.completed-gold {
+      background: #f59e0b;
+      border-color: #fbbf24;
+      color: #1c1917;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    }
+    .node-circle.completed-cyan {
+      background: #06b6d4;
+      border-color: #22d3ee;
+      color: #083344;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+
+    /* Telegram Bottom Navigation Bar */
+    .telegram-bottom-nav {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #050b07;
+      border-top: 1px solid #13271b;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 12px 14px 12px;
+      z-index: 50;
+    }
+    .nav-tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      position: relative;
+    }
+    .nav-tab-item.active {
+      color: #ffffff;
+    }
+    .nav-tab-badge {
+      position: absolute;
+      top: -4px;
+      right: -8px;
+      background: #f43f5e;
+      color: #ffffff;
+      font-size: 8px;
+      font-weight: 900;
+      padding: 1px 4px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen bg-[#000000] text-white select-none">
+
+  <div class="app-frame max-w-[420px] w-full min-h-screen bg-[#030d07] flex flex-col justify-between border-x border-[#12281a]" id="appMainFrame">
+
+    <!-- Top Navigation Header (Screenshot 3 Match) -->
+    <header class="sticky top-0 z-40 bg-[#030d07]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#12281a]">
+      <a href="../games/index.html" class="flex items-center gap-1 text-white font-extrabold text-sm hover:opacity-80 transition-opacity">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        <span>Back</span>
+      </a>
+
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-black italic tracking-wider text-[#4ade80] drop-shadow-[0_0_10px_rgba(74,222,128,0.4)]">
+          PANDEMIC
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openPandemicRules()" class="w-7 h-7 rounded-full bg-[#0c1a11] border border-[#173623] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="Rules">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Balance Pill (1 ⭐) -->
+        <div onclick="openBuyCoinsModal()" class="flex items-center gap-1.5 bg-[#f59e0b] text-[#1c1917] px-3 py-1 rounded-full font-black text-xs shadow-[0_2px_10px_rgba(245,158,11,0.35)] cursor-pointer active:scale-95 transition-all">
+          <span id="starBalanceDisplay">10</span>
+          <span class="text-sm">⭐</span>
+        </div>
+
+        <div class="flex items-center text-gray-400">
+          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
+            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Stage -->
+    <main class="flex-1 px-3.5 py-3 space-y-3 overflow-y-auto">
+
+      <!-- Card 1: Score & Petri Dish Milestone Track (Screenshot 3 Match) -->
+      <div class="w-full bg-[#0c1410] border border-[#1a3325] rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <p class="text-[11px] text-gray-400 font-medium">Score with tokens on board tiles, your bet multiplies them</p>
+
+        <div class="flex items-baseline justify-between mt-2.5 mb-1.5">
+          <div class="text-2xl font-black text-white">216 <span class="text-xs font-bold text-gray-400">pts</span></div>
+          <div class="text-xs font-bold text-[#fde047]">30 to go → +8 rolls, "Petri dish" pack</div>
+        </div>
+
+        <!-- Gradient Progress Bar (Red-Orange to Yellow) -->
+        <div class="w-full h-2.5 bg-[#17241c] rounded-full overflow-hidden border border-[#233d2e] my-2">
+          <div class="h-full bg-gradient-to-r from-[#ef4444] via-[#f97316] to-[#facc15]" style="width: 72%;"></div>
+        </div>
+
+        <!-- Milestone Nodes Row: 9✓ | 10 (+8) | 11 (+2) | 12 (🧪) | 13 (+3) | 9/60 -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="milestone-node">
+            <div class="node-circle completed-gold">✓</div>
+            <span class="text-[10px] text-gray-400 font-bold">9</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[10px] bg-[#16201a] border-[#254231]">+8 🪙</div>
+            <span class="text-[10px] text-gray-400 font-bold">10</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#16201a] border-[#254231]">+2</div>
+            <span class="text-[10px] text-gray-400 font-bold">11</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-emerald-400 font-extrabold text-xs bg-[#16201a] border-[#254231]">🧪</div>
+            <span class="text-[10px] text-gray-400 font-bold">12</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#16201a] border-[#254231]">+3</div>
+            <span class="text-[10px] text-gray-400 font-bold">13</span>
+          </div>
+
+          <div class="text-xs font-black text-gray-400 pl-1">9/60</div>
+        </div>
+      </div>
+
+      <!-- Card 2: DAILY TOURNAMENT Card (Screenshot 3 Match) -->
+      <div class="w-full bg-[#0d121c] border border-[#1e2942] rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🏅</span>
+            <h3 class="text-sm font-black italic tracking-wider text-white">DAILY TOURNAMENT</h3>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-[#182033] border border-[#2b3a5c] text-[10px] font-mono text-gray-300">
+            ends in <span id="tournamentTimer" class="font-bold text-cyan-300">14:58:29</span>
+          </span>
+        </div>
+
+        <p class="text-[11px] text-gray-400 font-medium mt-2">Score on attack and raid tiles, your bet multiplies them</p>
+
+        <div class="flex items-baseline justify-between mt-2.5 mb-1.5">
+          <div class="text-2xl font-black text-white">112 <span class="text-xs font-bold text-gray-400">pts</span></div>
+          <div class="text-xs font-bold text-[#38bdf8]">32 to go → +2 rolls</div>
+        </div>
+
+        <!-- Cyan Gradient Progress Bar -->
+        <div class="w-full h-2.5 bg-[#141b2a] rounded-full overflow-hidden border border-[#23314d] my-2">
+          <div class="h-full bg-gradient-to-r from-[#0284c7] to-[#38bdf8]" style="width: 48%;"></div>
+        </div>
+
+        <!-- Milestone Nodes Row: 6✓ | 7 (+2) | 8 (+2) | 9 (🧪) | 10 (+3) | 6/25 -->
+        <div class="flex items-center justify-between pt-1">
+          <div class="milestone-node">
+            <div class="node-circle completed-cyan">✓</div>
+            <span class="text-[10px] text-gray-400 font-bold">6</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+2</div>
+            <span class="text-[10px] text-gray-400 font-bold">7</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+2</div>
+            <span class="text-[10px] text-gray-400 font-bold">8</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-cyan-400 font-extrabold text-xs bg-[#141b2a] border-[#253754]">🧪</div>
+            <span class="text-[10px] text-gray-400 font-bold">9</span>
+          </div>
+
+          <div class="milestone-node">
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+3</div>
+            <span class="text-[10px] text-gray-400 font-bold">10</span>
+          </div>
+
+          <div class="text-xs font-black text-gray-400 pl-1">6/25</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Strain Packs (Screenshot 3 Match) -->
+      <div class="w-full bg-[#0c1410] border border-[#1a3325] rounded-2xl px-4 py-3 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-black text-white">Strain packs</h4>
+          <p class="text-[11px] text-gray-400 mt-0.5">They open together with the strain album</p>
+        </div>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 font-black text-sm">
+          <span>🧪</span>
+          <span>×3</span>
+        </div>
+      </div>
+
+      <!-- Card 4: WEEKLY LEAGUE (Screenshot 3 Match: COLD #7) -->
+      <div class="w-full bg-[#11141e] border border-[#20273c] rounded-2xl p-4 flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-3">
+          <!-- Hexagonal League Icon -->
+          <div class="w-11 h-11 rounded-2xl bg-[#1c2233] border border-[#303a55] flex items-center justify-center text-xl shadow-inner">
+            🦠
+          </div>
+          <div>
+            <span class="text-[10px] font-black tracking-widest text-gray-400 uppercase">WEEKLY LEAGUE</span>
+            <h4 class="text-base font-black italic tracking-wide text-white">COLD</h4>
+            <p class="text-[11px] text-amber-300 font-semibold">33 pts to the next place</p>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <div class="text-2xl font-black text-white">#7</div>
+          <div class="text-[11px] font-bold text-gray-400">112 pts</div>
+        </div>
+      </div>
+
+      <!-- Card 5: INVITE A FRIEND: +40 ROLLS EACH (Screenshot 3 Match) -->
+      <div class="w-full bg-gradient-to-r from-[#17142b] via-[#1f1938] to-[#17142b] border border-[#3b2d6a] rounded-3xl p-4 shadow-xl">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-xl shrink-0 mt-0.5 shadow-[0_0_12px_rgba(52,211,153,0.3)]">
+            🦠
+          </div>
+          <div class="flex-1">
+            <h4 class="text-xs font-black tracking-wider text-white uppercase italic">INVITE A FRIEND: +40 ROLLS EACH</h4>
+            <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">
+              You both get the reward when your friend infects the first country. They join your Friends right away.
+            </p>
+          </div>
+        </div>
+
+        <button type="button" onclick="openReferralShare()" class="w-full mt-3.5 py-3 rounded-2xl bg-gradient-to-r from-[#eab308] to-[#ca8a04] hover:from-[#facc15] hover:to-[#eab308] text-slate-950 font-black text-sm tracking-wide uppercase shadow-[0_4px_16px_rgba(234,179,8,0.35)] active:scale-[0.98] transition-all">
+          INVITE
+        </button>
+      </div>
+
+      <!-- Large Golden CTA Button: ROLL SHOP (Screenshot 3 Match) -->
+      <button type="button" onclick="openRollShop()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-[#eab308] to-[#ca8a04] hover:from-[#facc15] hover:to-[#eab308] text-slate-950 font-black text-base tracking-wider uppercase shadow-[0_8px_24px_rgba(234,179,8,0.4)] active:scale-[0.98] transition-all">
+        ROLL SHOP
+      </button>
+
+    </main>
+
+    <!-- Telegram Bottom Navigation Bar (Screenshot 3 Match) -->
+    <nav class="telegram-bottom-nav">
+      <a href="../home/index.html" class="nav-tab-item">
+        <i data-lucide="hourglass" class="w-5 h-5"></i>
+        <span>Main</span>
+      </a>
+      <a href="../home/index.html" class="nav-tab-item">
+        <span class="nav-tab-badge">NEW</span>
+        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+        <span>Tasks</span>
+      </a>
+      <a href="../star-game/index.html" class="nav-tab-item active">
+        <i data-lucide="disc" class="w-5 h-5 text-white"></i>
+        <span class="text-white">Spin</span>
+      </a>
+      <a href="../shop/index.html" class="nav-tab-item">
+        <i data-lucide="store" class="w-5 h-5"></i>
+        <span>Shop</span>
+      </a>
+      <a href="javascript:void(0)" onclick="openBuyCoinsModal()" class="nav-tab-item">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span>History</span>
+      </a>
+    </nav>
+
+    <!-- Free Coins Refill Modal -->
+    <div id="buyCoinsModalOverlay" class="modal-overlay hidden" onclick="closeBuyCoinsModal()"></div>
+    <div id="buyCoinsModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="flex items-center justify-between pb-3 border-b border-[#173623]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">⭐</span>
+          <h3 class="text-sm font-black text-white">Refill Stars &amp; Rolls</h3>
+        </div>
+        <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="py-4 space-y-3">
+        <div onclick="claimFreeRefill()" class="bg-[#0b170f] border border-[#173623] hover:border-green-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-2 rounded-xl bg-green-500/10 border border-green-500/20">⭐</span>
+            <div>
+              <h4 class="text-sm font-black text-white">Instant Pandemic Bonus</h4>
+              <p class="text-xs text-gray-400">Claim +200 free stars &amp; +10 rolls</p>
+            </div>
+          </div>
+          <button class="px-3.5 py-1.5 rounded-xl bg-green-400 text-slate-950 font-black text-xs shadow-md">Claim</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

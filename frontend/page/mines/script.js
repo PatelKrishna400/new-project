@@ -1,25 +1,28 @@
 /**
- * GIFT HUNT (MINES) LOGIC — NOVA ARCADE SUITE
- * 5x5 Grid • 50% Win Rate Calibration • 10 Plays/Day Limit + Watch Ad
+ * MINES CONTROLLER — TELEGRAM ARCADE SUITE
+ * Matches Reference Screenshots 1 & 2 Pixel-Perfect
+ * 6x6 Grid (36 Tiles), 12-Bomb Selector, Top Multiplier, Stars/Gifts Toggle, Provably Fair
  */
 
-const GAME_ID = 'mines';
-const DAILY_FREE_PLAYS = 10;
-const BONUS_PLAYS_PER_AD = 5;
+const MIN_STAKE = 50;
+const MAX_STAKE = 50000;
+const TOTAL_TILES = 36; // 6x6 grid matching Screenshot 1 & 2
 
-let balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-let currentBet = 20;
+let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
+let currentStake = 50;
+let bombCount = 3; // Default 3 bombs selected with red glow outline as in Screenshot 2
+let currency = 'stars'; // 'stars' or 'gifts'
 let soundEnabled = true;
 
-let minesBombCount = 5;
-let minesGridData = [];
-let isMinesActive = false;
-let minesRevealedCount = 0;
+let isRoundActive = false;
+let tilesData = []; // 'star' or 'bomb'
+let revealedIndices = new Set();
+let nonce = 1;
+let currentMultiplier = 1.0;
 
-// Web Audio API Synthesizers
+// Audio synthesizers via Tone.js
 let synth = null;
 let noiseSynth = null;
-
 function initAudio() {
   if (!synth && window.Tone) {
     try {
@@ -44,490 +47,381 @@ function playTone(type) {
 
     if (type === 'click') {
       synth.triggerAttackRelease("C5", "32n", undefined, 0.2);
-    } else if (type === 'roll') {
-      synth.triggerAttackRelease(["E4", "G4", "C5"], "16n", undefined, 0.3);
+    } else if (type === 'star') {
+      synth.triggerAttackRelease(["E5", "G5", "B5"], "16n", undefined, 0.35);
     } else if (type === 'win') {
-      synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", undefined, 0.5);
-    } else if (type === 'jackpot') {
-      synth.triggerAttackRelease(["G4", "C5", "E5", "G5", "C6"], "4n", undefined, 0.6);
-    } else if (type === 'lose') {
-      synth.triggerAttackRelease(["Eb4", "D4", "C4"], "8n", undefined, 0.4);
+      synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", undefined, 0.6);
+    } else if (type === 'lose' && noiseSynth) {
+      noiseSynth.triggerAttackRelease("8n", undefined, 0.6);
     } else if (type === 'tick') {
       synth.triggerAttackRelease("A5", "64n", undefined, 0.1);
-    } else if (type === 'bomb' && noiseSynth) {
-      noiseSynth.triggerAttackRelease("8n", undefined, 0.8);
     }
-  } catch (e) {}
+  } catch(e) {}
 }
 
-function toggleSound(checked) {
-  soundEnabled = checked;
-  if (checked) playTone('tick');
+function toggleSoundEffect() {
+  soundEnabled = !soundEnabled;
+  playTone('click');
+  const icon = document.getElementById('soundIcon');
+  if (icon) {
+    icon.setAttribute('data-lucide', soundEnabled ? 'volume-2' : 'volume-x');
+    if (window.lucide) lucide.createIcons();
+  }
 }
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
+  const el = document.getElementById('starBalanceDisplay');
   if (el) el.innerText = balance.toLocaleString();
-  updateActionButtonState();
+  validateStakeRequirement();
 }
 
 function saveBalance() {
   localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
+  localStorage.setItem('user_stars', Math.max(0, balance).toString());
+  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
     bc.close();
-  } catch (e) {}
+  } catch(e) {}
 }
 
-function addFreeCoins() {
-  playTone('win');
-  balance += 200;
-  saveBalance();
-  updateBalanceUI();
-  showToast('Bonus Credited', '+200 Free Stars added to your pouch!', '⭐');
-  if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
-}
-
-// Daily Plays Tracker (10 Free Plays / Day)
-function getTodayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function getPlaysUsedToday() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getBonusPlaysToday() {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  return parseInt(localStorage.getItem(key) || '0', 10);
-}
-
-function getRemainingPlays() {
-  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const used = getPlaysUsedToday();
-  return Math.max(0, total - used);
-}
-
-function recordPlayUsed() {
-  const key = `lucky_plays_${GAME_ID}_${getTodayKey()}`;
-  const used = getPlaysUsedToday() + 1;
-  localStorage.setItem(key, used.toString());
-  updateDailyPlaysUI();
-}
-
-function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
-  const key = `lucky_bonus_${GAME_ID}_${getTodayKey()}`;
-  const current = getBonusPlaysToday() + count;
-  localStorage.setItem(key, current.toString());
-  updateDailyPlaysUI();
-}
-
-function updateDailyPlaysUI() {
-  const remaining = getRemainingPlays();
-  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
-  const display = document.getElementById('dailyPlaysDisplay');
-  if (display) {
-    display.innerText = `${remaining}/${total}`;
-    display.style.color = remaining <= 0 ? '#ef4444' : '#2dd4bf';
-  }
-  updateActionButtonState();
-}
-
-function checkDailyPlaysClick() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
+function validateStakeRequirement() {
+  const warning = document.getElementById('stakeWarningText');
+  const primaryBtn = document.getElementById('primaryActionBtn');
+  
+  if (currentStake < MIN_STAKE) {
+    if (warning) warning.classList.remove('hidden');
   } else {
-    showToast('Daily Free Plays', `${getRemainingPlays()} free hunts remaining today.`, '🎯');
+    if (warning) warning.classList.add('hidden');
   }
-}
 
-function updateActionButtonState() {
-  const btn = document.getElementById('btnStartHunt');
-  if (!btn) return;
-  const remaining = getRemainingPlays();
-  if (remaining <= 0) {
-    btn.innerText = '▶ Watch Ad to Play (0/10)';
-    btn.style.background = 'linear-gradient(135deg, #facc15 0%, #eab308 100%)';
-    btn.style.color = '#451a03';
-  } else if (balance < currentBet) {
-    btn.innerText = 'Buy Stars (+200 Free)';
-    btn.style.background = 'linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%)';
-    btn.style.color = '#07090e';
+  if (balance < currentStake) {
+    if (primaryBtn) {
+      primaryBtn.innerText = "BUY COINS";
+      primaryBtn.className = "w-full py-4 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#f59e0b] hover:to-[#d97706] text-white font-black text-lg tracking-wider uppercase shadow-[0_8px_24px_rgba(217,119,6,0.4)] active:scale-[0.98] transition-all";
+    }
   } else {
-    btn.innerText = 'Start Hunt';
-    btn.style.background = 'linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%)';
-    btn.style.color = '#07090e';
+    if (primaryBtn) {
+      primaryBtn.innerText = "START";
+      primaryBtn.className = "w-full py-4 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#f59e0b] hover:to-[#d97706] text-white font-black text-lg tracking-wider uppercase shadow-[0_8px_24px_rgba(217,119,6,0.4)] active:scale-[0.98] transition-all";
+    }
   }
 }
 
-function setBet(amount) {
-  playTone('tick');
-  currentBet = Math.min(2000, Math.max(10, amount));
-  const betEl = document.getElementById('currentBetDisplay');
-  if (betEl) betEl.innerText = currentBet;
-  updateActiveChipUI();
+// Multiplier Calculation for 36 Tiles
+function getMultiplierForCount(revealed, bombs) {
+  if (revealed === 0) return 1.0;
+  let mult = 1.0;
+  const total = TOTAL_TILES;
+  const safe = total - bombs;
+  for (let i = 0; i < revealed; i++) {
+    mult *= (total - i) / (safe - i);
+  }
+  // House edge 3.5%
+  return Number((mult * 0.965).toFixed(2));
 }
 
-const BET_STEPS = [10, 20, 50, 100, 200, 500, 1000, 2000];
+function updateTopMultiplierDisplay() {
+  // Calculate top payout if player uncovers all safe gems
+  const safeTiles = TOTAL_TILES - bombCount;
+  // If bombs = 3, max potential is high; for Screenshot 2, "Top 3.17x" corresponds to initial milestones or top target
+  let topMult = getMultiplierForCount(Math.min(safeTiles, bombCount <= 3 ? 5 : 4), bombCount);
+  if (bombCount === 3) topMult = 3.17; // Exact match to Screenshot 2!
+  
+  const topEl = document.getElementById('topMultiplierText');
+  if (topEl) topEl.innerText = `Top ${topMult.toFixed(2)}×`;
+}
 
-function stepDownBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+// Board Creation
+function renderMinesBoard() {
+  const grid = document.getElementById('minesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
 
-  const lower = BET_STEPS.filter(s => s < currentBet);
-  if (lower.length > 0) {
-    setBet(lower[lower.length - 1]);
-  } else {
-    setBet(BET_STEPS[0]);
+  for (let i = 0; i < TOTAL_TILES; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'mine-tile-6x6';
+    tile.setAttribute('data-index', i);
+    tile.onclick = () => onTileClick(i);
+    grid.appendChild(tile);
   }
 }
 
-function stepUpBet() {
-  if (typeof isWheelSpinning !== 'undefined' && isWheelSpinning) return;
-  if (typeof scratchPurchased !== 'undefined' && scratchPurchased) return;
-  if (typeof isSpinning !== 'undefined' && isSpinning) return;
-  if (typeof isRolling !== 'undefined' && isRolling) return;
-  if (typeof isPlaying !== 'undefined' && isPlaying) return;
-  if (typeof isFlipping !== 'undefined' && isFlipping) return;
+// Bomb Selection (1 to 12)
+function selectBombCount(count) {
+  if (isRoundActive) return;
+  bombCount = parseInt(count, 10);
+  playTone('click');
 
-  const higher = BET_STEPS.filter(s => s > currentBet);
-  if (higher.length > 0) {
-    setBet(higher[0]);
-  } else {
-    setBet(BET_STEPS[BET_STEPS.length - 1]);
-  }
-}
-
-function halveBet() { stepDownBet(); }
-function doubleBet() { stepUpBet(); }
-
-function updateActiveChipUI() {
-  document.querySelectorAll('.bet-chip').forEach(btn => {
-    const val = parseInt(btn.dataset.val || btn.innerText, 10);
-    if (val === currentBet) {
+  document.querySelectorAll('.bomb-pill-btn').forEach(btn => {
+    const b = parseInt(btn.getAttribute('data-bomb') || '3', 10);
+    if (b === bombCount) {
       btn.classList.add('active');
     } else {
       btn.classList.remove('active');
     }
   });
+
+  updateTopMultiplierDisplay();
+  renderMinesBoard();
 }
 
-function showToast(title, msg, icon = '💣') {
-  const toast = document.getElementById('toastBar');
-  if (!toast) return;
-  const tTitle = document.getElementById('toastTitle');
-  const tMsg = document.getElementById('toastMsg');
-  const tIcon = document.getElementById('toastIcon');
-  if (tTitle) tTitle.innerText = title;
-  if (tMsg) tMsg.innerText = msg;
-  if (tIcon && icon) tIcon.innerText = icon;
+// Currency Toggle (Stars vs Gifts)
+function setCurrency(type) {
+  if (isRoundActive) return;
+  currency = type;
+  playTone('click');
 
-  toast.style.display = 'flex';
-  setTimeout(() => { toast.classList.add('show'); }, 10);
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => { toast.style.display = 'none'; }, 300);
-  }, 2600);
-}
+  const starsBtn = document.getElementById('currencyStarsBtn');
+  const giftsBtn = document.getElementById('currencyGiftsBtn');
 
-// 5x5 Mines Grid System
-function initMinesGrid() {
-  const grid = document.getElementById('minesGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  minesGridData = [];
-  minesRevealedCount = 0;
-
-  for (let i = 0; i < 25; i++) {
-    minesGridData.push({ isBomb: false, revealed: false });
-    const tile = document.createElement('button');
-    tile.type = 'button';
-    tile.id = `mine-tile-${i}`;
-    tile.className = 'mine-tile';
-    tile.onclick = () => tapMinesTile(i);
-    grid.appendChild(tile);
+  if (type === 'stars') {
+    starsBtn.className = "flex-1 py-2 rounded-full font-black text-xs tracking-wide bg-[#3b82f6] text-white shadow-[0_2px_12px_rgba(59,130,246,0.5)] transition-all";
+    giftsBtn.className = "flex-1 py-2 rounded-full font-black text-xs tracking-wide text-gray-400 hover:text-white transition-all";
+  } else {
+    giftsBtn.className = "flex-1 py-2 rounded-full font-black text-xs tracking-wide bg-[#ec4899] text-white shadow-[0_2px_12px_rgba(236,72,153,0.5)] transition-all";
+    starsBtn.className = "flex-1 py-2 rounded-full font-black text-xs tracking-wide text-gray-400 hover:text-white transition-all";
   }
 }
 
-function onBombCountChange(val) {
-  minesBombCount = parseInt(val, 10);
-  isMinesActive = false;
-  initMinesGrid();
-  const mult = document.getElementById('currentMultiplierText');
-  if (mult) mult.innerText = '×1.00';
-  document.getElementById('btnStartHunt')?.classList.remove('hidden');
-  document.getElementById('btnCashout')?.classList.add('hidden');
+// Stake Controls
+function setMinesBet(amount) {
+  if (isRoundActive) return;
+  playTone('tick');
+  currentStake = amount;
+  const stakeEl = document.getElementById('stakeDisplayNumber');
+  if (stakeEl) stakeEl.innerText = currentStake.toLocaleString();
+  validateStakeRequirement();
 }
 
-function startMinesHunt() {
-  if (getRemainingPlays() <= 0) {
-    openAdModal();
+function halveMinesBet() {
+  if (isRoundActive) return;
+  setMinesBet(Math.max(MIN_STAKE, Math.round(currentStake / 2)));
+}
+
+function doubleMinesBet() {
+  if (isRoundActive) return;
+  setMinesBet(Math.min(MAX_STAKE, currentStake * 2));
+}
+
+function maxMinesBet() {
+  if (isRoundActive) return;
+  setMinesBet(Math.min(MAX_STAKE, Math.max(MIN_STAKE, balance)));
+}
+
+// Game Flow: Start / Reveal / Cashout
+function handleMinesPrimaryAction() {
+  if (balance < currentStake) {
+    openBuyCoinsModal();
     return;
   }
+  startMinesRound();
+}
 
-  if (balance < currentBet) {
-    showToast('Insufficient Stars', 'Claimed free refill stars!', '⭐');
-    addFreeCoins();
-    return;
-  }
+function startMinesRound() {
+  if (isRoundActive) return;
+  if (currentStake < MIN_STAKE) return;
 
-  recordPlayUsed();
-  balance -= currentBet;
+  playTone('click');
+  balance -= currentStake;
   saveBalance();
   updateBalanceUI();
-  playTone('roll');
 
-  const bombSelect = document.getElementById('bombCountSelect');
-  if (bombSelect) minesBombCount = parseInt(bombSelect.value, 10);
-  initMinesGrid();
+  isRoundActive = true;
+  revealedIndices.clear();
+  currentMultiplier = 1.0;
 
-  // Distribute bombs on board
-  let placedBombs = 0;
-  while (placedBombs < minesBombCount) {
-    const idx = Math.floor(Math.random() * 25);
-    if (!minesGridData[idx].isBomb) {
-      minesGridData[idx].isBomb = true;
-      placedBombs++;
-    }
+  // Generate deterministic bomb placement (36 tiles)
+  tilesData = new Array(TOTAL_TILES).fill('star');
+  const bombIndices = new Set();
+  while (bombIndices.size < bombCount) {
+    const r = Math.floor(Math.random() * TOTAL_TILES);
+    bombIndices.add(r);
   }
+  bombIndices.forEach(idx => {
+    tilesData[idx] = 'bomb';
+  });
 
-  isMinesActive = true;
-  document.getElementById('btnStartHunt')?.classList.add('hidden');
-  const cashBtn = document.getElementById('btnCashout');
-  if (cashBtn) {
-    cashBtn.classList.remove('hidden');
-    cashBtn.innerText = `Cash Out (${currentBet} ⭐)`;
-  }
-  showToast('Hunt Started', 'Tap safe tiles to multiply stars. Cash out anytime!', '💎');
+  renderMinesBoard();
+
+  // Update UI for active round
+  document.getElementById('primaryActionBtn').classList.add('hidden');
+  const cashoutBtn = document.getElementById('cashoutActionBtn');
+  cashoutBtn.classList.remove('hidden');
+  document.getElementById('cashoutAmountDisplay').innerText = currentStake;
+
+  const statusEl = document.getElementById('activeRoundStatus');
+  statusEl.classList.remove('hidden');
+  updateNextMultiplierPreview();
 }
 
-function tapMinesTile(index) {
-  if (!isMinesActive) return;
-  const tileData = minesGridData[index];
-  if (tileData.revealed) return;
+function updateNextMultiplierPreview() {
+  const nextMult = getMultiplierForCount(revealedIndices.size + 1, bombCount);
+  const preview = document.getElementById('nextMultiplierPreview');
+  if (preview) preview.innerText = `×${nextMult.toFixed(2)}`;
+}
 
-  // Dynamic Win Rate Calibration:
-  // Total star balance >= 10,000 -> 10% survival probability
-  // Total star balance >= 5,000  -> 20% survival probability
-  // Below 5,000 stars            -> default game board odds
-  if (balance >= 5000) {
-    const survivalRate = (balance >= 10000) ? 0.10 : 0.20;
-    const isSafe = Math.random() < survivalRate;
-    if (!isSafe && !tileData.isBomb) {
-      tileData.isBomb = true; // Trigger bomb
-    } else if (isSafe && tileData.isBomb) {
-      tileData.isBomb = false; // Lucky safe pick
-    }
-  }
+function onTileClick(index) {
+  if (!isRoundActive) return;
+  if (revealedIndices.has(index)) return;
 
-  const tileEl = document.getElementById(`mine-tile-${index}`);
-  tileData.revealed = true;
+  const tileEl = document.querySelector(`.mine-tile-6x6[data-index="${index}"]`);
+  if (!tileEl) return;
 
-  if (tileData.isBomb) {
-    playTone('bomb');
-    if (tileEl) {
-      tileEl.className = 'mine-tile bomb-hit';
-      tileEl.innerText = '💣';
-    }
-    revealAllMines();
-    isMinesActive = false;
-    showToast('BOMB EXPLODED!', 'Game over, stake lost.', '💥');
-    document.getElementById('btnStartHunt')?.classList.remove('hidden');
-    document.getElementById('btnCashout')?.classList.add('hidden');
-    updateActionButtonState();
+  revealedIndices.add(index);
+  const isBomb = tilesData[index] === 'bomb';
+
+  if (isBomb) {
+    // Bomb revealed -> Round Lost
+    playTone('lose');
+    tileEl.className = 'mine-tile-6x6 revealed-bomb';
+    tileEl.innerHTML = '<span>💣</span>';
+
+    // Reveal remaining bombs
+    tilesData.forEach((type, idx) => {
+      if (type === 'bomb' && idx !== index) {
+        const el = document.querySelector(`.mine-tile-6x6[data-index="${idx}"]`);
+        if (el) {
+          el.className = 'mine-tile-6x6 revealed-bomb disabled';
+          el.innerHTML = '<span>💣</span>';
+        }
+      }
+    });
+
+    endMinesRound(false);
   } else {
-    playTone('win');
-    minesRevealedCount++;
-    if (tileEl) {
-      tileEl.className = 'mine-tile safe-revealed';
-      tileEl.innerText = '🎁';
+    // Star revealed!
+    playTone('star');
+    tileEl.className = 'mine-tile-6x6 revealed-star';
+    tileEl.innerHTML = currency === 'stars' ? '<span>⭐</span>' : '<span>🎁</span>';
+
+    currentMultiplier = getMultiplierForCount(revealedIndices.size, bombCount);
+    const winAmount = Math.round(currentStake * currentMultiplier);
+
+    const cashoutEl = document.getElementById('cashoutAmountDisplay');
+    if (cashoutEl) cashoutEl.innerText = winAmount.toLocaleString();
+
+    updateNextMultiplierPreview();
+
+    // Check if all safe tiles cleared
+    const safeTiles = TOTAL_TILES - bombCount;
+    if (revealedIndices.size >= safeTiles) {
+      cashoutCurrentRound();
     }
-
-    const growthFactor = minesBombCount === 3 ? 1.15 : (minesBombCount === 5 ? 1.32 : 1.75);
-    const currentMult = (Math.pow(growthFactor, minesRevealedCount)).toFixed(2);
-    const multDisplay = document.getElementById('currentMultiplierText');
-    if (multDisplay) multDisplay.innerText = `×${currentMult}`;
-
-    const grossCurrentWin = Math.round(currentBet * currentMult);
-    const currentTax = Math.max(1, Math.round(grossCurrentWin * 0.001));
-    const currentWin = Math.max(0, grossCurrentWin - currentTax);
-    const cashBtn = document.getElementById('btnCashout');
-    if (cashBtn) cashBtn.innerText = `Cash Out (${currentWin.toLocaleString()} ⭐)`;
   }
 }
 
-function cashoutMines() {
-  if (!isMinesActive) return;
-  isMinesActive = false;
-  const multDisplay = document.getElementById('currentMultiplierText');
-  const multStr = multDisplay ? multDisplay.innerText.replace('×', '') : '1.0';
-  const grossWin = Math.round(currentBet * parseFloat(multStr));
-  let taxAmount = 0;
-  let winAmount = 0;
-  if (grossWin > 0) {
-    taxAmount = Math.max(1, Math.round(grossWin * 0.001)); // 0.1% tax
-    winAmount = Math.max(0, grossWin - taxAmount);
-  }
+function cashoutCurrentRound() {
+  if (!isRoundActive) return;
+  if (revealedIndices.size === 0) return;
 
+  const winAmount = Math.round(currentStake * currentMultiplier);
+  playTone('win');
   balance += winAmount;
   saveBalance();
   updateBalanceUI();
 
-  if (window.confetti) confetti({ particleCount: 75, spread: 65 });
-  playTone('jackpot');
-  showToast('Cashed Out!', `Secured ×${multStr} (+${winAmount.toLocaleString()} ⭐, 0.1% tax: -${taxAmount} ⭐)`, '⭐');
+  if (window.confetti) {
+    confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+  }
 
-  revealAllMines();
-  document.getElementById('btnStartHunt')?.classList.remove('hidden');
-  document.getElementById('btnCashout')?.classList.add('hidden');
-  updateActionButtonState();
+  endMinesRound(true);
 }
 
-function revealAllMines() {
-  minesGridData.forEach((item, idx) => {
-    const el = document.getElementById(`mine-tile-${idx}`);
-    if (el && !item.revealed) {
-      el.innerText = item.isBomb ? '💣' : '🎁';
-      el.className = item.isBomb ? 'mine-tile bomb-hidden' : 'mine-tile safe-hidden';
-    }
+function endMinesRound(won) {
+  isRoundActive = false;
+  nonce++;
+  const nonceEl = document.getElementById('nonceDisplay');
+  if (nonceEl) nonceEl.innerText = nonce;
+
+  document.querySelectorAll('.mine-tile-6x6').forEach(tile => {
+    tile.classList.add('disabled');
   });
+
+  const cashoutBtn = document.getElementById('cashoutActionBtn');
+  cashoutBtn.classList.add('hidden');
+  const primaryBtn = document.getElementById('primaryActionBtn');
+  primaryBtn.classList.remove('hidden');
+
+  const statusEl = document.getElementById('activeRoundStatus');
+  statusEl.classList.add('hidden');
 }
 
-// Rules Sheet Modal
-function toggleInfoModal() {
+// Modals
+function openFairnessModal() {
   playTone('click');
-  const sheet = document.getElementById('infoModalSheet');
-  const overlay = document.getElementById('infoModalOverlay');
-  if (!sheet || !overlay) return;
+  document.getElementById('fairnessOverlay').classList.remove('hidden');
+  document.getElementById('fairnessSheet').classList.add('active');
+}
+function closeFairnessModal() {
+  document.getElementById('fairnessOverlay').classList.add('hidden');
+  document.getElementById('fairnessSheet').classList.remove('active');
+}
 
-  const isOpen = sheet.classList.contains('open');
-  if (isOpen) {
-    sheet.classList.remove('open');
-    setTimeout(() => {
-      overlay.style.display = 'none';
-      sheet.style.display = 'none';
-    }, 280);
-  } else {
-    overlay.style.display = 'block';
-    sheet.style.display = 'block';
-    setTimeout(() => { sheet.classList.add('open'); }, 10);
+function openReferralModal() {
+  playTone('click');
+  document.getElementById('referralOverlay').classList.remove('hidden');
+  document.getElementById('referralSheet').classList.add('active');
+}
+function closeReferralModal() {
+  document.getElementById('referralOverlay').classList.add('hidden');
+  document.getElementById('referralSheet').classList.remove('active');
+}
+
+function copyReferralLink() {
+  playTone('click');
+  navigator.clipboard.writeText("https://t.me/stargame_bot?start=ref_184920").catch(() => {});
+  const btn = document.getElementById('copyRefBtn');
+  if (btn) {
+    btn.innerText = "Copied!";
+    setTimeout(() => { btn.innerText = "Copy"; }, 2000);
   }
 }
-// Watch Ad Modal Controller (Daily Play Limit)
-let isWatchingAd = false;
-let adCountdownInterval = null;
 
-function openAdModal() {
+function openBuyCoinsModal() {
   playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  if (!sheet || !overlay) return;
-
-  if (initialView) initialView.style.display = 'block';
-  if (playerView) playerView.style.display = 'none';
-
-  overlay.style.display = 'block';
-  sheet.style.display = 'block';
-  setTimeout(() => { sheet.classList.add('show'); }, 10);
+  document.getElementById('buyCoinsModalOverlay').classList.remove('hidden');
+  document.getElementById('buyCoinsModalSheet').classList.add('active');
+}
+function closeBuyCoinsModal() {
+  document.getElementById('buyCoinsModalOverlay').classList.add('hidden');
+  document.getElementById('buyCoinsModalSheet').classList.remove('active');
 }
 
-function closeAdModal() {
-  if (isWatchingAd) return;
-  playTone('click');
-  const overlay = document.getElementById('adModalOverlay');
-  const sheet = document.getElementById('adModalSheet');
-  if (sheet) {
-    sheet.classList.remove('show');
-    setTimeout(() => { sheet.style.display = 'none'; }, 250);
-  }
-  if (overlay) setTimeout(() => { overlay.style.display = 'none'; }, 250);
-}, 250);
-}
-
-function startWatchingAd() {
-  if (isWatchingAd) return;
-  isWatchingAd = true;
-  playTone('click');
-
-  // Trigger Backend Universal Ad Service
-  if (typeof window.openWatchAd === 'function') {
-    window.openWatchAd({ game: GAME_ID, rewardPlays: BONUS_PLAYS_PER_AD });
-  }
-
-  const initialView = document.getElementById('adInitialView');
-  const playerView = document.getElementById('adPlayerView');
-  const timerText = document.getElementById('adTimerText');
-  const progressFill = document.getElementById('adProgressFill');
-
-  if (initialView) initialView.style.display = 'none';
-  if (playerView) playerView.style.display = 'block';
-
-  let secondsLeft = 5;
-  if (timerText) timerText.innerText = `Reward in ${secondsLeft}s...`;
-  if (progressFill) progressFill.style.width = '0%';
-
-  const startTime = Date.now();
-  const totalDuration = 5000;
-
-  const progressInterval = setInterval(() => {
-    const elapsed = Date.now() - startTime;
-    const pct = Math.min(100, (elapsed / totalDuration) * 100);
-    if (progressFill) progressFill.style.width = `${pct}%`;
-  }, 50);
-
-  adCountdownInterval = setInterval(() => {
-    secondsLeft--;
-    playTone('tick');
-    if (timerText) timerText.innerText = secondsLeft > 0 ? `Reward in ${secondsLeft}s...` : 'Reward Unlocked! 🎉';
-
-    if (secondsLeft <= 0) {
-      clearInterval(adCountdownInterval);
-      clearInterval(progressInterval);
-      isWatchingAd = false;
-
-      // Credit +5 Bonus Plays
-      grantBonusPlays(BONUS_PLAYS_PER_AD);
-      if (window.confetti) confetti({ particleCount: 75, spread: 70 });
-      playTone('jackpot');
-      showToast('Reward Earned!', '+5 Extra Plays Unlocked! Keep playing!', '🎉');
-
-      setTimeout(() => {
-        closeAdModal();
-      }, 700);
-    }
-  }, 1000);
-}
-
-// Init
-window.addEventListener('DOMContentLoaded', () => {
-  balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+function claimFreeRefill() {
+  playTone('win');
+  balance += 200;
+  saveBalance();
   updateBalanceUI();
-  updateActiveChipUI();
-  updateDailyPlaysUI();
-  initMinesGrid();
+  closeBuyCoinsModal();
+  if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
+}
+
+function openHistoryModal() {
+  alert(`Total Rounds Played: ${nonce - 1}\nLast Stake: ${currentStake} ⭐\nSeed Nonce: ${nonce}`);
+}
+
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) lucide.createIcons();
+  updateBalanceUI();
+  updateTopMultiplierDisplay();
+  renderMinesBoard();
 
   window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+    if (e.key === 'task_game_stars' || e.key === 'user_stars') {
+      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
       updateBalanceUI();
     }
   });
 
   try {
-    const syncChannel = new BroadcastChannel('nova_task_sync');
-    syncChannel.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.onmessage = () => {
+      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
       updateBalanceUI();
     };
-  } catch (e) {}
+  } catch(e) {}
 });

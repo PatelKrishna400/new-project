@@ -3,71 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Lucky Dice — Arcade Suite</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Lucky Dice — Star Game</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Tone.js for Native Sound Effects -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../star-game/style.css">
 </head>
-<body>
+<body class="flex justify-center min-h-screen bg-[#06080d]">
 
-  <!-- Mobile App Frame Shell -->
-  <div class="mobile-container">
+  <!-- Mobile App Frame Shell (Screenshot 2 Match) -->
+  <div class="app-frame theme-dice">
 
-    <!-- Top Nav Header -->
-    <header class="game-nav-header">
-      <div class="nav-left">
-        <!-- Back Button Pill -->
-        <a href="../games/index.html" class="nav-back-pill" title="Back to Games Arena">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 bg-[#0b0e15]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b2232]">
+      <!-- Left Controls: Back Pill + Info Button -->
+      <div class="flex items-center gap-2">
+        <a href="../games/index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#151923] border border-[#232a3a] text-xs font-extrabold text-gray-200 hover:text-white transition-all active:scale-95" title="Back to Games Arena">
+          <i data-lucide="arrow-left" class="w-4 h-4 text-gray-300"></i>
           <span>Back</span>
         </a>
-        <!-- Info Button (i) -->
-        <button type="button" onclick="toggleInfoModal()" class="nav-info-btn" title="How to play">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
+
+        <button type="button" onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-[#151923] border border-[#232a3a] hover:bg-[#1f2636] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="How to play">
+          <i data-lucide="info" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Center Title with Glowing Dot -->
-      <div class="nav-title-wrap">
-        <span class="status-dot"></span>
-        <h1 class="nav-title">Lucky Dice</h1>
+      <div class="flex items-center gap-1.5">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] shadow-[0_0_10px_#38bdf8] animate-pulse"></span>
+        <h1 class="text-sm font-black tracking-wide text-white">Lucky Dice</h1>
       </div>
 
-      <!-- Right Controls: Star Pill -->
-      <div class="nav-right">
-        <div class="balance-pill" title="Star Balance">
-          <span class="coin-icon">⭐</span>
-          <span class="coin-val" id="coinBalance">0</span>
-          <button type="button" class="btn-add-coin" onclick="addFreeCoins()" title="Add +200 Stars">+</button>
+      <!-- Right Controls: Coin Balance Pill + Telegram Controls -->
+      <div class="flex items-center gap-1.5">
+        <div class="header-balance-pill" title="Coin Balance">
+          <span class="text-xs">🪙</span>
+          <span id="coinBalance" class="text-xs font-black text-white min-w-[20px] text-right">10</span>
+          <button type="button" onclick="openBuyCoinsModal()" class="coin-plus-btn" title="Add Coins">+</button>
+        </div>
+
+        <div class="flex items-center gap-1 text-gray-400 pl-0.5">
+          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white" title="Expand">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
+          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white" title="Options">
+            <i data-lucide="more-vertical" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
     </header>
 
     <!-- Main Play Stage Area -->
-    <main class="play-stage">
+    <main class="flex-1 px-3.5 py-3 flex flex-col justify-between">
 
-      <!-- 3D Dice Stage Box -->
-      <div class="dice-stage-box">
-        <div class="glow-ambient"></div>
-
-        <div class="dice-3d">
-          <div id="cube" class="cube">
+      <!-- 3D Dice Stage Box (Screenshot 2 Match) -->
+      <div class="w-full bg-gradient-to-b from-[#111622] to-[#0c0f18] border border-[#1e2536] rounded-3xl p-5 flex flex-col items-center justify-center min-h-[225px] shadow-xl relative overflow-hidden">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="dice-3d py-2">
+          <div id="cube" class="cube face-pose-3">
             <!-- Face 1 -->
             <div class="cube-face face-1">
               <span class="pip"></span>
             </div>
             <!-- Face 6 -->
             <div class="cube-face face-6">
-              <div style="display:grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); width:100%; height:100%;">
+              <div class="grid grid-cols-2 grid-rows-3 w-full h-full">
                 <span class="pip"></span><span class="pip"></span>
                 <span class="pip"></span><span class="pip"></span>
                 <span class="pip"></span><span class="pip"></span>
@@ -75,32 +81,32 @@
             </div>
             <!-- Face 2 -->
             <div class="cube-face face-2">
-              <div style="display:grid; grid-template-columns: repeat(2, 1fr); width:100%; height:100%;">
-                <span class="pip" style="align-self: flex-start; justify-self: flex-start;"></span>
-                <span class="pip" style="align-self: flex-end; justify-self: flex-end;"></span>
+              <div class="grid grid-cols-2 w-full h-full">
+                <span class="pip self-start justify-self-start"></span>
+                <span class="pip self-end justify-self-end"></span>
               </div>
             </div>
             <!-- Face 5 -->
             <div class="cube-face face-5">
-              <div style="display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width:100%; height:100%;">
-                <span class="pip" style="grid-column: 1; grid-row: 1;"></span>
-                <span class="pip" style="grid-column: 3; grid-row: 1;"></span>
-                <span class="pip" style="grid-column: 2; grid-row: 2;"></span>
-                <span class="pip" style="grid-column: 1; grid-row: 3;"></span>
-                <span class="pip" style="grid-column: 3; grid-row: 3;"></span>
+              <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+                <span class="pip col-start-1 row-start-1"></span>
+                <span class="pip col-start-3 row-start-1"></span>
+                <span class="pip col-start-2 row-start-2"></span>
+                <span class="pip col-start-1 row-start-3"></span>
+                <span class="pip col-start-3 row-start-3"></span>
               </div>
             </div>
             <!-- Face 3 -->
             <div class="cube-face face-3">
-              <div style="display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width:100%; height:100%;">
-                <span class="pip" style="grid-column: 1; grid-row: 1;"></span>
-                <span class="pip" style="grid-column: 2; grid-row: 2;"></span>
-                <span class="pip" style="grid-column: 3; grid-row: 3;"></span>
+              <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+                <span class="pip col-start-1 row-start-1"></span>
+                <span class="pip col-start-2 row-start-2"></span>
+                <span class="pip col-start-3 row-start-3"></span>
               </div>
             </div>
             <!-- Face 4 -->
             <div class="cube-face face-4">
-              <div style="display:grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); width:100%; height:100%;">
+              <div class="grid grid-cols-2 grid-rows-2 w-full h-full">
                 <span class="pip"></span><span class="pip"></span>
                 <span class="pip"></span><span class="pip"></span>
               </div>
@@ -108,257 +114,274 @@
           </div>
         </div>
 
-        <p class="dice-hint" id="diceHint">Roll high. A six pays ×2.</p>
+        <p id="diceRollHint" class="mt-3 text-xs font-semibold text-gray-400 tracking-wide">Roll high. A six pays ×2.</p>
       </div>
 
-      <!-- Multipliers Bar -->
-      <div class="multipliers-grid">
-        <div class="mult-item" id="multItem1">
-          <span class="mult-die">⚀</span>
-          <span class="mult-val">×0</span>
+      <!-- Multipliers Bar (Screenshot 2 Match) -->
+      <div class="w-full grid grid-cols-6 gap-1.5 mt-2.5 bg-[#121622] p-1.5 rounded-2xl border border-[#1e2536]">
+        <!-- 1 Dot -> x0 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile1">
+          <div class="mini-die-square">
+            <span class="mini-dot col-start-2 row-start-2"></span>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-400">×0</span>
         </div>
-        <div class="mult-item" id="multItem2">
-          <span class="mult-die">⚁</span>
-          <span class="mult-val">×0.3</span>
+
+        <!-- 2 Dots -> x0.3 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile2">
+          <div class="mini-die-square">
+            <div class="grid grid-cols-2 w-full h-full">
+              <span class="mini-dot self-start justify-self-start"></span>
+              <span class="mini-dot self-end justify-self-end"></span>
+            </div>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-400">×0.3</span>
         </div>
-        <div class="mult-item" id="multItem3">
-          <span class="mult-die">⚂</span>
-          <span class="mult-val">×0.6</span>
+
+        <!-- 3 Dots -> x0.6 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile3">
+          <div class="mini-die-square">
+            <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+              <span class="mini-dot col-start-1 row-start-1"></span>
+              <span class="mini-dot col-start-2 row-start-2"></span>
+              <span class="mini-dot col-start-3 row-start-3"></span>
+            </div>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-400">×0.6</span>
         </div>
-        <div class="mult-item" id="multItem4">
-          <span class="mult-die">⚃</span>
-          <span class="mult-val">×1.2</span>
+
+        <!-- 4 Dots -> x1.2 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile4">
+          <div class="mini-die-square">
+            <div class="grid grid-cols-2 grid-rows-2 w-full h-full">
+              <span class="mini-dot"></span><span class="mini-dot"></span>
+              <span class="mini-dot"></span><span class="mini-dot"></span>
+            </div>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-400">×1.2</span>
         </div>
-        <div class="mult-item" id="multItem5">
-          <span class="mult-die">⚄</span>
-          <span class="mult-val">×1.5</span>
+
+        <!-- 5 Dots -> x1.5 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile5">
+          <div class="mini-die-square">
+            <div class="grid grid-cols-3 grid-rows-3 w-full h-full">
+              <span class="mini-dot col-start-1 row-start-1"></span>
+              <span class="mini-dot col-start-3 row-start-1"></span>
+              <span class="mini-dot col-start-2 row-start-2"></span>
+              <span class="mini-dot col-start-1 row-start-3"></span>
+              <span class="mini-dot col-start-3 row-start-3"></span>
+            </div>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-400">×1.5</span>
         </div>
-        <div class="mult-item featured" id="multItem6">
-          <span class="mult-die">⚅</span>
-          <span class="mult-val">×2</span>
+
+        <!-- 6 Dots -> x2 -->
+        <div class="flex flex-col items-center py-1.5 rounded-xl bg-[#171c2a] text-center border border-transparent transition-all" id="multTile6">
+          <div class="mini-die-square">
+            <div class="grid grid-cols-2 grid-rows-3 w-full h-full">
+              <span class="mini-dot"></span><span class="mini-dot"></span>
+              <span class="mini-dot"></span><span class="mini-dot"></span>
+              <span class="mini-dot"></span><span class="mini-dot"></span>
+            </div>
+          </div>
+          <span class="text-[11px] font-extrabold text-gray-300">×2</span>
         </div>
       </div>
 
-      <!-- Six Streak Status Card -->
-      <div class="streak-card">
+      <!-- Six Streak Status Card (Screenshot 2 Match) -->
+      <div class="w-full mt-2.5 bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-3 flex items-center justify-between">
         <div>
-          <h4 class="streak-title">Six streak</h4>
-          <p class="streak-sub">Three 6s in a row at the same bet pays <span class="streak-highlight">×7</span></p>
+          <h4 class="text-xs font-extrabold text-white">Six streak</h4>
+          <p class="text-[11px] text-gray-400 mt-0.5">Three 6s in a row at the same bet pays <span class="text-white font-bold">×7</span></p>
         </div>
-        <div class="streak-dots" id="streakDots">
-          <div class="streak-dot"></div>
-          <div class="streak-dot"></div>
-          <div class="streak-dot"></div>
+        <div class="flex items-center gap-1.5" id="diceStreakIndicators">
+          <div class="streak-pill-dash"></div>
+          <div class="streak-pill-dash"></div>
+          <div class="streak-pill-dash"></div>
         </div>
       </div>
 
-      <!-- Bet Controls Card -->
-      <div class="bet-controls-card">
-        <!-- Min/Max Limits & Daily Plays Counter -->
-        <div class="bet-limits-row">
-          <span>Min bet <b id="minBetLabel">10 ⭐</b></span>
-          <div class="daily-plays-indicator" id="dailyPlaysBadge" onclick="checkDailyPlaysClick()" title="10 free plays per day. Tap to watch ads for +5 extra plays">
-            <span>🎯 Plays Today:</span>
-            <span class="plays-badge-val" id="dailyPlaysDisplay">10/10</span>
+      <!-- Betting Controls Section (Screenshot 2 Match) -->
+      <div class="w-full mt-3 space-y-2.5">
+        <!-- Min Bet / Max Bet Card -->
+        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-4">
+            <span class="text-gray-400 font-semibold">Min bet</span>
+            <span class="text-white font-extrabold flex items-center gap-1">30 <span class="text-xs">🪙</span></span>
           </div>
-          <span>Max bet <b id="maxBetLabel">2,000 ⭐</b></span>
-        </div>
-
-        <!-- Bet Chips Selector: 10, 20, 50, 100 -->
-        <div class="chips-grid">
-          <button type="button" class="bet-chip" data-val="10" onclick="setBet(10)">10 ⭐</button>
-          <button type="button" class="bet-chip active" data-val="20" onclick="setBet(20)">20 ⭐</button>
-          <button type="button" class="bet-chip" data-val="50" onclick="setBet(50)">50 ⭐</button>
-          <button type="button" class="bet-chip" data-val="100" onclick="setBet(100)">100 ⭐</button>
-        </div>
-
-        <!-- Custom Bet Adjuster -->
-        <div class="bet-adjuster-bar">
-          <button type="button" class="adj-btn" id="btnBetDown" onclick="stepDownBet()" aria-label="Decrease Bet" title="Decrease Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-          <div class="current-bet-display">
-            <span>⭐</span>
-            <span class="current-bet-val" id="currentBetDisplay">20</span>
+          <div class="h-4 w-[1px] bg-[#1e2536]"></div>
+          <div class="flex items-center gap-4">
+            <span class="text-gray-400 font-semibold">Max bet</span>
+            <span class="text-white font-extrabold flex items-center gap-1">2,000 <span class="text-xs">🪙</span></span>
           </div>
-          <button type="button" class="adj-btn" id="btnBetUp" onclick="stepUpBet()" aria-label="Increase Bet" title="Increase Bet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
         </div>
 
-        <!-- Primary Action Button -->
-        <button type="button" class="btn-primary-play" id="btnRollDice" onclick="handleDiceAction()">
-          Roll Dice
+        <!-- Quick Bet Chips: 30, 50, 100, 500 -->
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="setBet(30)" class="bet-pill-btn" data-val="30">
+            30 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(50)" class="bet-pill-btn active" data-val="50">
+            50 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(100)" class="bet-pill-btn" data-val="100">
+            100 <span class="text-[11px]">🪙</span>
+          </button>
+          <button type="button" onclick="setBet(500)" class="bet-pill-btn" data-val="500">
+            500 <span class="text-[11px]">🪙</span>
+          </button>
+        </div>
+
+        <!-- Custom Bet Adjuster Bar: 1/2 | 50 | 2x -->
+        <div class="flex items-center justify-between bg-[#121622] border border-[#1e2536] rounded-2xl px-3 py-1.5">
+          <button type="button" onclick="halveBet()" class="bet-adj-btn" title="Halve Bet">
+            ½
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400 text-sm">🪙</span>
+            <span id="currentBetDisplay" class="text-base font-black text-white">50</span>
+          </div>
+          <button type="button" onclick="doubleBet()" class="bet-adj-btn" title="Double Bet">
+            2×
+          </button>
+        </div>
+
+        <!-- Primary Action Button: "Buy coins" or "Roll" -->
+        <button id="primaryPlayBtn" onclick="handleDiceAction()" class="primary-cta-btn bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 shadow-[0_8px_24px_rgba(56,189,248,0.35)]">
+          Buy coins
         </button>
       </div>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="below-menu-bar" aria-label="Bottom Navigation">
-      <a href="../shop/index.html" class="below-menu-item" title="Shop">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <path d="M16 10a4 4 0 0 1-8 0"></path>
-        </svg>
-        <span>Shop</span>
-      </a>
-      <a href="../leaderboard/index.html" class="below-menu-item" title="Leaderboard">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-          <path d="M4 22h16"></path>
-          <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-        </svg>
-        <span>Ranks</span>
-      </a>
-      <a href="../home/index.html" class="below-menu-item center-home-btn" title="Home">
-        <div class="center-home-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
+    <!-- ================= RULES BOTTOM SHEET MODAL (Screenshot 1 Match) ================= -->
+    <div id="infoModalOverlay" class="modal-overlay hidden" onclick="toggleInfoModal()"></div>
+    <div id="infoModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+
+      <!-- Header with dot & close -->
+      <div class="flex items-center justify-between pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] shadow-[0_0_8px_#38bdf8]"></span>
+          <span class="text-xs uppercase font-extrabold tracking-wider text-gray-400">How to play</span>
         </div>
-        <span>Home</span>
-      </a>
-      <a href="../wallet/index.html" class="below-menu-item" title="Wallet">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-          <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-        </svg>
-        <span>Wallet</span>
-      </a>
-      <a href="../profile/index.html" class="below-menu-item" title="Profile">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-        <span>Profile</span>
-      </a>
-    </nav>
-
-    <!-- Rules Bottom Sheet Modal (Exact match to Image 1) -->
-    <div id="infoModalOverlay" class="modal-overlay" style="display: none;" onclick="toggleInfoModal()"></div>
-    <div id="infoModalSheet" class="modal-sheet" style="display: none;">
-      <div class="drag-handle"></div>
-      <div class="sheet-head">
-        <div class="sheet-badge">
-          <span class="status-dot"></span>
-          <span>How to play</span>
-        </div>
-        <button type="button" class="sheet-close-btn" onclick="toggleInfoModal()">&times;</button>
-      </div>
-
-      <h2 class="sheet-title">Lucky Dice</h2>
-      <p class="sheet-subtitle">Roll high. Three sixes in a row pay ×7.</p>
-
-      <div class="steps-list">
-        <div class="step-row">
-          <div class="step-num">1</div>
-          <p class="step-text">Set your bet and tap Roll.</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">2</div>
-          <p class="step-text">Each face pays a fixed multiplier. The higher the face, the better.</p>
-        </div>
-        <div class="step-row">
-          <div class="step-num">3</div>
-          <p class="step-text">Roll three sixes in a row at the same bet for the ×7 jackpot. Changing the bet resets the streak.</p>
-        </div>
-      </div>
-
-      <!-- Multiplier Table in Sheet -->
-      <div class="sheet-table">
-        <div class="sheet-table-row"><span>Six</span><span class="row-val">×2</span></div>
-        <div class="sheet-table-row"><span>Five</span><span class="row-val">×1.5</span></div>
-        <div class="sheet-table-row"><span>Four</span><span class="row-val">×1.2</span></div>
-        <div class="sheet-table-row"><span>Three</span><span class="row-val">×0.6</span></div>
-        <div class="sheet-table-row"><span>Two</span><span class="row-val">×0.3</span></div>
-        <div class="sheet-table-row"><span>One</span><span class="row-val">×0</span></div>
-        <div class="sheet-table-row"><span>Three sixes in a row</span><span class="row-val">×7</span></div>
-      </div>
-
-      <!-- Sound Toggle Bar -->
-      <div class="sound-toggle-bar">
-        <div class="sound-label-wrap">
-          <svg class="sound-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-          </svg>
-          <div>
-            <h5 class="sound-title">Sound effects</h5>
-            <p class="sound-sub">On for all games</p>
-          </div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" id="soundToggleCheckbox" checked onchange="toggleSound(this.checked)">
-          <span class="slider-switch"></span>
-        </label>
-      </div>
-
-      <button type="button" class="btn-sheet-dismiss" onclick="toggleInfoModal()">Got it</button>
-    </div>
-
-    <!-- Daily Limit Watch Ad Modal Popup -->
-    <div id="adModalOverlay" class="modal-overlay" style="display: none;" onclick="closeAdModal()"></div>
-    <div id="adModalSheet" class="ad-modal-card" style="display: none;">
-      <div class="ad-modal-header">
-        <div class="ad-badge">
-          <span>📺</span>
-          <span>Daily Plays Limit</span>
-        </div>
-        <button type="button" class="ad-close-btn" onclick="closeAdModal()">&times;</button>
-      </div>
-
-      <!-- Initial Ad Offer Prompt -->
-      <div id="adInitialView">
-        <div class="ad-icon-hero">🎬</div>
-        <h3 class="ad-title">10 Daily Plays Used</h3>
-        <p class="ad-desc">You've reached your 10 free plays limit for today! Watch a sponsored video ad to unlock <b style="color:#facc15;">+5 extra plays</b> instantly.</p>
-        
-        <div class="ad-plays-summary">
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Daily Limit</span>
-            <span class="ad-stat-val">10 Plays</span>
-          </div>
-          <div class="ad-stat-box">
-            <span class="ad-stat-label">Ad Reward</span>
-            <span class="ad-stat-val text-green">+5 Plays</span>
-          </div>
-        </div>
-
-        <button type="button" class="btn-watch-ad" onclick="startWatchingAd()">
-          <span>▶️ Watch Ad (+5 Plays)</span>
+        <button onclick="toggleInfoModal()" class="w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Video Player Simulator (Active when watching) -->
-      <div id="adPlayerView" style="display:none;">
-        <div class="ad-video-screen">
-          <div class="ad-sponsor-tag">📢 Sponsored Video Ad</div>
-          <div class="ad-spinner"></div>
-          <div class="ad-timer-text" id="adTimerText">Reward in 5s...</div>
-          <div class="ad-progress-bar-wrap">
-            <div class="ad-progress-bar-fill" id="adProgressFill"></div>
+      <h2 class="text-2xl font-black text-white mt-0.5">Lucky Dice</h2>
+      <p class="text-xs text-gray-400 mt-1 mb-5">Roll high. Three sixes in a row pay ×7.</p>
+
+      <!-- Steps 1-3 numbered instructions -->
+      <div class="space-y-3.5 mb-5">
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Set your bet and tap Roll.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Each face pays a fixed multiplier. The higher the face, the better.</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-sky-500/15 border border-sky-500/30 text-sky-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</div>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Roll three sixes in a row at the same bet for the ×7 jackpot. Changing the bet resets the streak.</p>
+        </div>
+      </div>
+
+      <!-- Multiplier Table in Bottom Sheet (Exact Match to Screenshot 1) -->
+      <div class="bg-[#10141e] rounded-2xl divide-y divide-[#1d2436] border border-[#222a3e] overflow-hidden mb-5">
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Six</span>
+          <span class="text-white font-black">×2</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Five</span>
+          <span class="text-white font-black">×1.5</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Four</span>
+          <span class="text-white font-black">×1.2</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Three</span>
+          <span class="text-white font-black">×0.6</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Two</span>
+          <span class="text-white font-black">×0.3</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">One</span>
+          <span class="text-white font-black">×0</span>
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between text-xs font-semibold">
+          <span class="text-gray-300 font-medium">Three sixes in a row</span>
+          <span class="text-white font-black">×7</span>
+        </div>
+      </div>
+
+      <!-- Sound toggle switch -->
+      <div class="flex items-center justify-between py-2.5 border-t border-[#1e2536] mb-5">
+        <div class="flex items-center gap-3">
+          <i data-lucide="volume-2" class="w-5 h-5 text-gray-400"></i>
+          <div>
+            <h5 class="text-xs font-black text-white">Sound effects</h5>
+            <p class="text-[11px] text-gray-400">On for all games</p>
           </div>
         </div>
-        <p class="ad-notice">Please watch the full sponsor message to receive your reward...</p>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="soundToggleInput" checked class="sr-only peer" onchange="toggleSound(this.checked)">
+          <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+        </label>
+      </div>
+
+      <!-- Got it Dismiss button -->
+      <button onclick="toggleInfoModal()" class="w-full py-3.5 rounded-2xl bg-sky-400 hover:bg-sky-300 font-black text-slate-950 transition-all shadow-lg text-sm">
+        Got it
+      </button>
+    </div>
+
+    <!-- ================= BUY COINS / FREE REFILL MODAL ================= -->
+    <div id="buyCoinsModalOverlay" class="modal-overlay hidden" onclick="closeBuyCoinsModal()"></div>
+    <div id="buyCoinsModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🪙</span>
+          <h3 class="text-sm font-black text-white">Get More Coins</h3>
+        </div>
+        <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-3">
+        <div onclick="claimFreeRefill()" class="bg-[#111622] border border-[#232d42] hover:border-sky-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl p-2 rounded-xl bg-sky-500/10 border border-sky-500/20">⭐</span>
+            <div>
+              <h4 class="text-sm font-black text-white">Free Instant Refill</h4>
+              <p class="text-xs text-gray-400">Claim +200 free coins instantly</p>
+            </div>
+          </div>
+          <button class="px-3 py-1.5 rounded-xl bg-sky-400 text-slate-950 font-black text-xs">Claim</button>
+        </div>
       </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toastBar" class="toast-bar" style="display: none;">
-      <span class="toast-icon" id="toastIcon">🎲</span>
-      <div>
-        <h5 class="toast-title" id="toastTitle">Notification</h5>
-        <p class="toast-msg" id="toastMsg">Ready to play</p>
+    <!-- Toast Notification Overlay -->
+    <div id="toastNotification" class="fixed top-16 inset-x-4 max-w-sm mx-auto z-50 bg-[#161d2b] border border-[#26334a] text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transform -translate-y-48 opacity-0 transition-all duration-300 pointer-events-none" style="display: none;">
+      <span id="toastIcon" class="text-xl">🎉</span>
+      <div class="flex-1">
+        <h5 id="toastTitle" class="text-[11px] font-extrabold uppercase text-gray-400">Winner!</h5>
+        <p id="toastMessage" class="text-xs font-bold text-white">You rolled a Six (+100 🪙)</p>
       </div>
     </div>
 
   </div>
 
-  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
