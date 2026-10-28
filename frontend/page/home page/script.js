@@ -36,56 +36,107 @@ try {
     localStorage.setItem('task_game_zero_start_clean_v7', 'true');
   }
 } catch (e) {}
+
 let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 
 // Storage Keys & Sync Channels
 const TASKS_STORAGE_KEY = 'task_game_tasks';
 const CLAIMS_STORAGE_KEY = 'task_game_claims';
+const COMPLETED_TASKS_KEY = 'task_game_completed_tasks';
 const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-// Dynamic tasks managed strictly from Admin Panel (no hardcoded defaults)
-const DEFAULT_TASKS = [];
+// Initial default seed tasks with 6-digit verification codes
+const DEFAULT_TASKS = [
+  {
+    id: 'task_sponsor_1',
+    title: 'Visit Webtask Sponsor Page',
+    link: 'https://telegram.org',
+    verificationCode: '583921',
+    code: '583921',
+    icon: '🌐',
+    reward: 5,
+    rewardStars: 5,
+    description: 'Open link, get the 6-digit code, and verify',
+    active: true,
+    createdAt: 1700000000000
+  },
+  {
+    id: 'task_sponsor_2',
+    title: 'Join Community Channel',
+    link: 'https://t.me',
+    verificationCode: '729401',
+    code: '729401',
+    icon: '✈️',
+    reward: 5,
+    rewardStars: 5,
+    description: 'Open channel & enter 6-digit verification code',
+    active: true,
+    createdAt: 1700000000001
+  },
+  {
+    id: 'task_sponsor_3',
+    title: 'Explore Gaming Partner Arena',
+    link: 'https://google.com',
+    verificationCode: '314859',
+    code: '314859',
+    icon: '🎮',
+    reward: 5,
+    rewardStars: 5,
+    description: 'Check out partner gaming hub and verify 6-digit code',
+    active: true,
+    createdAt: 1700000000002
+  }
+];
 
 function getStoredTasks() {
   try {
     const raw = localStorage.getItem(TASKS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        // Strip out legacy hardcoded tasks if present & sanitize names to Webtask
-        let modified = false;
-        const filtered = parsed
-          .filter(t => !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id))
-          .map(t => {
-            if (t.title && /daily\s*task/i.test(t.title)) {
-              t.title = t.title.replace(/daily\s*task[s]?/gi, 'Webtask');
-              modified = true;
-            }
-            if (t.description && /daily\s*task/i.test(t.description)) {
-              t.description = t.description.replace(/daily\s*task[s]?/gi, 'webtask');
-              modified = true;
-            }
-            return t;
-          });
-        if (filtered.length !== parsed.length || modified) {
-          localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(filtered));
-        }
-        return filtered;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
       }
     }
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(DEFAULT_TASKS));
+    return DEFAULT_TASKS;
   } catch (e) {}
-  return [];
+  return DEFAULT_TASKS;
+}
+
+function getStoredCompletedTasks() {
+  try {
+    const raw = localStorage.getItem(COMPLETED_TASKS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {};
+}
+
+function markTaskCompleted(taskId) {
+  const completed = getStoredCompletedTasks();
+  completed[taskId] = { completedAt: Date.now(), rewardStars: 5 };
+  localStorage.setItem(COMPLETED_TASKS_KEY, JSON.stringify(completed));
+  localStorage.removeItem('task_opened_' + taskId);
+  localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+  try {
+    const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    ch.postMessage({ type: 'TASK_COMPLETED', taskId, timestamp: Date.now() });
+  } catch (e) {}
+}
+
+function isTaskOpened(taskId) {
+  return localStorage.getItem('task_opened_' + taskId) === 'true';
+}
+
+function setTaskOpened(taskId) {
+  localStorage.setItem('task_opened_' + taskId, 'true');
 }
 
 function getStoredClaims() {
   try {
     const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
     if (raw) {
-      const claims = JSON.parse(raw);
-      // Remove any lingering cooldown claims for legacy seed tasks
-      ['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].forEach(id => delete claims[id]);
-      return claims;
+      return JSON.parse(raw);
     }
   } catch (e) {}
   return {};
@@ -268,53 +319,50 @@ function showFloatingCoin(targetElement, text) {
   }, 800);
 }
 
-// Dynamic Task Rendering & Real-time Live Timer
+// Dynamic Task Rendering with Open / Verify & Fixed 5 Star Reward
 function renderTasks() {
   const container = document.getElementById('tasksList');
   if (!container) return;
 
   const tasks = getStoredTasks();
-  const claims = getStoredClaims();
-  const activeTasks = tasks.filter(t => t.active !== false);
+  const completedTasks = getStoredCompletedTasks();
+
+  // "and fininshed task remove. new add automatically."
+  // Filter out any task that is inactive OR already finished by user
+  const activeTasks = tasks.filter(t => t.active !== false && !completedTasks[t.id]);
 
   if (activeTasks.length === 0) {
     container.innerHTML = `
       <div class="empty-tasks-box">
         <div class="empty-tasks-icon">🎯</div>
-        <div class="empty-tasks-text">No active tasks right now. Check back soon!</div>
+        <div class="empty-tasks-text">All webtasks completed! Great job!</div>
+        <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
       </div>
     `;
     return;
   }
 
   container.innerHTML = activeTasks.map(task => {
-    const remaining = getTaskRemainingSeconds(task, claims);
-    const isCoolingDown = remaining > 0;
-    const isOneTimeClaimed = (Number(task.timerSeconds || 0) <= 0 && claims[task.id]);
+    const opened = isTaskOpened(task.id);
 
+    // "first tab on claim to change a open than click open button link open than open button change to verify button"
     let btnHtml = '';
-    if (isOneTimeClaimed) {
-      btnHtml = `<button class="btn-claim" disabled>Claimed ✓</button>`;
-    } else if (isCoolingDown) {
-      btnHtml = `<button class="btn-claim btn-timer-cooling" data-task-id="${task.id}" disabled title="Resets in ${formatRemainingTime(remaining)}">⏳ ${formatRemainingTime(remaining)}</button>`;
+    if (opened) {
+      btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
     } else {
-      btnHtml = `<button class="btn-claim" onclick="handleClaimTask('${task.id}', ${task.reward})">Claim</button>`;
+      btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
     }
 
     return `
-      <div class="task-card ${isCoolingDown ? 'cooling-down' : ''} ${isOneTimeClaimed ? 'completed' : ''}" id="taskCard_${task.id}">
+      <div class="task-card" id="taskCard_${task.id}">
         <div class="task-icon-wrap">${task.icon || '⚡'}</div>
         <div class="task-info">
           <div class="task-name-row">
             <span class="task-name">${escapeHtml(task.title)}</span>
-            ${isCoolingDown 
-              ? `<span class="task-status-pill cooling" id="pill_${task.id}">⏳ ${formatRemainingTime(remaining)}</span>` 
-              : `<span class="task-status-pill ready">⏱️ ${formatDurationBadge(task.timerSeconds)}</span>`
-            }
+            <span class="task-status-pill ready">⭐ 5 Stars</span>
           </div>
           <div class="task-desc-row">
-            <span class="task-reward">+${Number(task.reward).toLocaleString()} 🪙</span>
-            ${task.description ? `<span class="task-desc-sep">•</span><span class="task-desc-text">${escapeHtml(task.description)}</span>` : ''}
+            <span class="task-reward" style="color: #facc15; font-weight: 800;">+5 ⭐</span>
           </div>
         </div>
         <div class="task-action-wrap" id="action_${task.id}">
@@ -325,88 +373,173 @@ function renderTasks() {
   }).join('');
 }
 
-// Live 1-Second Timer Ticking
-function updateLiveTimers() {
-  const tasks = getStoredTasks();
-  const claims = getStoredClaims();
-  let needFullRerender = false;
-
-  tasks.forEach(task => {
-    if (task.active === false) return;
-    const remaining = getTaskRemainingSeconds(task, claims);
-    const btn = document.querySelector(`.btn-timer-cooling[data-task-id="${task.id}"]`);
-    const pill = document.getElementById(`pill_${task.id}`);
-
-    if (btn) {
-      if (remaining > 0) {
-        const timeStr = `⏳ ${formatRemainingTime(remaining)}`;
-        btn.textContent = timeStr;
-        if (pill) pill.textContent = timeStr;
-      } else {
-        needFullRerender = true;
-      }
-    }
-  });
-
-  if (needFullRerender) {
-    renderTasks();
-  }
-}
-
-// User Task Claim Handler
-function handleClaimTask(taskId, reward) {
-  const btn = event ? (event.target.closest('button') || event.target) : null;
+// Open Button Click: opens link in new tab, changes button to Verify, opens modal
+window.handleOpenTask = function(taskId) {
   const tasks = getStoredTasks();
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
 
-  const claims = getStoredClaims();
-  const remaining = getTaskRemainingSeconds(task, claims);
-  if (remaining > 0) return;
-
-  // 1. If task has a target URL / link, open it in a new window/tab
-  if (task.link && task.link.trim() !== '') {
-    window.open(task.link, '_blank');
+  // 1. Open task link in a new tab/window
+  const targetLink = (task.link || task.url || '').trim();
+  if (targetLink) {
+    window.open(targetLink, '_blank');
   }
 
-  // 2. If task requires a verification code, verify it
-  const requiredCode = (task.verificationCode || task.code || '').trim();
-  if (requiredCode !== '') {
-    const enteredCode = prompt(`🔑 Task Verification Required!\nEnter the verification code to claim +${Number(reward).toLocaleString()} coins for "${task.title}":`);
-    if (enteredCode === null) {
-      // User cancelled
-      return;
-    }
-    if (enteredCode.trim() !== requiredCode) {
-      alert(`❌ Invalid Verification Code! Please check the code and try again.`);
-      return;
-    }
+  // 2. Mark opened in storage
+  setTaskOpened(taskId);
+
+  // 3. Immediately change the button from "Open" to "Verify" on the UI
+  const actionWrap = document.getElementById(`action_${taskId}`);
+  if (actionWrap) {
+    actionWrap.innerHTML = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${taskId}')">Verify</button>`;
   }
 
-  // Add coins
-  userCoins += Number(reward);
-  localStorage.setItem('task_game_coins', userCoins.toString());
+  // 4. Open the verify modal automatically so user can enter the 6-digit code
+  setTimeout(() => {
+    openVerifyModal(taskId);
+  }, 400);
+};
 
-  // Track total tasks completed for wallet withdrawal & leaderboard eligibility (Min 100)
-  let completedTasks = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
-  localStorage.setItem('task_game_total_tasks_completed', completedTasks.toString());
+let currentVerifyTaskId = null;
 
-  // If Leaderboard Event is active, count this task towards the active event
-  recordLeaderboardEventTask(completedTasks);
+window.openVerifyModal = function(taskId) {
+  const tasks = getStoredTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
 
+  currentVerifyTaskId = taskId;
+
+  const modal = document.getElementById('taskVerifyModalOverlay');
+  const titleEl = document.getElementById('verifyModalTaskTitle');
+  const descEl = document.getElementById('verifyModalTaskDesc');
+  const iconEl = document.getElementById('verifyModalTaskIcon');
+  const linkBtn = document.getElementById('verifyModalLinkBtn');
+  const codeInput = document.getElementById('verifyCodeInput');
+  const errorMsg = document.getElementById('verifyErrorMsg');
+
+  if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
+  if (descEl) descEl.textContent = 'Enter 6-digit verification code to win +5 ⭐';
+  if (iconEl) iconEl.textContent = task.icon || '⚡';
+  if (linkBtn) {
+    const url = (task.link || task.url || '').trim();
+    if (url) {
+      linkBtn.href = url;
+      linkBtn.style.display = 'inline-flex';
+    } else {
+      linkBtn.style.display = 'none';
+    }
+  }
+  if (codeInput) {
+    codeInput.value = '';
+    codeInput.classList.remove('input-error');
+  }
+  if (errorMsg) {
+    errorMsg.style.display = 'none';
+    errorMsg.textContent = '';
+  }
+
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+    setTimeout(() => {
+      if (codeInput) codeInput.focus();
+    }, 200);
+  }
+};
+
+window.closeVerifyModal = function() {
+  const modal = document.getElementById('taskVerifyModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 200);
+  }
+  currentVerifyTaskId = null;
+};
+
+window.handleVerifyModalBackdropClick = function(e) {
+  if (e.target && e.target.id === 'taskVerifyModalOverlay') {
+    closeVerifyModal();
+  }
+};
+
+window.handleVerifyCodeInput = function(input) {
+  if (!input) return;
+  // Allow only digits
+  input.value = input.value.replace(/[^0-9]/g, '');
+  const errorMsg = document.getElementById('verifyErrorMsg');
+  if (errorMsg) errorMsg.style.display = 'none';
+  input.classList.remove('input-error');
+};
+
+// Verify button submit handler:
+// "user code and verification are same than task compelted than win 5 star each task that fixed a reward . and fininshed task remove. new add automatically."
+window.submitTaskVerification = function(event) {
+  if (event) event.preventDefault();
+
+  if (!currentVerifyTaskId) return;
+  const tasks = getStoredTasks();
+  const task = tasks.find(t => t.id === currentVerifyTaskId);
+  if (!task) return;
+
+  const codeInput = document.getElementById('verifyCodeInput');
+  const errorMsg = document.getElementById('verifyErrorMsg');
+  const userCode = (codeInput ? codeInput.value : '').trim();
+
+  const correctCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
+
+  // Validate 6-digit code:
+  if (!userCode || (correctCode && userCode !== correctCode)) {
+    if (codeInput) {
+      codeInput.classList.add('input-error');
+      codeInput.focus();
+    }
+    if (errorMsg) {
+      errorMsg.style.display = 'block';
+      errorMsg.textContent = '❌ Invalid 6-digit verification code. Please check and try again.';
+    }
+    return;
+  }
+
+  // Code matches! User wins 5 Stars fixed reward:
+  userStars += 5;
+  localStorage.setItem('task_game_stars', userStars.toString());
+  localStorage.setItem('user_stars', userStars.toString());
+
+  // Also track total completed tasks for wallet/leaderboard
+  let completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
+  localStorage.setItem('task_game_total_tasks_completed', completedCount.toString());
+  localStorage.setItem('completed_tasks_count', completedCount.toString());
+  recordLeaderboardEventTask(completedCount);
+
+  // Mark task completed so finished task is removed:
+  markTaskCompleted(task.id);
+
+  // Update coin & star display
   updateCoinDisplay();
 
-  // Audio & Float
+  // Audio and floating animation
   HomeAudio.playCoinClaim();
-  if (btn) showFloatingCoin(btn, `+${Number(reward).toLocaleString()} 🪙`);
+  const submitBtn = document.getElementById('btnVerifyConfirm');
+  if (submitBtn) showFloatingCoin(submitBtn, '+5 ⭐ Won!');
 
-  // Save claim timestamp
-  claims[taskId] = Date.now();
-  saveClaims(claims);
+  // Close modal
+  closeVerifyModal();
 
-  // Instantly transition into ticking live timer
-  renderTasks();
-}
+  // "fininshed task remove. new add automatically."
+  const taskCard = document.getElementById(`taskCard_${task.id}`);
+  if (taskCard) {
+    taskCard.style.transition = 'all 0.35s ease';
+    taskCard.style.opacity = '0';
+    taskCard.style.transform = 'translateY(-10px) scale(0.96)';
+    setTimeout(() => {
+      renderTasks();
+    }, 350);
+  } else {
+    renderTasks();
+  }
+};
 
 const GLOBAL_EPOCH_ANCHOR = Date.UTC(2026, 9, 1, 0, 0, 0); // Oct 1, 2026 00:00:00 UTC
 const THREE_MONTHS_HOURS = 2160; // 90 days
@@ -575,7 +708,7 @@ window.addEventListener('storage', (e) => {
   if (e.key === TASKS_STORAGE_KEY || e.key === SYNC_FLAG_KEY || e.key === CLAIMS_STORAGE_KEY) {
     renderTasks();
   }
-  if (e.key === 'task_game_coins' || e.key === 'task_game_stars') {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'player_username' || e.key === 'player_avatar') {
     updateCoinDisplay();
   }
 });
@@ -600,5 +733,7 @@ document.addEventListener('visibilitychange', () => {
 // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection
 window.renderTasks = renderTasks;
 window.getStoredTasks = getStoredTasks;
-window.handleClaimTask = handleClaimTask;
+window.handleOpenTask = handleOpenTask;
+window.openVerifyModal = openVerifyModal;
+window.submitTaskVerification = submitTaskVerification;
 

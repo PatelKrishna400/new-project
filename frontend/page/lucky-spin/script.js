@@ -6,11 +6,55 @@
 
 const MIN_BET = 30;
 const MAX_BET = 2000;
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 50;
 let isWheelSpinning = false;
 let wheelRotationAngle = 0;
 let soundEnabled = true;
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_spin_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_spin_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_spin_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_spin_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Web Audio API Synthesizer
 let synth = null;
@@ -56,8 +100,12 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   updateActionButtonState();
 }
 
@@ -101,8 +149,7 @@ function closeBuyCoinsModal() {
 }
 
 function claimFreeRefill() {
-  addFreeCoins(200);
-  closeBuyCoinsModal();
+  window.location.href = '../home/index.html';
 }
 
 function updateActionButtonState() {
@@ -190,6 +237,10 @@ function showToast(title, msg, icon = '🎡') {
 
 // Spin Action Handling
 function handleSpinAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentBet) {
     openBuyCoinsModal();
     return;
@@ -288,8 +339,17 @@ function drawSpinWheel() {
   ctx.shadowBlur = 0;
 }
 
+// Helper: precisely determine which wedge is under the top pointer (12 o'clock / 270°)
+function getWedgeUnderPointer(rotationDeg) {
+  const normR = ((rotationDeg % 360) + 360) % 360;
+  const canvasAngle = ((270 - normR) % 360 + 360) % 360;
+  const shiftedAngle = (canvasAngle + 90) % 360;
+  return Math.floor(shiftedAngle / 30);
+}
+
 function spinWheelGame() {
   if (isWheelSpinning) return;
+  recordPlayUsed();
   isWheelSpinning = true;
   balance -= currentBet;
   saveBalance();
@@ -300,25 +360,33 @@ function spinWheelGame() {
   const numWedges = WHEEL_WEDGES.length;
   const sliceDeg = 360 / numWedges;
 
-  let winProbability = 0.50;
-  if (balance >= 10000) winProbability = 0.10;
-  else if (balance >= 5000) winProbability = 0.20;
-
+  const winProbability = getWinProbability();
   const isWin = Math.random() < winProbability;
   let targetIdx;
   if (isWin) {
+    // 0: 5×, 2: 0.5×, 4: 1×, 6: 2×, 8: 0.5×, 10: 1×
     const winIndices = [0, 2, 4, 6, 8, 10];
     targetIdx = winIndices[Math.floor(Math.random() * winIndices.length)];
   } else {
+    // 1: BUST, 3: BUST, 5: BUST, 7: BUST, 9: BUST, 11: BUST
     const loseIndices = [1, 3, 5, 7, 9, 11];
     targetIdx = loseIndices[Math.floor(Math.random() * loseIndices.length)];
   }
 
-  const turns = 5 + Math.floor(Math.random() * 3);
-  const targetWedgeAngle = 270 - (targetIdx * sliceDeg + sliceDeg / 2);
-  const finalAngle = turns * 360 + targetWedgeAngle;
+  // Canvas wedge i center is at: start + slice/2 = (i * 30° - 90°) + 15° = i * 30° - 75°.
+  // Pointer is at top (12 o'clock, 270° / -90°).
+  // Clockwise rotation R satisfies: center(i) + R ≡ 270° (mod 360°)
+  // => R ≡ 270° - (i * 30° - 75°) = 345° - i * 30° (mod 360°).
+  const desiredMod = ((345 - targetIdx * sliceDeg) % 360 + 360) % 360;
+  const currentMod = ((wheelRotationAngle % 360) + 360) % 360;
+  let diff = desiredMod - currentMod;
+  if (diff <= 0) diff += 360;
 
-  wheelRotationAngle += finalAngle;
+  const extraSpins = (5 + Math.floor(Math.random() * 3)) * 360;
+  // Subtle natural jitter (+/- 5°) safely within the 30° wedge boundaries
+  const naturalJitter = (Math.random() - 0.5) * 8;
+
+  wheelRotationAngle += extraSpins + diff + naturalJitter;
   canvas.style.transition = 'transform 3.2s cubic-bezier(0.15, 0.9, 0.2, 1)';
   canvas.style.transform = `rotate(${wheelRotationAngle}deg)`;
 
@@ -329,7 +397,10 @@ function spinWheelGame() {
   setTimeout(() => {
     clearInterval(tickInterval);
     isWheelSpinning = false;
-    const landed = WHEEL_WEDGES[targetIdx];
+
+    // Resolve landing directly from pointer position to guarantee 100% precision
+    const landedIdx = getWedgeUnderPointer(wheelRotationAngle);
+    const landed = WHEEL_WEDGES[landedIdx];
     const grossWin = Math.round(currentBet * landed.mult);
     const wonAmount = grossWin;
 
@@ -349,6 +420,32 @@ function spinWheelGame() {
       showToast('Bust Wedge', 'Landed ×0. Better luck next spin!', '💨');
     }
   }, 3300);
+}
+
+// Modal Helpers
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
+  showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
 }
 
 // DOM Ready

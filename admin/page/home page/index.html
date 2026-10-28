@@ -544,8 +544,8 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="taskCodeInput">Code for Verification *</label>
-          <input type="text" id="taskCodeInput" class="form-input font-mono" placeholder="e.g. 7842 (code required by player to verify task)" required oninput="updateModalPreview()">
+          <label class="form-label" for="taskCodeInput">6-Digit Verification Code *</label>
+          <input type="text" id="taskCodeInput" class="form-input font-mono font-bold" placeholder="e.g. 583921 (6-digit code)" maxlength="6" pattern="[0-9]{6}" required oninput="updateModalPreview()">
         </div>
 
         <!-- Emoji Quick Picker -->
@@ -571,21 +571,21 @@
 
         <div class="form-row">
           <div class="form-group flex-1">
-            <label class="form-label" for="taskRewardInput">Coin Reward (🪙) *</label>
-            <input type="number" id="taskRewardInput" class="form-input font-mono font-bold" min="1" max="1000000" value="250" required oninput="updateModalPreview()">
+            <label class="form-label" for="taskRewardInput">Fixed Reward: 5 ⭐ Stars</label>
+            <input type="text" id="taskRewardInput" class="form-input font-mono font-bold" value="+5 ⭐ (Fixed Reward)" readonly style="opacity: 0.95; background: rgba(10, 23, 56, 0.6); color: #facc15;" title="Fixed reward of 5 Stars per task">
           </div>
 
           <div class="form-group flex-1">
             <label class="form-label" for="taskTimerPreset">Reset / Cooldown Timer</label>
             <select id="taskTimerPreset" class="form-input" onchange="handleTimerPresetChange(this.value)">
+              <option value="0">One-Time Bounty (Finished Task Removed)</option>
               <option value="86400">24 Hours (Webtask Reset)</option>
               <option value="43200">12 Hours (Half-Day)</option>
               <option value="21600">6 Hours (Quarter-Day)</option>
               <option value="3600">1 Hour (Hourly)</option>
               <option value="900">15 Minutes</option>
-              <option value="60">1 Minute (Fast Test &amp; Real Timer Demo)</option>
+              <option value="60">1 Minute</option>
               <option value="custom">Custom Seconds...</option>
-              <option value="0">One-Time Bounty (No Cooldown)</option>
             </select>
           </div>
         </div>
@@ -597,7 +597,7 @@
 
         <div class="form-group">
           <label class="form-label" for="taskDescInput">Task Brief / Subtitle (Optional)</label>
-          <input type="text" id="taskDescInput" class="form-input" placeholder="e.g. Open link, copy verification code and verify" oninput="updateModalPreview()">
+          <input type="text" id="taskDescInput" class="form-input" placeholder="e.g. Open link, copy 6-digit code and verify" oninput="updateModalPreview()">
         </div>
 
         <div class="form-check-row">
@@ -623,15 +623,15 @@
               <div class="task-info">
                 <div class="task-name-row">
                   <span class="task-name" id="previewTitle">Webtask Check-In</span>
-                  <span class="task-status-pill ready" id="previewDurationPill">⏱️ 24h Cooldown</span>
+                  <span class="task-status-pill ready" id="previewDurationPill">⭐ 5 Stars</span>
                 </div>
                 <div class="task-desc-row">
-                  <span class="task-reward" id="previewReward">+250 🪙</span>
+                  <span class="task-reward" id="previewReward" style="color: #facc15; font-weight: 800;">+5 ⭐</span>
                   <span class="task-desc-sep">•</span>
-                  <span class="task-desc-text" id="previewDesc">Complete webtask mission check-in</span>
+                  <span class="task-desc-text" id="previewDesc">Open link &amp; verify 6-digit code</span>
                 </div>
               </div>
-              <button type="button" class="btn-claim-preview">Claim</button>
+              <button type="button" class="btn-claim-preview" style="background: linear-gradient(155deg, #0284c7 0%, #0369a1 45%, #075985 100%); color: #ffffff; border: 1.5px solid #38bdf8; border-radius: 8px; font-weight: 800; padding: 0.4rem 0.8rem; cursor: pointer;">Open ➔</button>
             </div>
           </div>
         </div>

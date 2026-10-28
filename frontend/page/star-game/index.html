@@ -45,42 +45,24 @@
   <div class="app-frame" id="appMainFrame">
 
     <!-- Top Navigation Header (Exact match to Screenshots 2 & 5) -->
-    <header class="sticky top-0 z-40 bg-[#0b0e15]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b2232]">
-      <!-- Left Controls: Back Pill + Info Button -->
+    <!-- Top Header Bar (Screenshot Match) -->
+    <header class="sticky top-0 z-40 bg-[#060b18]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b253b]">
+      <div class="flex items-center">
+        <button id="navBackBtn" onclick="handleNavigationBack()" class="header-back-btn" title="Back">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+      </div>
+
       <div class="flex items-center gap-2">
-        <button id="navBackBtn" onclick="handleNavigationBack()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#151923] border border-[#232a3a] text-xs font-extrabold text-gray-200 hover:text-white transition-all active:scale-95" title="Back">
-          <i data-lucide="arrow-left" class="w-4 h-4 text-gray-300"></i>
-          <span>Back</span>
-        </button>
-
-        <button id="infoModalBtn" onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-[#151923] border border-[#232a3a] hover:bg-[#1f2636] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="How to play">
-          <i data-lucide="info" class="w-4 h-4"></i>
-        </button>
-      </div>
-
-      <!-- Center Title with Glowing Dot -->
-      <div class="flex items-center gap-1.5">
-        <span id="gameDot" class="w-2.5 h-2.5 rounded-full bg-[#38bdf8] shadow-[0_0_10px_#38bdf8] animate-pulse"></span>
-        <h1 id="gameTitleNav" class="text-sm font-black tracking-wide text-white">Lucky Dice</h1>
-      </div>
-
-      <!-- Right Controls: Coin Balance Pill + Telegram Controls -->
-      <div class="flex items-center gap-1.5">
-        <!-- Coin Balance Pill (Matches Screenshots 2 & 5: 10 + ) -->
-        <div class="header-balance-pill" title="Coin Balance">
-          <span class="text-xs">🪙</span>
-          <span id="coinBalance" class="text-xs font-black text-white min-w-[20px] text-right">10</span>
-          <button type="button" onclick="openBuyCoinsModal()" class="coin-plus-btn" title="Add Coins">+</button>
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="headerCoinDisplay">0</span>
         </div>
-
-        <!-- Telegram Mini App Icons (v and ⋮) -->
-        <div class="flex items-center gap-1 text-gray-400 pl-0.5">
-          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white" title="Expand">
-            <i data-lucide="chevron-down" class="w-4 h-4"></i>
-          </button>
-          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white" title="Options">
-            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-          </button>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="headerStarDisplay">0</span>
         </div>
       </div>
     </header>
@@ -139,7 +121,7 @@
           <div onclick="switchTab('plinko')" class="bg-gradient-to-b from-[#0f1d26] to-[#0a131a] border border-[#1b3b4f] hover:border-cyan-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-2xl p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 group-hover:scale-110 transition-transform">🎁</span>
-              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">Outer ×24</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">Outer ×5</span>
             </div>
             <div>
               <h3 class="font-extrabold text-sm text-white group-hover:text-cyan-300">Gift Drop</h3>
@@ -152,7 +134,7 @@
           <div onclick="switchTab('coin')" class="bg-gradient-to-b from-[#221c0e] to-[#141008] border border-[#443818] hover:border-amber-400 p-3.5 rounded-2xl cursor-pointer transition-all active:scale-[0.98] group flex flex-col justify-between shadow-lg">
             <div class="flex items-center justify-between mb-2.5">
               <span class="text-2xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform">🪙</span>
-              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">×1.9 Double</span>
+              <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">×2 Double</span>
             </div>
             <div>
               <h3 class="font-extrabold text-sm text-white group-hover:text-amber-300">Coin Flip</h3>
@@ -355,8 +337,8 @@
         <div class="w-full bg-gradient-to-b from-[#18131e] to-[#0e0c14] border border-[#2e1d2c] rounded-3xl p-3 flex flex-col items-center justify-center min-h-[250px] shadow-xl relative overflow-hidden">
           
           <div class="scratch-card-canvas-wrap">
-            <!-- Hidden Prize Card Beneath Foil -->
-            <div id="scratchPrizeCard" class="scratch-under-prize p-4 text-center">
+            <!-- Hidden Prize Card Beneath Foil (Loads after scratch card page covers) -->
+            <div id="scratchPrizeCard" class="scratch-under-prize p-4 text-center" style="opacity: 0;">
               <span id="scratchIcon" class="text-4xl animate-bounce">💎</span>
               <h3 id="scratchMultiplierLabel" class="text-3xl font-black text-white mt-1">×5</h3>
               <span id="scratchTierLabel" class="text-xs uppercase font-extrabold tracking-widest text-rose-200">Big Win</span>
@@ -368,22 +350,15 @@
           </div>
         </div>
 
-        <p class="mt-2.5 text-xs font-semibold text-gray-400">Prizes up to <b class="text-gray-300 font-extrabold">×25</b> hide under the foil</p>
+        <p class="mt-2.5 text-xs font-semibold text-gray-400">Prizes from <b class="text-gray-300 font-extrabold">×0.1 to ×5</b> hide under the foil</p>
 
-        <!-- Recent Rounds Card (Exact Match to Screenshot 5) -->
-        <div class="w-full mt-2.5 bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-3">
-          <h4 class="text-xs font-extrabold text-white">Recent rounds</h4>
-          <div id="scratchRecentRounds" class="text-xs text-gray-400 mt-1.5">
-            No rounds yet. Place your first bet.
-          </div>
-        </div>
       </section>
 
       <!-- ================= 3. LUCKY SPIN WHEEL GAME ================= -->
       <section id="game-spin" class="game-view hidden flex flex-col items-center">
         <div class="w-full bg-gradient-to-b from-[#181226] to-[#0e0a17] border border-[#2c1d42] rounded-3xl p-4 flex flex-col items-center justify-center min-h-[255px] shadow-xl relative overflow-hidden">
           <!-- Center Top Pointer Arrow -->
-          <div class="absolute top-2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-yellow-400 drop-shadow-[0_2px_8px_rgba(250,204,21,0.8)]"></div>
+          <div class="absolute top-2 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-yellow-400 drop-shadow-[0_2px_8px_rgba(250,204,21,0.8)]"></div>
 
           <!-- Canvas Wheel -->
           <canvas id="wheelCanvas" width="230" height="230" class="rounded-full shadow-2xl transition-transform ease-out"></canvas>
@@ -397,21 +372,23 @@
           <canvas id="plinkoCanvas" width="340" height="230" class="w-full max-w-full rounded-2xl"></canvas>
         </div>
 
-        <p class="mt-2 text-xs font-semibold text-cyan-300/80">Drop gifts down pegs and chase the outer <b class="text-cyan-400 font-extrabold">×24</b> edges</p>
+        <p class="mt-2 text-xs font-semibold text-cyan-300/80">Drop gifts down pegs and chase the outer <b class="text-cyan-400 font-extrabold">×5</b> edges</p>
 
-        <!-- Multipliers list preview -->
+        <!-- Multipliers list preview: 5, 2, 1, 0.5, 0.3, 0.2, 0.1, 0.2, 0.3, 0.5, 1, 2, 5 -->
         <div class="w-full flex items-center justify-between text-[10px] font-extrabold px-1 mt-2 text-gray-400">
-          <span class="text-cyan-400">24×</span>
-          <span class="text-sky-300">5×</span>
-          <span>2×</span>
-          <span>1.2×</span>
-          <span>0.7×</span>
-          <span class="text-gray-500">0.25×</span>
-          <span>0.7×</span>
-          <span>1.2×</span>
-          <span>2×</span>
-          <span class="text-sky-300">5×</span>
-          <span class="text-cyan-400">24×</span>
+          <span class="text-cyan-400">5×</span>
+          <span class="text-sky-300">2×</span>
+          <span>1×</span>
+          <span>0.5×</span>
+          <span>0.3×</span>
+          <span>0.2×</span>
+          <span class="text-gray-500">0.1×</span>
+          <span>0.2×</span>
+          <span>0.3×</span>
+          <span>0.5×</span>
+          <span>1×</span>
+          <span class="text-sky-300">2×</span>
+          <span class="text-cyan-400">5×</span>
         </div>
       </section>
 
@@ -464,27 +441,46 @@
         </div>
       </section>
 
-      <!-- ================= 7. UNDER OVER GAME ================= -->
-      <!-- ================= 7. UNDER OVER GAME (Screenshot 1 Match) ================= -->
+      <!-- ================= 7. UNDER OVER GAME (Pixel-Perfect Arcade Design) ================= -->
       <section id="game-underover" class="game-view hidden flex flex-col items-center">
-        <!-- 1. Top Display: Progress Track & Needle Indicator -->
-        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-3xl p-4 shadow-xl relative overflow-hidden">
-          <div class="uo-track-container mt-1">
-            <div id="uoProgressFill" class="uo-track-fill" style="width: 50%;"></div>
-            <div id="uoNeedle" class="uo-needle" style="left: 50%;"></div>
-            <div id="uoRollMarker" class="uo-roll-marker" style="left: 50%;">50</div>
+        <!-- 1. Top Display: Dual Digit Cards, Payout Pill & Progress Track -->
+        <div class="w-full bg-gradient-to-b from-[#141d13] to-[#0b120a] border border-[#22391e] rounded-3xl p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5),0_0_20px_rgba(132,204,22,0.08)] relative overflow-hidden flex flex-col items-center">
+          <div class="absolute -top-12 -left-12 w-48 h-48 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-12 -right-12 w-48 h-48 bg-lime-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Dual Digit Cards (e.g. 0 0) -->
+          <div class="flex items-center justify-center gap-3.5 my-2 relative z-10">
+            <div class="w-24 h-28 rounded-3xl bg-gradient-to-b from-[#1a281b] to-[#101a11] border border-[#2e4726] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_10px_25px_rgba(0,0,0,0.6)] relative overflow-hidden">
+              <div class="absolute inset-x-0 top-1/2 h-[1px] bg-black/40 shadow-[0_1px_0_rgba(255,255,255,0.05)] pointer-events-none"></div>
+              <span id="uoDigitLeft" class="text-6xl font-black text-white tracking-tighter select-none">0</span>
+            </div>
+            <div class="w-24 h-28 rounded-3xl bg-gradient-to-b from-[#1a281b] to-[#101a11] border border-[#2e4726] flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_10px_25px_rgba(0,0,0,0.6)] relative overflow-hidden">
+              <div class="absolute inset-x-0 top-1/2 h-[1px] bg-black/40 shadow-[0_1px_0_rgba(255,255,255,0.05)] pointer-events-none"></div>
+              <span id="uoDigitRight" class="text-6xl font-black text-white tracking-tighter select-none">0</span>
+            </div>
           </div>
 
-          <div class="flex justify-between items-center text-xs font-extrabold text-gray-400 mt-2 px-1">
-            <span>0</span>
-            <span id="uoThresholdCenterLabel" class="text-white font-black text-sm">Under 50</span>
-            <span>99</span>
+          <!-- Centered Payout Pill (e.g. ×1.90 payout) -->
+          <div class="flex justify-center mb-3 relative z-10">
+            <div class="px-4 py-1.5 rounded-full bg-gradient-to-r from-lime-950/80 via-emerald-950/90 to-lime-950/80 border border-lime-500/40 flex items-center gap-1.5 shadow-[0_0_16px_rgba(132,204,22,0.2)]">
+              <span id="uoPayoutPill" class="text-xs font-black text-lime-400">×1.90</span>
+              <span class="text-[11px] font-bold text-gray-400">payout</span>
+            </div>
           </div>
 
-          <!-- Roll Result Announcement Overlay -->
-          <div id="uoRollResultBox" class="mt-2 text-center hidden">
-            <span id="uoRollResultNum" class="text-4xl font-black text-lime-400">42</span>
-            <p id="uoRollResultSub" class="text-xs font-bold text-gray-300 mt-0.5">Rolled Under 50! Win ×1.90</p>
+          <!-- Progress Track with Needle -->
+          <div class="w-full px-1 relative z-10">
+            <div class="uo-track-container">
+              <div id="uoProgressFill" class="uo-track-fill" style="width: 50%;"></div>
+              <div id="uoNeedle" class="uo-needle" style="left: 50%;"></div>
+              <div id="uoRollMarker" class="uo-roll-marker" style="left: 50%;">50</div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs font-extrabold text-gray-400 mt-2">
+              <span>0</span>
+              <span id="uoThresholdCenterLabel" class="text-white font-black text-xs">Under 50</span>
+              <span>99</span>
+            </div>
           </div>
         </div>
 
@@ -597,6 +593,7 @@
 
     </main>
 
+
     <!-- ================= RULES BOTTOM SHEET MODAL (Exact match to Screenshots 1, 3, 4) ================= -->
     <div id="infoModalOverlay" class="modal-overlay hidden" onclick="toggleInfoModal()"></div>
     
@@ -676,74 +673,56 @@
       </div>
 
       <div class="py-4 space-y-3">
-        <!-- Instant Refill Option -->
-        <div onclick="claimFreeRefill()" class="bg-[#111622] border border-[#232d42] hover:border-sky-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+        <!-- Complete Tasks Option -->
+        <div onclick="window.location.href='../home/index.html'" class="bg-[#111622] border border-[#232d42] hover:border-sky-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
           <div class="flex items-center gap-3">
-            <span class="text-3xl p-2 rounded-xl bg-sky-500/10 border border-sky-500/20">⭐</span>
+            <span class="text-3xl p-2 rounded-xl bg-sky-500/10 border border-sky-500/20">📋</span>
             <div>
-              <h4 class="text-sm font-black text-white">Free Instant Refill</h4>
-              <p class="text-xs text-gray-400">Claim +200 free coins instantly</p>
+              <h4 class="text-sm font-black text-white">Complete Tasks</h4>
+              <p class="text-xs text-gray-400">Earn coins &amp; 5 ⭐ stars per task</p>
             </div>
           </div>
-          <button class="px-3 py-1.5 rounded-xl bg-sky-400 text-slate-950 font-black text-xs">Claim</button>
-        </div>
-
-        <!-- Watch Sponsored Ad for +500 Coins -->
-        <div onclick="startWatchingAdFromStore()" class="bg-[#18131e] border border-[#3b1d31] hover:border-rose-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
-          <div class="flex items-center gap-3">
-            <span class="text-3xl p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">🎬</span>
-            <div>
-              <h4 class="text-sm font-black text-white">Watch Sponsored Ad</h4>
-              <p class="text-xs text-gray-400">+500 coins & +5 daily plays</p>
-            </div>
-          </div>
-          <button class="px-3 py-1.5 rounded-xl bg-rose-500 text-slate-950 font-black text-xs">Watch</button>
+          <button class="px-3 py-1.5 rounded-xl bg-sky-400 text-slate-950 font-black text-xs shadow-md">Earn 🪙</button>
         </div>
       </div>
     </div>
 
-    <!-- ================= WATCH ADS POPUP MODAL (DAILY PLAYS LIMIT) ================= -->
+    <!-- ================= WATCH AD FOR MORE PLAYS MODAL ================= -->
     <div id="adModalOverlay" class="modal-overlay hidden" onclick="closeAdModal()"></div>
     <div id="adModalSheet" class="modal-sheet">
       <div class="sheet-handle"></div>
-
-      <!-- Ad Header -->
+      
       <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
         <div class="flex items-center gap-2">
-          <span class="text-base">📺</span>
-          <span class="text-xs font-black uppercase tracking-wider text-amber-400">Daily Plays Limit Reached</span>
+          <span class="text-base">🎬</span>
+          <h3 class="text-sm font-black text-white">Daily Plays Limit</h3>
         </div>
         <button onclick="closeAdModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Offer View (Default) -->
-      <div id="adInitialView" class="py-4 text-center">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-yellow-400/20 border border-yellow-400/30 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
-          🎬
+      <div class="py-4 space-y-3">
+        <div class="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-yellow-500/20 rounded-2xl p-3.5 text-center">
+          <span class="text-3xl block mb-1">⚡</span>
+          <h4 class="text-sm font-black text-white">Need More Plays?</h4>
+          <p class="text-xs text-gray-300 mt-1">You used your 10 free plays. Watch a quick sponsor ad to get <b class="text-yellow-400">+10 more plays</b> instantly!</p>
         </div>
-        <h3 class="text-base font-black text-white">Daily 10 Free Plays Used</h3>
-        <p class="text-xs text-gray-400 mt-1 max-w-[270px] mx-auto">
-          Watch a quick sponsored ad to unlock <b class="text-yellow-400">+5 Extra Plays</b> immediately!
-        </p>
 
-        <button onclick="startWatchingAd()" class="mt-4 w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black text-xs shadow-lg active:scale-95 transition-all">
-          ▶️ Watch Ad (+5 Plays)
+        <button onclick="watchAdForMorePlays()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all">
+          <span>🎬 Watch Ad (+10 Plays)</span>
         </button>
-      </div>
 
-      <!-- Playing Screen (Active while ad plays) -->
-      <div id="adPlayerView" class="py-4 text-center hidden">
-        <div class="w-full bg-[#0a0d14] border border-[#1e2538] rounded-2xl p-6 flex flex-col items-center justify-center">
-          <span class="text-xs font-extrabold uppercase tracking-widest text-gray-400 mb-2">📢 Sponsored Ad Playing</span>
-          <div class="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin my-2"></div>
-          <p id="adTimerText" class="text-sm font-extrabold text-amber-300 mt-2">Reward in 5s...</p>
-          <div class="w-full bg-gray-800 h-2 rounded-full mt-4 overflow-hidden">
-            <div id="adProgressFill" class="bg-gradient-to-r from-amber-400 to-yellow-400 h-full w-0 transition-all duration-100"></div>
+        <div onclick="window.location.href='../home/index.html'" class="bg-[#111622] border border-[#232d42] hover:border-sky-400 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">📋</span>
+            <div class="text-left">
+              <h5 class="text-xs font-bold text-white">Complete Tasks</h5>
+              <p class="text-[10px] text-gray-400">Earn coins & stars anytime</p>
+            </div>
           </div>
+          <span class="text-xs font-bold text-sky-400">Tasks →</span>
         </div>
-        <p class="text-[11px] text-gray-400 mt-3">Sponsored ad opened in new tab. Keep page open to receive reward.</p>
       </div>
     </div>
 
@@ -758,7 +737,6 @@
 
   </div>
 
-  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

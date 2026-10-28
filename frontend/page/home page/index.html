@@ -183,6 +183,59 @@
 
   </div>
 
+  <!-- 6-Digit Code Task Verification Modal -->
+  <div class="task-verify-modal-overlay" id="taskVerifyModalOverlay" style="display: none;" onclick="handleVerifyModalBackdropClick(event)">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()">
+      <button type="button" class="verify-modal-close-btn" onclick="closeVerifyModal()" aria-label="Close modal">✕</button>
+      
+      <div class="verify-modal-header">
+        <div class="verify-modal-badge">
+          <span class="verify-badge-dot"></span>
+          <span>WEBTASK VERIFICATION</span>
+        </div>
+        <h2 class="verify-modal-title">Enter 6-Digit Code</h2>
+        <div class="verify-modal-reward-badge">
+          <span>Fixed Reward:</span>
+          <span class="reward-highlight">+5 ⭐</span>
+        </div>
+      </div>
+
+      <div class="verify-modal-task-card">
+        <div class="verify-card-icon" id="verifyModalTaskIcon">⚡</div>
+        <div class="verify-card-info">
+          <div class="verify-card-title" id="verifyModalTaskTitle">Webtask Mission</div>
+          <div class="verify-card-sub" id="verifyModalTaskDesc">Visit link &amp; get code from admin</div>
+        </div>
+        <a href="#" target="_blank" class="btn-verify-reopen-link" id="verifyModalLinkBtn" title="Re-open link in new tab">Open ↗</a>
+      </div>
+
+      <form class="verify-form" onsubmit="submitTaskVerification(event)">
+        <div class="verify-code-input-container">
+          <label class="verify-code-label" for="verifyCodeInput">Verification Code (6 Digits)</label>
+          <input 
+            type="text" 
+            id="verifyCodeInput" 
+            class="verify-code-input font-mono" 
+            maxlength="6" 
+            pattern="[0-9]{6}" 
+            inputmode="numeric" 
+            placeholder="000000" 
+            autocomplete="off"
+            required
+            oninput="handleVerifyCodeInput(this)"
+          >
+          <div class="verify-code-hint">Enter the 6-digit verification code for this task</div>
+          <div class="verify-error-msg" id="verifyErrorMsg" style="display: none;"></div>
+        </div>
+
+        <div class="verify-modal-btn-row">
+          <button type="button" class="btn-verify-cancel" onclick="closeVerifyModal()">Cancel</button>
+          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win 5 ⭐</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Firebase Cloud Sync & Analytics Connection -->
   <script type="module" src="../../firebase-config.js"></script>
   <script src="script.js"></script>

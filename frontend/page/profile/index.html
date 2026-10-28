@@ -62,18 +62,11 @@
           </div>
 
           <!-- Name & Telegram Emoji Status -->
-          <div class="profile-name-row">
-            <h2 class="profile-display-name" id="tgProfileDisplayName">Player</h2>
-            <span class="tg-emoji-status-chip" id="tgProfileEmojiStatus" title="Status">⚡</span>
+          <div class="profile-name-row" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.85rem;">
+            <h2 class="profile-display-name" id="tgProfileDisplayName">Task Earner</h2>
+            <button type="button" class="btn-edit-profile-icon" onclick="openEditTgProfileModal()" title="Edit Name & Avatar" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 0.85rem; padding: 2px 7px; border-radius: 6px; cursor: pointer;">✏️</button>
+            <span class="tg-emoji-status-chip" id="tgProfileEmojiStatus" title="Status" onclick="openEmojiStatusPicker()">⚡</span>
           </div>
-
-          <!-- Username Handle -->
-          <div class="tg-username-pill" onclick="copyProfileUsername()" title="Click to copy @username">
-            <span>@</span><span id="tgProfileUsername">player</span>
-            <span style="font-size: 0.65rem;">📋</span>
-          </div>
-
-          <span class="profile-badge-pro" id="tgProfileRoleBadge">LEVEL 1 &bull; NOVICE</span>
 
           <div class="profile-stats-grid">
             <div class="profile-stat-box">
@@ -81,8 +74,8 @@
               <span class="stat-lbl">Web Tasks</span>
             </div>
             <div class="profile-stat-box">
-              <span class="stat-num" id="profileStatAds">0</span>
-              <span class="stat-lbl">Ads Watched</span>
+              <span class="stat-num" id="profileStatGames">1</span>
+              <span class="stat-lbl">Level Tier</span>
             </div>
             <div class="profile-stat-box">
               <span class="stat-num" id="profileStatStreak">1</span>
@@ -96,6 +89,15 @@
         <!-- Account Settings / Menu Options -->
         <div class="section-title">Account Menu</div>
         <div class="profile-links-list">
+          <!-- Edit Profile Option -->
+          <div class="profile-link-item highlight-edit" onclick="openEditTgProfileModal()" id="btnOpenEditProfileModal" title="Click to edit name and avatar" style="cursor: pointer;">
+            <div class="invite-tab-left">
+              <span class="invite-tab-gift">✏️</span>
+              <span class="invite-tab-title">Edit Profile (Name &amp; Avatar)</span>
+            </div>
+            <span class="link-arrow">&rarr;</span>
+          </div>
+
           <!-- Invite Friends Tab (Opens Popup on Click) -->
           <div class="profile-link-item highlight-invite" onclick="openInviteFriendsModal()" id="btnOpenInviteModal" title="Click to open Invite Friends popup">
             <div class="invite-tab-left">
@@ -1156,46 +1158,20 @@
           <input type="text" id="taskInputTitle" class="admin-form-input" placeholder="e.g. Subscribe to Nova Official Channel" required />
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label" for="taskInputDesc">Task Instructions / Description</label>
-          <input type="text" id="taskInputDesc" class="admin-form-input" placeholder="e.g. Watch video, like, and get code from end of video" />
-        </div>
-        <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputUrl">Target URL / Link *</label>
           <input type="url" id="taskInputUrl" class="admin-form-input" placeholder="https://youtube.com/..." required />
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="taskInputCoins">Reward Coins (🪙) *</label>
-            <input type="number" id="taskInputCoins" class="admin-form-input" min="10" step="10" value="100" required />
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="taskInputStars">Reward Stars (⭐) *</label>
-            <input type="number" id="taskInputStars" class="admin-form-input" min="0" step="1" value="5" required />
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="taskInputCategory">Category</label>
-            <select id="taskInputCategory" class="admin-form-select">
-              <option value="youtube">📺 YouTube</option>
-              <option value="telegram">✈️ Telegram</option>
-              <option value="partner">🤝 Partner</option>
-              <option value="website">🌐 Website</option>
-              <option value="app">📱 App Install</option>
-              <option value="daily">📅 Daily WebTask</option>
-            </select>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="taskInputTimer">Timer Wait (Sec)</label>
-            <input type="number" id="taskInputTimer" class="admin-form-input" min="5" max="300" value="10" />
-          </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputStars">Fixed Reward</label>
+          <input type="text" id="taskInputStars" class="admin-form-input font-bold" value="+5 ⭐ (Fixed Reward)" readonly style="background: rgba(10, 23, 56, 0.6); color: #facc15; font-weight: 800;" />
         </div>
         <div class="admin-form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <label class="admin-form-label" for="taskInputSecret">Secret Verification Code</label>
-            <button type="button" class="btn-card-action" style="padding: 1px 6px; font-size: 0.65rem;" onclick="generateRandomTaskCode()">🎲 Generate</button>
-          </div>
-          <input type="text" id="taskInputSecret" class="admin-form-input" placeholder="e.g. NOVA-7821 (Leave empty for instant)" />
+          <label class="admin-form-label" for="taskInputTimer">Timer Wait (Sec)</label>
+          <input type="number" id="taskInputTimer" class="admin-form-input" min="0" max="300" value="10" />
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputSecret">6-Digit Verification Code *</label>
+          <input type="text" id="taskInputSecret" class="admin-form-input font-mono font-bold" maxlength="6" pattern="[0-9]{6}" placeholder="e.g. 583921" required />
         </div>
         <div class="admin-modal-footer">
           <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminTaskModal()">Cancel</button>
@@ -1245,6 +1221,7 @@
           <label class="admin-form-label" for="userEditStatus">Account Status</label>
           <select id="userEditStatus" class="admin-form-select">
             <option value="active">Active Player 🟢</option>
+            <option value="inactive">Inactive Player 🔴</option>
             <option value="suspended">Suspended / Banned 🔴</option>
           </select>
         </div>

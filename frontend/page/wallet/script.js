@@ -44,7 +44,7 @@ let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 localStorage.removeItem('task_game_ad_timer_end');
 
 const REQUIRED_TASKS = 100;
-const REQUIRED_ADS = 30;
+const REQUIRED_ADS = 0;
 
 function getWalletStats() {
   const tasksCount = Math.max(
@@ -84,81 +84,7 @@ function updateWalletDisplays() {
 }
 
 // Watch Ad Handler (Instant / No Cooldown - Increment ad count towards 30)
-function handleWalletWatchAd() {
-  const { adsCount } = getWalletStats();
-
-  if (adsCount >= REQUIRED_ADS) {
-    alert(`✅ Requirements Met!\n\nYou have already watched all 30 ads (${adsCount} / ${REQUIRED_ADS}). You are eligible to buy Amazon Gift Cards!`);
-    return;
-  }
-
-  const btn = document.getElementById('btnWalletWatchAd');
-  const btnText = document.getElementById('btnWalletWatchAdText');
-  const modalBtn = document.getElementById('btnModalWatchAd');
-  const modalBtnText = document.getElementById('btnModalWatchAdText');
-
-  const onAdCompleted = () => {
-    if (btn) btn.classList.remove('watching-ad');
-    if (modalBtn) modalBtn.classList.remove('watching-ad');
-
-    // Increment ad count towards 30
-    const newAdsCount = Math.min(REQUIRED_ADS, adsCount + 1);
-    localStorage.setItem('task_game_ads_watched_count', newAdsCount.toString());
-    localStorage.removeItem('task_game_ad_timer_end');
-
-    updateWalletDisplays();
-
-    try {
-      const syncChannel = new BroadcastChannel('nova_task_sync');
-      syncChannel.postMessage({ type: 'WALLET_AD_WATCHED', timestamp: Date.now() });
-    } catch (e) {}
-
-    // Sync with Firebase Firestore if available
-    if (window.Firebase && typeof window.Firebase.saveCurrentProfileToFirestore === 'function') {
-      window.Firebase.saveCurrentProfileToFirestore().catch(() => {});
-    }
-
-    alert(`🎉 Ad Completed!\n\n+1 Ad Count added (${newAdsCount} / ${REQUIRED_ADS})!`);
-  };
-
-  if (btn) {
-    btn.disabled = true;
-    btn.classList.add('watching-ad');
-  }
-  if (btnText) btnText.textContent = 'Watching Ad (3s)...';
-
-  if (modalBtn) {
-    modalBtn.disabled = true;
-    modalBtn.classList.add('watching-ad');
-  }
-  if (modalBtnText) modalBtnText.textContent = 'Watching Ad (3s)...';
-
-  if (typeof show_10676091 === 'function') {
-    show_10676091().then(() => {
-      onAdCompleted();
-    }).catch(e => {
-      console.warn('show_10676091 notice:', e);
-      onAdCompleted();
-    });
-  } else if (typeof window.showRewardedAd === 'function') {
-    window.showRewardedAd(onAdCompleted, {
-      adTitle: 'Wallet Buy Ad Verification',
-      adDesc: 'Watch this short sponsor clip to increment your ad verification count.'
-    });
-  } else {
-    let countdown = 3;
-    const interval = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        if (btnText) btnText.textContent = `Watching Ad (${countdown}s)...`;
-        if (modalBtnText) modalBtnText.textContent = `Watching Ad (${countdown}s)...`;
-      } else {
-        clearInterval(interval);
-        onAdCompleted();
-      }
-    }, 1000);
-  }
-}
+function handleWalletWatchAd() { /* Ad removed */ }
 
 window.getWalletStats = getWalletStats;
 window.updateWalletDisplays = updateWalletDisplays;

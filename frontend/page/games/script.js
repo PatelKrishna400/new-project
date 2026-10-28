@@ -217,13 +217,13 @@ function updateGameDisplays() {
     }
   } catch (e) {}
 
-  const tabCoinsEl = document.getElementById('tabSfCoins');
-  const tabSeedsEl = document.getElementById('tabSfSeeds');
-  const tabBucketsEl = document.getElementById('tabSfBuckets');
+  const tabCoinsEl = document.getElementById('tabSfSolarCoins') || document.getElementById('tabSfCoins');
+  const tabSeedsEl = document.getElementById('tabSfSeedsSunflower') || document.getElementById('tabSfSeeds');
+  const tabBucketsEl = document.getElementById('tabSfBucketsSunflower') || document.getElementById('tabSfBuckets');
 
-  if (tabCoinsEl) tabCoinsEl.textContent = `${Math.floor(sfCoins).toLocaleString()} 🍯`;
+  if (tabCoinsEl) tabCoinsEl.textContent = `${Math.floor(sfCoins).toLocaleString()} 🌻`;
   if (tabSeedsEl) tabSeedsEl.textContent = `${sfSeeds} 🌱`;
-  if (tabBucketsEl) tabBucketsEl.textContent = `${sfBuckets} 🌸`;
+  if (tabBucketsEl) tabBucketsEl.textContent = `${sfBuckets} 💧`;
 }
 
 function rewardPlayer(coins, stars, targetEl) {

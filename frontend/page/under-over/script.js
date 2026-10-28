@@ -7,6 +7,8 @@
 const MIN_BET = 30;
 const MAX_BET = 2000;
 const QUICK_BETS = [30, 50, 100, 500];
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 50;
@@ -16,6 +18,48 @@ let uoDirection = 'under';
 let uoThreshold = 50;
 let isRollingUO = false;
 let uoRecentRounds = [];
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_underover_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_underover_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_underover_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_underover_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Audio synthesizers via Tone.js
 let synth = null;
@@ -58,8 +102,12 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay') || document.getElementById('starBalanceDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   updateActionButtonState();
 }
 
@@ -74,12 +122,7 @@ function saveBalance() {
 }
 
 function claimFreeRefill() {
-  playTone('win');
-  balance += 200;
-  saveBalance();
-  updateBalanceUI();
-  closeBuyCoinsModal();
-  if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
+  window.location.href = '../home/index.html';
 }
 
 // Direction & Threshold Math
@@ -214,6 +257,10 @@ function updateActionButtonState() {
 }
 
 function handlePrimaryAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentBet) {
     openBuyCoinsModal();
     return;
@@ -229,6 +276,7 @@ function rollUnderOver() {
     return;
   }
 
+  recordPlayUsed();
   isRollingUO = true;
   balance -= currentBet;
   saveBalance();
@@ -248,8 +296,8 @@ function rollUnderOver() {
   if (dLeft) dLeft.className = "text-6xl font-black text-white tracking-tighter select-none";
   if (dRight) dRight.className = "text-6xl font-black text-white tracking-tighter select-none";
 
-  // Calibrate 50% target win rate
-  const forceWin = Math.random() < 0.5;
+  // Calibrate win rate dynamically based on Star Balance
+  const forceWin = Math.random() < getWinProbability();
   let rolledNumber;
 
   if (uoDirection === 'under') {
@@ -351,21 +399,7 @@ function finishUnderOverRoll(rolledNumber) {
 }
 
 function renderRecentRounds() {
-  const container = document.getElementById('uoRecentRounds');
-  if (!container) return;
-
-  if (uoRecentRounds.length === 0) {
-    container.innerHTML = 'No rounds yet. Place your first bet.';
-    return;
-  }
-
-  container.innerHTML = '';
-  uoRecentRounds.forEach(r => {
-    const pill = document.createElement('span');
-    pill.className = `px-2.5 py-1 rounded-lg text-xs font-black ${r.isWin ? 'bg-lime-500/20 text-lime-400 border border-lime-500/30' : 'bg-[#181d28] text-gray-400 border border-[#263145]'}`;
-    pill.innerText = `${r.num} (${r.isWin ? '×' + r.mult : '×0'})`;
-    container.appendChild(pill);
-  });
+  // Recent rounds removed from UI
 }
 
 // Modals
@@ -401,6 +435,30 @@ function closeBuyCoinsModal() {
   if (!sheet || !overlay) return;
   sheet.classList.remove('open');
   setTimeout(() => overlay.classList.add('hidden'), 280);
+}
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
 }
 
 // Initialize on page load

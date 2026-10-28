@@ -5,12 +5,56 @@
 
 const MIN_BET = 30;
 const MAX_BET = 2000;
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 50;
 let scratchPurchased = false;
-let scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
+let scratchPrize = { tier: 'Winner', mult: 1, icon: '🎉' };
 let soundEnabled = true;
 let scratchRecentHistory = [];
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_scratch_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_scratch_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_scratch_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_scratch_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Web Audio API Synthesizer
 let synth = null;
@@ -56,8 +100,12 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   updateActionButtonState();
 }
 
@@ -101,8 +149,7 @@ function closeBuyCoinsModal() {
 }
 
 function claimFreeRefill() {
-  addFreeCoins(200);
-  closeBuyCoinsModal();
+  window.location.href = '../home/index.html';
 }
 
 function updateActionButtonState() {
@@ -190,6 +237,10 @@ function showToast(title, msg, icon = '✨') {
 
 // Scratch Action Handling
 function handleScratchAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentBet) {
     openBuyCoinsModal();
     return;
@@ -204,6 +255,7 @@ function initScratchCard(purchased = false) {
   const w = canvas.width;
   const h = canvas.height;
 
+  canvas.style.transition = 'none';
   canvas.style.opacity = '1';
   ctx.globalCompositeOperation = 'source-over';
 
@@ -264,44 +316,83 @@ function initScratchCard(purchased = false) {
 
 function buyScratchCard() {
   if (scratchPurchased) return;
+  recordPlayUsed();
   balance -= currentBet;
   saveBalance();
   updateBalanceUI();
   scratchPurchased = true;
   playTone('roll');
 
-  let winProbability = 0.50;
-  if (balance >= 10000) winProbability = 0.10;
-  else if (balance >= 5000) winProbability = 0.20;
-
-  const isWin = Math.random() < winProbability;
-  if (isWin) {
+  const winProbability = getWinProbability();
+  const isHighWin = Math.random() < winProbability;
+  if (isHighWin) {
     const winRoll = Math.random();
-    if (winRoll < 0.08) {
-      scratchPrize = { tier: 'Jackpot', mult: 15, icon: '👑' };
-    } else if (winRoll < 0.40) {
-      scratchPrize = { tier: 'Big Win', mult: 5, icon: '💎' };
-    } else if (winRoll < 0.80) {
-      scratchPrize = { tier: 'Winner', mult: 2, icon: '🎉' };
+    if (winRoll < 0.15) {
+      scratchPrize = { tier: 'Jackpot', mult: 5, icon: '👑' };
+    } else if (winRoll < 0.50) {
+      scratchPrize = { tier: 'Super Win', mult: 2, icon: '💎' };
     } else {
-      scratchPrize = { tier: 'Money Back', mult: 1, icon: '⭐' };
+      scratchPrize = { tier: 'Winner', mult: 1, icon: '🎉' };
     }
   } else {
-    scratchPrize = { tier: 'Bust', mult: 0, icon: '💨' };
+    const lowRoll = Math.random();
+    if (lowRoll < 0.25) {
+      scratchPrize = { tier: 'Mini Win', mult: 0.5, icon: '⭐' };
+    } else if (lowRoll < 0.55) {
+      scratchPrize = { tier: 'Lucky Star', mult: 0.3, icon: '🍀' };
+    } else if (lowRoll < 0.80) {
+      scratchPrize = { tier: 'Bronze Win', mult: 0.2, icon: '🥉' };
+    } else {
+      scratchPrize = { tier: 'Lucky Drop', mult: 0.1, icon: '🪙' };
+    }
   }
 
-  document.getElementById('scratchIcon').innerText = scratchPrize.icon;
-  document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
-  document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
-  const winCoin = Math.round(currentBet * scratchPrize.mult);
-  document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+  // 1. FIRST: Hide any previously revealed winning price so it cannot be seen
+  const prizeCard = document.getElementById('scratchPrizeCard');
+  if (prizeCard) {
+    prizeCard.style.opacity = '0';
+  }
 
+  // 2. FIRST: Load the fresh scratch card foil page cover immediately
+  const canvas = document.getElementById('scratchCanvas');
+  if (canvas) {
+    canvas.style.transition = 'none';
+    canvas.style.opacity = '1';
+  }
   initScratchCard(true);
+
+  // Subtle fresh card load bounce effect
+  const cardWrap = document.querySelector('.scratch-card-canvas-wrap');
+  if (cardWrap) {
+    cardWrap.style.transform = 'scale(0.97)';
+    cardWrap.style.transition = 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    setTimeout(() => {
+      cardWrap.style.transform = 'scale(1)';
+    }, 160);
+  }
+
   const btn = document.getElementById('primaryPlayBtn');
   if (btn) {
     btn.innerText = 'Scratch Card Above';
     btn.disabled = true;
   }
+
+  // 3. THEN AFTER: The scratch card page / foil is loaded, load the below winning prize!
+  setTimeout(() => {
+    document.getElementById('scratchIcon').innerText = scratchPrize.icon;
+    document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
+    document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
+    const winCoin = Math.round(currentBet * scratchPrize.mult);
+    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+
+    // Make the prize active underneath the opaque foil
+    if (prizeCard) {
+      prizeCard.style.opacity = '1';
+    }
+    if (canvas) {
+      canvas.style.transition = 'opacity 0.45s ease';
+    }
+  }, 120);
 }
 
 function enableScratching(canvas, ctx) {
@@ -368,12 +459,12 @@ function revealScratchFinish(canvas, ctx) {
     if (window.confetti) confetti({ particleCount: 80, spread: 70 });
     playTone('jackpot');
     showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
-  } else if (scratchPrize.mult > 0) {
+  } else if (scratchPrize.mult >= 1) {
     playTone('win');
     showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
   } else {
-    playTone('lose');
-    showToast('Bust', 'No prize under foil. Better luck next time!', '💨');
+    playTone('win');
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
   }
 
   const playBtn = document.getElementById('primaryPlayBtn');
@@ -384,23 +475,32 @@ function revealScratchFinish(canvas, ctx) {
 }
 
 function addScratchRecentRound(prize, win) {
-  scratchRecentHistory.unshift({ tier: prize.tier, mult: prize.mult, win, icon: prize.icon });
-  if (scratchRecentHistory.length > 5) scratchRecentHistory.pop();
+  // Recent rounds removed from UI
+}
 
-  const container = document.getElementById('scratchRecentRounds');
-  if (!container) return;
-
-  container.innerHTML = `
-    <div class="flex items-center gap-1.5 flex-wrap">
-      ${scratchRecentHistory.map(r => `
-        <span class="recent-round-badge">
-          <span>${r.icon}</span>
-          <span>×${r.mult}</span>
-          <span class="${r.mult > 0 ? 'text-amber-400' : 'text-gray-400'}">${r.mult > 0 ? '+' + r.win : 'Bust'}</span>
-        </span>
-      `).join('')}
-    </div>
-  `;
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
+  showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
 }
 
 // DOM Ready
@@ -410,7 +510,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateBalanceUI();
   setBet(50);
+
+  // 1. First load the scratch page / foil cover
   initScratchCard(false);
+
+  // 2. Then after foil is covering, safely load winning prize underneath
+  setTimeout(() => {
+    const prizeCard = document.getElementById('scratchPrizeCard');
+    if (prizeCard) prizeCard.style.opacity = '1';
+    const canvas = document.getElementById('scratchCanvas');
+    if (canvas) canvas.style.transition = 'opacity 0.45s ease';
+  }, 100);
 
   if (window.lucide) lucide.createIcons();
 });

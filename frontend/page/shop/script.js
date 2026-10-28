@@ -169,9 +169,33 @@ function updateAdCooldownUI() {
   }
 }
 
+// Real-Time Percentage Discount Calculator (1 Star = 300 Coins Baseline)
+function updateRealTimeDiscounts() {
+  const baseRatePerStar = 300;
+  document.querySelectorAll('.star-shop-card').forEach(card => {
+    const buyBtn = card.querySelector('.btn-buy');
+    const badge = card.querySelector('.star-pack-badge');
+    if (!buyBtn || !badge) return;
+
+    const onclickStr = buyBtn.getAttribute('onclick') || '';
+    const match = onclickStr.match(/buyStars\((\d+),\s*(\d+)\)/);
+    if (match) {
+      const stars = parseInt(match[1], 10);
+      const cost = parseInt(match[2], 10);
+      const regularCost = stars * baseRatePerStar;
+
+      if (stars > 1 && regularCost > cost) {
+        const discountPct = Math.round(((regularCost - cost) / regularCost) * 100);
+        badge.textContent = `${discountPct}%`;
+      }
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   autoLoginWithTelegram();
   updateDisplays();
+  updateRealTimeDiscounts();
   updateAdCooldownUI();
 });
 
@@ -199,60 +223,7 @@ function updateDisplays() {
 }
 
 // Watch Ad -> Win 10 Coins (Triggers 5-Hour Cooldown with Comment Tab)
-function watchAdForCoins(btn) {
-  const remaining = getAdCooldownRemaining();
-  if (remaining > 0) {
-    alert(`⏳ Ad on Cooldown!\n\nPlease wait ${formatCooldownTime(remaining)} before watching another ad for free coins.`);
-    return;
-  }
-  if (btn.disabled) return;
-
-  btn.disabled = true;
-  btn.textContent = 'Watching (3s)...';
-
-  // Trigger backend ad service to open ad in new tab and record clicks
-  if (typeof window.openWatchAd === 'function') {
-    window.openWatchAd({ context: 'shop_bonus' });
-  }
-
-  let countdown = 3;
-  const interval = setInterval(() => {
-    countdown--;
-    if (countdown > 0) {
-      btn.textContent = `Watching (${countdown}s)...`;
-    } else {
-      clearInterval(interval);
-      userCoins += 10;
-      localStorage.setItem('task_game_coins', userCoins.toString());
-      updateDisplays();
-      shopSfx.playCoin();
-
-      try {
-        const syncChannel = new BroadcastChannel('nova_task_sync');
-        syncChannel.postMessage({ type: 'COINS_UPDATED', timestamp: Date.now() });
-      } catch (e) {}
-
-      // Trigger cloud sync if available
-      if (typeof window.firebaseSync !== 'undefined' && typeof window.firebaseSync.saveUserData === 'function') {
-        window.firebaseSync.saveUserData();
-      }
-
-      btn.textContent = '+10 🪙 Won!';
-      btn.style.background = 'linear-gradient(155deg, #10b981 0%, #047857 100%)';
-      btn.style.borderColor = '#34d399';
-
-      // Set 5-hour cooldown (18,000,000 ms)
-      const cooldownEnd = Date.now() + AD_COOLDOWN_MS;
-      localStorage.setItem('task_game_shop_ad_cooldown', cooldownEnd.toString());
-
-      setTimeout(() => {
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        updateAdCooldownUI();
-      }, 1500);
-    }
-  }, 1000);
-}
+function watchAdForCoins() { /* Ad removed */ }
 
 // Buy Stars for Coins (1 for 300, 10 for 2900, 20 for 5000)
 function buyStars(starAmount, coinCost) {

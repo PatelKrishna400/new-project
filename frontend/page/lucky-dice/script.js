@@ -5,11 +5,55 @@
 
 const MIN_BET = 30;
 const MAX_BET = 2000;
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 50;
 let diceStreak = 0;
 let isRollingDice = false;
 let soundEnabled = true;
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_dice_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_dice_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_dice_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_dice_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Web Audio API Synthesizer
 let synth = null;
@@ -55,8 +99,12 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   updateActionButtonState();
 }
 
@@ -100,8 +148,7 @@ function closeBuyCoinsModal() {
 }
 
 function claimFreeRefill() {
-  addFreeCoins(200);
-  closeBuyCoinsModal();
+  window.location.href = '../home/index.html';
 }
 
 function updateActionButtonState() {
@@ -189,6 +236,10 @@ function showToast(title, msg, icon = '🎲') {
 
 // Dice Action Handling
 function handleDiceAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentBet) {
     openBuyCoinsModal();
     return;
@@ -209,6 +260,7 @@ const DICE_MULTIPLIERS = { 1: 0, 2: 0.3, 3: 0.6, 4: 1.2, 5: 1.5, 6: 2 };
 function rollDiceGame() {
   if (isRollingDice) return;
   isRollingDice = true;
+  recordPlayUsed();
   balance -= currentBet;
   saveBalance();
   updateBalanceUI();
@@ -217,10 +269,7 @@ function rollDiceGame() {
   const cube = document.getElementById('cube');
   cube.classList.remove('face-pose-3');
 
-  let winProbability = 0.50;
-  if (balance >= 10000) winProbability = 0.10;
-  else if (balance >= 5000) winProbability = 0.20;
-
+  const winProbability = getWinProbability();
   const isWin = Math.random() < winProbability;
   let rolledFace;
   if (isWin) {
@@ -313,6 +362,42 @@ function updateDiceStreakUI() {
       indicators[i].classList.remove('active');
     }
   }
+}
+
+// Modal Helpers
+function openBuyCoinsModal() {
+  playTone('click');
+  document.getElementById('buyCoinsModalOverlay').classList.remove('hidden');
+  document.getElementById('buyCoinsModalSheet').classList.add('open');
+}
+function closeBuyCoinsModal() {
+  document.getElementById('buyCoinsModalOverlay').classList.add('hidden');
+  document.getElementById('buyCoinsModalSheet').classList.remove('open');
+}
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
+  showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
 }
 
 // DOM Ready

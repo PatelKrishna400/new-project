@@ -7,6 +7,8 @@
 const MIN_STAKE = 50;
 const MAX_STAKE = 50000;
 const TOTAL_TILES = 36; // 6x6 grid matching Screenshot 1 & 2
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentStake = 50;
@@ -19,6 +21,48 @@ let tilesData = []; // 'star' or 'bomb'
 let revealedIndices = new Set();
 let nonce = 1;
 let currentMultiplier = 1.0;
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_mines_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_mines_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_mines_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_mines_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Audio synthesizers via Tone.js
 let synth = null;
@@ -71,8 +115,12 @@ function toggleSoundEffect() {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('starBalanceDisplay');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay') || document.getElementById('starBalanceDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   validateStakeRequirement();
 }
 
@@ -213,6 +261,10 @@ function maxMinesBet() {
 
 // Game Flow: Start / Reveal / Cashout
 function handleMinesPrimaryAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentStake) {
     openBuyCoinsModal();
     return;
@@ -224,6 +276,7 @@ function startMinesRound() {
   if (isRoundActive) return;
   if (currentStake < MIN_STAKE) return;
 
+  recordPlayUsed();
   playTone('click');
   balance -= currentStake;
   saveBalance();
@@ -271,6 +324,23 @@ function onTileClick(index) {
   if (!tileEl) return;
 
   revealedIndices.add(index);
+
+  // Dynamic win rate calibration on first click based on Total Star Balance:
+  if (revealedIndices.size === 1) {
+    const winProb = getWinProbability();
+    if (Math.random() > winProb && tilesData[index] === 'star') {
+      tilesData[index] = 'bomb';
+    } else if (Math.random() < winProb && tilesData[index] === 'bomb') {
+      tilesData[index] = 'star';
+      for (let i = 0; i < TOTAL_TILES; i++) {
+        if (i !== index && tilesData[i] === 'star') {
+          tilesData[i] = 'bomb';
+          break;
+        }
+      }
+    }
+  }
+
   const isBomb = tilesData[index] === 'bomb';
 
   if (isBomb) {
@@ -353,21 +423,29 @@ function endMinesRound(won) {
 function openFairnessModal() {
   playTone('click');
   document.getElementById('fairnessOverlay').classList.remove('hidden');
-  document.getElementById('fairnessSheet').classList.add('active');
+  const sheet = document.getElementById('fairnessSheet');
+  sheet.classList.add('open');
+  sheet.classList.add('active');
 }
 function closeFairnessModal() {
   document.getElementById('fairnessOverlay').classList.add('hidden');
-  document.getElementById('fairnessSheet').classList.remove('active');
+  const sheet = document.getElementById('fairnessSheet');
+  sheet.classList.remove('open');
+  sheet.classList.remove('active');
 }
 
 function openReferralModal() {
   playTone('click');
   document.getElementById('referralOverlay').classList.remove('hidden');
-  document.getElementById('referralSheet').classList.add('active');
+  const sheet = document.getElementById('referralSheet');
+  sheet.classList.add('open');
+  sheet.classList.add('active');
 }
 function closeReferralModal() {
   document.getElementById('referralOverlay').classList.add('hidden');
-  document.getElementById('referralSheet').classList.remove('active');
+  const sheet = document.getElementById('referralSheet');
+  sheet.classList.remove('open');
+  sheet.classList.remove('active');
 }
 
 function copyReferralLink() {
@@ -383,24 +461,47 @@ function copyReferralLink() {
 function openBuyCoinsModal() {
   playTone('click');
   document.getElementById('buyCoinsModalOverlay').classList.remove('hidden');
-  document.getElementById('buyCoinsModalSheet').classList.add('active');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  sheet.classList.add('open');
+  sheet.classList.add('active');
 }
 function closeBuyCoinsModal() {
   document.getElementById('buyCoinsModalOverlay').classList.add('hidden');
-  document.getElementById('buyCoinsModalSheet').classList.remove('active');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  sheet.classList.remove('open');
+  sheet.classList.remove('active');
 }
 
 function claimFreeRefill() {
-  playTone('win');
-  balance += 200;
-  saveBalance();
-  updateBalanceUI();
-  closeBuyCoinsModal();
-  if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
+  window.location.href = '../home/index.html';
 }
 
 function openHistoryModal() {
   alert(`Total Rounds Played: ${nonce - 1}\nLast Stake: ${currentStake} ⭐\nSeed Nonce: ${nonce}`);
+}
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
 }
 
 // Initialization

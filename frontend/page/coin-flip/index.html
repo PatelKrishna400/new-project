@@ -63,36 +63,24 @@
 
   <div class="app-frame theme-coin" id="appMainFrame">
 
-    <!-- Top Header -->
-    <header class="sticky top-0 z-40 bg-[#0b0e15]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b2232]">
-      <div class="flex items-center gap-2">
-        <a href="../star-game/index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#151923] border border-[#232a3a] text-xs font-extrabold text-gray-200 hover:text-white transition-all active:scale-95">
-          <i data-lucide="arrow-left" class="w-4 h-4 text-gray-300"></i>
-          <span>Back</span>
+    <!-- Top Navigation Header (Screenshot Match) -->
+    <header class="sticky top-0 z-40 bg-[#060b18]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b253b]">
+      <div class="flex items-center">
+        <a href="../star-game/index.html" class="header-back-btn" title="Back">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
         </a>
-        <button type="button" onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-[#151923] border border-[#232a3a] hover:bg-[#1f2636] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="How to play">
-          <i data-lucide="info" class="w-4 h-4"></i>
-        </button>
       </div>
 
-      <div class="flex items-center gap-1.5">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#eab308] shadow-[0_0_10px_#eab308] animate-pulse"></span>
-        <h1 class="text-sm font-black tracking-wide text-white">Coin Flip</h1>
-      </div>
-
-      <div class="flex items-center gap-1.5">
-        <div class="header-balance-pill" title="Coin Balance">
-          <span class="text-xs">🪙</span>
-          <span id="coinBalance" class="text-xs font-black text-white min-w-[20px] text-right">10</span>
-          <button type="button" onclick="openBuyCoinsModal()" class="coin-plus-btn" title="Add Coins">+</button>
+      <div class="flex items-center gap-2">
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="headerCoinDisplay">0</span>
         </div>
-        <div class="flex items-center gap-1 text-gray-400 pl-0.5">
-          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
-            <i data-lucide="chevron-down" class="w-4 h-4"></i>
-          </button>
-          <button class="w-7 h-7 rounded-full hover:bg-white/5 flex items-center justify-center transition-colors text-gray-400 hover:text-white">
-            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-          </button>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="headerStarDisplay">0</span>
         </div>
       </div>
     </header>
@@ -134,7 +122,7 @@
                 </div>
                 <div>
                   <h4 class="font-black text-xs text-yellow-300 leading-tight">Heads</h4>
-                  <p class="text-[10px] text-gray-400 font-medium">Star face · ×1.9</p>
+                  <p class="text-[10px] text-gray-400 font-medium">Star face · ×2</p>
                 </div>
               </div>
             </button>
@@ -147,7 +135,7 @@
                 </div>
                 <div>
                   <h4 class="font-black text-xs text-gray-200 leading-tight">Tails</h4>
-                  <p class="text-[10px] text-gray-400 font-medium">Gift face · ×1.9</p>
+                  <p class="text-[10px] text-gray-400 font-medium">Gift face · ×2</p>
                 </div>
               </div>
             </button>
@@ -167,13 +155,6 @@
           </div>
         </div>
 
-        <!-- Recent Rounds Card -->
-        <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-3">
-          <h4 class="text-xs font-extrabold text-white">Recent rounds</h4>
-          <div id="coinRecentRounds" class="text-xs text-gray-400 mt-1.5 flex items-center gap-2 overflow-x-auto py-0.5">
-            No rounds yet. Place your first bet.
-          </div>
-        </div>
 
         <!-- Quick Bet Chips (30, 50, 100, 500) -->
         <div class="grid grid-cols-4 gap-2">
@@ -243,7 +224,7 @@
         </div>
         <div class="flex items-start gap-3">
           <div class="w-6 h-6 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</div>
-          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Landing on your side pays ×1.9 of the stake; the other side loses it.</p>
+          <p class="text-xs text-gray-300 font-semibold leading-relaxed">Landing on your side pays ×2 of the stake; the other side loses it.</p>
         </div>
       </div>
 
@@ -251,7 +232,7 @@
       <div class="bg-[#10141e] rounded-2xl divide-y divide-[#1d2436] border border-[#222a3e] overflow-hidden mb-5 text-xs font-semibold">
         <div class="px-4 py-3 flex items-center justify-between">
           <span class="text-gray-300 font-medium">Correct call</span>
-          <span class="text-white font-black">×1.9</span>
+          <span class="text-white font-black">×2</span>
         </div>
         <div class="px-4 py-3 flex items-center justify-between">
           <span class="text-gray-300 font-medium">Wrong call</span>
@@ -293,15 +274,54 @@
         </button>
       </div>
       <div class="py-4 space-y-3">
-        <div onclick="claimFreeRefill()" class="bg-[#111622] border border-[#232d42] hover:border-amber-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+        <div onclick="window.location.href='../home/index.html'" class="bg-[#111622] border border-[#232d42] hover:border-amber-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
           <div class="flex items-center gap-3">
-            <span class="text-3xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">⭐</span>
+            <span class="text-3xl p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">📋</span>
             <div>
-              <h4 class="text-sm font-black text-white">Free Instant Refill</h4>
-              <p class="text-xs text-gray-400">Claim +200 free coins instantly</p>
+              <h4 class="text-sm font-black text-white">Complete Tasks</h4>
+              <p class="text-xs text-gray-400">Earn coins &amp; 5 ⭐ stars per task</p>
             </div>
           </div>
-          <button class="px-3 py-1.5 rounded-xl bg-amber-400 text-amber-950 font-black text-xs">Claim</button>
+          <button class="px-3.5 py-1.5 rounded-xl bg-amber-400 text-amber-950 font-black text-xs shadow-md">Earn 🪙</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= WATCH AD FOR MORE PLAYS MODAL ================= -->
+    <div id="adModalOverlay" class="modal-overlay hidden" onclick="closeAdModal()"></div>
+    <div id="adModalSheet" class="modal-sheet">
+      <div class="sheet-handle"></div>
+      
+      <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🎬</span>
+          <h3 class="text-sm font-black text-white">Daily Plays Limit</h3>
+        </div>
+        <button onclick="closeAdModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-3">
+        <div class="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-yellow-500/20 rounded-2xl p-3.5 text-center">
+          <span class="text-3xl block mb-1">⚡</span>
+          <h4 class="text-sm font-black text-white">Need More Plays?</h4>
+          <p class="text-xs text-gray-300 mt-1">You used your 10 free plays. Watch a quick sponsor ad to get <b class="text-yellow-400">+10 more plays</b> instantly!</p>
+        </div>
+
+        <button onclick="watchAdForMorePlays()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-amber-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-[0.98] transition-all">
+          <span>🎬 Watch Ad (+10 Plays)</span>
+        </button>
+
+        <div onclick="window.location.href='../home/index.html'" class="bg-[#111622] border border-[#232d42] hover:border-amber-400 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">📋</span>
+            <div class="text-left">
+              <h5 class="text-xs font-bold text-white">Complete Tasks</h5>
+              <p class="text-[10px] text-gray-400">Earn coins & stars anytime</p>
+            </div>
+          </div>
+          <button class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-black text-[11px]">Tasks</button>
         </div>
       </div>
     </div>

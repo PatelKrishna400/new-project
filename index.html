@@ -988,6 +988,279 @@
       inset: 0;
       background: linear-gradient(90deg, #071233 0%, rgba(7, 18, 51, 0.25) 100%);
     }
+
+    /* Task Action Buttons: Open & Verify */
+    .btn-claim.btn-task-open {
+      background: linear-gradient(155deg, #0284c7 0%, #0369a1 45%, #075985 100%) !important;
+      border-color: #38bdf8 #0284c7 #0c4a6e #075985 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.35rem !important;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    }
+    .btn-claim.btn-task-open:hover {
+      background: linear-gradient(155deg, #38bdf8 0%, #0284c7 45%, #0369a1 100%) !important;
+      box-shadow: 0 6px 14px rgba(56, 189, 248, 0.6) !important;
+      transform: translateY(-1px) !important;
+    }
+    .btn-claim.btn-task-verify {
+      background: linear-gradient(155deg, #10b981 0%, #059669 45%, #047857 100%) !important;
+      border-color: #6ee7b7 #10b981 #064e3b #047857 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 0.35rem !important;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+      animation: verifyPulseAnim 1.8s ease-in-out infinite !important;
+    }
+    .btn-claim.btn-task-verify:hover {
+      background: linear-gradient(155deg, #34d399 0%, #10b981 45%, #059669 100%) !important;
+      box-shadow: 0 6px 16px rgba(52, 211, 153, 0.7) !important;
+      transform: translateY(-1px) !important;
+    }
+    @keyframes verifyPulseAnim {
+      0%, 100% { box-shadow: 0 4px 10px rgba(16, 185, 129, 0.45); }
+      50% { box-shadow: 0 0 16px rgba(52, 211, 153, 0.85); }
+    }
+
+    /* 6-Digit Code Task Verification Modal */
+    .task-verify-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 24, 0.82);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .task-verify-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .task-verify-modal-box {
+      width: 100%;
+      max-width: 380px;
+      background: linear-gradient(165deg, #091a3e 0%, #050d24 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.35);
+      border-radius: 20px;
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.2);
+      padding: 1.5rem 1.35rem 1.35rem 1.35rem;
+      position: relative;
+      transform: translateY(20px) scale(0.96);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .task-verify-modal-overlay.active .task-verify-modal-box {
+      transform: translateY(0) scale(1);
+    }
+    .verify-modal-close-btn {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .verify-modal-close-btn:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #ffffff;
+    }
+    .verify-modal-header { text-align: center; margin-bottom: 1.15rem; }
+    .verify-modal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+    .verify-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 6px #38bdf8;
+    }
+    .verify-modal-title {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 0 0 0.35rem 0;
+    }
+    .verify-modal-reward-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .reward-highlight {
+      color: #facc15;
+      font-weight: 900;
+      font-size: 0.95rem;
+      text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+    }
+    .verify-modal-task-card {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      padding: 0.75rem 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 1.15rem;
+    }
+    .verify-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .verify-card-info { flex: 1; min-width: 0; }
+    .verify-card-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .verify-card-sub { font-size: 0.68rem; color: #94a3b8; margin-top: 0.1rem; }
+    .btn-verify-reopen-link {
+      padding: 0.32rem 0.65rem;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .btn-verify-reopen-link:hover { background: rgba(56, 189, 248, 0.3); color: #ffffff; }
+    .verify-code-input-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.15rem;
+    }
+    .verify-code-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 0.45rem;
+      align-self: flex-start;
+    }
+    .verify-code-input {
+      width: 100%;
+      max-width: 260px;
+      height: 52px;
+      background: rgba(3, 8, 24, 0.85);
+      border: 2px solid rgba(56, 189, 248, 0.35);
+      border-radius: 12px;
+      color: #facc15;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: 0.35em;
+      text-align: center;
+      outline: none;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+    }
+    .verify-code-input:focus {
+      border-color: #facc15;
+      box-shadow: 0 0 16px rgba(250, 204, 21, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.7);
+    }
+    .verify-code-input.input-error {
+      border-color: #ef4444 !important;
+      color: #ef4444 !important;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+      animation: inputShake 0.35s ease;
+    }
+    @keyframes inputShake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .verify-code-hint { font-size: 0.65rem; color: #64748b; margin-top: 0.4rem; text-align: center; }
+    .verify-error-msg {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #f87171;
+      margin-top: 0.45rem;
+      text-align: center;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      width: 100%;
+    }
+    .verify-modal-btn-row { display: flex; gap: 0.65rem; }
+    .btn-verify-cancel {
+      flex: 1;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-verify-cancel:hover { background: rgba(255, 255, 255, 0.14); color: #ffffff; }
+    .btn-verify-confirm {
+      flex: 1.6;
+      padding: 0.75rem;
+      border-radius: 12px;
+      background: linear-gradient(155deg, #eab308 0%, #ca8a04 45%, #854d0e 100%);
+      border: 1.5px solid #fef08a;
+      color: #030818;
+      font-size: 0.88rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 14px rgba(234, 179, 8, 0.45);
+    }
+    .btn-verify-confirm:hover {
+      background: linear-gradient(155deg, #fde047 0%, #eab308 45%, #a16207 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(250, 204, 21, 0.6);
+    }
   </style>
 </head>
 <body>
@@ -1134,6 +1407,59 @@
 
   </div>
 
+  <!-- 6-Digit Code Task Verification Modal -->
+  <div class="task-verify-modal-overlay" id="taskVerifyModalOverlay" style="display: none;" onclick="handleVerifyModalBackdropClick(event)">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()">
+      <button type="button" class="verify-modal-close-btn" onclick="closeVerifyModal()" aria-label="Close modal">✕</button>
+      
+      <div class="verify-modal-header">
+        <div class="verify-modal-badge">
+          <span class="verify-badge-dot"></span>
+          <span>WEBTASK VERIFICATION</span>
+        </div>
+        <h2 class="verify-modal-title">Enter 6-Digit Code</h2>
+        <div class="verify-modal-reward-badge">
+          <span>Fixed Reward:</span>
+          <span class="reward-highlight">+5 ⭐</span>
+        </div>
+      </div>
+
+      <div class="verify-modal-task-card">
+        <div class="verify-card-icon" id="verifyModalTaskIcon">⚡</div>
+        <div class="verify-card-info">
+          <div class="verify-card-title" id="verifyModalTaskTitle">Webtask Mission</div>
+          <div class="verify-card-sub" id="verifyModalTaskDesc">Visit link &amp; get code from admin</div>
+        </div>
+        <a href="#" target="_blank" class="btn-verify-reopen-link" id="verifyModalLinkBtn" title="Re-open link in new tab">Open ↗</a>
+      </div>
+
+      <form class="verify-form" onsubmit="submitTaskVerification(event)">
+        <div class="verify-code-input-container">
+          <label class="verify-code-label" for="verifyCodeInput">Verification Code (6 Digits)</label>
+          <input 
+            type="text" 
+            id="verifyCodeInput" 
+            class="verify-code-input font-mono" 
+            maxlength="6" 
+            pattern="[0-9]{6}" 
+            inputmode="numeric" 
+            placeholder="000000" 
+            autocomplete="off"
+            required
+            oninput="handleVerifyCodeInput(this)"
+          >
+          <div class="verify-code-hint">Enter the 6-digit verification code for this task</div>
+          <div class="verify-error-msg" id="verifyErrorMsg" style="display: none;"></div>
+        </div>
+
+        <div class="verify-modal-btn-row">
+          <button type="button" class="btn-verify-cancel" onclick="closeVerifyModal()">Cancel</button>
+          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win 5 ⭐</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
     if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
       localStorage.setItem('task_game_coins', '0');
@@ -1147,44 +1473,103 @@
     // Storage Keys & Sync Channels
     const TASKS_STORAGE_KEY = 'task_game_tasks';
     const CLAIMS_STORAGE_KEY = 'task_game_claims';
+    const COMPLETED_TASKS_KEY = 'task_game_completed_tasks';
     const SYNC_FLAG_KEY = 'task_game_sync_flag';
     const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-    // Dynamic tasks managed strictly from Admin Panel (no hardcoded defaults)
-    const DEFAULT_TASKS = [];
+    // Initial default seed tasks with 6-digit verification codes
+    const DEFAULT_TASKS = [
+      {
+        id: 'task_sponsor_1',
+        title: 'Visit Webtask Sponsor Page',
+        link: 'https://telegram.org',
+        verificationCode: '583921',
+        code: '583921',
+        icon: '🌐',
+        reward: 5,
+        rewardStars: 5,
+        description: 'Open link, get the 6-digit code, and verify',
+        active: true,
+        createdAt: 1700000000000
+      },
+      {
+        id: 'task_sponsor_2',
+        title: 'Join Community Channel',
+        link: 'https://t.me',
+        verificationCode: '729401',
+        code: '729401',
+        icon: '✈️',
+        reward: 5,
+        rewardStars: 5,
+        description: 'Open channel & enter 6-digit verification code',
+        active: true,
+        createdAt: 1700000000001
+      },
+      {
+        id: 'task_sponsor_3',
+        title: 'Explore Gaming Partner Arena',
+        link: 'https://google.com',
+        verificationCode: '314859',
+        code: '314859',
+        icon: '🎮',
+        reward: 5,
+        rewardStars: 5,
+        description: 'Check out partner gaming hub and verify 6-digit code',
+        active: true,
+        createdAt: 1700000000002
+      }
+    ];
 
     function getStoredTasks() {
       try {
         const raw = localStorage.getItem(TASKS_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            // Strip out legacy hardcoded tasks if present & sanitize names to Webtask
-            let modified = false;
-            const filtered = parsed
-              .filter(t => !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id))
-              .map(t => {
-                if (t.title && /daily\s*task/i.test(t.title)) {
-                  t.title = t.title.replace(/daily\s*task[s]?/gi, 'Webtask');
-                  modified = true;
-                }
-                if (t.description && /daily\s*task/i.test(t.description)) {
-                  t.description = t.description.replace(/daily\s*task[s]?/gi, 'webtask');
-                  modified = true;
-                }
-                return t;
-              });
-            if (filtered.length !== parsed.length || modified) {
-              localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(filtered));
-            }
-            return filtered;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
           }
         }
+        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(DEFAULT_TASKS));
+        return DEFAULT_TASKS;
       } catch (e) {}
-      return [];
+      return DEFAULT_TASKS;
+    }
+
+    function getStoredCompletedTasks() {
+      try {
+        const raw = localStorage.getItem(COMPLETED_TASKS_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return {};
+    }
+
+    function markTaskCompleted(taskId) {
+      const completed = getStoredCompletedTasks();
+      completed[taskId] = { completedAt: Date.now(), rewardStars: 5 };
+      localStorage.setItem(COMPLETED_TASKS_KEY, JSON.stringify(completed));
+      localStorage.removeItem('task_opened_' + taskId);
+      localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+      try {
+        const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        ch.postMessage({ type: 'TASK_COMPLETED', taskId, timestamp: Date.now() });
+      } catch (e) {}
+    }
+
+    function isTaskOpened(taskId) {
+      return localStorage.getItem('task_opened_' + taskId) === 'true';
+    }
+
+    function setTaskOpened(taskId) {
+      localStorage.setItem('task_opened_' + taskId, 'true');
     }
 
     function getStoredClaims() {
+      try {
+        const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return {};
+    }
       try {
         const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
         if (raw) {
@@ -1364,52 +1749,48 @@
       setTimeout(() => { floatEl.remove(); }, 800);
     }
 
-    // Dynamic Task Rendering & Real-time Live Timer
+    // Dynamic Task Rendering with Open / Verify & Fixed 5 Star Reward
     function renderTasks() {
       const container = document.getElementById('tasksList');
       if (!container) return;
 
       const tasks = getStoredTasks();
-      const claims = getStoredClaims();
-      const activeTasks = tasks.filter(t => t.active !== false);
+      const completedTasks = getStoredCompletedTasks();
+
+      // "and fininshed task remove. new add automatically."
+      const activeTasks = tasks.filter(t => t.active !== false && !completedTasks[t.id]);
 
       if (activeTasks.length === 0) {
         container.innerHTML = `
           <div class="empty-tasks-box">
             <div class="empty-tasks-icon">🎯</div>
-            <div class="empty-tasks-text">No active webtasks right now. Check back soon!</div>
+            <div class="empty-tasks-text">All webtasks completed! Great job!</div>
+            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
           </div>
         `;
         return;
       }
 
       container.innerHTML = activeTasks.map(task => {
-        const remaining = getTaskRemainingSeconds(task, claims);
-        const isCoolingDown = remaining > 0;
-        const isOneTimeClaimed = (Number(task.timerSeconds || 0) <= 0 && claims[task.id]);
+        const opened = isTaskOpened(task.id);
 
         let btnHtml = '';
-        if (isOneTimeClaimed) {
-          btnHtml = `<button class="btn-claim" disabled>Claimed ✓</button>`;
-        } else if (isCoolingDown) {
-          btnHtml = `<button class="btn-claim btn-timer-cooling" data-task-id="${task.id}" disabled title="Resets in ${formatRemainingTime(remaining)}">⏳ ${formatRemainingTime(remaining)}</button>`;
+        if (opened) {
+          btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
         } else {
-          btnHtml = `<button class="btn-claim" onclick="handleClaimTask('${task.id}', ${task.reward})">Claim</button>`;
+          btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
         }
 
         return `
-          <div class="task-card ${isCoolingDown ? 'cooling-down' : ''} ${isOneTimeClaimed ? 'completed' : ''}" id="taskCard_${task.id}">
+          <div class="task-card" id="taskCard_${task.id}">
             <div class="task-icon-wrap">${task.icon || '⚡'}</div>
             <div class="task-info">
               <div class="task-name-row">
                 <span class="task-name">${escapeHtml(task.title)}</span>
-                ${isCoolingDown 
-                  ? `<span class="task-status-pill cooling" id="pill_${task.id}">⏳ ${formatRemainingTime(remaining)}</span>` 
-                  : `<span class="task-status-pill ready">⏱️ ${formatDurationBadge(task.timerSeconds)}</span>`
-                }
+                <span class="task-status-pill ready">⭐ 5 Stars</span>
               </div>
               <div class="task-desc-row">
-                <span class="task-reward">+${Number(task.reward).toLocaleString()} 🪙</span>
+                <span class="task-reward" style="color: #facc15; font-weight: 800;">+5 ⭐</span>
                 ${task.description ? `<span class="task-desc-sep">•</span><span class="task-desc-text">${escapeHtml(task.description)}</span>` : ''}
               </div>
             </div>
@@ -1421,88 +1802,157 @@
       }).join('');
     }
 
-    // Live 1-Second Timer Ticking
-    function updateLiveTimers() {
-      const tasks = getStoredTasks();
-      const claims = getStoredClaims();
-      let needFullRerender = false;
-
-      tasks.forEach(task => {
-        if (task.active === false) return;
-        const remaining = getTaskRemainingSeconds(task, claims);
-        const btn = document.querySelector(`.btn-timer-cooling[data-task-id="${task.id}"]`);
-        const pill = document.getElementById(`pill_${task.id}`);
-
-        if (btn) {
-          if (remaining > 0) {
-            const timeStr = `⏳ ${formatRemainingTime(remaining)}`;
-            btn.textContent = timeStr;
-            if (pill) pill.textContent = timeStr;
-          } else {
-            needFullRerender = true;
-          }
-        }
-      });
-
-      if (needFullRerender) {
-        renderTasks();
-      }
-    }
-
-    // User Task Claim Handler
-    function handleClaimTask(taskId, reward) {
-      const btn = event ? (event.target.closest('button') || event.target) : null;
+    // Open Button Click: opens link in new tab, changes button to Verify, opens modal
+    window.handleOpenTask = function(taskId) {
       const tasks = getStoredTasks();
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      const claims = getStoredClaims();
-      const remaining = getTaskRemainingSeconds(task, claims);
-      if (remaining > 0) return;
-
-      // 1. If task has a target URL / link, open it in a new window/tab
-      if (task.link && task.link.trim() !== '') {
-        window.open(task.link, '_blank');
+      const targetLink = (task.link || task.url || '').trim();
+      if (targetLink) {
+        window.open(targetLink, '_blank');
       }
 
-      // 2. If task requires a verification code, verify it
-      const requiredCode = (task.verificationCode || task.code || '').trim();
-      if (requiredCode !== '') {
-        const enteredCode = prompt(`🔑 Task Verification Required!\nEnter the verification code to claim +${Number(reward).toLocaleString()} coins for "${task.title}":`);
-        if (enteredCode === null) {
-          // User cancelled
-          return;
-        }
-        if (enteredCode.trim() !== requiredCode) {
-          alert(`❌ Invalid Verification Code! Please check the code and try again.`);
-          return;
-        }
+      setTaskOpened(taskId);
+
+      const actionWrap = document.getElementById(`action_${taskId}`);
+      if (actionWrap) {
+        actionWrap.innerHTML = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${taskId}')">Verify</button>`;
       }
 
-      // Add coins
-      userCoins += Number(reward);
-      localStorage.setItem('task_game_coins', userCoins.toString());
+      setTimeout(() => {
+        openVerifyModal(taskId);
+      }, 400);
+    };
 
-      // Track total tasks completed for wallet withdrawal & leaderboard eligibility (Min 100)
-      let completedTasks = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
-      localStorage.setItem('task_game_total_tasks_completed', completedTasks.toString());
+    let currentVerifyTaskId = null;
 
-      // If Leaderboard Event is active, count this task towards the active event
-      recordLeaderboardEventTask(completedTasks);
+    window.openVerifyModal = function(taskId) {
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
+      currentVerifyTaskId = taskId;
+
+      const modal = document.getElementById('taskVerifyModalOverlay');
+      const titleEl = document.getElementById('verifyModalTaskTitle');
+      const descEl = document.getElementById('verifyModalTaskDesc');
+      const iconEl = document.getElementById('verifyModalTaskIcon');
+      const linkBtn = document.getElementById('verifyModalLinkBtn');
+      const codeInput = document.getElementById('verifyCodeInput');
+      const errorMsg = document.getElementById('verifyErrorMsg');
+
+      if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
+      if (descEl) descEl.textContent = task.description || 'Visit link & enter 6-digit code to win 5 ⭐';
+      if (iconEl) iconEl.textContent = task.icon || '⚡';
+      if (linkBtn) {
+        const url = (task.link || task.url || '').trim();
+        if (url) {
+          linkBtn.href = url;
+          linkBtn.style.display = 'inline-flex';
+        } else {
+          linkBtn.style.display = 'none';
+        }
+      }
+      if (codeInput) {
+        codeInput.value = '';
+        codeInput.classList.remove('input-error');
+      }
+      if (errorMsg) {
+        errorMsg.style.display = 'none';
+        errorMsg.textContent = '';
+      }
+
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+        setTimeout(() => {
+          if (codeInput) codeInput.focus();
+        }, 200);
+      }
+    };
+
+    window.closeVerifyModal = function() {
+      const modal = document.getElementById('taskVerifyModalOverlay');
+      if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+          modal.style.display = 'none';
+        }, 200);
+      }
+      currentVerifyTaskId = null;
+    };
+
+    window.handleVerifyModalBackdropClick = function(e) {
+      if (e.target && e.target.id === 'taskVerifyModalOverlay') {
+        closeVerifyModal();
+      }
+    };
+
+    window.handleVerifyCodeInput = function(input) {
+      if (!input) return;
+      input.value = input.value.replace(/[^0-9]/g, '');
+      const errorMsg = document.getElementById('verifyErrorMsg');
+      if (errorMsg) errorMsg.style.display = 'none';
+      input.classList.remove('input-error');
+    };
+
+    window.submitTaskVerification = function(event) {
+      if (event) event.preventDefault();
+
+      if (!currentVerifyTaskId) return;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === currentVerifyTaskId);
+      if (!task) return;
+
+      const codeInput = document.getElementById('verifyCodeInput');
+      const errorMsg = document.getElementById('verifyErrorMsg');
+      const userCode = (codeInput ? codeInput.value : '').trim();
+
+      const correctCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
+
+      if (!userCode || (correctCode && userCode !== correctCode)) {
+        if (codeInput) {
+          codeInput.classList.add('input-error');
+          codeInput.focus();
+        }
+        if (errorMsg) {
+          errorMsg.style.display = 'block';
+          errorMsg.textContent = '❌ Invalid 6-digit verification code. Please check and try again.';
+        }
+        return;
+      }
+
+      userStars += 5;
+      localStorage.setItem('task_game_stars', userStars.toString());
+      localStorage.setItem('user_stars', userStars.toString());
+
+      let completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
+      localStorage.setItem('task_game_total_tasks_completed', completedCount.toString());
+      localStorage.setItem('completed_tasks_count', completedCount.toString());
+      recordLeaderboardEventTask(completedCount);
+
+      markTaskCompleted(task.id);
       updateCoinDisplay();
 
-      // Audio & Float
       HomeAudio.playCoinClaim();
-      if (btn) showFloatingCoin(btn, `+${Number(reward).toLocaleString()} 🪙`);
+      const submitBtn = document.getElementById('btnVerifyConfirm');
+      if (submitBtn) showFloatingCoin(submitBtn, '+5 ⭐ Won!');
 
-      // Save claim timestamp
-      claims[taskId] = Date.now();
-      saveClaims(claims);
+      closeVerifyModal();
 
-      // Instantly transition into ticking live timer
-      renderTasks();
-    }
+      const taskCard = document.getElementById(`taskCard_${task.id}`);
+      if (taskCard) {
+        taskCard.style.transition = 'all 0.35s ease';
+        taskCard.style.opacity = '0';
+        taskCard.style.transform = 'translateY(-10px) scale(0.96)';
+        setTimeout(() => {
+          renderTasks();
+        }, 350);
+      } else {
+        renderTasks();
+      }
+    };
 
     const GLOBAL_EPOCH_ANCHOR = Date.UTC(2026, 9, 1, 0, 0, 0); // Oct 1, 2026 00:00:00 UTC
     const THREE_MONTHS_HOURS = 2160; // 90 days
@@ -1698,7 +2148,9 @@
     // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection
     window.renderTasks = renderTasks;
     window.getStoredTasks = getStoredTasks;
-    window.handleClaimTask = handleClaimTask;
+    window.handleOpenTask = handleOpenTask;
+    window.openVerifyModal = openVerifyModal;
+    window.submitTaskVerification = submitTaskVerification;
   </script>
 </body>
 </html>

@@ -537,9 +537,9 @@ function renderAdminTasks() {
                 <span class="badge-tag badge-timer ${isCoolingDown ? 'cooling' : ''}" id="adminTimerBadge_${task.id}">${timerBadgeText}</span>
               </div>
               <div class="task-meta-sub">
-                <span class="task-bounty-val">+${Number(task.reward).toLocaleString()} 🪙</span>
+                <span class="task-bounty-val" style="color: #facc15; font-weight: 800;">+5 ⭐ (Fixed Reward)</span>
                 ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-badge" title="Open task link">🔗 ${escapeHtml(task.link.length > 28 ? task.link.substring(0, 28) + '...' : task.link)} ↗</a>` : ''}
-                ${(task.verificationCode || task.code) ? `<span class="task-code-badge" title="Verification code required by player">🔑 Code: <code>${escapeHtml(task.verificationCode || task.code)}</code></span>` : ''}
+                ${(task.verificationCode || task.code) ? `<span class="task-code-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 2px 7px; border-radius: 6px; font-weight: 800;" title="6-Digit Verification Code">🔑 6-Digit Code: <code style="color: #facc15; font-size: 0.95rem;">${escapeHtml(task.verificationCode || task.code)}</code></span>` : ''}
                 ${task.description ? `<span class="task-desc-sub">• ${escapeHtml(task.description)}</span>` : ''}
               </div>
             </div>
@@ -593,6 +593,8 @@ function updateAdminLiveTimers() {
   });
 }
 
+window.generateRandom6DigitCode = function() {};
+
 function openCreateModal() {
   document.getElementById('editTaskId').value = '';
   document.getElementById('modalTitleText').textContent = 'Add New Task';
@@ -602,8 +604,8 @@ function openCreateModal() {
   const codeEl = document.getElementById('taskCodeInput');
   if (codeEl) codeEl.value = '';
   document.getElementById('taskIconInput').value = '⚡';
-  document.getElementById('taskRewardInput').value = '250';
-  document.getElementById('taskTimerPreset').value = '86400';
+  document.getElementById('taskRewardInput').value = '+5 ⭐ (Fixed Reward)';
+  document.getElementById('taskTimerPreset').value = '0';
   document.getElementById('customSecondsWrap').style.display = 'none';
   document.getElementById('customSecondsInput').value = '';
   document.getElementById('taskDescInput').value = '';
@@ -712,9 +714,12 @@ function handleSaveTask(event) {
   const linkEl = document.getElementById('taskLinkInput');
   const link = linkEl ? linkEl.value.trim() : '';
   const codeEl = document.getElementById('taskCodeInput');
-  const verificationCode = codeEl ? codeEl.value.trim() : '';
+  let verificationCode = codeEl ? codeEl.value.trim() : '';
+  if (!verificationCode) {
+    verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+  }
   const icon = document.getElementById('taskIconInput').value.trim() || '⚡';
-  const reward = parseInt(document.getElementById('taskRewardInput').value, 10) || 100;
+  const reward = 5;
   const desc = document.getElementById('taskDescInput').value.trim();
   const active = document.getElementById('taskActiveToggle').checked;
   const preset = document.getElementById('taskTimerPreset').value;
@@ -736,14 +741,15 @@ function handleSaveTask(event) {
         verificationCode,
         code: verificationCode,
         icon,
-        reward,
+        reward: 5,
+        rewardStars: 5,
         description: desc,
         timerSeconds,
         active,
         updatedAt: Date.now()
       };
       saveTasksAndSync(`✓ Task "${title}" updated! Pushed to players.`);
-      logActivity(`Admin updated task: "${title}" (Link: ${link}, Code: ${verificationCode}, +${reward} 🪙)`);
+      logActivity(`Admin updated task: "${title}" (Link: ${link}, 6-Digit Code: ${verificationCode}, +5 ⭐)`);
     }
   } else {
     const newId = `task_${Date.now()}`;
@@ -754,7 +760,8 @@ function handleSaveTask(event) {
       verificationCode,
       code: verificationCode,
       icon,
-      reward,
+      reward: 5,
+      rewardStars: 5,
       description: desc,
       timerSeconds,
       active,
@@ -762,7 +769,7 @@ function handleSaveTask(event) {
     };
     tasksData.push(newTask);
     saveTasksAndSync(`✓ New task "${title}" created!`);
-    logActivity(`Admin created new task: "${title}" (Link: ${link}, Code: ${verificationCode}, +${reward} 🪙)`);
+    logActivity(`Admin created new task: "${title}" (Link: ${link}, 6-Digit Code: ${verificationCode}, +5 ⭐)`);
   }
 
   closeTaskModal();

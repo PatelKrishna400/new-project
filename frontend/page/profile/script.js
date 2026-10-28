@@ -429,7 +429,7 @@ function renderAdminTasksList() {
   const searchVal = (document.getElementById('adminTaskSearch')?.value || '').toLowerCase().trim();
   let list = [...tasksData];
   if (searchVal) {
-    list = list.filter(t => (t.title && t.title.toLowerCase().includes(searchVal)) || (t.category && t.category.toLowerCase().includes(searchVal)));
+    list = list.filter(t => t.title && t.title.toLowerCase().includes(searchVal));
   }
 
   updateAdminCounters();
@@ -447,24 +447,15 @@ function renderAdminTasksList() {
   }
 
   container.innerHTML = list.map(task => {
-    const catIcons = {
-      youtube: '📺 YouTube',
-      telegram: '✈️ Telegram',
-      partner: '🤝 Partner',
-      website: '🌐 WebTask',
-      app: '📱 App',
-      daily: '📅 Daily'
-    };
-    const catLabel = catIcons[task.category] || '⚡ Mission';
     const isActive = task.active !== false;
+    const taskCode = task.verificationCode || task.code || task.secretCode || '';
 
     return `
       <div class="admin-task-card" style="border-left: 3.5px solid ${isActive ? '#38bdf8' : '#64748b'};">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
           <div>
-            <span style="font-size: 0.65rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 2px 7px; border-radius: 6px;">${catLabel}</span>
-            <h4 style="font-size: 0.92rem; font-weight: 800; color: #ffffff; margin: 0.35rem 0 0.15rem 0;">${escapeHtml(task.title || 'Untitled Mission')}</h4>
-            <div style="font-size: 0.72rem; color: #94a3b8; line-height: 1.3;">${escapeHtml(task.desc || task.url || '')}</div>
+            <h4 style="font-size: 0.92rem; font-weight: 800; color: #ffffff; margin: 0.15rem 0 0.25rem 0;">${escapeHtml(task.title || 'Untitled Mission')}</h4>
+            <div style="font-size: 0.72rem; color: #38bdf8; line-height: 1.3; font-family: monospace; word-break: break-all;">${escapeHtml(task.url || task.link || '')}</div>
           </div>
           <span style="font-size: 0.65rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${isActive ? 'rgba(52, 211, 153, 0.15)' : 'rgba(148, 163, 184, 0.15)'}; color: ${isActive ? '#34d399' : '#94a3b8'};">
             ${isActive ? 'Active 🟢' : 'Paused ⚪'}
@@ -473,9 +464,8 @@ function renderAdminTasksList() {
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
           <div style="display: flex; gap: 0.65rem; font-weight: 800; align-items: center;">
-            <span style="color: #fbbf24;">+${Number(task.coins || 100).toLocaleString()} 🪙</span>
-            <span style="color: #facc15;">+${Number(task.stars || 5)} ⭐</span>
-            ${task.secretCode ? `<span style="color: #38bdf8; font-family: monospace; font-size: 0.68rem; background: rgba(56, 189, 248, 0.1); padding: 2px 5px; border-radius: 4px;">🔑 ${escapeHtml(task.secretCode)}</span>` : ''}
+            <span style="color: #facc15; font-weight: 900;">+5 ⭐ (Fixed Reward)</span>
+            ${taskCode ? `<span style="color: #38bdf8; font-family: monospace; font-size: 0.72rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 6px; border-radius: 5px;">🔑 6-Digit Code: <b>${escapeHtml(taskCode)}</b></span>` : ''}
           </div>
 
           <div style="display: flex; gap: 0.35rem;">
@@ -501,6 +491,8 @@ function openCreateTaskModal() {
   if (form) form.reset();
   const idField = document.getElementById('taskEditId');
   if (idField) idField.value = '';
+  const secretField = document.getElementById('taskInputSecret');
+  if (secretField) secretField.value = '';
   if (modal) modal.style.display = 'flex';
 }
 
@@ -512,15 +504,16 @@ function openEditTaskModal(taskId) {
   const heading = document.getElementById('adminTaskModalHeading');
   if (heading) heading.textContent = 'Edit Task Mission';
 
-  document.getElementById('taskEditId').value = task.id;
-  document.getElementById('taskInputTitle').value = task.title || '';
-  document.getElementById('taskInputDesc').value = task.desc || '';
-  document.getElementById('taskInputUrl').value = task.url || '';
-  document.getElementById('taskInputCoins').value = task.coins || 100;
-  document.getElementById('taskInputStars').value = task.stars || 5;
-  document.getElementById('taskInputCategory').value = task.category || 'youtube';
-  document.getElementById('taskInputTimer').value = task.timer || 10;
-  document.getElementById('taskInputSecret').value = task.secretCode || '';
+  const idField = document.getElementById('taskEditId');
+  if (idField) idField.value = task.id;
+  const titleField = document.getElementById('taskInputTitle');
+  if (titleField) titleField.value = task.title || '';
+  const urlField = document.getElementById('taskInputUrl');
+  if (urlField) urlField.value = task.url || task.link || '';
+  const timerField = document.getElementById('taskInputTimer');
+  if (timerField) timerField.value = task.timer || 10;
+  const secretField = document.getElementById('taskInputSecret');
+  if (secretField) secretField.value = task.verificationCode || task.code || task.secretCode || '';
 
   if (modal) modal.style.display = 'flex';
 }
@@ -537,21 +530,14 @@ function handleTaskModalBackdropClick(e) {
 }
 
 function generateRandomTaskCode() {
-  const prefix = ['NV', 'TASK', 'WEB', 'EARN', 'STAR'][Math.floor(Math.random() * 5)];
-  const num = Math.floor(1000 + Math.random() * 9000);
-  const input = document.getElementById('taskInputSecret');
-  if (input) input.value = `${prefix}-${num}`;
+  // Random generation removed per user request: admin sets verification code manually
 }
 
 function handleSaveAdminTaskForm(e) {
   e.preventDefault();
   const editId = document.getElementById('taskEditId')?.value;
   const title = document.getElementById('taskInputTitle')?.value.trim();
-  const desc = document.getElementById('taskInputDesc')?.value.trim();
   const url = document.getElementById('taskInputUrl')?.value.trim();
-  const coins = parseInt(document.getElementById('taskInputCoins')?.value || '100', 10);
-  const stars = parseInt(document.getElementById('taskInputStars')?.value || '5', 10);
-  const category = document.getElementById('taskInputCategory')?.value || 'youtube';
   const timer = parseInt(document.getElementById('taskInputTimer')?.value || '10', 10);
   const secretCode = document.getElementById('taskInputSecret')?.value.trim();
 
@@ -566,13 +552,15 @@ function handleSaveAdminTaskForm(e) {
       tasksData[idx] = {
         ...tasksData[idx],
         title,
-        desc,
         url,
-        coins,
-        stars,
-        category,
+        link: url,
+        stars: 5,
+        rewardStars: 5,
+        reward: 5,
         timer,
         secretCode,
+        verificationCode: secretCode,
+        code: secretCode,
         updatedAt: Date.now()
       };
     }
@@ -580,13 +568,15 @@ function handleSaveAdminTaskForm(e) {
     const newTask = {
       id: `task_${Date.now()}`,
       title,
-      desc,
       url,
-      coins,
-      stars,
-      category,
+      link: url,
+      stars: 5,
+      rewardStars: 5,
+      reward: 5,
       timer,
       secretCode,
+      verificationCode: secretCode,
+      code: secretCode,
       active: true,
       createdAt: Date.now()
     };
@@ -597,6 +587,7 @@ function handleSaveAdminTaskForm(e) {
   closeAdminTaskModal();
   showToast(editId ? 'Mission updated! ✓' : 'New Mission published live! ✓');
 }
+
 
 function toggleTaskActive(taskId) {
   const task = tasksData.find(t => t.id === taskId);
@@ -653,7 +644,7 @@ function renderAdminUsersList() {
   const actUsers = document.getElementById('adminActiveUsers');
   const totCoins = document.getElementById('adminTotalCoins');
 
-  const activeCount = usersData.filter(u => u.status !== 'suspended').length;
+  const activeCount = usersData.filter(u => u.status === 'active' || (!u.status || (u.status !== 'suspended' && u.status !== 'inactive'))).length;
   const coinsSum = usersData.reduce((acc, u) => acc + Number(u.coins || 0), 0);
 
   if (totUsers) totUsers.textContent = usersData.length.toString();
@@ -668,17 +659,33 @@ function renderAdminUsersList() {
   }
 
   container.innerHTML = list.map(user => {
-    const isSusp = user.status === 'suspended';
+    const isInactive = user.status === 'suspended' || user.status === 'inactive';
+    const isActive = !isInactive;
+    const statusLabel = user.status === 'suspended' ? 'Suspended' : (user.status === 'inactive' ? 'Inactive' : 'Active');
+
     return `
-      <div class="admin-user-card" style="display: flex; justify-content: space-between; align-items: center; background: #0a1738; border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 0.65rem 0.8rem; margin-bottom: 0.5rem;">
-        <div style="display: flex; align-items: center; gap: 0.65rem;">
-          <span style="font-size: 1.4rem;">${user.avatar || '⚡'}</span>
+      <div class="admin-user-card" style="display: flex; justify-content: space-between; align-items: center; background: #0a1738; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}; border-left: 4px solid ${isActive ? '#10b981' : '#ef4444'}; border-radius: 12px; padding: 0.65rem 0.85rem; margin-bottom: 0.5rem; transition: all 0.2s ease;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <!-- Avatar with Side Active / Inactive Dot -->
+          <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+            <span style="font-size: 1.45rem;">${user.avatar || '⚡'}</span>
+            <span class="user-status-dot ${isActive ? 'active-dot' : 'inactive-dot'}" 
+                  style="position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; border: 2px solid #0a1738; box-shadow: 0 0 6px ${isActive ? '#10b981' : '#ef4444'};" 
+                  title="${isActive ? 'Active User (Green Dot)' : 'Inactive User (Red Dot)'}"></span>
+          </div>
+
           <div>
-            <div style="display: flex; align-items: center; gap: 0.4rem;">
-              <span style="font-size: 0.85rem; font-weight: 800; color: #ffffff;">${escapeHtml(user.name || 'Player')}</span>
-              ${isSusp ? '<span style="font-size: 0.6rem; color: #ef4444; font-weight: 800;">[BANNED]</span>' : ''}
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.88rem; font-weight: 800; color: #ffffff;">${escapeHtml(user.name || 'Player')}</span>
+              
+              <!-- Side Status Badge with Green or Red Color Dot -->
+              <div class="user-status-badge-side" style="display: inline-flex; align-items: center; gap: 4px; padding: 1.5px 7px; border-radius: 999px; font-size: 0.64rem; font-weight: 800; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'};">
+                <span class="color-dot" style="display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; box-shadow: 0 0 6px ${isActive ? '#10b981' : '#ef4444'};"></span>
+                <span>${statusLabel}</span>
+              </div>
             </div>
-            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 2px;">
+
+            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 3px;">
               <span style="color: #fbbf24; font-weight: 700;">🪙 ${Number(user.coins || 0).toLocaleString()}</span>
               <span style="color: #facc15; font-weight: 700;">⭐ ${user.stars || 0}</span>
               ${user.sfCoins ? `<span style="color: #fde047; font-weight: 700;">🌻 ${Number(user.sfCoins).toLocaleString()}</span>` : ''}
@@ -687,13 +694,34 @@ function renderAdminUsersList() {
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.35rem; align-items: center;">
+        <div style="display: flex; gap: 0.45rem; align-items: center;">
+          <!-- Quick Status Toggle Button on Side with Color Dot -->
+          <button type="button" class="btn-card-action" onclick="toggleUserActiveStatus('${user.id}')" title="Click to toggle Active / Inactive" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; font-size: 0.68rem; font-weight: 700; background: ${isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; color: ${isActive ? '#34d399' : '#f87171'}; border-radius: 6px; cursor: pointer;">
+            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; box-shadow: 0 0 5px ${isActive ? '#10b981' : '#ef4444'};"></span>
+            <span>${isActive ? 'Active' : 'Inactive'}</span>
+          </button>
           <button class="btn-card-action" onclick="openEditUserModal('${user.id}')" title="Edit player details">⚙️</button>
         </div>
       </div>
     `;
   }).join('');
 }
+
+function toggleUserActiveStatus(userId) {
+  const user = usersData.find(u => u.id === userId);
+  if (!user) return;
+  const isCurrentlyActive = user.status === 'active' || (!user.status || (user.status !== 'inactive' && user.status !== 'suspended'));
+  user.status = isCurrentlyActive ? 'inactive' : 'active';
+
+  // Save and broadcast
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
+  if (syncChannel) {
+    syncChannel.postMessage({ type: 'USERS_UPDATED', timestamp: Date.now() });
+  }
+  renderAdminUsersList();
+  showToast(`Player ${user.name || 'User'} marked ${user.status === 'active' ? '🟢 Active' : '🔴 Inactive'}`);
+}
+
 
 function handleAdminUserSearch(val) {
   renderAdminUsersList();
@@ -1120,6 +1148,7 @@ window.closeAdminUserModal = closeAdminUserModal;
 window.handleUserModalBackdropClick = handleUserModalBackdropClick;
 window.handleSaveAdminUserForm = handleSaveAdminUserForm;
 window.handleDeleteUserFromModal = handleDeleteUserFromModal;
+window.toggleUserActiveStatus = toggleUserActiveStatus;
 window.quickAddUserCoins = quickAddUserCoins;
 window.quickAwardAllPlayers = quickAwardAllPlayers;
 window.handleAdminUserSearch = handleAdminUserSearch;
@@ -3131,16 +3160,16 @@ function escapeHtml(str) {
 const TG_PROFILE_KEY = 'task_game_tg_profile';
 
 const DEFAULT_TG_PROFILE = {
-  firstName: "Nova",
+  firstName: "Task",
   lastName: "Earner",
-  username: "nova_earner",
-  bio: "🎮 Web Task Champion • Official Telegram Mini App Player",
+  username: "task_earner",
+  bio: "🎮 Web Task Champion • Official Mini App Player",
   avatar: "⚡",
   emojiStatus: "⚡",
   accentColor: "blue",
   birthday: "Oct 12",
-  personalChannel: "@NovaCommunityOfficial",
-  note: "Complete daily WebTasks & claim ₹100 Amazon Voucher",
+  personalChannel: "@TaskCommunityOfficial",
+  note: "Complete daily WebTasks & claim rewards",
   onlineStatus: "online",
   activeProfileTab: "gifts"
 };
@@ -3157,6 +3186,11 @@ function getTgProfile() {
     const raw = localStorage.getItem(TG_PROFILE_KEY);
     if (raw) {
       currentTgProfile = Object.assign({}, DEFAULT_TG_PROFILE, JSON.parse(raw));
+      if (currentTgProfile.firstName === 'Nova' && currentTgProfile.lastName === 'Earner') {
+        currentTgProfile.firstName = 'Task';
+        currentTgProfile.lastName = 'Earner';
+        currentTgProfile.username = 'task_earner';
+      }
     } else {
       currentTgProfile = Object.assign({}, DEFAULT_TG_PROFILE);
     }
@@ -3170,14 +3204,36 @@ function saveTgProfile(profile) {
   currentTgProfile = profile;
   localStorage.setItem(TG_PROFILE_KEY, JSON.stringify(profile));
   // Sync to player_username & player_avatar
-  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'NovaEarner';
+  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Task Earner';
   localStorage.setItem('player_username', fullName);
   localStorage.setItem('player_avatar', profile.avatar || '⚡');
   localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
 
+  // Also update usr_1 in task_game_users!
+  try {
+    const rawUsers = localStorage.getItem('task_game_users');
+    if (rawUsers) {
+      let users = JSON.parse(rawUsers);
+      if (Array.isArray(users)) {
+        let u1 = users.find(u => u.id === 'usr_1');
+        if (u1) {
+          u1.name = fullName;
+          u1.avatar = profile.avatar || '⚡';
+          localStorage.setItem('task_game_users', JSON.stringify(users));
+        }
+      }
+    }
+  } catch (e) {}
+
+  // Update top header bar username and avatar in DOM
+  const topUserName = document.querySelector('.header-user .user-name');
+  if (topUserName) topUserName.textContent = fullName;
+  const topUserAvatar = document.querySelector('.header-user .user-avatar');
+  if (topUserAvatar) topUserAvatar.textContent = profile.avatar || '⚡';
+
   if (syncChannel) {
     try {
-      syncChannel.postMessage({ type: 'PROFILE_UPDATED', timestamp: Date.now() });
+      syncChannel.postMessage({ type: 'PROFILE_UPDATED', timestamp: Date.now(), name: fullName, avatar: profile.avatar || '⚡' });
     } catch (e) {}
   }
 
@@ -3190,7 +3246,7 @@ function renderTgProfileUI() {
 
   // Name
   const nameEl = document.getElementById('tgProfileDisplayName');
-  const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'NovaEarner';
+  const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ') || 'Task Earner';
   if (nameEl) nameEl.textContent = fullName;
 
   // Avatar
@@ -3203,7 +3259,8 @@ function renderTgProfileUI() {
 
   // Username
   const usernameEl = document.getElementById('tgProfileUsername');
-  if (usernameEl) usernameEl.textContent = p.username || 'nova_earner';
+  if (usernameEl) usernameEl.textContent = p.username || 'task_earner';
+
 
   // Bio, Birthday, Note, Chips & Tabs suppressed per user request
   const bioEl = document.getElementById('tgProfileBio');
@@ -3307,12 +3364,12 @@ function openEditTgProfileModal() {
   const channelIn = document.getElementById('inputTgChannel');
   const noteIn = document.getElementById('inputTgNote');
 
-  if (firstNameIn) firstNameIn.value = p.firstName || "Nova";
+  if (firstNameIn) firstNameIn.value = (p.firstName && p.firstName !== 'Nova') ? p.firstName : "Task";
   if (lastNameIn) lastNameIn.value = p.lastName || "Earner";
-  if (usernameIn) usernameIn.value = (p.username || "nova_earner").replace('@', '');
+  if (usernameIn) usernameIn.value = ((p.username && p.username !== 'nova_earner') ? p.username : "task_earner").replace('@', '');
   if (bioIn) bioIn.value = p.bio || "";
   if (birthdayIn) birthdayIn.value = p.birthday || "Oct 12";
-  if (channelIn) channelIn.value = p.personalChannel || "@NovaChannel";
+  if (channelIn) channelIn.value = p.personalChannel || "@TaskCommunityOfficial";
   if (noteIn) noteIn.value = p.note || "";
 
   renderAvatarOptions();
@@ -3463,9 +3520,9 @@ function updateProfileOverviewStats() {
   const tasks = localStorage.getItem('task_game_total_tasks_completed') || '0';
   const ads = localStorage.getItem('task_game_ads_watched_count') || '0';
   const tasksEl = document.getElementById('profileStatTasks');
-  const adsEl = document.getElementById('profileStatAds');
+  const adsEl = document.getElementById('profileStatGames');
   if (tasksEl) tasksEl.textContent = tasks;
-  if (adsEl) adsEl.textContent = ads;
+  if (adsEl) adsEl.textContent = '1';
 }
 
 // Cross-tab and sync channel listeners

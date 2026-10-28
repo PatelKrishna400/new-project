@@ -7,6 +7,8 @@
 const MIN_BET = 30;
 const MAX_BET = 2000;
 const QUICK_BETS = [30, 50, 100, 500];
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 50;
@@ -15,6 +17,48 @@ let soundEnabled = true;
 let coinSelectedSide = 'heads';
 let isCoinFlipping = false;
 let coinRecentRounds = [];
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_coinflip_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_coinflip_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_coinflip_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_coinflip_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Audio synthesizers via Tone.js
 let synth = null;
@@ -57,8 +101,12 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('coinBalance');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay') || document.getElementById('starBalanceDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
   updateActionButtonState();
 }
 
@@ -73,12 +121,7 @@ function saveBalance() {
 }
 
 function claimFreeRefill() {
-  playTone('win');
-  balance += 200;
-  saveBalance();
-  updateBalanceUI();
-  closeBuyCoinsModal();
-  if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
+  window.location.href = '../home/index.html';
 }
 
 // Side Selection (Heads vs Tails)
@@ -152,6 +195,10 @@ function updateActionButtonState() {
 }
 
 function handlePrimaryAction() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   if (balance < currentBet) {
     openBuyCoinsModal();
     return;
@@ -169,6 +216,7 @@ function flipCoinGame() {
     return;
   }
 
+  recordPlayUsed();
   isCoinFlipping = true;
   balance -= currentBet;
   saveBalance();
@@ -186,16 +234,17 @@ function flipCoinGame() {
   }
   if (outcomeText) outcomeText.innerText = 'Coin is tumbling in mid-air...';
 
-  // 50% Win Rate Calibration
-  const isWin = Math.random() < 0.5;
+  // Dynamic Win Rate Calibration based on Star Balance
+  const isWin = Math.random() < getWinProbability();
   const outcome = isWin ? coinSelectedSide : (coinSelectedSide === 'heads' ? 'tails' : 'heads');
 
-  // Multi-spin rotation
+  // Multi-spin rotation: Heads is at 0° (mod 360°), Tails is at 180° (mod 360°)
+  const desiredMod = outcome === 'tails' ? 180 : 0;
+  const currentMod = ((currentCoinRotation % 360) + 360) % 360;
+  let diff = desiredMod - currentMod;
+  if (diff <= 0) diff += 360;
   const extraRotations = (4 + Math.floor(Math.random() * 3)) * 360;
-  currentCoinRotation += extraRotations;
-  if (outcome === 'tails') {
-    currentCoinRotation += 180;
-  }
+  currentCoinRotation += extraRotations + diff;
 
   if (coinDisc) {
     coinDisc.style.transform = `rotateY(${currentCoinRotation}deg)`;
@@ -211,14 +260,14 @@ function finishCoinFlip(outcome, isWin) {
   const btn = document.getElementById('primaryPlayBtn');
 
   const outcomeName = outcome === 'heads' ? 'Heads (Star ⭐)' : 'Tails (Gift 🎁)';
-  const payout = Math.floor(currentBet * 1.9);
+  const payout = isWin ? Math.round(currentBet * 2) : 0;
 
   if (isWin) {
     playTone('win');
     balance += payout;
     saveBalance();
     updateBalanceUI();
-    if (outcomeText) outcomeText.innerHTML = `Landed on <b class="text-white">${outcomeName}</b>! Won +${payout} 🪙 (×1.9)`;
+    if (outcomeText) outcomeText.innerHTML = `Landed on <b class="text-white">${outcomeName}</b>! Won +${payout} 🪙 (×2)`;
     if (window.confetti) confetti({ particleCount: 50, spread: 70, origin: { y: 0.3 } });
   } else {
     playTone('lose');
@@ -229,7 +278,7 @@ function finishCoinFlip(outcome, isWin) {
   coinRecentRounds.unshift({
     outcome: outcome === 'heads' ? '⭐' : '🎁',
     isWin,
-    mult: isWin ? '×1.9' : '×0'
+    mult: isWin ? '×2' : '×0'
   });
   if (coinRecentRounds.length > 8) coinRecentRounds.pop();
   renderRecentRounds();
@@ -245,21 +294,7 @@ function finishCoinFlip(outcome, isWin) {
 }
 
 function renderRecentRounds() {
-  const container = document.getElementById('coinRecentRounds');
-  if (!container) return;
-
-  if (coinRecentRounds.length === 0) {
-    container.innerHTML = 'No rounds yet. Place your first bet.';
-    return;
-  }
-
-  container.innerHTML = '';
-  coinRecentRounds.forEach(r => {
-    const pill = document.createElement('span');
-    pill.className = `px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 ${r.isWin ? 'bg-amber-500/20 text-yellow-300 border border-yellow-400/30' : 'bg-[#181d28] text-gray-400 border border-[#263145]'}`;
-    pill.innerHTML = `<span>${r.outcome}</span> <span>${r.mult}</span>`;
-    container.appendChild(pill);
-  });
+  // Recent rounds removed from UI
 }
 
 // Modals
@@ -295,6 +330,30 @@ function closeBuyCoinsModal() {
   if (!sheet || !overlay) return;
   sheet.classList.remove('open');
   setTimeout(() => overlay.classList.add('hidden'), 280);
+}
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
+  updateBalanceUI();
 }
 
 // Initialize on page load

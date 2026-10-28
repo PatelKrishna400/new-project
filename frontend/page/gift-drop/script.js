@@ -1,17 +1,61 @@
 /**
  * PLINKO (INFECTION EDITION) CONTROLLER — TELEGRAM ARCADE SUITE
  * Matches Reference Screenshot 4 Pixel-Perfect
- * 10 Peg Rows, 13 Bins (100 to 0.3 to 100), Infection 0/66 Progress, Multi-Drop (x1, x3, x5, x10)
+ * 10 Peg Rows, 13 Bins (5 to 0.1 to 5), Infection 0/66 Progress, Multi-Drop (x1, x3, x5, x10)
  */
 
-const BINS_MULTIPLIERS = [100, 12, 3, 1.5, 0.9, 0.5, 0.3, 0.5, 0.9, 1.5, 3, 12, 100];
+const BINS_MULTIPLIERS = [5, 2, 1, 0.5, 0.3, 0.2, 0.1, 0.2, 0.3, 0.5, 1, 2, 5];
 const PEG_ROWS = 10;
+const DAILY_FREE_PLAYS = 10;
+const BONUS_PLAYS_PER_AD = 10;
 
 let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
 let currentBet = 10; // Default 10 ⭐
 let dropMultiplier = 1; // 1, 3, 5, 10
 let infectionPoints = parseInt(localStorage.getItem('plinko_infection_pts') || '0', 10);
 let soundEnabled = true;
+
+// Daily Plays Tracker
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getPlaysUsedToday() {
+  const key = `lucky_plays_plinko_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getBonusPlaysToday() {
+  const key = `lucky_bonus_plinko_${getTodayKey()}`;
+  return parseInt(localStorage.getItem(key) || '0', 10);
+}
+function getRemainingPlays() {
+  const total = DAILY_FREE_PLAYS + getBonusPlaysToday();
+  const used = getPlaysUsedToday();
+  return Math.max(0, total - used);
+}
+function recordPlayUsed() {
+  const key = `lucky_plays_plinko_${getTodayKey()}`;
+  const used = getPlaysUsedToday() + 1;
+  localStorage.setItem(key, used.toString());
+}
+function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
+  const key = `lucky_bonus_plinko_${getTodayKey()}`;
+  const current = getBonusPlaysToday() + count;
+  localStorage.setItem(key, current.toString());
+}
+
+// Dynamic Win Rate Calibration based on Total Star Balance:
+// - Low to 100 stars (< 100): 50%
+// - 100+ stars (100 to 499): 20%
+// - 500+ stars (500 to 999): 10%
+// - 1000+ stars (1000+): 5%
+function getWinProbability(customBalance) {
+  const bal = (typeof customBalance === 'number') ? customBalance : balance;
+  if (bal >= 1000) return 0.05;
+  if (bal >= 500)  return 0.10;
+  if (bal >= 100)  return 0.20;
+  return 0.50;
+}
 
 // Active balls in flight
 let activeBalls = [];
@@ -62,8 +106,12 @@ function togglePlinkoSound() {
 
 // Balance Management
 function updateBalanceUI() {
-  const el = document.getElementById('starBalanceDisplay');
-  if (el) el.innerText = balance.toLocaleString();
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
+  const elStars = document.getElementById('headerStarDisplay') || document.getElementById('starBalanceDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
+  if (elStars) elStars.innerText = balance.toLocaleString();
 
   const totalCost = currentBet * dropMultiplier;
   const subtext = document.getElementById('dropCostSubtext');
@@ -182,12 +230,17 @@ function getPegPositions(w, h) {
 }
 
 function handlePlinkoDrop() {
+  if (getRemainingPlays() <= 0) {
+    openAdModal();
+    return;
+  }
   const totalCost = currentBet * dropMultiplier;
   if (balance < totalCost) {
     openBuyCoinsModal();
     return;
   }
 
+  recordPlayUsed();
   playTone('click');
   balance -= totalCost;
   saveBalance();
@@ -306,7 +359,16 @@ function animatePlinko() {
     // Check bottom entry into 13 bins
     if (ball.y >= h - 18) {
       const binWidth = (w - 24) / 13;
-      const binIndex = Math.min(12, Math.max(0, Math.floor((ball.x - 12) / binWidth)));
+      let binIndex = Math.min(12, Math.max(0, Math.floor((ball.x - 12) / binWidth)));
+
+      const winProbability = getWinProbability();
+      const isProfitable = (BINS_MULTIPLIERS[binIndex] >= 1);
+      if (isProfitable && Math.random() > winProbability) {
+        binIndex = 5 + Math.floor(Math.random() * 3);
+      } else if (!isProfitable && Math.random() < winProbability) {
+        const outerBins = [1, 2, 10, 11];
+        binIndex = outerBins[Math.floor(Math.random() * outerBins.length)];
+      }
 
       resolveBinHit(binIndex, ball.stake);
       activeBalls.splice(i, 1);
@@ -335,7 +397,7 @@ function resolveBinHit(binIndex, stake) {
     }, 280);
   }
 
-  if (mult >= 12) {
+  if (mult >= 5) {
     playTone('bigwin');
     if (window.confetti) {
       confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } });
@@ -349,20 +411,43 @@ function resolveBinHit(binIndex, stake) {
 function openBuyCoinsModal() {
   playTone('click');
   document.getElementById('buyCoinsModalOverlay').classList.remove('hidden');
-  document.getElementById('buyCoinsModalSheet').classList.add('active');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  sheet.classList.add('open');
+  sheet.classList.add('active');
 }
 function closeBuyCoinsModal() {
   document.getElementById('buyCoinsModalOverlay').classList.add('hidden');
-  document.getElementById('buyCoinsModalSheet').classList.remove('active');
+  const sheet = document.getElementById('buyCoinsModalSheet');
+  sheet.classList.remove('open');
+  sheet.classList.remove('active');
 }
 
 function claimFreeRefill() {
-  playTone('bigwin');
-  balance += 200;
-  saveBalance();
+  window.location.href = '../home/index.html';
+}
+
+function openAdModal() {
+  playTone('click');
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    overlay.classList.remove('hidden');
+    setTimeout(() => sheet.classList.add('open'), 10);
+  }
+}
+function closeAdModal() {
+  const overlay = document.getElementById('adModalOverlay');
+  const sheet = document.getElementById('adModalSheet');
+  if (overlay && sheet) {
+    sheet.classList.remove('open');
+    setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+}
+function watchAdForMorePlays() {
+  window.open('https://otieuche.com/4/8893420', '_blank');
+  grantBonusPlays(10);
+  closeAdModal();
   updateBalanceUI();
-  closeBuyCoinsModal();
-  if (window.confetti) confetti({ particleCount: 40, spread: 70, origin: { y: 0.3 } });
 }
 
 // Initialization

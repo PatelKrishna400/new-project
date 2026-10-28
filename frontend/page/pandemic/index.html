@@ -12,7 +12,89 @@
   <link rel="stylesheet" href="../star-game/style.css">
   
   <style>
-    /* Milestone Track Nodes (Screenshot 3 Match) */
+    /* Monopoly-style Board Canvas & Stage */
+    .board-stage-wrapper {
+      width: 100%;
+      background: radial-gradient(circle at 50% 30%, #062b1b 0%, #03170e 65%, #010a05 100%);
+      border: 1.5px solid #166534;
+      border-radius: 28px;
+      padding: 10px;
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.22), inset 0 0 20px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #boardCanvas {
+      width: 100%;
+      max-width: 380px;
+      height: 240px;
+      display: block;
+      margin: 0 auto;
+      border-radius: 18px;
+    }
+
+    /* 3 Stat Counters */
+    .stat-counter-card {
+      background: #0c1511;
+      border: 1px solid #1a3324;
+      border-radius: 18px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    /* 3D Rolling Dice */
+    .die-face {
+      width: 34px;
+      height: 34px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), inset 0 -2px 3px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #0f172a;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .die-face.rolling {
+      animation: diceRollAnim 0.35s infinite linear;
+    }
+    @keyframes diceRollAnim {
+      0% { transform: rotate(0deg) scale(0.9); }
+      50% { transform: rotate(180deg) scale(1.1); }
+      100% { transform: rotate(360deg) scale(0.9); }
+    }
+
+    /* Multiplier Chips */
+    .roll-mult-chip {
+      background: #0f1a14;
+      border: 1px solid #1e3a29;
+      color: #94a3b8;
+      border-radius: 14px;
+      padding: 8px 0;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .roll-mult-chip.active {
+      background: #4ade80;
+      border-color: #86efac;
+      color: #052e16;
+      box-shadow: 0 0 14px rgba(74, 222, 128, 0.5);
+    }
+    .roll-mult-chip.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* Milestone Track Nodes */
     .milestone-node {
       display: flex;
       flex-direction: column;
@@ -20,15 +102,15 @@
       gap: 3px;
     }
     .node-circle {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       background: #141722;
       border: 1px solid #242b3d;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       color: #94a3b8;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
@@ -44,6 +126,22 @@
       border-color: #22d3ee;
       color: #083344;
       box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+
+    /* Roll Shop Items (Screenshot 1 Match) */
+    .roll-shop-row {
+      background: #0f1519;
+      border: 1px solid #1f2c33;
+      border-radius: 20px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+    .roll-shop-row.highlighted {
+      border: 1.5px solid #22c55e;
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.25);
     }
 
     /* Telegram Bottom Navigation Bar */
@@ -91,98 +189,257 @@
 
   <div class="app-frame max-w-[420px] w-full min-h-screen bg-[#030d07] flex flex-col justify-between border-x border-[#12281a]" id="appMainFrame">
 
-    <!-- Top Navigation Header (Screenshot 3 Match) -->
-    <header class="sticky top-0 z-40 bg-[#030d07]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#12281a]">
-      <a href="../games/index.html" class="flex items-center gap-1 text-white font-extrabold text-sm hover:opacity-80 transition-opacity">
-        <i data-lucide="arrow-left" class="w-5 h-5"></i>
-        <span>Back</span>
-      </a>
-
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-black italic tracking-wider text-[#4ade80] drop-shadow-[0_0_10px_rgba(74,222,128,0.4)]">
-          PANDEMIC
-        </h1>
+    <!-- Top Navigation Header (Screenshot Match) -->
+    <header class="sticky top-0 z-40 bg-[#060b18]/95 backdrop-blur-md px-3.5 py-2.5 flex items-center justify-between border-b border-[#1b253b]">
+      <div class="flex items-center">
+        <a href="../star-game/index.html" class="header-back-btn" title="Back">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </a>
       </div>
 
       <div class="flex items-center gap-2">
-        <button type="button" onclick="openPandemicRules()" class="w-7 h-7 rounded-full bg-[#0c1a11] border border-[#173623] flex items-center justify-center text-gray-300 hover:text-white transition-all active:scale-95" title="Rules">
-          <i data-lucide="help-circle" class="w-4 h-4"></i>
-        </button>
-
-        <!-- Balance Pill (1 ⭐) -->
-        <div onclick="openBuyCoinsModal()" class="flex items-center gap-1.5 bg-[#f59e0b] text-[#1c1917] px-3 py-1 rounded-full font-black text-xs shadow-[0_2px_10px_rgba(245,158,11,0.35)] cursor-pointer active:scale-95 transition-all">
-          <span id="starBalanceDisplay">10</span>
-          <span class="text-sm">⭐</span>
+        <div class="coin-pill" title="Coin Balance">
+          <span>🪙</span>
+          <span class="coin-value" id="headerCoinDisplay">0</span>
         </div>
-
-        <div class="flex items-center text-gray-400">
-          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
-            <i data-lucide="chevron-down" class="w-4 h-4"></i>
-          </button>
-          <button class="w-6 h-6 hover:text-white flex items-center justify-center">
-            <i data-lucide="more-vertical" class="w-4 h-4"></i>
-          </button>
+        <div class="star-pill" title="Star Balance">
+          <span>⭐</span>
+          <span class="star-value" id="headerStarDisplay">0</span>
         </div>
       </div>
     </header>
 
-    <!-- Main Content Stage -->
-    <main class="flex-1 px-3.5 py-3 space-y-3 overflow-y-auto">
+    <!-- Subheader with Reset View -->
+    <div class="px-4 py-1 flex items-center justify-end">
+      <button type="button" onclick="resetBoardView()" class="flex items-center gap-1 text-[11px] font-bold text-gray-400 hover:text-white bg-[#0a1610] border border-[#152e20] px-2.5 py-1 rounded-full active:scale-95 transition-all">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span>Reset view</span>
+      </button>
+    </div>
 
-      <!-- Card 1: Score & Petri Dish Milestone Track (Screenshot 3 Match) -->
-      <div class="w-full bg-[#0c1410] border border-[#1a3325] rounded-3xl p-4 shadow-xl relative overflow-hidden">
-        <p class="text-[11px] text-gray-400 font-medium">Score with tokens on board tiles, your bet multiplies them</p>
+    <!-- Main Scrollable Content Area -->
+    <main class="flex-1 px-3.5 py-1 space-y-3 overflow-y-auto">
+
+      <!-- ================= 1. CENTRAL MONOPOLY-STYLE CITY LOOP BOARD (Screenshot 2 Match) ================= -->
+      <div class="board-stage-wrapper">
+        <canvas id="boardCanvas" width="370" height="230"></canvas>
+      </div>
+
+      <!-- ================= 2. THREE STAT COUNTERS (Screenshot 2 Match) ================= -->
+      <div class="grid grid-cols-3 gap-2 w-full">
+        <!-- 1. ROLLS -->
+        <div class="stat-counter-card">
+          <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400 mb-0.5">
+            <span>🎲</span>
+            <span>ROLLS</span>
+          </div>
+          <div class="text-base font-black text-white">
+            <span id="rollsCurrentDisplay">33</span><span class="text-xs text-gray-400">/25</span>
+          </div>
+        </div>
+
+        <!-- 2. DNA -->
+        <div class="stat-counter-card">
+          <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400 mb-0.5">
+            <span>🧬</span>
+            <span>DNA</span>
+          </div>
+          <div class="text-base font-black text-white" id="dnaCurrentDisplay">
+            21
+          </div>
+        </div>
+
+        <!-- 3. BARRIERS -->
+        <div class="stat-counter-card">
+          <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-gray-400 mb-0.5">
+            <span>😷</span>
+            <span>BARRIERS</span>
+          </div>
+          <div class="text-base font-black text-white">
+            <span id="barriersDisplay">3</span><span class="text-xs text-gray-400">/3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 3. DICE ROLLING STAGE & NOTIFICATION (Screenshot 2 Match) ================= -->
+      <div class="w-full flex items-center justify-between px-2 py-1">
+        <div class="flex items-center gap-2.5">
+          <div class="die-face" id="die1Face">⚅</div>
+          <div class="die-face" id="die2Face">⚁</div>
+        </div>
+
+        <div id="infectionNotification" class="text-xs font-black italic tracking-wide text-[#4ade80] drop-shadow-[0_0_8px_rgba(74,222,128,0.5)] animate-pulse">
+          COUNTRY INFECTED! +8 ROLLS
+        </div>
+      </div>
+
+      <!-- ================= 4. MUTATION TIMER BANNER (Screenshot 2 Match) ================= -->
+      <div class="w-full bg-[#101410] border border-[#2b3d22] rounded-2xl px-3.5 py-2.5 flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-black text-xs">
+            🧬+
+          </div>
+          <div>
+            <h4 class="text-xs font-black uppercase italic tracking-wider text-amber-300">MUTATION</h4>
+            <p class="text-[10px] text-gray-400 font-semibold">Token points ×2</p>
+          </div>
+        </div>
+        <div class="text-xs font-mono font-black text-amber-300" id="mutationCountdown">
+          00:19:07
+        </div>
+      </div>
+
+      <!-- ================= 5. BET MULTIPLIER CHIPS (Screenshot 2 Match: x1, x2, x3, lock x5, lock x10, lock x20) ================= -->
+      <div class="w-full">
+        <div class="grid grid-cols-6 gap-1.5 mb-1.5">
+          <button type="button" onclick="setRollMultiplier(1)" class="roll-mult-chip" data-mult="1">x1</button>
+          <button type="button" onclick="setRollMultiplier(2)" class="roll-mult-chip" data-mult="2">x2</button>
+          <button type="button" onclick="setRollMultiplier(3)" class="roll-mult-chip active" data-mult="3">x3</button>
+          <button type="button" onclick="setRollMultiplier(5)" class="roll-mult-chip locked" data-mult="5">🔒 x5</button>
+          <button type="button" onclick="setRollMultiplier(10)" class="roll-mult-chip locked" data-mult="10">🔒 x10</button>
+          <button type="button" onclick="setRollMultiplier(20)" class="roll-mult-chip locked" data-mult="20">🔒 x20</button>
+        </div>
+        <p class="text-[10px] text-gray-400 text-center font-semibold">Bet ceiling x3 — grows with your roll stock</p>
+      </div>
+
+      <!-- ================= 6. BIG GREEN ROLL CTA BUTTON (Screenshot 2 Match) ================= -->
+      <button type="button" onclick="rollPandemicDice()" id="rollDiceBtn" class="w-full py-4 rounded-2xl bg-gradient-to-r from-[#22c55e] to-[#16a34a] hover:from-[#4ade80] hover:to-[#22c55e] text-[#052e16] font-black text-xl italic tracking-wider uppercase shadow-[0_8px_24px_rgba(34,197,94,0.45)] active:scale-[0.98] transition-all">
+        ROLL X3
+      </button>
+
+      <!-- ================= 7. COUNTRY INFECTION CARD (Screenshot 3 Match) ================= -->
+      <div class="w-full bg-[#0a110d] border border-[#162e20] rounded-3xl p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🇹🇷</span>
+            <div>
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">STRAIN 1 · 2/30</span>
+              <h3 class="text-base font-black italic tracking-wider text-white">TÜRKIYE</h3>
+            </div>
+          </div>
+          <span class="text-xs font-black text-emerald-400" id="countryInfectedPct">0% infected</span>
+        </div>
+
+        <!-- Country Chest with Timer -->
+        <div class="w-full bg-[#171a10] border border-[#3b3a1a] rounded-xl px-3 py-2 flex items-center justify-between mt-3">
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-200">
+            <span>📦</span>
+            <span>Country chest: 8 rolls</span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-[10px] font-mono text-amber-300 font-black">
+            ×2 07:59:14
+          </span>
+        </div>
+
+        <!-- 5 Infrastructure Milestones (Airplane, Ship, Ambulance, Microscope, Government) -->
+        <div class="grid grid-cols-5 gap-1.5 my-3.5">
+          <div class="bg-[#0f1712] border border-[#1b3023] rounded-xl py-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">✈️</span>
+            <span class="text-[10px] font-bold text-gray-400" id="infraPlane">0/5</span>
+          </div>
+          <div class="bg-[#0f1712] border border-[#1b3023] rounded-xl py-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">🚢</span>
+            <span class="text-[10px] font-bold text-gray-400" id="infraShip">0/5</span>
+          </div>
+          <div class="bg-[#0f1712] border border-[#1b3023] rounded-xl py-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">🚑</span>
+            <span class="text-[10px] font-bold text-gray-400" id="infraAmbulance">0/5</span>
+          </div>
+          <div class="bg-[#0f1712] border border-[#1b3023] rounded-xl py-2 flex flex-col items-center">
+            <span class="text-base mb-0.5">🔬</span>
+            <span class="text-[10px] font-bold text-gray-400" id="infraMicroscope">0/5</span>
+          </div>
+          <div class="bg-[#14231a] border border-[#234b35] rounded-xl py-2 flex flex-col items-center shadow-md">
+            <span class="text-base mb-0.5">🏛️</span>
+            <span class="text-[10px] font-black text-emerald-400" id="infraGov">0/5</span>
+          </div>
+        </div>
+
+        <!-- Active Upgrade Row: Government + INFECT 156 🧪 -->
+        <div class="bg-[#0e1713] border border-[#1b3023] rounded-2xl p-3 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#14241b] border border-[#224430] flex items-center justify-center text-xl">
+              🏛️
+            </div>
+            <div>
+              <h5 class="text-xs font-black text-white">Government</h5>
+              <div class="flex gap-1 mt-1">
+                <span class="w-4 h-1.5 rounded-full bg-emerald-500" id="govDash1"></span>
+                <span class="w-4 h-1.5 rounded-full bg-gray-700" id="govDash2"></span>
+                <span class="w-4 h-1.5 rounded-full bg-gray-700" id="govDash3"></span>
+                <span class="w-4 h-1.5 rounded-full bg-gray-700" id="govDash4"></span>
+                <span class="w-4 h-1.5 rounded-full bg-gray-700" id="govDash5"></span>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="upgradeInfrastructure()" class="px-3.5 py-2 rounded-xl bg-[#1b2f23] hover:bg-[#254231] border border-[#2b543b] text-xs font-black text-emerald-300 flex items-center gap-1 active:scale-95 transition-all">
+            <span>INFECT</span>
+            <span class="text-white">156</span>
+            <span>🧪</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= 8. OUTBREAK EVENT CARD (Screenshot 3 Match) ================= -->
+      <div class="w-full bg-[#180d11] border border-[#441a25] rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base text-rose-500">🌡️</span>
+            <h3 class="text-sm font-black italic tracking-wider text-rose-400">OUTBREAK</h3>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-[#271319] border border-[#4e1d29] text-[10px] font-mono text-rose-300">
+            ends in 2d 14:58:41
+          </span>
+        </div>
+
+        <p class="text-[11px] text-gray-400 font-medium mt-2">Score with tokens on board tiles, your bet multiplies them</p>
 
         <div class="flex items-baseline justify-between mt-2.5 mb-1.5">
           <div class="text-2xl font-black text-white">216 <span class="text-xs font-bold text-gray-400">pts</span></div>
           <div class="text-xs font-bold text-[#fde047]">30 to go → +8 rolls, "Petri dish" pack</div>
         </div>
 
-        <!-- Gradient Progress Bar (Red-Orange to Yellow) -->
-        <div class="w-full h-2.5 bg-[#17241c] rounded-full overflow-hidden border border-[#233d2e] my-2">
+        <div class="w-full h-2.5 bg-[#251319] rounded-full overflow-hidden border border-[#3b1a23] my-2">
           <div class="h-full bg-gradient-to-r from-[#ef4444] via-[#f97316] to-[#facc15]" style="width: 72%;"></div>
         </div>
 
-        <!-- Milestone Nodes Row: 9✓ | 10 (+8) | 11 (+2) | 12 (🧪) | 13 (+3) | 9/60 -->
         <div class="flex items-center justify-between pt-1">
           <div class="milestone-node">
             <div class="node-circle completed-gold">✓</div>
             <span class="text-[10px] text-gray-400 font-bold">9</span>
           </div>
-
           <div class="milestone-node">
-            <div class="node-circle text-white font-extrabold text-[10px] bg-[#16201a] border-[#254231]">+8 🪙</div>
+            <div class="node-circle text-white font-extrabold text-[10px] bg-[#251319] border-[#441a25]">+8 🪙</div>
             <span class="text-[10px] text-gray-400 font-bold">10</span>
           </div>
-
           <div class="milestone-node">
-            <div class="node-circle text-white font-extrabold text-[11px] bg-[#16201a] border-[#254231]">+2</div>
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#251319] border-[#441a25]">+2</div>
             <span class="text-[10px] text-gray-400 font-bold">11</span>
           </div>
-
           <div class="milestone-node">
-            <div class="node-circle text-emerald-400 font-extrabold text-xs bg-[#16201a] border-[#254231]">🧪</div>
+            <div class="node-circle text-rose-400 font-extrabold text-xs bg-[#251319] border-[#441a25]">🧪</div>
             <span class="text-[10px] text-gray-400 font-bold">12</span>
           </div>
-
           <div class="milestone-node">
-            <div class="node-circle text-white font-extrabold text-[11px] bg-[#16201a] border-[#254231]">+3</div>
+            <div class="node-circle text-white font-extrabold text-[11px] bg-[#251319] border-[#441a25]">+3</div>
             <span class="text-[10px] text-gray-400 font-bold">13</span>
           </div>
-
           <div class="text-xs font-black text-gray-400 pl-1">9/60</div>
         </div>
       </div>
 
-      <!-- Card 2: DAILY TOURNAMENT Card (Screenshot 3 Match) -->
+      <!-- ================= 9. DAILY TOURNAMENT CARD (Screenshot 3 Match) ================= -->
       <div class="w-full bg-[#0d121c] border border-[#1e2942] rounded-3xl p-4 shadow-xl relative overflow-hidden">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-base">🏅</span>
             <h3 class="text-sm font-black italic tracking-wider text-white">DAILY TOURNAMENT</h3>
           </div>
-          <span class="px-2.5 py-1 rounded-full bg-[#182033] border border-[#2b3a5c] text-[10px] font-mono text-gray-300">
-            ends in <span id="tournamentTimer" class="font-bold text-cyan-300">14:58:29</span>
+          <span class="px-2.5 py-1 rounded-full bg-[#182033] border border-[#2b3a5c] text-[10px] font-mono text-cyan-300">
+            ends in 14:58:41
           </span>
         </div>
 
@@ -193,43 +450,36 @@
           <div class="text-xs font-bold text-[#38bdf8]">32 to go → +2 rolls</div>
         </div>
 
-        <!-- Cyan Gradient Progress Bar -->
         <div class="w-full h-2.5 bg-[#141b2a] rounded-full overflow-hidden border border-[#23314d] my-2">
           <div class="h-full bg-gradient-to-r from-[#0284c7] to-[#38bdf8]" style="width: 48%;"></div>
         </div>
 
-        <!-- Milestone Nodes Row: 6✓ | 7 (+2) | 8 (+2) | 9 (🧪) | 10 (+3) | 6/25 -->
         <div class="flex items-center justify-between pt-1">
           <div class="milestone-node">
             <div class="node-circle completed-cyan">✓</div>
             <span class="text-[10px] text-gray-400 font-bold">6</span>
           </div>
-
           <div class="milestone-node">
             <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+2</div>
             <span class="text-[10px] text-gray-400 font-bold">7</span>
           </div>
-
           <div class="milestone-node">
             <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+2</div>
             <span class="text-[10px] text-gray-400 font-bold">8</span>
           </div>
-
           <div class="milestone-node">
             <div class="node-circle text-cyan-400 font-extrabold text-xs bg-[#141b2a] border-[#253754]">🧪</div>
             <span class="text-[10px] text-gray-400 font-bold">9</span>
           </div>
-
           <div class="milestone-node">
             <div class="node-circle text-white font-extrabold text-[11px] bg-[#141b2a] border-[#253754]">+3</div>
             <span class="text-[10px] text-gray-400 font-bold">10</span>
           </div>
-
           <div class="text-xs font-black text-gray-400 pl-1">6/25</div>
         </div>
       </div>
 
-      <!-- Card 3: Strain Packs (Screenshot 3 Match) -->
+      <!-- ================= 10. STRAIN PACKS (Screenshot 3 Match) ================= -->
       <div class="w-full bg-[#0c1410] border border-[#1a3325] rounded-2xl px-4 py-3 flex items-center justify-between">
         <div>
           <h4 class="text-xs font-black text-white">Strain packs</h4>
@@ -241,100 +491,117 @@
         </div>
       </div>
 
-      <!-- Card 4: WEEKLY LEAGUE (Screenshot 3 Match: COLD #7) -->
-      <div class="w-full bg-[#11141e] border border-[#20273c] rounded-2xl p-4 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-3">
-          <!-- Hexagonal League Icon -->
-          <div class="w-11 h-11 rounded-2xl bg-[#1c2233] border border-[#303a55] flex items-center justify-center text-xl shadow-inner">
-            🦠
-          </div>
-          <div>
-            <span class="text-[10px] font-black tracking-widest text-gray-400 uppercase">WEEKLY LEAGUE</span>
-            <h4 class="text-base font-black italic tracking-wide text-white">COLD</h4>
-            <p class="text-[11px] text-amber-300 font-semibold">33 pts to the next place</p>
-          </div>
-        </div>
-
-        <div class="text-right">
-          <div class="text-2xl font-black text-white">#7</div>
-          <div class="text-[11px] font-bold text-gray-400">112 pts</div>
-        </div>
-      </div>
-
-      <!-- Card 5: INVITE A FRIEND: +40 ROLLS EACH (Screenshot 3 Match) -->
-      <div class="w-full bg-gradient-to-r from-[#17142b] via-[#1f1938] to-[#17142b] border border-[#3b2d6a] rounded-3xl p-4 shadow-xl">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-xl shrink-0 mt-0.5 shadow-[0_0_12px_rgba(52,211,153,0.3)]">
-            🦠
-          </div>
-          <div class="flex-1">
-            <h4 class="text-xs font-black tracking-wider text-white uppercase italic">INVITE A FRIEND: +40 ROLLS EACH</h4>
-            <p class="text-[11px] text-gray-300 mt-1 leading-relaxed">
-              You both get the reward when your friend infects the first country. They join your Friends right away.
-            </p>
-          </div>
-        </div>
-
-        <button type="button" onclick="openReferralShare()" class="w-full mt-3.5 py-3 rounded-2xl bg-gradient-to-r from-[#eab308] to-[#ca8a04] hover:from-[#facc15] hover:to-[#eab308] text-slate-950 font-black text-sm tracking-wide uppercase shadow-[0_4px_16px_rgba(234,179,8,0.35)] active:scale-[0.98] transition-all">
-          INVITE
-        </button>
-      </div>
-
-      <!-- Large Golden CTA Button: ROLL SHOP (Screenshot 3 Match) -->
-      <button type="button" onclick="openRollShop()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-[#eab308] to-[#ca8a04] hover:from-[#facc15] hover:to-[#eab308] text-slate-950 font-black text-base tracking-wider uppercase shadow-[0_8px_24px_rgba(234,179,8,0.4)] active:scale-[0.98] transition-all">
-        ROLL SHOP
-      </button>
-
     </main>
 
-    <!-- Telegram Bottom Navigation Bar (Screenshot 3 Match) -->
-    <nav class="telegram-bottom-nav">
-      <a href="../home/index.html" class="nav-tab-item">
-        <i data-lucide="hourglass" class="w-5 h-5"></i>
-        <span>Main</span>
-      </a>
-      <a href="../home/index.html" class="nav-tab-item">
-        <span class="nav-tab-badge">NEW</span>
-        <i data-lucide="shield-alert" class="w-5 h-5"></i>
-        <span>Tasks</span>
-      </a>
-      <a href="../star-game/index.html" class="nav-tab-item active">
-        <i data-lucide="disc" class="w-5 h-5 text-white"></i>
-        <span class="text-white">Spin</span>
-      </a>
-      <a href="../shop/index.html" class="nav-tab-item">
-        <i data-lucide="store" class="w-5 h-5"></i>
-        <span>Shop</span>
-      </a>
-      <a href="javascript:void(0)" onclick="openBuyCoinsModal()" class="nav-tab-item">
-        <i data-lucide="calendar" class="w-5 h-5"></i>
-        <span>History</span>
-      </a>
-    </nav>
 
-    <!-- Free Coins Refill Modal -->
-    <div id="buyCoinsModalOverlay" class="modal-overlay hidden" onclick="closeBuyCoinsModal()"></div>
-    <div id="buyCoinsModalSheet" class="modal-sheet">
+    <!-- ================= ROLL SHOP MODAL SHEET (Screenshot 1 Match Pixel-Perfect) ================= -->
+    <div id="rollShopOverlay" class="modal-overlay hidden" onclick="closeRollShopModal()"></div>
+    <div id="rollShopSheet" class="modal-sheet">
       <div class="sheet-handle"></div>
-      <div class="flex items-center justify-between pb-3 border-b border-[#173623]">
-        <div class="flex items-center gap-2">
-          <span class="text-base">⭐</span>
-          <h3 class="text-sm font-black text-white">Refill Stars &amp; Rolls</h3>
-        </div>
-        <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
+
+      <div class="flex items-center justify-between pb-2">
+        <h2 class="text-xl font-black text-white tracking-wide">Roll shop</h2>
+        <button onclick="closeRollShopModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white transition-colors">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <div class="py-4 space-y-3">
-        <div onclick="claimFreeRefill()" class="bg-[#0b170f] border border-[#173623] hover:border-green-400 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]">
+
+      <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+        Rolls are credited instantly. The further your country, the more rolls per pack.
+      </p>
+
+      <div class="space-y-2.5 mb-3">
+        <!-- Item 1: 101 rolls (+3 barriers · one time only) | 50 ⭐ (Highlighted Green) -->
+        <div class="roll-shop-row highlighted cursor-pointer" onclick="buyRolls(101, 50)">
           <div class="flex items-center gap-3">
-            <span class="text-3xl p-2 rounded-xl bg-green-500/10 border border-green-500/20">⭐</span>
+            <div class="relative w-9 h-9 flex items-center justify-center bg-gray-900 rounded-xl">
+              <span class="text-xl">🎲</span>
+              <span class="absolute -bottom-1 -right-1 text-[10px] bg-blue-600 text-white rounded-full px-1 font-bold">+🛡️</span>
+            </div>
             <div>
-              <h4 class="text-sm font-black text-white">Instant Pandemic Bonus</h4>
-              <p class="text-xs text-gray-400">Claim +200 free stars &amp; +10 rolls</p>
+              <h4 class="text-sm font-black text-white">101 rolls</h4>
+              <p class="text-[10px] text-gray-400 font-medium">+3 barriers · one time only</p>
             </div>
           </div>
-          <button class="px-3.5 py-1.5 rounded-xl bg-green-400 text-slate-950 font-black text-xs shadow-md">Claim</button>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>50</span>
+            <span>⭐</span>
+          </button>
+        </div>
+
+        <!-- Item 2: ×2 FIRST PURCHASE | ~~303~~ 606 rolls | 150 ⭐ -->
+        <div class="roll-shop-row relative cursor-pointer" onclick="buyRolls(606, 150)">
+          <span class="absolute -top-2 left-6 bg-pink-600 text-white font-black text-[9px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow">
+            ×2 FIRST PURCHASE
+          </span>
+          <div class="flex items-center gap-3 mt-1">
+            <span class="text-2xl">🎲🎲</span>
+            <div>
+              <h4 class="text-sm font-black text-white">
+                <span class="line-through text-gray-500 text-xs font-semibold mr-1">303</span>606 rolls
+              </h4>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>150</span>
+            <span>⭐</span>
+          </button>
+        </div>
+
+        <!-- Item 3: 1111 rolls | 500 ⭐ -->
+        <div class="roll-shop-row cursor-pointer" onclick="buyRolls(1111, 500)">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🎲🎲🎲</span>
+            <div>
+              <h4 class="text-sm font-black text-white">1111 rolls</h4>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>500</span>
+            <span>⭐</span>
+          </button>
+        </div>
+
+        <!-- Item 4: 2828 rolls | 1,000 ⭐ -->
+        <div class="roll-shop-row cursor-pointer" onclick="buyRolls(2828, 1000)">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🎲🎲🎲🎲</span>
+            <div>
+              <h4 class="text-sm font-black text-white">2828 rolls</h4>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>1,000</span>
+            <span>⭐</span>
+          </button>
+        </div>
+
+        <!-- Item 5: 11110 rolls | 2,500 ⭐ -->
+        <div class="roll-shop-row cursor-pointer" onclick="buyRolls(11110, 2500)">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🎲📦</span>
+            <div>
+              <h4 class="text-sm font-black text-white">11110 rolls</h4>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>2,500</span>
+            <span>⭐</span>
+          </button>
+        </div>
+
+        <!-- Item 6: 62620 rolls | 10,000 ⭐ -->
+        <div class="roll-shop-row cursor-pointer" onclick="buyRolls(62620, 10000)">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📦📦📦</span>
+            <div>
+              <h4 class="text-sm font-black text-white">62620 rolls</h4>
+            </div>
+          </div>
+          <button class="px-4 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-slate-950 font-black text-xs flex items-center gap-1 shadow-md active:scale-95 transition-all">
+            <span>10,000</span>
+            <span>⭐</span>
+          </button>
         </div>
       </div>
     </div>

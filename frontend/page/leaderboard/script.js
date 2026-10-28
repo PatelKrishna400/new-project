@@ -202,7 +202,7 @@ function getOrCreateLeaderboardEvent() {
   const globalEvt = {
     id: `global_season_${seasonNumber}`,
     seasonNumber: seasonNumber,
-    name: `Season ${seasonNumber}: 3-Month Championship (21,500 ⭐ Prize Pool)`,
+    name: `Season ${seasonNumber}: 3-Month Championship`,
     startTime: startTime,
     endTime: endTime,
     durationHours: THREE_MONTHS_HOURS,
@@ -265,15 +265,16 @@ function startEventCountdownTimer() {
     const seasonTag = document.getElementById('podiumSeasonTag');
     const titleDisplay = document.getElementById('eventTitleDisplay');
 
-    if (titleDisplay && evt.name) {
-      titleDisplay.textContent = evt.name;
+    const cleanName = (evt.name || `Season ${evt.seasonNumber || 1}: 3-Month Championship`).replace(/\s*\([^)]*Prize Pool[^)]*\)/i, '');
+    if (titleDisplay) {
+      titleDisplay.textContent = cleanName;
     }
-    if (seasonTag && evt.name) {
+    if (seasonTag) {
       seasonTag.textContent = `3-MONTH GLOBAL SEASON ${evt.seasonNumber || 1}`;
     }
 
     const modalTitle = document.getElementById('modalSeasonTitle');
-    if (modalTitle && evt.name) modalTitle.textContent = evt.name;
+    if (modalTitle) modalTitle.textContent = cleanName;
 
     const now = Date.now();
     const remaining = evt.endTime - now;
@@ -389,7 +390,7 @@ window.restartLeaderboardEvent = function (durationHours = THREE_MONTHS_HOURS, n
 
   const now = Date.now();
   const dur = Number(durationHours) || THREE_MONTHS_HOURS;
-  const title = newTitle || 'Season 1: 3-Month Championship (21,500 ⭐ Prize Pool)';
+  const title = newTitle || 'Season 1: 3-Month Championship';
 
   // 1. Old event task data removed / reset counter to zero
   localStorage.setItem(EVENT_TASKS_KEY, '0');
@@ -986,18 +987,17 @@ function updateSeasonModalData() {
     if (participationStatusIcon) participationStatusIcon.textContent = '✅';
     if (participationStatusText) participationStatusText.textContent = 'PARTICIPATED';
     if (tasksRemainingText) {
-      tasksRemainingText.textContent = '🎉 Qualified! You are an active contender in Season 1 Leaderboard.';
-      tasksRemainingText.style.color = '#34d399';
+      tasksRemainingText.style.display = 'none';
+      tasksRemainingText.textContent = '';
     }
     if (participationActionRow) participationActionRow.style.display = 'none';
   } else {
     if (participationStatusPill) participationStatusPill.className = 'participation-status-pill locked';
     if (participationStatusIcon) participationStatusIcon.textContent = '🔒';
     if (participationStatusText) participationStatusText.textContent = 'NOT PARTICIPATED';
-    const needed = 100 - userTotalTasks;
     if (tasksRemainingText) {
-      tasksRemainingText.textContent = `${needed} more task${needed === 1 ? '' : 's'} needed to participate in leaderboard.`;
-      tasksRemainingText.style.color = '#94a3b8';
+      tasksRemainingText.style.display = 'none';
+      tasksRemainingText.textContent = '';
     }
     if (participationActionRow) participationActionRow.style.display = 'inline-flex';
   }
@@ -1014,14 +1014,8 @@ function updateSeasonModalData() {
   if (adsProgressBar) adsProgressBar.style.width = `${adPct}%`;
 
   if (adsRemainingText) {
-    if (adsWatched >= 100) {
-      adsRemainingText.textContent = '🎉 100 / 100 Ads Quota Completed! You have unlocked rank prize claim eligibility.';
-      adsRemainingText.style.color = '#34d399';
-    } else {
-      const left = 100 - adsWatched;
-      adsRemainingText.textContent = `${left} more ad${left === 1 ? '' : 's'} needed to qualify for season rank reward claim.`;
-      adsRemainingText.style.color = '#94a3b8';
-    }
+    adsRemainingText.style.display = 'none';
+    adsRemainingText.textContent = '';
   }
 
   // Update 6-Hour Cooldown Clock
@@ -1075,33 +1069,17 @@ function updateSeasonModalData() {
       btnClaim.className = 'btn-claim-season-reward locked';
       if (btnClaimText) btnClaimText.textContent = '🔒 Complete 100 Tasks to Qualify';
     }
-  } else if (adsWatched < 100) {
-    // 100 Ads Watch Requirement NOT met!
-    const adsNeeded = 100 - adsWatched;
-    if (claimWarning) {
-      claimWarning.className = 'claim-req-warning';
-      claimWarning.innerHTML = `<span>⚠️</span><span><strong>100 Ads Required to Claim:</strong> You have watched ${adsWatched} / 100 ads. Watch ${adsNeeded} more ad${adsNeeded === 1 ? '' : 's'} to unlock reward claim!</span>`;
-    }
-    if (btnClaim) {
-      btnClaim.disabled = true;
-      btnClaim.className = 'btn-claim-season-reward locked';
-      if (btnClaimText) btnClaimText.textContent = `🔒 Watch 100 Ads to Claim (${adsWatched}/100)`;
-    }
   } else {
-    // 100 Ads Watch Requirement IS satisfied!
     if (claimWarning) {
       claimWarning.className = 'claim-req-warning satisfied';
-      claimWarning.innerHTML = `<span>✅</span><span>100 Ads Quota Complete! Eligible to claim rank reward upon season finish.</span>`;
+      claimWarning.innerHTML = `<span>✅</span><span>Eligible to claim rank reward upon season finish.</span>`;
     }
-
-    if (isFinished) {
-      // Session finished + 100 ads satisfied -> CAN CLAIM!
-      if (btnClaim) {
-        btnClaim.disabled = false;
-        btnClaim.className = 'btn-claim-season-reward active';
-        if (btnClaimText) btnClaimText.textContent = `🎉 Claim Rank #${myRank} Reward (+${rankPrize.toLocaleString()} ⭐)`;
-      }
-    } else {
+    if (btnClaim) {
+      btnClaim.disabled = false;
+      btnClaim.className = 'btn-claim-season-reward active';
+      if (btnClaimText) btnClaimText.textContent = isFinished ? '🏆 Claim Season Reward' : '⏳ Season Active (Claim on Finish)';
+    }
+  } else {
       // Still in active season
       if (btnClaim) {
         btnClaim.disabled = true;
@@ -1210,12 +1188,7 @@ window.handleClaimSeasonRankReward = function () {
     return;
   }
 
-  // ENFORCE 100 ADS WATCHED RULE
-  if (adsWatched < 100) {
-    const left = 100 - adsWatched;
-    alert(`⚠️ 100 Ads Watch Required to Claim!\n\nYou currently have ${adsWatched} / 100 ads watched.\nYou must watch ${left} more ad${left === 1 ? '' : 's'} to unlock your Season Rank Reward claim.`);
-    return;
-  }
+  // 100 Ads rule removed
 
   if (!isFinished) {
     alert('⏳ The season is still actively running!\nRank rewards can be claimed once the season countdown reaches 0 and concludes.');

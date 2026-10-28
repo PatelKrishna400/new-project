@@ -989,3 +989,344 @@ html.app-preloaded .app-loading-overlay {
 .qualification-card {
   display: none !important;
 }
+
+/* ==========================================================================
+   TASK ACTION BUTTONS: OPEN & VERIFY
+   ========================================================================== */
+.btn-claim.btn-task-open {
+  background: linear-gradient(155deg, #0284c7 0%, #0369a1 45%, #075985 100%) !important;
+  border-color: #38bdf8 #0284c7 #0c4a6e #075985 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+}
+
+.btn-claim.btn-task-open:hover {
+  background: linear-gradient(155deg, #38bdf8 0%, #0284c7 45%, #0369a1 100%) !important;
+  box-shadow: 0 6px 14px rgba(56, 189, 248, 0.6) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-claim.btn-task-verify {
+  background: linear-gradient(155deg, #10b981 0%, #059669 45%, #047857 100%) !important;
+  border-color: #6ee7b7 #10b981 #064e3b #047857 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  animation: verifyPulseAnim 1.8s ease-in-out infinite !important;
+}
+
+.btn-claim.btn-task-verify:hover {
+  background: linear-gradient(155deg, #34d399 0%, #10b981 45%, #059669 100%) !important;
+  box-shadow: 0 6px 16px rgba(52, 211, 153, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+@keyframes verifyPulseAnim {
+  0%, 100% {
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.85);
+  }
+}
+
+/* ==========================================================================
+   6-DIGIT CODE TASK VERIFICATION MODAL
+   ========================================================================== */
+.task-verify-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 24, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.task-verify-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.task-verify-modal-box {
+  width: 100%;
+  max-width: 380px;
+  background: linear-gradient(165deg, #091a3e 0%, #050d24 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(56, 189, 248, 0.2);
+  padding: 1.5rem 1.35rem 1.35rem 1.35rem;
+  position: relative;
+  transform: translateY(20px) scale(0.96);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.task-verify-modal-overlay.active .task-verify-modal-box {
+  transform: translateY(0) scale(1);
+}
+
+.verify-modal-close-btn {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.verify-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+}
+
+.verify-modal-header {
+  text-align: center;
+  margin-bottom: 1.15rem;
+}
+
+.verify-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.verify-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.verify-modal-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0 0 0.35rem 0;
+}
+
+.verify-modal-reward-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.reward-highlight {
+  color: #facc15;
+  font-weight: 900;
+  font-size: 0.95rem;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+}
+
+.verify-modal-task-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1.15rem;
+}
+
+.verify-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.verify-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.verify-card-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.verify-card-sub {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 0.1rem;
+}
+
+.btn-verify-reopen-link {
+  padding: 0.32rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-verify-reopen-link:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #ffffff;
+}
+
+.verify-code-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.15rem;
+}
+
+.verify-code-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 0.45rem;
+  align-self: flex-start;
+}
+
+.verify-code-input {
+  width: 100%;
+  max-width: 260px;
+  height: 52px;
+  background: rgba(3, 8, 24, 0.85);
+  border: 2px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  color: #facc15;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.35em;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.verify-code-input:focus {
+  border-color: #facc15;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.verify-code-input.input-error {
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.5) !important;
+  animation: inputShake 0.35s ease;
+}
+
+@keyframes inputShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.verify-code-hint {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 0.4rem;
+  text-align: center;
+}
+
+.verify-error-msg {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #f87171;
+  margin-top: 0.45rem;
+  text-align: center;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 0.35rem 0.65rem;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.verify-modal-btn-row {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.btn-verify-cancel {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-verify-cancel:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.btn-verify-confirm {
+  flex: 1.6;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: linear-gradient(155deg, #eab308 0%, #ca8a04 45%, #854d0e 100%);
+  border: 1.5px solid #fef08a;
+  color: #030818;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.45);
+}
+
+.btn-verify-confirm:hover {
+  background: linear-gradient(155deg, #fde047 0%, #eab308 45%, #a16207 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(250, 204, 21, 0.6);
+}
+

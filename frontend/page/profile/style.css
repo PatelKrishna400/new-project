@@ -171,7 +171,7 @@ body {
 }
 
 .profile-badge-pro {
-  display: inline-block;
+  display: none !important;
   background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
   border: 1px solid rgba(56, 189, 248, 0.3);
@@ -2530,6 +2530,37 @@ body {
   color: #ffffff;
 }
 
+/* User Status Indicators (Green & Red Color Dots) */
+.user-status-dot {
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.user-status-dot.active-dot {
+  background: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.85) !important;
+  animation: pulseGreenDot 2s infinite ease-in-out;
+}
+
+.user-status-dot.inactive-dot {
+  background: #ef4444 !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.85) !important;
+  animation: pulseRedDot 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseGreenDot {
+  0% { transform: scale(1); box-shadow: 0 0 4px #10b981; }
+  50% { transform: scale(1.15); box-shadow: 0 0 10px #34d399; }
+  100% { transform: scale(1); box-shadow: 0 0 4px #10b981; }
+}
+
+@keyframes pulseRedDot {
+  0% { transform: scale(1); box-shadow: 0 0 4px #ef4444; }
+  50% { transform: scale(1.1); box-shadow: 0 0 8px #f87171; }
+  100% { transform: scale(1); box-shadow: 0 0 4px #ef4444; }
+}
+
+
 /* User Metrics */
 .admin-metrics-row {
   display: grid;
@@ -3005,7 +3036,7 @@ body {
 
 /* Username Chip */
 .tg-username-pill {
-  display: inline-flex;
+  display: none !important;
   align-items: center;
   gap: 4px;
   background: rgba(15, 23, 42, 0.7);
