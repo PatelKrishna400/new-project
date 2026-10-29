@@ -82,6 +82,13 @@ function markTaskCompleted(taskId) {
   completed[taskId] = { completedAt: Date.now(), rewardStars: 5 };
   localStorage.setItem(COMPLETED_TASKS_KEY, JSON.stringify(completed));
   localStorage.removeItem('task_opened_' + taskId);
+
+  try {
+    const claims = getStoredClaims();
+    claims[taskId] = Date.now();
+    localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(claims));
+  } catch (e) {}
+
   localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
   try {
     const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
@@ -292,9 +299,17 @@ function renderTasks() {
   const tasks = getStoredTasks();
   const completedTasks = getStoredCompletedTasks();
 
-  // "and fininshed task remove. new add automatically."
-  // Filter out any task that is inactive OR already finished by user
-  const activeTasks = tasks.filter(t => t.active !== false && !completedTasks[t.id]);
+  const claims = getStoredClaims();
+
+  // Once a user finishes a task, remove it from the home page permanently.
+  // Never show it a second time in life!
+  const activeTasks = tasks.filter(t => {
+    if (!t || t.active === false) return false;
+    // Permanent completion check: If completed or claimed by user, remove permanently
+    if (completedTasks && completedTasks[t.id]) return false;
+    if (claims && claims[t.id]) return false;
+    return true;
+  });
 
   if (activeTasks.length === 0) {
     container.innerHTML = `
@@ -307,7 +322,10 @@ function renderTasks() {
     return;
   }
 
-  container.innerHTML = activeTasks.map(task => {
+  // Show first 5 tasks only. When a user finishes one, it is removed and the next task in queue appears automatically!
+  const visibleTasks = activeTasks.slice(0, 5);
+
+  container.innerHTML = visibleTasks.map(task => {
     const opened = isTaskOpened(task.id);
 
     // "first tab on claim to change a open than click open button link open than open button change to verify button"
@@ -512,17 +530,28 @@ const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
 
 function getUniversalGlobalLeaderboardEvent() {
   const now = Date.now();
+
+  try {
+    if (localStorage.getItem('task_leaderboard_event_v1')) {
+      localStorage.removeItem('task_leaderboard_event_v1');
+    }
+  } catch (e) {}
+
   let customEvt = null;
   try {
     const raw = localStorage.getItem('task_game_leaderboard_event');
     if (raw) customEvt = JSON.parse(raw);
   } catch (e) {}
 
+  if (customEvt && customEvt.status === 'finished') {
+    return customEvt;
+  }
+
   if (customEvt && customEvt.isManualOverride && now < customEvt.endTime && customEvt.status === 'active') {
     return customEvt;
   }
 
-  // Universal Global 3-Month Season (Identical for ALL users worldwide: new, old, guest, logged-in)
+  // Universal Global 3-Month Season (Identical for ALL users worldwide)
   const elapsed = Math.max(0, now - GLOBAL_EPOCH_ANCHOR);
   const seasonIndex = Math.floor(elapsed / THREE_MONTHS_MS);
   const seasonNumber = seasonIndex + 1;
@@ -532,19 +561,22 @@ function getUniversalGlobalLeaderboardEvent() {
   const globalEvt = {
     id: `global_season_${seasonNumber}`,
     seasonNumber: seasonNumber,
-    name: `Season ${seasonNumber}: 3-Month Championship (21,500 ⭐ Prize Pool)`,
+    name: `Season ${seasonNumber}: 3-Month Championship`,
     startTime: startTime,
     endTime: endTime,
     durationHours: THREE_MONTHS_HOURS,
-    durationDays: 90,
+    durationDays: THREE_MONTHS_DAYS,
     status: 'active',
     isGlobal: true
   };
 
   // Rollover check: If stored event is from an older season, reset task counters
-  if (customEvt && customEvt.seasonNumber && customEvt.seasonNumber < seasonNumber) {
-    localStorage.setItem('task_game_event_tasks_count', '0');
+  if (customEvt && (
+    (customEvt.seasonNumber && customEvt.seasonNumber < seasonNumber) ||
+    (customEvt.endTime && customEvt.endTime <= now)
+  )) {
     try {
+      localStorage.setItem('task_game_event_tasks_count', '0');
       const rawUsers = localStorage.getItem('task_game_users');
       if (rawUsers) {
         const uList = JSON.parse(rawUsers);
@@ -624,6 +656,11 @@ function recordLeaderboardEventTask(totalTasks) {
   }
 }
 
+function updateLiveTimers() {
+  // Tasks are permanently one-time completion per user ("never show second time in life").
+  // Finished tasks are removed forever and never resurrected.
+}
+
 function initHomePage() {
   updateCoinDisplay();
   renderTasks();
@@ -673,8 +710,28 @@ window.addEventListener('balance:synced', () => {
   updateCoinDisplay();
 });
 
+// Real-Time Cloud Tasks Listener from Firebase Firestore (Global Admin Missions Sync)
+function setupCloudTasksListener() {
+  const listener = (window.Firebase && window.Firebase.listenToCloudTasks) || window.listenToCloudTasks;
+  if (typeof listener === 'function') {
+    listener(() => {
+      renderTasks();
+    });
+  }
+}
+
+window.addEventListener('firebase:ready', () => {
+  setupCloudTasksListener();
+  renderTasks();
+});
+
+if (window.listenToCloudTasks || (window.Firebase && window.Firebase.listenToCloudTasks)) {
+  setupCloudTasksListener();
+}
+
 // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection
 window.renderTasks = renderTasks;
+window.setupCloudTasksListener = setupCloudTasksListener;
 window.getStoredTasks = getStoredTasks;
 window.handleOpenTask = handleOpenTask;
 window.openVerifyModal = openVerifyModal;

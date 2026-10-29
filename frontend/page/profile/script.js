@@ -488,16 +488,142 @@ function handleAdminTaskSearch(val) {
   renderAdminTasksList();
 }
 
+// Switch Task Creation Mode (Single vs Bulk Multiple Tasks)
+function switchAdminTaskMode(mode) {
+  const modeInput = document.getElementById('taskCreationMode');
+  if (modeInput) modeInput.value = mode;
+
+  const btnSingle = document.getElementById('tabModeSingle');
+  const btnBulk = document.getElementById('tabModeBulk');
+  const singleLink = document.getElementById('singleLinkGroup');
+  const bulkLink = document.getElementById('bulkLinksGroup');
+  const singleCode = document.getElementById('singleCodeGroup');
+  const bulkCode = document.getElementById('bulkCodesGroup');
+  const bulkTitleOpt = document.getElementById('bulkTitleOptions');
+  const bulkSummary = document.getElementById('bulkSummaryBox');
+  const titleLabel = document.getElementById('lblTaskTitle');
+  const inputUrl = document.getElementById('taskInputUrl');
+  const inputSecret = document.getElementById('taskInputSecret');
+  const inputBulkUrls = document.getElementById('taskInputBulkUrls');
+
+  if (mode === 'bulk') {
+    if (btnSingle) btnSingle.classList.remove('active');
+    if (btnBulk) btnBulk.classList.add('active');
+    if (singleLink) singleLink.style.display = 'none';
+    if (bulkLink) bulkLink.style.display = 'block';
+    if (singleCode) singleCode.style.display = 'none';
+    if (bulkCode) bulkCode.style.display = 'block';
+    if (bulkTitleOpt) bulkTitleOpt.style.display = 'block';
+    if (bulkSummary) bulkSummary.style.display = 'block';
+    if (titleLabel) titleLabel.textContent = 'Base Task Title for All Missions *';
+    if (inputUrl) inputUrl.required = false;
+    if (inputSecret) inputSecret.required = false;
+    if (inputBulkUrls) inputBulkUrls.required = true;
+    updateBulkTaskCounter();
+  } else {
+    if (btnSingle) btnSingle.classList.add('active');
+    if (btnBulk) btnBulk.classList.remove('active');
+    if (singleLink) singleLink.style.display = 'block';
+    if (bulkLink) bulkLink.style.display = 'none';
+    if (singleCode) singleCode.style.display = 'block';
+    if (bulkCode) bulkCode.style.display = 'none';
+    if (bulkTitleOpt) bulkTitleOpt.style.display = 'none';
+    if (bulkSummary) bulkSummary.style.display = 'none';
+    if (titleLabel) titleLabel.textContent = 'Task Title *';
+    if (inputUrl) inputUrl.required = true;
+    if (inputSecret) inputSecret.required = true;
+    if (inputBulkUrls) inputBulkUrls.required = false;
+    const saveBtn = document.getElementById('btnAdminSaveTask');
+    if (saveBtn) saveBtn.innerHTML = 'Save Mission ✓';
+  }
+}
+window.switchAdminTaskMode = switchAdminTaskMode;
+
+function updateBulkTaskCounter() {
+  const mode = document.getElementById('taskCreationMode')?.value || 'single';
+  if (mode !== 'bulk') return;
+
+  const rawUrls = document.getElementById('taskInputBulkUrls')?.value || '';
+  const urls = rawUrls.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+
+  const rawCodes = document.getElementById('taskInputBulkCodes')?.value || '';
+  const codes = rawCodes.split(/\r?\n/).map(c => c.trim()).filter(c => c.length > 0);
+
+  const linksBadge = document.getElementById('bulkLinksCountBadge');
+  if (linksBadge) linksBadge.textContent = `${urls.length} Link${urls.length === 1 ? '' : 's'}`;
+
+  const codesBadge = document.getElementById('bulkCodesCountBadge');
+  if (codesBadge) codesBadge.textContent = `${codes.length} Code${codes.length === 1 ? '' : 's'}`;
+
+  const sumTitle = document.getElementById('bulkSummaryTitle');
+  if (sumTitle) {
+    sumTitle.textContent = urls.length > 0 
+      ? `Ready to create ${urls.length} mission${urls.length === 1 ? '' : 's'} at once!` 
+      : 'Ready to create 0 missions';
+  }
+
+  const sumDetails = document.getElementById('bulkSummaryDetails');
+  if (sumDetails) {
+    if (urls.length === 0) {
+      sumDetails.textContent = 'Paste links (one per line) and matching codes above to batch create tasks in one click.';
+    } else if (codes.length < urls.length) {
+      sumDetails.textContent = `Notice: ${urls.length - codes.length} code(s) missing — random 6-digit codes will be auto-generated for missing ones upon saving!`;
+    } else {
+      sumDetails.textContent = `Each task will be created with its corresponding link and 6-digit verification code (+5 ⭐ reward, timer wait).`;
+    }
+  }
+
+  const saveBtn = document.getElementById('btnAdminSaveTask');
+  if (saveBtn) {
+    saveBtn.innerHTML = urls.length > 1 ? `Save ${urls.length} Missions ✓` : 'Save Mission ✓';
+  }
+}
+window.updateBulkTaskCounter = updateBulkTaskCounter;
+
+function generateRandomSingleCode() {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const input = document.getElementById('taskInputSecret');
+  if (input) input.value = code;
+  return code;
+}
+window.generateRandomSingleCode = generateRandomSingleCode;
+
+function autoGenerateAllBulkCodes() {
+  const rawUrls = document.getElementById('taskInputBulkUrls')?.value || '';
+  const urls = rawUrls.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+  const count = Math.max(urls.length, 10);
+  const generated = [];
+  for (let i = 0; i < count; i++) {
+    generated.push(Math.floor(100000 + Math.random() * 900000).toString());
+  }
+  const codesArea = document.getElementById('taskInputBulkCodes');
+  if (codesArea) {
+    codesArea.value = generated.join('\n');
+    updateBulkTaskCounter();
+    if (typeof showToast === 'function') {
+      showToast(`🎲 Generated ${count} unique 6-digit codes!`);
+    }
+  }
+}
+window.autoGenerateAllBulkCodes = autoGenerateAllBulkCodes;
+
 function openCreateTaskModal() {
   const modal = document.getElementById('adminTaskModalOverlay');
   const heading = document.getElementById('adminTaskModalHeading');
   const form = document.getElementById('adminTaskModalForm');
+  const tabs = document.getElementById('taskModalModeTabs');
   if (heading) heading.textContent = 'Create New Task Mission';
+  if (tabs) tabs.style.display = 'flex';
   if (form) form.reset();
   const idField = document.getElementById('taskEditId');
   if (idField) idField.value = '';
   const secretField = document.getElementById('taskInputSecret');
   if (secretField) secretField.value = '';
+  const bulkUrls = document.getElementById('taskInputBulkUrls');
+  if (bulkUrls) bulkUrls.value = '';
+  const bulkCodes = document.getElementById('taskInputBulkCodes');
+  if (bulkCodes) bulkCodes.value = '';
+  switchAdminTaskMode('single');
   if (modal) modal.style.display = 'flex';
 }
 
@@ -507,7 +633,11 @@ function openEditTaskModal(taskId) {
 
   const modal = document.getElementById('adminTaskModalOverlay');
   const heading = document.getElementById('adminTaskModalHeading');
+  const tabs = document.getElementById('taskModalModeTabs');
   if (heading) heading.textContent = 'Edit Task Mission';
+  if (tabs) tabs.style.display = 'none';
+
+  switchAdminTaskMode('single');
 
   const idField = document.getElementById('taskEditId');
   if (idField) idField.value = task.id;
@@ -516,7 +646,7 @@ function openEditTaskModal(taskId) {
   const urlField = document.getElementById('taskInputUrl');
   if (urlField) urlField.value = task.url || task.link || '';
   const timerField = document.getElementById('taskInputTimer');
-  if (timerField) timerField.value = task.timer || 10;
+  if (timerField) timerField.value = task.timer || task.timerSeconds || 10;
   const secretField = document.getElementById('taskInputSecret');
   if (secretField) secretField.value = task.verificationCode || task.code || task.secretCode || '';
 
@@ -535,62 +665,139 @@ function handleTaskModalBackdropClick(e) {
 }
 
 function generateRandomTaskCode() {
-  // Random generation removed per user request: admin sets verification code manually
+  return generateRandomSingleCode();
 }
 
 function handleSaveAdminTaskForm(e) {
   e.preventDefault();
   const editId = document.getElementById('taskEditId')?.value;
-  const title = document.getElementById('taskInputTitle')?.value.trim();
-  const url = document.getElementById('taskInputUrl')?.value.trim();
+  const mode = document.getElementById('taskCreationMode')?.value || 'single';
+  const baseTitle = document.getElementById('taskInputTitle')?.value.trim();
   const timer = parseInt(document.getElementById('taskInputTimer')?.value || '10', 10);
-  const secretCode = document.getElementById('taskInputSecret')?.value.trim();
 
-  if (!title || !url) {
-    showToast('Please fill in mission title and URL.');
+  if (!baseTitle) {
+    showToast('Please enter a mission title.');
     return;
   }
 
+  // 1. EDIT EXISTING SINGLE TASK
   if (editId) {
+    const url = document.getElementById('taskInputUrl')?.value.trim();
+    const secretCode = document.getElementById('taskInputSecret')?.value.trim();
+    if (!url) {
+      showToast('Please fill in mission URL.');
+      return;
+    }
     const idx = tasksData.findIndex(t => t.id === editId);
     if (idx !== -1) {
       tasksData[idx] = {
         ...tasksData[idx],
-        title,
+        title: baseTitle,
         url,
         link: url,
         stars: 5,
         rewardStars: 5,
         reward: 5,
         timer,
+        timerSeconds: timer,
         secretCode,
         verificationCode: secretCode,
         code: secretCode,
         updatedAt: Date.now()
       };
     }
-  } else {
-    const newTask = {
-      id: `task_${Date.now()}`,
-      title,
-      url,
-      link: url,
-      stars: 5,
-      rewardStars: 5,
-      reward: 5,
-      timer,
-      secretCode,
-      verificationCode: secretCode,
-      code: secretCode,
-      active: true,
-      createdAt: Date.now()
-    };
-    tasksData.unshift(newTask);
+    saveTasksAndSync();
+    closeAdminTaskModal();
+    showToast('Mission updated! ✓');
+    return;
   }
+
+  // 2. BULK / MULTIPLE TASKS CREATION MODE (e.g. 10 Links + 10 Codes)
+  if (mode === 'bulk') {
+    const rawUrls = document.getElementById('taskInputBulkUrls')?.value || '';
+    const urls = rawUrls.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    if (urls.length === 0) {
+      showToast('Please paste at least one target URL in the links box.');
+      return;
+    }
+
+    const rawCodes = document.getElementById('taskInputBulkCodes')?.value || '';
+    const codes = rawCodes.split(/\r?\n/).map(c => c.trim()).filter(c => c.length > 0);
+    const autoNumber = document.getElementById('taskAutoNumberCheckbox')?.checked !== false;
+
+    const now = Date.now();
+    for (let i = 0; i < urls.length; i++) {
+      let url = urls[i];
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      const code = (codes[i] && codes[i].length >= 4) ? codes[i] : Math.floor(100000 + Math.random() * 900000).toString();
+      const taskTitle = (urls.length > 1 && autoNumber) ? `${baseTitle} #${i + 1}` : baseTitle;
+      const taskId = `task_${now}_${i}_${Math.random().toString(36).substring(2, 6)}`;
+
+      const newTask = {
+        id: taskId,
+        title: taskTitle,
+        url: url,
+        link: url,
+        stars: 5,
+        rewardStars: 5,
+        reward: 5,
+        timer: timer,
+        timerSeconds: timer,
+        secretCode: code,
+        verificationCode: code,
+        code: code,
+        active: true,
+        createdAt: now + i,
+        updatedAt: now
+      };
+      tasksData.unshift(newTask);
+    }
+
+    saveTasksAndSync();
+    closeAdminTaskModal();
+    showToast(`🎉 ${urls.length} New Missions created & published live! 🚀`);
+    if (typeof logAdminAction === 'function') {
+      logAdminAction(`Admin created ${urls.length} missions in bulk under "${baseTitle}"`);
+    }
+    return;
+  }
+
+  // 3. SINGLE TASK CREATION MODE
+  const url = document.getElementById('taskInputUrl')?.value.trim();
+  let secretCode = document.getElementById('taskInputSecret')?.value.trim();
+  if (!url) {
+    showToast('Please fill in mission URL.');
+    return;
+  }
+  if (!secretCode || secretCode.length < 4) {
+    secretCode = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  const newTask = {
+    id: `task_${Date.now()}`,
+    title: baseTitle,
+    url,
+    link: url,
+    stars: 5,
+    rewardStars: 5,
+    reward: 5,
+    timer,
+    timerSeconds: timer,
+    secretCode,
+    verificationCode: secretCode,
+    code: secretCode,
+    active: true,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  tasksData.unshift(newTask);
 
   saveTasksAndSync();
   closeAdminTaskModal();
-  showToast(editId ? 'Mission updated! ✓' : 'New Mission published live! ✓');
+  showToast('New Mission published live! 🚀');
+  if (typeof logAdminAction === 'function') {
+    logAdminAction(`Admin created mission "${baseTitle}" (Code: ${secretCode})`);
+  }
 }
 
 
@@ -1027,26 +1234,66 @@ function saveWithdrawalsAndSync() {
 function renderAdminEventSection() {
   startAdminEventTimer();
   renderAdminEventContenders();
+  renderProfileSessionHistory();
 }
 
+const SESSIONS_STORAGE_KEY = 'task_game_leaderboard_sessions';
+const UNIFIED_EVENT_KEY = 'task_game_leaderboard_event';
+
 function getLeaderboardEventState() {
-  const EVENT_STORAGE_KEY = 'task_leaderboard_event_v1';
+  const now = Date.now();
+
+  // Purge legacy key
+  try {
+    if (localStorage.getItem('task_leaderboard_event_v1')) {
+      localStorage.removeItem('task_leaderboard_event_v1');
+    }
+  } catch (e) {}
+
   let data = null;
   try {
-    const raw = localStorage.getItem(EVENT_STORAGE_KEY);
+    const raw = localStorage.getItem(UNIFIED_EVENT_KEY);
     if (raw) data = JSON.parse(raw);
   } catch (e) {}
 
-  if (!data || !data.endTime) {
-    const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
-    data = {
-      seasonNumber: 1,
-      startTime: Date.now(),
-      endTime: Date.now() + THREE_MONTHS_MS,
-      status: 'active'
-    };
-    localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(data));
+  // If an event has finished, respect it
+  if (data && data.status === 'finished') {
+    return data;
   }
+
+  // If active manual override is still running
+  if (data && data.isManualOverride && now < data.endTime && data.status === 'active') {
+    return data;
+  }
+
+  // Deterministic Universal Global 3-Month Season (Identical to Rank and Admin Event pages)
+  const GLOBAL_EPOCH_ANCHOR = Date.UTC(2026, 9, 1, 0, 0, 0); // Oct 1, 2026 UTC
+  const THREE_MONTHS_HOURS = 2160;
+  const THREE_MONTHS_DAYS = 90;
+  const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
+
+  const elapsed = Math.max(0, now - GLOBAL_EPOCH_ANCHOR);
+  const seasonIndex = Math.floor(elapsed / THREE_MONTHS_MS);
+  const seasonNumber = seasonIndex + 1;
+  const startTime = GLOBAL_EPOCH_ANCHOR + (seasonIndex * THREE_MONTHS_MS);
+  const endTime = startTime + THREE_MONTHS_MS;
+
+  data = {
+    id: `global_season_${seasonNumber}`,
+    seasonNumber: seasonNumber,
+    name: `Season ${seasonNumber}: 3-Month Championship`,
+    startTime: startTime,
+    endTime: endTime,
+    durationHours: THREE_MONTHS_HOURS,
+    durationDays: THREE_MONTHS_DAYS,
+    status: 'active',
+    isGlobal: true
+  };
+
+  try {
+    localStorage.setItem(UNIFIED_EVENT_KEY, JSON.stringify(data));
+  } catch(e) {}
+
   return data;
 }
 
@@ -1055,12 +1302,14 @@ function startAdminEventTimer() {
 
   function tick() {
     const evt = getLeaderboardEventState();
-    const diff = Math.max(0, evt.endTime - Date.now());
+    const now = Date.now();
+    const diff = Math.max(0, (evt.endTime || 0) - now);
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    const totalSec = Math.floor(diff / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
 
     const elDays = document.getElementById('adminTimerDays');
     const elHours = document.getElementById('adminTimerHours');
@@ -1071,6 +1320,11 @@ function startAdminEventTimer() {
     if (elHours) elHours.textContent = String(hours).padStart(2, '0');
     if (elMins) elMins.textContent = String(mins).padStart(2, '0');
     if (elSecs) elSecs.textContent = String(secs).padStart(2, '0');
+
+    const elBadge = document.getElementById('profileEventSeasonBadge');
+    if (elBadge && evt.name) {
+      elBadge.textContent = `🏆 ${evt.name.toUpperCase()}`;
+    }
   }
 
   tick();
@@ -1104,16 +1358,37 @@ function renderAdminEventContenders() {
 
 function adminResetLeaderboardSeason() {
   if (!confirm('Restart the 3-Month Global Championship Event Season?')) return;
-  const THREE_MONTHS_MS = 90 * 24 * 60 * 60 * 1000;
+  const THREE_MONTHS_HOURS = 2160;
+  const THREE_MONTHS_DAYS = 90;
+  const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
   const current = getLeaderboardEventState();
+  const nextSeasonNum = (current.seasonNumber || 1) + 1;
+  const now = Date.now();
   const nextSeason = {
-    seasonNumber: (current.seasonNumber || 1) + 1,
-    startTime: Date.now(),
-    endTime: Date.now() + THREE_MONTHS_MS,
-    status: 'active'
+    id: `global_season_${nextSeasonNum}`,
+    seasonNumber: nextSeasonNum,
+    name: `Season ${nextSeasonNum}: 3-Month Championship`,
+    startTime: now,
+    endTime: now + THREE_MONTHS_MS,
+    durationHours: THREE_MONTHS_HOURS,
+    durationDays: THREE_MONTHS_DAYS,
+    status: 'active',
+    isGlobal: true,
+    isManualOverride: true
   };
-  localStorage.setItem('task_leaderboard_event_v1', JSON.stringify(nextSeason));
-  localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+
+  localStorage.setItem(UNIFIED_EVENT_KEY, JSON.stringify(nextSeason));
+  localStorage.removeItem('task_leaderboard_event_v1');
+  localStorage.setItem(SYNC_FLAG_KEY, now.toString());
+
+  try {
+    if (window.Firebase && typeof window.Firebase.saveGlobalLeaderboardEventToCloud === 'function') {
+      window.Firebase.saveGlobalLeaderboardEventToCloud(nextSeason);
+    }
+    const bc = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    bc.postMessage({ type: 'EVENT_RESTART', event: nextSeason, timestamp: now });
+    bc.close();
+  } catch(e) {}
 
   // Reset event tasks for users
   usersData.forEach(u => {
@@ -3518,6 +3793,14 @@ function updateProfileOverviewStats() {
   if (adsEl) adsEl.textContent = '1';
 }
 
+window.addEventListener('balance:changed', () => {
+  updateAdminLiveDisplays();
+});
+
+window.addEventListener('balance:synced', () => {
+  updateAdminLiveDisplays();
+});
+
 // Cross-tab and sync channel listeners
 window.addEventListener('storage', (e) => {
   if (e.key === 'task_game_coins' || e.key === 'task_game_stars') {
@@ -4060,3 +4343,191 @@ window.handlePushBannerClick = handlePushBannerClick;
 
 
 
+
+
+// -----------------------------------------------------------------------------
+// SESSION-WISE LEADERBOARD DATA STORE & ARCHIVE (PROFILE ADMIN)
+// -----------------------------------------------------------------------------
+
+function getProfileRankStars(rank) {
+  if (rank === 1) return 10000;
+  if (rank === 2) return 5000;
+  if (rank >= 3 && rank <= 5) return 1000;
+  if (rank >= 6 && rank <= 10) return 500;
+  if (rank >= 11 && rank <= 20) return 100;
+  return 0;
+}
+
+function getStoredProfileSessions() {
+  try {
+    const raw = localStorage.getItem(SESSIONS_STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function renderProfileSessionHistory(filterId = 'all') {
+  const container = document.getElementById('profileSessionHistoryContainer');
+  if (!container) return;
+
+  const sessions = getStoredProfileSessions();
+
+  // Populate filter dropdown
+  const filterSelect = document.getElementById('profileSessionFilterSelect');
+  if (filterSelect) {
+    const cur = filterSelect.value || 'all';
+    filterSelect.innerHTML = '<option value="all">All Sessions (' + sessions.length + ')</option>' +
+      sessions.map(s => `<option value="${escapeHtml(s.id)}" ${cur === s.id ? 'selected' : ''}>${escapeHtml(s.name || ('Session ' + s.sessionNumber))}</option>`).join('');
+  }
+
+  let list = [...sessions];
+  if (filterId !== 'all') {
+    list = list.filter(s => s.id === filterId);
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1.25rem 0.5rem; background: rgba(6, 14, 36, 0.6); border: 1px dashed rgba(56, 189, 248, 0.25); border-radius: 10px; color: #94a3b8; font-size: 0.75rem;">
+        No historical sessions archived yet. Click "Archive Current Session" above to store session rankings.
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(session => {
+    const standings = session.standings || [];
+    const topWinner = session.topWinner || standings[0];
+    const sDate = session.startTime ? new Date(session.startTime).toLocaleDateString() : 'N/A';
+    const eDate = session.endTime ? new Date(session.endTime).toLocaleDateString() : 'N/A';
+
+    return `
+      <div style="background: rgba(6, 14, 36, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; margin-bottom: 0.75rem; padding: 0.75rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <div style="font-size: 0.82rem; font-weight: 800; color: #ffffff;">${escapeHtml(session.name || ('Session ' + session.sessionNumber))}</div>
+          <span style="font-size: 0.65rem; padding: 2px 6px; border-radius: 8px; background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 800;">Archived</span>
+        </div>
+        <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 0.5rem;">
+          ${sDate} - ${eDate} • ${session.totalContenders || standings.length} Contenders • ${Number(session.totalTasksCompleted || 0).toLocaleString()} Tasks
+        </div>
+        ${topWinner ? `
+        <div style="background: rgba(250, 204, 21, 0.1); border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; color: #fef08a; font-weight: 800; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+          <span>🥇 Winner: ${escapeHtml(topWinner.name)} (${topWinner.eventTasks || 0} Tasks)</span>
+          <span style="color: #facc15;">+${Number(topWinner.starReward || 10000).toLocaleString()} ⭐</span>
+        </div>` : ''}
+        <div style="max-height: 140px; overflow-y: auto;">
+          ${standings.map(st => `
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <span style="color: #ffffff;"><b style="color: #38bdf8;">#${st.rank}</b> ${escapeHtml(st.name)}</span>
+              <span style="color: #facc15; font-weight: 700;">${st.eventTasks || 0} Tasks (+ ${Number(st.starReward || 0).toLocaleString()} ⭐)</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function filterProfileSessionHistory(sessionId) {
+  renderProfileSessionHistory(sessionId);
+}
+
+function adminArchiveProfileSession() {
+  const evt = getLeaderboardEventState();
+  const qualified = usersData
+    .filter(u => Number(u.totalTasks || 0) >= 100)
+    .sort((a, b) => (Number(b.eventTasks || 0)) - (Number(a.eventTasks || 0)));
+
+  const sessionNum = evt.seasonNumber || 1;
+  const sessionName = evt.name || `Season ${sessionNum}: 3-Month Championship`;
+
+  if (!confirm(`Conclude & Archive "${sessionName}"?\n\n• Captures all ${qualified.length} qualified contenders and saves full rankings to the session-wise store.\n• Event tasks counter will reset to 0 for Season ${sessionNum + 1}.\n• Ready to proceed?`)) {
+    return;
+  }
+
+  const now = Date.now();
+  const standings = qualified.map((u, idx) => {
+    const rank = idx + 1;
+    const starReward = getProfileRankStars(rank);
+    return {
+      rank,
+      id: u.id || `usr_${idx}`,
+      name: u.name || 'Anonymous',
+      avatar: u.avatar || '⚡',
+      eventTasks: Number(u.eventTasks || 0),
+      totalTasks: Number(u.totalTasks || 0),
+      starReward
+    };
+  });
+
+  const totalTasks = standings.reduce((sum, s) => sum + s.eventTasks, 0);
+  const totalStars = standings.reduce((sum, s) => sum + s.starReward, 0);
+
+  const archivedSession = {
+    id: `session_${sessionNum}_${now}`,
+    sessionNumber: sessionNum,
+    name: sessionName,
+    startTime: evt.startTime || (now - (90 * 24 * 60 * 60 * 1000)),
+    endTime: now,
+    archivedAt: now,
+    status: 'concluded',
+    totalContenders: standings.length,
+    totalTasksCompleted: totalTasks,
+    totalStarsAwarded: totalStars,
+    topWinner: standings[0] || null,
+    standings
+  };
+
+  const sessions = getStoredProfileSessions();
+  sessions.unshift(archivedSession);
+
+  try {
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+    if (window.Firebase && typeof window.Firebase.saveLeaderboardSessionsToCloud === 'function') {
+      window.Firebase.saveLeaderboardSessionsToCloud(sessions);
+    }
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'SESSIONS_UPDATED', timestamp: now });
+    bc.close();
+  } catch(e) {}
+
+  // Reset users' eventTasks
+  usersData.forEach(u => { u.eventTasks = 0; });
+  saveUsersAndSync();
+
+  // Advance season
+  const THREE_MONTHS_HOURS = 2160;
+  const THREE_MONTHS_DAYS = 90;
+  const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
+  const nextSeasonNum = sessionNum + 1;
+  const nextEvt = {
+    id: `global_season_${nextSeasonNum}`,
+    seasonNumber: nextSeasonNum,
+    name: `Season ${nextSeasonNum}: 3-Month Championship`,
+    startTime: now,
+    endTime: now + THREE_MONTHS_MS,
+    durationHours: THREE_MONTHS_HOURS,
+    durationDays: THREE_MONTHS_DAYS,
+    status: 'active',
+    isGlobal: true,
+    isManualOverride: true
+  };
+  localStorage.setItem(UNIFIED_EVENT_KEY, JSON.stringify(nextEvt));
+  localStorage.removeItem('task_leaderboard_event_v1');
+  localStorage.setItem(SYNC_FLAG_KEY, now.toString());
+
+  try {
+    if (window.Firebase && typeof window.Firebase.saveGlobalLeaderboardEventToCloud === 'function') {
+      window.Firebase.saveGlobalLeaderboardEventToCloud(nextEvt);
+    }
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'EVENT_RESTART', event: nextEvt, timestamp: now });
+    bc.close();
+  } catch(e) {}
+
+  renderAdminEventSection();
+  showToast(`🏆 ${sessionName} archived! Season ${nextSeasonNum} is now live.`);
+}
+
+window.adminArchiveProfileSession = adminArchiveProfileSession;
+window.filterProfileSessionHistory = filterProfileSessionHistory;
+window.renderProfileSessionHistory = renderProfileSessionHistory;

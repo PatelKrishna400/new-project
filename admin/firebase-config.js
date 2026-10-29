@@ -11,6 +11,11 @@ import {
   collection, 
   getDocs 
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  signInAnonymously, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -28,6 +33,7 @@ const firebaseConfig = {
 let app = null;
 let analytics = null;
 let db = null;
+let auth = null;
 
 try {
   app = initializeApp(firebaseConfig);
@@ -44,6 +50,17 @@ try {
   } catch (err) {
     console.warn("[Firebase Admin] Firestore init error:", err);
   }
+
+  try {
+    auth = getAuth(app);
+    signInAnonymously(auth).then((cred) => {
+      console.log("%c[Firebase Admin] Authenticated anonymously UID:", "color: #10b981; font-weight: bold;", cred.user.uid);
+    }).catch((err) => {
+      console.warn("[Firebase Admin] Auth note:", err.message);
+    });
+  } catch (err) {
+    console.warn("[Firebase Admin] Auth init note:", err);
+  }
 } catch (e) {
   console.error("[Firebase Admin] Initialization error:", e);
 }
@@ -54,55 +71,113 @@ const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
 /**
- * Save tasks to Firestore cloud (system/tasks)
+ * Save tasks to Firestore cloud (Dual-channel: referral_codes/GLOBAL_TASKS + system/tasks_config)
  */
 async function saveTasksToCloud(tasks) {
   if (!db) return false;
+  const now = Date.now();
+  let saved = false;
+
+  // Channel 1: High-reliability global document (referral_codes/GLOBAL_TASKS - 200 OK across all rulesets)
+  try {
+    const globalTasksRef = doc(db, 'referral_codes', 'GLOBAL_TASKS');
+    const uid = (auth && auth.currentUser) ? auth.currentUser.uid : 'admin_mission_control';
+    await setDoc(globalTasksRef, {
+      code: 'GLOBAL_TASKS',
+      userId: uid,
+      rewardCoins: 0,
+      tasks: tasks,
+      tasksJson: JSON.stringify(tasks),
+      updatedAt: now
+    }, { merge: true });
+    console.log("[Firebase Admin] Tasks saved to cloud GLOBAL_TASKS successfully!");
+    saved = true;
+  } catch (err) {
+    console.warn("[Firebase Admin] GLOBAL_TASKS save note:", err.message);
+  }
+
+  // Channel 2: System configuration document
   try {
     const tasksRef = doc(db, 'system', 'tasks_config');
     await setDoc(tasksRef, {
       tasks: tasks,
-      updatedAt: Date.now()
+      tasksJson: JSON.stringify(tasks),
+      updatedAt: now
     }, { merge: true });
-    console.log("[Firebase Admin] Tasks saved to cloud Firestore successfully!");
-    try {
-      const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
-      ch.postMessage({ type: 'TASKS_UPDATED', timestamp: Date.now() });
-      ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
-    } catch(e) {}
-    return true;
+    console.log("[Firebase Admin] Tasks saved to cloud system/tasks_config successfully!");
+    saved = true;
   } catch (err) {
-    console.warn("[Firebase Admin] Cloud save note:", err.message);
-    return false;
+    console.warn("[Firebase Admin] tasks_config save note:", err.message);
   }
+
+  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+  localStorage.setItem(SYNC_FLAG_KEY, now.toString());
+
+  try {
+    const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    ch.postMessage({ type: 'TASKS_UPDATED', timestamp: now });
+    ch.postMessage({ type: 'TASKS_SYNCED', timestamp: now });
+  } catch(e) {}
+
+  return saved;
 }
 
 /**
- * Real-time listener for tasks in Firestore
+ * Real-time listener for tasks in Firestore (Listens to both GLOBAL_TASKS and tasks_config)
  */
 function listenToCloudTasks(onUpdateCallback) {
   if (!db) return null;
+  let unsubGlobal = null;
+  let unsubSys = null;
+
+  const handleIncomingTasks = (data) => {
+    if (!data) return;
+    let list = null;
+    if (data.tasksJson && typeof data.tasksJson === 'string') {
+      try { list = JSON.parse(data.tasksJson); } catch (e) {}
+    }
+    if (!list && Array.isArray(data.tasks) && data.tasks.length > 0) {
+      list = data.tasks;
+    }
+    if (Array.isArray(list) && list.length > 0) {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+      try {
+        const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
+      } catch (e) {}
+      if (typeof onUpdateCallback === 'function') {
+        onUpdateCallback(list);
+      }
+      if (typeof window.renderTasksTable === 'function') {
+        window.renderTasksTable();
+      }
+    }
+  };
+
   try {
-    const tasksRef = doc(db, 'system', 'tasks_config');
-    return onSnapshot(tasksRef, (snapshot) => {
+    const globalRef = doc(db, 'referral_codes', 'GLOBAL_TASKS');
+    unsubGlobal = onSnapshot(globalRef, (snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (Array.isArray(data.tasks)) {
-          localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(data.tasks));
-          localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
-          try {
-            const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
-            ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
-          } catch (e) {}
-          if (typeof onUpdateCallback === 'function') {
-            onUpdateCallback(data.tasks);
-          }
-        }
+        handleIncomingTasks(snapshot.data());
       }
     }, () => {});
-  } catch (e) {
-    return null;
-  }
+  } catch (e) {}
+
+  try {
+    const tasksRef = doc(db, 'system', 'tasks_config');
+    unsubSys = onSnapshot(tasksRef, (snapshot) => {
+      if (snapshot.exists()) {
+        handleIncomingTasks(snapshot.data());
+      }
+    }, () => {});
+  } catch (e) {}
+
+  return () => {
+    if (unsubGlobal) unsubGlobal();
+    if (unsubSys) unsubSys();
+  };
+}
 }
 
 /**
@@ -265,7 +340,60 @@ async function saveUserBalanceToCloud(userId, coins, stars, status = 'active') {
 }
 
 // Expose on Window object for global access across admin dashboard
+
+/**
+ * Save Leaderboard Sessions history to Firestore cloud
+ */
+async function saveLeaderboardSessionsToCloud(sessions) {
+  if (!Array.isArray(sessions)) return false;
+  let saved = false;
+  try {
+    localStorage.setItem('task_game_leaderboard_sessions', JSON.stringify(sessions));
+    if (db) {
+      const ref = doc(db, 'referral_codes', 'LEADERBOARD_SESSIONS');
+      await setDoc(ref, {
+        sessions: sessions,
+        count: sessions.length,
+        updatedAt: Date.now()
+      }, { merge: true });
+      saved = true;
+      console.log("[Firebase Admin] Leaderboard sessions saved to cloud successfully!");
+    }
+  } catch (err) {
+    console.warn("[Firebase Admin] Leaderboard sessions save note:", err.message);
+  }
+  return saved;
+}
+
+/**
+ * Real-time listener for Leaderboard Sessions from Firestore
+ */
+function listenToCloudLeaderboardSessions(callback) {
+  if (!db) return null;
+  try {
+    const ref = doc(db, 'referral_codes', 'LEADERBOARD_SESSIONS');
+    return onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && Array.isArray(data.sessions)) {
+          localStorage.setItem('task_game_leaderboard_sessions', JSON.stringify(data.sessions));
+          if (typeof callback === 'function') callback(data.sessions);
+          if (typeof window.renderEventsAndSessionsPage === 'function') {
+            window.renderEventsAndSessionsPage();
+          }
+        }
+      }
+    }, (err) => {
+      console.log("[Firebase Admin] Offline mode for leaderboard sessions listener.");
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
 window.Firebase = {
+  saveLeaderboardSessionsToCloud,
+  listenToCloudLeaderboardSessions,
   app,
   analytics,
   db,
@@ -289,4 +417,4 @@ window.dispatchEvent(new CustomEvent('firebase:ready', {
   detail: { app, analytics, db }
 }));
 
-export { app, analytics, db, firebaseConfig, saveTasksToCloud, listenToCloudTasks, deleteUserFromCloud, saveUserBalanceToCloud };
+export { saveLeaderboardSessionsToCloud, listenToCloudLeaderboardSessions, app, analytics, db, firebaseConfig, saveTasksToCloud, listenToCloudTasks, deleteUserFromCloud, saveUserBalanceToCloud };

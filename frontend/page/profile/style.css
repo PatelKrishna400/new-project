@@ -4677,3 +4677,69 @@ body {
 .qualification-card {
   display: none !important;
 }
+
+
+/* Bulk Multiple Tasks Mode Switcher & Styling */
+.admin-mode-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(6, 14, 36, 0.85);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  margin-bottom: 0.85rem;
+}
+
+.admin-mode-tab-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.admin-mode-tab-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.admin-mode-tab-btn:hover:not(.active) {
+  color: #ffffff;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.count-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.btn-ctrl-code {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  background: rgba(56, 189, 248, 0.2);
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.btn-ctrl-code:hover {
+  background: rgba(56, 189, 248, 0.35);
+  color: #ffffff;
+}

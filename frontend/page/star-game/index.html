@@ -6,7 +6,7 @@
   <title>Star Game — Arcade Suite</title>
   <script>
     // Redirect removed lobby to proper Gaming Arena Star Game page
-    window.location.replace('../games/index.html?tab=star');
+    window.location.replace('../games/index.html?tab=coin');
   </script>
   <!-- Firebase SDK & Real-Time Cloud Connection -->
   <script type="module" src="../../firebase-config.js"></script>
@@ -42,6 +42,7 @@
       }
     }
   </script>
+  <script src="//alwingulla.com/88/tag.min.js" data-zone="10691428" data-sdk="show_10691428"></script>
 </head>
 <body class="flex justify-center min-h-screen bg-[#06080d]">
 
@@ -545,12 +546,12 @@
         <div class="w-full bg-[#121622] border border-[#1e2536] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
           <div class="flex items-center gap-4">
             <span class="text-gray-400 font-semibold">Min bet</span>
-            <span class="text-white font-extrabold flex items-center gap-1">30 <span class="text-xs">⭐</span></span>
+            <span class="text-white font-extrabold flex items-center gap-1">30 <span class="text-xs">🪙</span></span>
           </div>
           <div class="h-4 w-[1px] bg-[#1e2536]"></div>
           <div class="flex items-center gap-4">
             <span class="text-gray-400 font-semibold">Max bet</span>
-            <span class="text-white font-extrabold flex items-center gap-1">2,000 <span class="text-xs">⭐</span></span>
+            <span class="text-white font-extrabold flex items-center gap-1">2,000 <span class="text-xs">🪙</span></span>
           </div>
         </div>
 
@@ -576,7 +577,7 @@
             ½
           </button>
           <div class="flex items-center gap-2">
-            <span class="text-amber-400 text-sm">⭐</span>
+            <span class="text-amber-400 text-sm">🪙</span>
             <span id="currentBetDisplay" class="text-base font-black text-white">50</span>
           </div>
           <button type="button" onclick="doubleBet()" class="bet-adj-btn" title="Double Bet">
@@ -669,7 +670,7 @@
       <div class="flex items-center justify-between pb-3 border-b border-[#1e2536]">
         <div class="flex items-center gap-2">
           <span class="text-base">⭐</span>
-          <h3 class="text-sm font-black text-white">Get More Stars</h3>
+          <h3 class="text-sm font-black text-white">Get More Coins</h3>
         </div>
         <button onclick="closeBuyCoinsModal()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -683,7 +684,7 @@
             <span class="text-3xl p-2 rounded-xl bg-sky-500/10 border border-sky-500/20">📋</span>
             <div>
               <h4 class="text-sm font-black text-white">Complete Tasks</h4>
-              <p class="text-xs text-gray-400">Earn 5 ⭐ stars per task</p>
+              <p class="text-xs text-gray-400">Earn coins per task</p>
             </div>
           </div>
           <button class="px-3 py-1.5 rounded-xl bg-sky-400 text-slate-950 font-black text-xs shadow-md">Earn ⭐</button>

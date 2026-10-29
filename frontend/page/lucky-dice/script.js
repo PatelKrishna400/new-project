@@ -7,7 +7,7 @@ const MIN_BET = 30;
 const MAX_BET = 2000;
 const DAILY_FREE_PLAYS = 10;
 const BONUS_PLAYS_PER_AD = 10;
-let balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '10', 10);
+let balance = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '100', 10);
 let currentBet = 50;
 let diceStreak = 0;
 let isRollingDice = false;
@@ -42,16 +42,16 @@ function grantBonusPlays(count = BONUS_PLAYS_PER_AD) {
   localStorage.setItem(key, current.toString());
 }
 
-// Dynamic Win Rate Calibration based on Total Star Balance:
-// - Low to 100 stars (< 100): 50%
-// - 100+ stars (100 to 499): 20%
-// - 500+ stars (500 to 999): 10%
-// - 1000+ stars (1000+): 5%
+// Dynamic Win Rate Calibration based on Total Coin Balance:
+// - Low balance (< 500 coins): 50% (0.50)
+// - Medium balance (500 to 2499 coins): 35% (0.35)
+// - High balance (2500 to 9999 coins): 20% (0.20)
+// - Whale balance (10,000+ coins): 10% (0.10)
 function getWinProbability(customBalance) {
   const bal = (typeof customBalance === 'number') ? customBalance : balance;
-  if (bal >= 1000) return 0.05;
-  if (bal >= 500)  return 0.10;
-  if (bal >= 100)  return 0.20;
+  if (bal >= 10000) return 0.10;
+  if (bal >= 2500)  return 0.20;
+  if (bal >= 500)   return 0.35;
   return 0.50;
 }
 
@@ -99,18 +99,18 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
-  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const userStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
   const elStars = document.getElementById('headerStarDisplay');
 
-  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
-  if (elStars) elStars.innerText = balance.toLocaleString();
+  if (elCoins) elCoins.innerText = balance.toLocaleString();
+  if (elStars) elStars.innerText = userStars.toLocaleString();
   updateActionButtonState();
 }
 
 function saveBalance() {
-  localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
-  localStorage.setItem('user_stars', Math.max(0, balance).toString());
+  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
+  localStorage.setItem('user_coins', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
@@ -159,7 +159,7 @@ function updateActionButtonState() {
   if (!btn) return;
 
   if (balance < currentBet) {
-    btn.innerText = 'Buy stars';
+    btn.innerText = 'Buy coins';
     btn.className = 'primary-cta-btn bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 shadow-[0_8px_24px_rgba(56,189,248,0.35)]';
   } else {
     btn.innerText = 'Roll';
@@ -320,13 +320,13 @@ function rollDiceGame() {
     if (grossWin >= Math.round(currentBet * 7)) {
       if (window.confetti) confetti({ particleCount: 100, spread: 80 });
       playTone('jackpot');
-      showToast('JACKPOT!', `Three Sixes in a row! Paid +${wonAmount} ⭐`, '🔥');
+      showToast('JACKPOT!', `Three Sixes in a row! Paid +${wonAmount} 🪙`, '🔥');
     } else if (baseMult > 1) {
       playTone('win');
-      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} ⭐`, '🎉');
+      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} 🪙`, '🎉');
     } else if (baseMult > 0) {
       playTone('win');
-      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} ⭐)`, '🎲');
+      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎲');
     } else {
       playTone('lose');
       showToast('Rolled a One', 'Face 1 pays ×0. Better luck next roll!', '💀');
@@ -396,11 +396,44 @@ function closeAdModal() {
   }
 }
 function watchAdForMorePlays() {
-  window.open('https://otieuche.com/4/8893420', '_blank');
-  grantBonusPlays(10);
-  closeAdModal();
-  updateBalanceUI();
-  showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
+  const onUserReward = () => {
+    grantBonusPlays(10);
+    closeAdModal();
+    if (typeof updateBalanceUI === 'function') updateBalanceUI();
+    if (typeof updateActionButtonState === 'function') updateActionButtonState();
+    if (typeof showToast === 'function') showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
+  };
+
+  // Rewarded interstitial
+  if (typeof show_10691428 === 'function') {
+    show_10691428().then(() => {
+      // You need to add your user reward function here, which will be executed after the user watches the ad.
+      // For more details, please refer to the detailed instructions.
+      alert('You have seen an ad!');
+      onUserReward();
+    }).catch(err => {
+      console.warn('show_10691428 notice:', err);
+      onUserReward();
+    });
+  } else if (typeof window.show_10691428 === 'function') {
+    window.show_10691428().then(() => {
+      alert('You have seen an ad!');
+      onUserReward();
+    }).catch(err => {
+      console.warn('show_10691428 notice:', err);
+      onUserReward();
+    });
+  } else {
+    try {
+      show_10691428().then(() => {
+        alert('You have seen an ad!');
+        onUserReward();
+      });
+    } catch(e) {
+      alert('You have seen an ad!');
+      onUserReward();
+    }
+  }
 }
 
 // DOM Ready & Firebase Balance Synchronization

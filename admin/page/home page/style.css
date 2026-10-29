@@ -1946,3 +1946,52 @@ input:checked + .switch-slider:before {
   letter-spacing: 0.05em;
 }
 
+
+
+/* Bulk Multiple Tasks Mode Switcher & Styling */
+.admin-mode-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(6, 14, 36, 0.85);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  margin: 0.75rem 1.25rem 0.5rem 1.25rem;
+}
+
+.admin-mode-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.admin-mode-tab-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.45);
+}
+
+.admin-mode-tab-btn:hover:not(.active) {
+  color: #ffffff;
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.count-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}

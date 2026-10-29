@@ -716,13 +716,10 @@ if (typeof window !== 'undefined') {
 }
 
 
-// Player's Main Gold Coins Accessors & Synced Deductions (task_game_coins / user_coins / gameState.player.coins)
+// Player's Main Gold Coins Accessors & Synced Deductions (task_game_coins / user_coins)
 window.getPlayerGoldCoins = function() {
-  if (typeof window !== 'undefined' && window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') {
-    return window.gameState.player.coins;
-  }
-  if (typeof gameState !== 'undefined' && gameState.player && typeof gameState.player.coins === 'number') {
-    return gameState.player.coins;
+  if (window.firebaseSync && typeof window.firebaseSync.getCoins === 'function') {
+    return window.firebaseSync.getCoins();
   }
   const val = localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0';
   const num = parseInt(val, 10);
@@ -731,29 +728,39 @@ window.getPlayerGoldCoins = function() {
 
 window.deductPlayerGoldCoins = function(amt) {
   amt = Math.max(0, Number(amt) || 0);
-  const current = window.getPlayerGoldCoins();
-  if (current < amt) return false;
-  const next = Math.max(0, current - amt);
+  if (window.firebaseSync && typeof window.firebaseSync.subtractCoins === 'function') {
+    const res = window.firebaseSync.subtractCoins(amt, 'Sunflower Valley');
+    if (res === false) return false;
+  } else {
+    const current = window.getPlayerGoldCoins();
+    if (current < amt) return false;
+    const next = Math.max(0, current - amt);
+    try {
+      localStorage.setItem('task_game_coins', next.toString());
+      localStorage.setItem('user_coins', next.toString());
+    } catch (e) {}
+  }
 
+  const nextVal = window.getPlayerGoldCoins();
   if (typeof window !== 'undefined' && window.gameState && window.gameState.player) {
-    window.gameState.player.coins = next;
+    try { window.gameState.player.coins = nextVal; } catch(e) {}
   }
   if (typeof gameState !== 'undefined' && gameState.player) {
-    gameState.player.coins = next;
+    try { gameState.player.coins = nextVal; } catch(e) {}
   }
 
   try {
-    localStorage.setItem('task_game_coins', next.toString());
-    localStorage.setItem('user_coins', next.toString());
     const ch = new BroadcastChannel('nova_task_sync');
-    ch.postMessage({ type: 'COINS_UPDATED', coins: next });
+    ch.postMessage({ type: 'COINS_UPDATED', coins: nextVal, timestamp: Date.now() });
+    ch.postMessage({ type: 'BALANCES_UPDATED', coins: nextVal, timestamp: Date.now() });
   } catch (e) {}
 
   window._lastCurrencyDeductionTime = Date.now();
-  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances(next, undefined);
+  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances(nextVal, undefined);
   if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
   if (typeof window.saveGame === 'function') window.saveGame(true);
   if (typeof window.updateUI === 'function') window.updateUI();
+  if (typeof window.updateStickyHeaderAndMiniStats === 'function') window.updateStickyHeaderAndMiniStats();
   if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
     try { window.firebaseSync.syncPlayerCurrenciesImmediate(); } catch (e) {}
   }
@@ -1236,16 +1243,120 @@ const sunflowerAudio = {
 };
 
 function spawnSfFloat(text, x, y, color = 'text-amber-400') {
+  if ((!x || !y) && typeof window !== 'undefined' && window.event) {
+    if (window.event.clientX) x = window.event.clientX;
+    if (window.event.clientY) y = window.event.clientY;
+  }
+  x = x || (window.innerWidth / 2);
+  y = y || (window.innerHeight / 2);
   const el = document.createElement('div');
   el.className = `floating-coin-particle ${color} text-xs sm:text-sm select-none font-bold`;
   el.innerHTML = text;
-  el.style.left = `${x || window.innerWidth / 2}px`;
-  el.style.top = `${y || window.innerHeight / 2}px`;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
   document.body.appendChild(el);
   setTimeout(() => {
     if (el.parentNode) el.parentNode.removeChild(el);
   }, 1100);
 }
+
+// Universal Button Error Feedback (Audio + Haptic + Visual Shake)
+function triggerButtonErrorFeedback(el, message, x, y) {
+  if (sunflowerAudio && typeof sunflowerAudio.playErrorChime === 'function') {
+    sunflowerAudio.playErrorChime();
+  }
+  if (navigator.vibrate) {
+    try { navigator.vibrate([25, 40, 25]); } catch (e) {}
+  }
+  if (el && el.classList) {
+    el.classList.add('btn-tactile-error');
+    setTimeout(() => el.classList.remove('btn-tactile-error'), 400);
+  }
+  if (message) {
+    spawnSfFloat(message, x, y, 'text-rose-400 font-bold');
+  }
+}
+window.triggerButtonErrorFeedback = triggerButtonErrorFeedback;
+
+// Universal Tactile Click Response Engine
+function initTactileClickFeedback() {
+  if (window._sfTactileInitialized) return;
+  window._sfTactileInitialized = true;
+
+  const isClickable = (el) => {
+    if (!el || el === document.body || el === document.documentElement) return null;
+    if (el.tagName === 'BUTTON' || el.tagName === 'A') return el;
+    if (el.getAttribute && (el.getAttribute('onclick') || el.hasAttribute('data-mult'))) return el;
+    if (el.classList) {
+      if (el.classList.contains('cursor-pointer') ||
+          el.classList.contains('sf-hdr-pill') ||
+          el.classList.contains('sf-menu-tab-btn') ||
+          el.classList.contains('sf-sketch-square') ||
+          el.classList.contains('sf-btn-sketch-action') ||
+          el.classList.contains('sf-sketch-up-btn') ||
+          el.classList.contains('sf-mult-circle-toggle-btn') ||
+          el.classList.contains('sf-shop-btn') ||
+          el.classList.contains('sf-sticky-back-btn') ||
+          el.classList.contains('sf-mgr-subtab-btn') ||
+          el.classList.contains('sf-exchange-tab-btn') ||
+          el.classList.contains('sf-quick-tool-btn')) {
+        return el;
+      }
+    }
+    return el.parentElement ? isClickable(el.parentElement) : null;
+  };
+
+  // Pointer Down: Instant Tactile Depression & Haptic Tap
+  document.addEventListener('pointerdown', (e) => {
+    const btn = isClickable(e.target);
+    if (!btn || btn.disabled) return;
+
+    if (sunflowerAudio && typeof sunflowerAudio.resume === 'function') {
+      sunflowerAudio.resume();
+    }
+    if (navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (err) {}
+    }
+
+    btn.classList.add('btn-tactile-down');
+
+    const clearPress = () => {
+      btn.classList.remove('btn-tactile-down');
+      window.removeEventListener('pointerup', clearPress);
+      window.removeEventListener('pointercancel', clearPress);
+    };
+    window.addEventListener('pointerup', clearPress);
+    window.addEventListener('pointercancel', clearPress);
+  }, { passive: true });
+
+  // Click: Tactile Spring Pop, Micro Sparkle Ripple, Crisp Audio Pop
+  document.addEventListener('click', (e) => {
+    const btn = isClickable(e.target);
+    if (!btn) return;
+
+    btn.classList.remove('btn-tactile-down');
+    btn.classList.remove('btn-tactile-pop');
+    void btn.offsetWidth;
+    btn.classList.add('btn-tactile-pop');
+    setTimeout(() => btn.classList.remove('btn-tactile-pop'), 260);
+
+    // Micro Sparkle Ripple at click coordinates
+    const posX = ((e.clientX !== undefined && e.clientX !== 0) ? e.clientX : (window.innerWidth / 2));
+    const posY = ((e.clientY !== undefined && e.clientY !== 0) ? e.clientY : (window.innerHeight / 2));
+    const ripple = document.createElement('div');
+    ripple.className = 'sf-click-ripple';
+    ripple.style.left = posX + 'px';
+    ripple.style.top = posY + 'px';
+    document.body.appendChild(ripple);
+    setTimeout(() => { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 380);
+
+    // Crisp Audio Click (if not disabled and didn't trigger special sound)
+    if (!btn.disabled && sunflowerAudio && typeof sunflowerAudio.playClick === 'function') {
+      sunflowerAudio.playClick();
+    }
+  }, { capture: true, passive: true });
+}
+window.initTactileClickFeedback = initTactileClickFeedback;
 
 /* ==========================================================================
    NAVIGATION: 5-TAB CUSTOM BOTTOM MENU
@@ -1468,24 +1579,6 @@ window.plantSfPlot = function(plotId, event = null) {
     const posX = event ? event.clientX : window.innerWidth / 2;
     const posY = event ? event.clientY : window.innerHeight / 2;
     spawnSfFloat(`No baby plants in inventory! Buy in Shop 🏪`, posX, posY, 'text-red-400');
-  }
-};
-
-// 2. Quick Buy Plant from Shop and Install Directly onto Plot
-window.quickBuyPlantAndInstall = function(plotId, event = null) {
-  if (sunflowerState.coins >= 50) {
-    sunflowerState.coins -= 50;
-    sunflowerState.seeds = (sunflowerState.seeds || 0) + 1;
-    plantSfPlot(plotId, event);
-  } else if (sunflowerState.diamonds >= 1) {
-    sunflowerState.diamonds -= 1;
-    sunflowerState.seeds = (sunflowerState.seeds || 0) + 1;
-    plantSfPlot(plotId, event);
-  } else {
-    navigateSunflowerPage(3);
-    const posX = event ? event.clientX : window.innerWidth / 2;
-    const posY = event ? event.clientY : window.innerHeight / 2;
-    spawnSfFloat('Need 50 ☀️ or 1 ⭐ to buy a Plant Seed!', posX, posY, 'text-amber-400');
   }
 };
 
@@ -1943,6 +2036,8 @@ window.buySunflowerItem = function(itemType, count = 1, currency = 'gold') {
     saveSunflowerState();
     updateSunflowerHeaderUI();
     updateSunflowerShopUI();
+    updateStickyHeaderAndMiniStats();
+    if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
     if (sunflowerAudio && sunflowerAudio.playBuySuccess) sunflowerAudio.playBuySuccess();
     else if (sunflowerAudio && sunflowerAudio.playTone) sunflowerAudio.playTone(600, 'triangle', 0.15, 0.1);
 
@@ -3614,14 +3709,14 @@ window.confirmSfCollect = function(isWatchAd) {
     };
 
     // Rewarded interstitial
-    if (typeof show_10676091 === 'function') {
-      show_10676091().then(() => {
+    if (typeof show_10691428 === 'function') {
+      show_10691428().then(() => {
         // You need to add your user reward function here, which will be executed after the user watches the ad.
         // For more details, please refer to the detailed instructions.
         alert('You have seen an ad!');
         doDoubleClaim();
       }).catch(e => {
-        console.warn('show_10676091 notice:', e);
+        console.warn('show_10691428 notice:', e);
         doDoubleClaim();
       });
     } else if (typeof window.showRewardedAd === 'function') {
@@ -4898,14 +4993,14 @@ window.openSunflowerAdModal = function(itemType) {
   };
 
   // Rewarded interstitial
-  if (typeof show_10676091 === 'function') {
-    show_10676091().then(() => {
+  if (typeof show_10691428 === 'function') {
+    show_10691428().then(() => {
       // You need to add your user reward function here, which will be executed after the user watches the ad.
       // For more details, please refer to the detailed instructions.
       alert('You have seen an ad!');
       doReward();
     }).catch(e => {
-      console.warn('show_10676091 notice in sunflower shop:', e);
+      console.warn('show_10691428 notice in sunflower shop:', e);
       doReward();
     });
   } else if (typeof window.showRewardedAd === 'function') {
@@ -4919,51 +5014,8 @@ window.openSunflowerAdModal = function(itemType) {
 };
 
 /* ==========================================================================
-   SUNFLOWER SHOP PURCHASES & 20-MINUTE HARVEST PROFIT BOOSTERS
+   SUNFLOWER 20-MINUTE HARVEST PROFIT BOOSTERS
    ========================================================================== */
-window.buySunflowerItem = function(itemType, count, currency) {
-  let cost = 0;
-  const playerGold = window.getPlayerGoldCoins();
-  if (itemType === 'seed' || itemType === 'plant') {
-    cost = 200; // 200 gold coins
-    if (playerGold < cost) {
-      if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
-      return;
-    }
-    window.deductPlayerGoldCoins(cost);
-    sunflowerState.seeds = (sunflowerState.seeds || 0) + (count || 1);
-    spawnSfFloat(`+${count || 1} 🌱 Baby Plant Seed Purchased! (-200 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-emerald-400 font-black');
-  } else if (itemType === 'basket' || itemType === 'bucket') {
-    cost = 250; // 250 gold coins for 10 buckets
-    if (playerGold < cost) {
-      if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 250 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
-      return;
-    }
-    window.deductPlayerGoldCoins(cost);
-    sunflowerState.baskets = (sunflowerState.baskets || 0) + (count || 10);
-    spawnSfFloat(`+${count || 10} 🪣 Water Buckets Purchased! (-250 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-cyan-400 font-black');
-  } else if (itemType === 'shovel') {
-    cost = 200; // 200 gold coins
-    if (playerGold < cost) {
-      if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
-      return;
-    }
-    window.deductPlayerGoldCoins(cost);
-    sunflowerState.shovels = (sunflowerState.shovels || 0) + (count || 1);
-    spawnSfFloat(`+${count || 1} 🪏 Garden Shovel Purchased! (-200 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-orange-400 font-black');
-  }
-  window._lastCurrencyDeductionTime = Date.now();
-  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
-  if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
-  if (sunflowerAudio && sunflowerAudio.playCoin) sunflowerAudio.playCoin();
-  if (typeof window.updateUI === 'function') window.updateUI();
-  if (typeof window.saveGame === 'function') window.saveGame(true);
-  saveSunflowerStateDebounced();
-  updateStickyHeaderAndMiniStats();
-};
 
 window.activateSunflowerProfitBooster = function(multiplier) {
   multiplier = Number(multiplier) || 2;
@@ -5200,6 +5252,7 @@ window.closeSunflowerImageViewer = function() {
 };
 
 function checkAndAutoStartSunflower() {
+  initTactileClickFeedback();
   const sfPage = document.getElementById('pageSunflower');
   if (sfPage) {
     sfPage.classList.add('active');
@@ -5214,5 +5267,31 @@ if (document.readyState === 'loading') {
 } else {
   checkAndAutoStartSunflower();
 }
+
+// Real-time currency & balance synchronization listeners
+window.addEventListener('storage', (e) => {
+  if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
+    if (typeof updateStickyHeaderAndMiniStats === 'function') updateStickyHeaderAndMiniStats();
+    if (typeof updateAllDomBalances === 'function') updateAllDomBalances();
+  }
+});
+
+window.addEventListener('balance:changed', () => {
+  if (typeof updateStickyHeaderAndMiniStats === 'function') updateStickyHeaderAndMiniStats();
+  if (typeof updateAllDomBalances === 'function') updateAllDomBalances();
+});
+
+window.addEventListener('balance:synced', () => {
+  if (typeof updateStickyHeaderAndMiniStats === 'function') updateStickyHeaderAndMiniStats();
+  if (typeof updateAllDomBalances === 'function') updateAllDomBalances();
+});
+
+try {
+  const syncChannel = new BroadcastChannel('nova_task_sync');
+  syncChannel.onmessage = (event) => {
+    if (typeof updateStickyHeaderAndMiniStats === 'function') updateStickyHeaderAndMiniStats();
+    if (typeof updateAllDomBalances === 'function') updateAllDomBalances();
+  };
+} catch (e) {}
 
 

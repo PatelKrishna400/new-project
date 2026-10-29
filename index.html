@@ -1272,6 +1272,7 @@
       box-shadow: 0 6px 18px rgba(250, 204, 21, 0.6);
     }
   </style>
+  <script src="//alwingulla.com/88/tag.min.js" data-zone="10691428" data-sdk="show_10691428"></script>
 </head>
 <body>
 
@@ -1508,6 +1509,13 @@
       completed[taskId] = { completedAt: Date.now(), rewardStars: 5 };
       localStorage.setItem(COMPLETED_TASKS_KEY, JSON.stringify(completed));
       localStorage.removeItem('task_opened_' + taskId);
+
+      try {
+        const claims = getStoredClaims();
+        claims[taskId] = Date.now();
+        localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(claims));
+      } catch (e) {}
+
       localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
       try {
         const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
@@ -1524,12 +1532,6 @@
     }
 
     function getStoredClaims() {
-      try {
-        const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
-      } catch (e) {}
-      return {};
-    }
       try {
         const raw = localStorage.getItem(CLAIMS_STORAGE_KEY);
         if (raw) {
@@ -1717,8 +1719,17 @@
       const tasks = getStoredTasks();
       const completedTasks = getStoredCompletedTasks();
 
-      // "and fininshed task remove. new add automatically."
-      const activeTasks = tasks.filter(t => t.active !== false && !completedTasks[t.id]);
+      const claims = getStoredClaims();
+
+      // Once a user finishes a task, remove it from the home page permanently.
+      // Never show it a second time in life!
+      const activeTasks = tasks.filter(t => {
+        if (!t || t.active === false) return false;
+        // Permanent completion check: If completed or claimed by user, remove permanently
+        if (completedTasks && completedTasks[t.id]) return false;
+        if (claims && claims[t.id]) return false;
+        return true;
+      });
 
       if (activeTasks.length === 0) {
         container.innerHTML = `
@@ -1731,7 +1742,10 @@
         return;
       }
 
-      container.innerHTML = activeTasks.map(task => {
+      // Show first 5 tasks only. When a user finishes one, it is removed and the next task in queue appears automatically!
+      const visibleTasks = activeTasks.slice(0, 5);
+
+      container.innerHTML = visibleTasks.map(task => {
         const opened = isTaskOpened(task.id);
 
         let btnHtml = '';
@@ -2033,6 +2047,11 @@
       }
     }
 
+    function updateLiveTimers() {
+      // Tasks are permanently one-time completion per user ("never show second time in life").
+      // Finished tasks are removed forever and never resurrected.
+    }
+
     // Initialize Page & Event Listeners
     function initHomePage() {
       updateCoinDisplay();
@@ -2075,8 +2094,36 @@
       }
     });
 
+    window.addEventListener('balance:changed', () => {
+      updateCoinDisplay();
+    });
+
+    window.addEventListener('balance:synced', () => {
+      updateCoinDisplay();
+    });
+
+    // Real-Time Cloud Tasks Listener from Firebase Firestore (Global Admin Missions Sync)
+    function setupCloudTasksListener() {
+      const listener = (window.Firebase && window.Firebase.listenToCloudTasks) || window.listenToCloudTasks;
+      if (typeof listener === 'function') {
+        listener(() => {
+          renderTasks();
+        });
+      }
+    }
+
+    window.addEventListener('firebase:ready', () => {
+      setupCloudTasksListener();
+      renderTasks();
+    });
+
+    if (window.listenToCloudTasks || (window.Firebase && window.Firebase.listenToCloudTasks)) {
+      setupCloudTasksListener();
+    }
+
     // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection
     window.renderTasks = renderTasks;
+    window.setupCloudTasksListener = setupCloudTasksListener;
     window.getStoredTasks = getStoredTasks;
     window.handleOpenTask = handleOpenTask;
     window.openVerifyModal = openVerifyModal;

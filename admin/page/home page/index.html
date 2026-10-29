@@ -103,6 +103,13 @@
           <span class="nav-text">Ads Manager</span>
           <span class="nav-counter" id="navAdsCounter" style="background:#f59e0b; color:#000;">Active</span>
         </button>
+
+        <!-- 5. Events & Leaderboard Sessions Tab (Fifth) -->
+        <button class="nav-item" id="navItemEvents" onclick="switchAdminPage('events')">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-text">Events &amp; Sessions</span>
+          <span class="nav-counter" id="navEventsCounter" style="background:#0284c7; color:#fff;">Live</span>
+        </button>
       </nav>
 
       <!-- Sidebar Footer / Live Sync & Logout -->
@@ -494,6 +501,127 @@
 
         </section>
 
+        <!-- ====================================================================
+             PAGE SECTION 5: EVENTS & LEADERBOARD SESSIONS
+             ==================================================================== -->
+        <section class="admin-page-section" id="pageSectionEvents">
+          <div class="content-header-row">
+            <div>
+              <h2 class="section-title">🏆 Events &amp; Leaderboard Sessions Management</h2>
+              <p class="section-subtitle">Track 3-Month Championship seasons, view live contenders, archive session-wise leaderboard data, and review historical winners.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn-primary" onclick="adminArchiveCurrentSession()" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);">
+                <span>💾 Conclude &amp; Archive Current Session</span>
+              </button>
+              <button class="btn-secondary-action" onclick="adminRestartEventSeason()">
+                <span>🔄 Restart 90-Day Season</span>
+              </button>
+              <button class="btn-ctrl" onclick="adminExportSessionHistory()" style="padding: 0.5rem 0.9rem; font-size: 0.8rem; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 8px; cursor: pointer; font-weight: 700;">
+                <span>📥 Export JSON</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Season Overview Grid -->
+          <div class="stats-overview-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 1.5rem;">
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">CURRENT GLOBAL EVENT</span>
+                <span class="stat-icon-wrap" style="background: rgba(2, 132, 199, 0.15); color: #38bdf8;">🏆</span>
+              </div>
+              <div class="stat-value" id="adminEventSeasonTitle" style="font-size: 1.15rem; color: #38bdf8;">Season 1</div>
+              <div class="stat-sub" id="adminEventDurationText">3-Month Global Championship</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">COUNTDOWN REMAINING</span>
+                <span class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">⏱️</span>
+              </div>
+              <div class="stat-value font-mono" id="adminEventCountdownText" style="font-size: 1.2rem; color: #facc15;">--:--:--</div>
+              <div class="stat-sub">Synchronized universal global timer</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">QUALIFIED CONTENDERS</span>
+                <span class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">👥</span>
+              </div>
+              <div class="stat-value" id="adminEventQualifiedCount" style="color: #34d399;">0</div>
+              <div class="stat-sub">Players reached 100-task gate</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-head">
+                <span class="stat-label">SESSIONS ARCHIVED</span>
+                <span class="stat-icon-wrap" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">📁</span>
+              </div>
+              <div class="stat-value" id="adminTotalSessionsCount" style="color: #c084fc;">0</div>
+              <div class="stat-sub">Stored in Session-Wise Database</div>
+            </div>
+          </div>
+
+          <!-- Section A: Live Season Current Standings (Before Archive) -->
+          <div class="data-table-card" style="margin-bottom: 1.5rem;">
+            <div class="card-header-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid rgba(56, 189, 248, 0.15);">
+              <div>
+                <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                  <span>⚡ Live Active Contenders (Current Season Standings)</span>
+                  <span class="badge-active" style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: rgba(52, 211, 153, 0.15); color: #34d399; font-weight: 800;">LIVE</span>
+                </h3>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">Players who have completed 100+ tasks compete for Star prizes in the current 3-month cycle.</p>
+              </div>
+              <button type="button" onclick="renderEventsAndSessionsPage()" class="btn-ctrl" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer; font-weight: 700;">
+                🔄 Refresh Live Standings
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="admin-data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;">Rank</th>
+                    <th>Contender</th>
+                    <th>Session Tasks</th>
+                    <th>Total Tasks</th>
+                    <th>Est. Prize</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="adminLiveEventStandingsTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Section B: Session-Wise Leaderboard Data Store & Archive -->
+          <div class="data-table-card">
+            <div class="card-header-bar" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 1rem 1.25rem; border-bottom: 1px solid rgba(56, 189, 248, 0.15);">
+              <div>
+                <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                  <span>📁 Session-Wise Leaderboard Data Store (Historical Archives)</span>
+                </h3>
+                <p style="font-size: 0.75rem; color: #94a3b8; margin: 4px 0 0 0;">Permanent archive of all concluded championship sessions, winner standings, and star prize disbursements.</p>
+              </div>
+
+              <!-- Session Filter Controls -->
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <label for="adminSessionSelectFilter" style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Filter Session:</label>
+                <select id="adminSessionSelectFilter" class="form-input" onchange="filterAdminSessionView(this.value)" style="padding: 4px 10px; font-size: 0.78rem; background: #060e24; border: 1px solid rgba(56, 189, 248, 0.3); color: #ffffff; border-radius: 6px; min-width: 170px;">
+                  <option value="all">All Sessions</option>
+                </select>
+                <input type="text" id="adminSessionContenderSearch" placeholder="Search contender..." oninput="filterAdminSessionContenders(this.value)" style="padding: 4px 10px; font-size: 0.78rem; background: #060e24; border: 1px solid rgba(56, 189, 248, 0.3); color: #ffffff; border-radius: 6px; width: 150px;">
+              </div>
+            </div>
+
+            <!-- Stored Sessions Cards & Standings Container -->
+            <div id="adminSessionsArchiveContainer" style="padding: 1.25rem;">
+              <!-- Dynamically populated with session cards and tables -->
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
   </div>
@@ -513,14 +641,31 @@
         </div>
         <button class="btn-close-modal" onclick="closeTaskModal()">✕</button>
       </div>
+      <!-- Mode Switcher: Single vs Bulk Multiple Tasks -->
+      <div class="admin-mode-tabs" id="adminModalModeTabs">
+        <button type="button" class="admin-mode-tab-btn active" id="adminTabModeSingle" onclick="switchAdminModalTaskMode('single')">
+          <span>Single Task</span>
+        </button>
+        <button type="button" class="admin-mode-tab-btn" id="adminTabModeBulk" onclick="switchAdminModalTaskMode('bulk')">
+          <span>⚡ Add Multiple Tasks (Bulk)</span>
+        </button>
+      </div>
 
       <form class="modal-form" id="taskForm" onsubmit="handleSaveTask(event)">
         <input type="hidden" id="editTaskId" value="">
+        <input type="hidden" id="adminTaskCreationMode" value="single">
 
         <div class="form-row">
           <div class="form-group flex-2">
             <label class="form-label" for="taskTitleInput">Task Title *</label>
             <input type="text" id="taskTitleInput" class="form-input" placeholder="e.g. Follow on Twitter / Telegram" required oninput="updateModalPreview()">
+          
+            <div id="adminBulkTitleOptions" style="display: none; margin-top: 5px;">
+              <label style="font-size: 0.76rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="adminAutoNumberCheckbox" checked onchange="updateAdminModalBulkCounter()">
+                Auto-number titles (e.g. "Title #1", "Title #2" ... "Title #10")
+              </label>
+            </div>
           </div>
 
           <div class="form-group flex-1">
@@ -529,20 +674,52 @@
           </div>
         </div>
 
-        <div class="form-group">
+                <div class="form-group" id="adminSingleLinkGroup">
           <label class="form-label" for="taskLinkInput">Task Link (URL) *</label>
-          <input type="text" id="taskLinkInput" class="form-input font-mono" placeholder="https://t.me/channel or t.me/... or https://..." required oninput="updateModalPreview()">
+          <input type="text" id="taskLinkInput" class="form-input font-mono" placeholder="https://t.me/channel or t.me/... or https://..." oninput="updateModalPreview()">
         </div>
 
-        <div class="form-group">
+        <!-- Bulk Multiple Links (1 URL per line) -->
+        <div class="form-group" id="adminBulkLinksGroup" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="adminBulkUrlsInput" style="margin-bottom: 0;">Multiple Target URLs / Links (1 URL per line) *</label>
+            <span class="count-badge" id="adminBulkLinksCountBadge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">0 Links</span>
+          </div>
+          <textarea id="adminBulkUrlsInput" class="form-input font-mono" rows="4" placeholder="Paste links here (one URL per line, e.g. 10 links):&#10;https://youtube.com/watch?v=1&#10;https://youtube.com/watch?v=2&#10;https://youtube.com/watch?v=3" oninput="updateAdminModalBulkCounter()" style="resize: vertical; min-height: 85px; font-size: 0.8rem;"></textarea>
+        </div>
+
+        <div class="form-group" id="adminSingleCodeGroup">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <label class="form-label" for="taskCodeInput" style="margin-bottom: 0;">6-Digit Verification Code *</label>
             <button type="button" onclick="generateRandom6DigitCode()" class="btn-ctrl" style="padding: 2px 8px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer;" title="Generate random 6-digit code">🎲 Auto-Generate</button>
           </div>
-          <input type="text" id="taskCodeInput" class="form-input font-mono font-bold" placeholder="e.g. 583921 (6-digit code)" maxlength="12" required oninput="updateModalPreview()">
+          <input type="text" id="taskCodeInput" class="form-input font-mono font-bold" placeholder="e.g. 583921 (6-digit code)" maxlength="12" oninput="updateModalPreview()">
         </div>
 
-        <!-- Emoji Quick Picker -->
+        <!-- Bulk Multiple Codes (1 Code per line) -->
+        <div class="form-group" id="adminBulkCodesGroup" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="adminBulkCodesInput" style="margin-bottom: 0;">6-Digit Verification Codes (1 Code per line) *</label>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="count-badge" id="adminBulkCodesCountBadge" style="background: rgba(250, 204, 21, 0.15); color: #facc15;">0 Codes</span>
+              <button type="button" onclick="autoGenerateAdminBulkCodes()" class="btn-ctrl" style="padding: 2px 8px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer;" title="Auto-fill matching 6-digit codes for all links">🎲 Auto-Fill Codes</button>
+            </div>
+          </div>
+          <textarea id="adminBulkCodesInput" class="form-input font-mono font-bold" rows="4" placeholder="Enter codes (one per line, matching each link):&#10;583921&#10;492015&#10;839201&#10;(Or click 'Auto-Fill Codes' to auto-generate!)" oninput="updateAdminModalBulkCounter()" style="resize: vertical; min-height: 85px; color: #facc15; font-size: 0.8rem;"></textarea>
+        </div>
+
+        <!-- Bulk Summary Info Box -->
+        <div id="adminBulkSummaryBox" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 0.65rem 0.85rem; font-size: 0.78rem; color: #93c5fd; margin-bottom: 1rem;">
+          <div style="font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+            <span>⚡</span>
+            <span id="adminBulkSummaryTitle">Ready to create 0 tasks</span>
+          </div>
+          <div id="adminBulkSummaryDetails" style="margin-top: 3px; font-size: 0.72rem; color: #94a3b8;">
+            Paste links (one per line) and matching codes above to batch create tasks in one click.
+          </div>
+        </div>
+
+<!-- Emoji Quick Picker -->
         <div class="emoji-picker-row">
           <span class="emoji-picker-label">Quick Pick Emoji:</span>
           <div class="emoji-grid">

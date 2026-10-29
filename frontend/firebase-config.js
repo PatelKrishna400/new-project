@@ -309,6 +309,102 @@ function getEffectivePlayerUid() {
   return uid;
 }
 
+let _prevDomCoins = null;
+let _prevDomStars = null;
+
+function triggerPillDeductionEffect(type, diff) {
+  try {
+    const isCoins = type === 'coins';
+    const pill = isCoins 
+      ? (document.getElementById('coinPill') || document.querySelector('.coin-pill') || document.querySelector('.pill-gold') || document.getElementById('headerCoinDisplay'))
+      : (document.getElementById('starPill') || document.querySelector('.star-pill') || document.querySelector('.pill-star') || document.getElementById('headerStarDisplay'));
+    
+    if (pill) {
+      pill.style.transition = 'transform 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28)';
+      pill.style.transform = 'scale(1.15)';
+      setTimeout(() => {
+        pill.style.transform = 'scale(1)';
+      }, 200);
+
+      const rect = pill.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        const floatEl = document.createElement('div');
+        floatEl.className = 'currency-deduct-float';
+        floatEl.textContent = `-${Number(diff || 0).toLocaleString()} ${isCoins ? '🪙' : '⭐'}`;
+        floatEl.style.position = 'fixed';
+        floatEl.style.left = `${rect.left + rect.width / 4}px`;
+        floatEl.style.top = `${rect.top + rect.height}px`;
+        floatEl.style.zIndex = '999999';
+        floatEl.style.fontSize = '12px';
+        floatEl.style.fontWeight = '900';
+        floatEl.style.color = isCoins ? '#f59e0b' : '#eab308';
+        floatEl.style.textShadow = '0 2px 8px rgba(0,0,0,0.8), 0 0 10px rgba(245,158,11,0.5)';
+        floatEl.style.pointerEvents = 'none';
+        floatEl.style.transition = 'all 0.85s cubic-bezier(0.16, 1, 0.3, 1)';
+        floatEl.style.transform = 'translateY(0) scale(1)';
+        floatEl.style.opacity = '1';
+        document.body.appendChild(floatEl);
+
+        requestAnimationFrame(() => {
+          floatEl.style.transform = 'translateY(24px) scale(0.9)';
+          floatEl.style.opacity = '0';
+        });
+        setTimeout(() => floatEl.remove(), 900);
+      }
+    }
+  } catch (e) {}
+}
+
+function triggerInsufficientFundsNotice(type, required, available) {
+  try {
+    const isCoins = type === 'coins';
+    const pill = isCoins 
+      ? (document.getElementById('coinPill') || document.querySelector('.coin-pill') || document.querySelector('.pill-gold'))
+      : (document.getElementById('starPill') || document.querySelector('.star-pill') || document.querySelector('.pill-star'));
+    
+    if (pill) {
+      pill.style.transition = 'all 0.15s ease';
+      pill.style.filter = 'drop-shadow(0 0 10px rgba(239,68,68,0.9))';
+      pill.style.transform = 'translateX(-5px)';
+      setTimeout(() => { pill.style.transform = 'translateX(5px)'; }, 50);
+      setTimeout(() => { pill.style.transform = 'translateX(-4px)'; }, 100);
+      setTimeout(() => { pill.style.transform = 'translateX(0)'; pill.style.filter = ''; }, 250);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'insufficient-funds-toast';
+    toast.innerHTML = `<span>❌ Need <b>${Number(required || 0).toLocaleString()}</b> ${isCoins ? '🪙 Coins' : '⭐ Stars'}! (You have <b>${Number(available || 0).toLocaleString()}</b>)</span>`;
+    toast.style.position = 'fixed';
+    toast.style.top = '65px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%) translateY(-10px)';
+    toast.style.zIndex = '999999';
+    toast.style.background = 'rgba(15, 23, 42, 0.96)';
+    toast.style.border = '1.5px solid #ef4444';
+    toast.style.borderRadius = '9999px';
+    toast.style.padding = '8px 18px';
+    toast.style.color = '#fecaca';
+    toast.style.fontSize = '12px';
+    toast.style.fontWeight = '800';
+    toast.style.boxShadow = '0 10px 25px -5px rgba(239, 68, 68, 0.5)';
+    toast.style.pointerEvents = 'none';
+    toast.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+    toast.style.opacity = '0';
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(-10px)';
+      setTimeout(() => toast.remove(), 350);
+    }, 2400);
+  } catch (e) {}
+}
+
 /**
  * Update all DOM balance indicators across any active page and tab in real time
  */
@@ -317,6 +413,15 @@ function updateAllDomBalances(coins, stars) {
   const s = typeof stars === 'number' ? stars : parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   const coinsFmt = Number(c || 0).toLocaleString();
   const starsFmt = Number(s || 0).toLocaleString();
+
+  if (_prevDomCoins !== null && c < _prevDomCoins) {
+    triggerPillDeductionEffect('coins', _prevDomCoins - c);
+  }
+  if (_prevDomStars !== null && s < _prevDomStars) {
+    triggerPillDeductionEffect('stars', _prevDomStars - s);
+  }
+  _prevDomCoins = c;
+  _prevDomStars = s;
 
   // All known coin DOM IDs across all games, hub, shop, wallet, sunflower, leaderboard, profile, admin
   const coinElements = [
@@ -665,7 +770,12 @@ const firebaseSync = {
   subtractCoins(amount, reason = 'spend') {
     const amt = Math.max(0, parseInt(amount, 10) || 0);
     const current = this.getCoins();
-    if (current < amt) return false;
+    if (current < amt) {
+      if (typeof triggerInsufficientFundsNotice === 'function') {
+        triggerInsufficientFundsNotice('coins', amt, current);
+      }
+      return false;
+    }
     const next = Math.max(0, current - amt);
     this.setCoins(next);
     console.log(`%c[Firebase Sync] -${amt} Coins deducted (${reason}). Remaining: ${next}`, "color: #f59e0b; font-weight: bold;");
@@ -682,7 +792,12 @@ const firebaseSync = {
   subtractStars(amount, reason = 'spend') {
     const amt = Math.max(0, parseInt(amount, 10) || 0);
     const current = this.getStars();
-    if (current < amt) return false;
+    if (current < amt) {
+      if (typeof triggerInsufficientFundsNotice === 'function') {
+        triggerInsufficientFundsNotice('stars', amt, current);
+      }
+      return false;
+    }
     const next = Math.max(0, current - amt);
     this.setStars(next);
     console.log(`%c[Firebase Sync] -${amt} Stars deducted (${reason}). Remaining: ${next}`, "color: #f59e0b; font-weight: bold;");
@@ -710,6 +825,11 @@ window.useCoins = function(amount, reason = 'spend') {
 window.useStars = function(amount, reason = 'spend') {
   return firebaseSync.subtractStars(amount, reason);
 };
+window.deductCoins = window.useCoins;
+window.deductStars = window.useStars;
+window.deductPlayerGoldCoins = function(amount, reason = 'spend') {
+  return firebaseSync.subtractCoins(amount, reason);
+};
 window.winCoins = function(amount, reason = 'win') {
   return firebaseSync.addCoins(amount, reason);
 };
@@ -728,6 +848,8 @@ window.getPlayerCoins = function() {
 window.getPlayerStars = function() {
   return firebaseSync.getStars();
 };
+window.triggerInsufficientFundsNotice = triggerInsufficientFundsNotice;
+window.triggerPillDeductionEffect = triggerPillDeductionEffect;
 
 
 // =============================================================================
@@ -1426,56 +1548,124 @@ try {
 // =============================================================================
 
 /**
- * Save tasks to Firestore cloud (system/tasks_config)
+ * Save tasks to Firestore cloud (Dual-channel: referral_codes/GLOBAL_TASKS + system/tasks_config)
  */
 async function saveTasksToCloud(tasks) {
   if (!db) return false;
+  const now = Date.now();
+  let saved = false;
+
+  // Channel 1: High-reliability global document (referral_codes/GLOBAL_TASKS - 200 OK across rulesets)
+  try {
+    const globalTasksRef = doc(db, 'referral_codes', 'GLOBAL_TASKS');
+    const uid = (auth && auth.currentUser) ? auth.currentUser.uid : 'admin_mission_control';
+    await setDoc(globalTasksRef, {
+      code: 'GLOBAL_TASKS',
+      userId: uid,
+      rewardCoins: 0,
+      tasks: tasks,
+      tasksJson: JSON.stringify(tasks),
+      updatedAt: now
+    }, { merge: true });
+    console.log("[Firebase] Tasks saved to cloud GLOBAL_TASKS successfully!");
+    saved = true;
+  } catch (err) {
+    console.warn("[Firebase] GLOBAL_TASKS save note:", err.message);
+  }
+
+  // Channel 2: System configuration document
   try {
     const tasksRef = doc(db, 'system', 'tasks_config');
     await setDoc(tasksRef, {
       tasks: tasks,
-      updatedAt: Date.now()
+      tasksJson: JSON.stringify(tasks),
+      updatedAt: now
     }, { merge: true });
-    return true;
+    saved = true;
   } catch (err) {
-    console.warn("[Firebase] Could not save tasks to cloud:", err.message);
-    return false;
+    // Expected in client if system collection is restricted
   }
+
+  // Update local storage and broadcast immediately
+  if (Array.isArray(tasks)) {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+    localStorage.setItem(SYNC_FLAG_KEY, now.toString());
+    try {
+      const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      ch.postMessage({ type: 'TASKS_SYNCED', timestamp: now });
+    } catch (e) {}
+  }
+
+  return saved;
 }
 
 /**
- * Real-time listener for tasks in Firestore
+ * Real-time listener for tasks in Firestore (Listens to both GLOBAL_TASKS and tasks_config)
  */
 function listenToCloudTasks(onUpdateCallback) {
   if (!db) return null;
-  try {
-    const tasksRef = doc(db, 'system', 'tasks_config');
-    const unsubscribe = onSnapshot(tasksRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (Array.isArray(data.tasks)) {
-          localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(data.tasks));
-          localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
-          try {
-            const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
-            ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
-          } catch (e) {}
+  let unsubGlobal = null;
+  let unsubSys = null;
 
-          if (typeof onUpdateCallback === 'function') {
-            onUpdateCallback(data.tasks);
-          }
-          if (typeof window.renderTasks === 'function') {
-            window.renderTasks();
-          }
-        }
+  const handleIncomingTasks = (data) => {
+    if (!data) return;
+    let list = null;
+    if (data.tasksJson && typeof data.tasksJson === 'string') {
+      try { list = JSON.parse(data.tasksJson); } catch (e) {}
+    }
+    if (!list && Array.isArray(data.tasks) && data.tasks.length > 0) {
+      list = data.tasks;
+    }
+    if (Array.isArray(list) && list.length > 0) {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(list));
+      localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+      try {
+        const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
+      } catch (e) {}
+
+      if (typeof onUpdateCallback === 'function') {
+        onUpdateCallback(list);
+      }
+      if (typeof window.renderTasks === 'function') {
+        window.renderTasks();
+      }
+      if (typeof window.renderAllHomeTasks === 'function') {
+        window.renderAllHomeTasks();
+      }
+      if (typeof window.renderAdminTasks === 'function') {
+        window.renderAdminTasks();
+      }
+      if (typeof window.renderTasksTable === 'function') {
+        window.renderTasksTable();
+      }
+    }
+  };
+
+  try {
+    const globalRef = doc(db, 'referral_codes', 'GLOBAL_TASKS');
+    unsubGlobal = onSnapshot(globalRef, (snapshot) => {
+      if (snapshot.exists()) {
+        handleIncomingTasks(snapshot.data());
       }
     }, (err) => {
-      console.log("[Firebase] Firestore tasks listening in offline mode.");
+      console.log("[Firebase] Global tasks channel listening note:", err.message);
     });
-    return unsubscribe;
-  } catch (e) {
-    return null;
-  }
+  } catch (e) {}
+
+  try {
+    const sysRef = doc(db, 'system', 'tasks_config');
+    unsubSys = onSnapshot(sysRef, (snapshot) => {
+      if (snapshot.exists()) {
+        handleIncomingTasks(snapshot.data());
+      }
+    }, () => {});
+  } catch (e) {}
+
+  return () => {
+    if (typeof unsubGlobal === 'function') unsubGlobal();
+    if (typeof unsubSys === 'function') unsubSys();
+  };
 }
 
 /**
@@ -2011,7 +2201,56 @@ function listenToLeaderboardFromCloud(callback) {
 }
 
 // Global Objects on Window
+
+/**
+ * Save Leaderboard Sessions history to Firestore cloud
+ */
+async function saveLeaderboardSessionsToCloud(sessions) {
+  if (!Array.isArray(sessions)) return false;
+  let saved = false;
+  try {
+    localStorage.setItem('task_game_leaderboard_sessions', JSON.stringify(sessions));
+    if (db) {
+      const ref = doc(db, 'referral_codes', 'LEADERBOARD_SESSIONS');
+      await setDoc(ref, {
+        sessions: sessions,
+        count: sessions.length,
+        updatedAt: Date.now()
+      }, { merge: true });
+      saved = true;
+    }
+  } catch (err) {
+    console.warn("[Firebase] Leaderboard sessions save note:", err.message);
+  }
+  return saved;
+}
+
+/**
+ * Real-time listener for Leaderboard Sessions from Firestore
+ */
+function listenToCloudLeaderboardSessions(callback) {
+  if (!db) return null;
+  try {
+    const ref = doc(db, 'referral_codes', 'LEADERBOARD_SESSIONS');
+    return onSnapshot(ref, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data && Array.isArray(data.sessions)) {
+          localStorage.setItem('task_game_leaderboard_sessions', JSON.stringify(data.sessions));
+          if (typeof callback === 'function') callback(data.sessions);
+        }
+      }
+    }, (err) => {
+      console.log("[Firebase] Offline mode for leaderboard sessions listener.");
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
 window.Firebase = {
+  saveLeaderboardSessionsToCloud,
+  listenToCloudLeaderboardSessions,
   app,
   analytics,
   db,
@@ -2126,6 +2365,8 @@ try {
 window.syncBalancesWithCloud = saveCurrentProfileToFirestore;
 window.saveCurrentProfileToFirestore = saveCurrentProfileToFirestore;
 window.initCloudBalances = initCloudBalances;
+window.saveTasksToCloud = saveTasksToCloud;
+window.listenToCloudTasks = listenToCloudTasks;
 
 // Dispatch global ready event
 window.dispatchEvent(new CustomEvent('firebase:ready', {

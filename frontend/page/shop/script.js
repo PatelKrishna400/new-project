@@ -234,55 +234,56 @@ function watchAdForCoins(btn) {
     return;
   }
 
-  // Trigger ad view
-  try {
-    if (typeof window.openWatchAd === 'function') {
-      window.openWatchAd({
-        onReward: () => {}
-      });
+  const onReward = () => {
+    const rewardCoins = 10;
+    if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+      userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Gift');
     } else {
-      window.open('https://otieuche.com/4/8893420', '_blank');
+      userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + rewardCoins;
+      localStorage.setItem('task_game_coins', userCoins.toString());
+      localStorage.setItem('user_coins', userCoins.toString());
     }
-  } catch (e) {
-    try { window.open('https://otieuche.com/4/8893420', '_blank'); } catch (err) {}
-  }
+    if (typeof window.updateAllDomBalances === 'function') {
+      window.updateAllDomBalances(userCoins, userStars);
+    }
+    if (typeof window.saveCurrentProfileToFirestore === 'function') {
+      window.saveCurrentProfileToFirestore();
+    }
 
-  const rewardCoins = 10;
-  if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
-    userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Gift');
-  } else {
-    userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + rewardCoins;
-    localStorage.setItem('task_game_coins', userCoins.toString());
-    localStorage.setItem('user_coins', userCoins.toString());
-  }
-  if (typeof window.updateAllDomBalances === 'function') {
-    window.updateAllDomBalances(userCoins, userStars);
-  }
-  if (typeof window.saveCurrentProfileToFirestore === 'function') {
-    window.saveCurrentProfileToFirestore();
-  }
+    // Set 5-hour cooldown
+    const endTimestamp = Date.now() + AD_COOLDOWN_MS;
+    localStorage.setItem('task_game_shop_ad_cooldown', endTimestamp.toString());
 
-  // Set 5-hour cooldown
-  const endTimestamp = Date.now() + AD_COOLDOWN_MS;
-  localStorage.setItem('task_game_shop_ad_cooldown', endTimestamp.toString());
+    // Track completed claim / ad count for tasks and leaderboard
+    const adsCount = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1;
+    localStorage.setItem('task_game_ads_watched_count', adsCount.toString());
+    localStorage.setItem('ads_watched_count', adsCount.toString());
 
-  // Track completed claim / ad count for tasks and leaderboard
-  const adsCount = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1;
-  localStorage.setItem('task_game_ads_watched_count', adsCount.toString());
-  localStorage.setItem('ads_watched_count', adsCount.toString());
+    updateDisplays();
+    if (typeof shopSfx !== 'undefined' && shopSfx.playCoin) shopSfx.playCoin();
 
-  updateDisplays();
-  shopSfx.playCoin();
+    try {
+      const syncChannel = new BroadcastChannel('nova_task_sync');
+      syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    } catch (e) {}
 
-  try {
-    const syncChannel = new BroadcastChannel('nova_task_sync');
-    syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
-  } catch (e) {}
+    updateAdCooldownUI();
 
-  updateAdCooldownUI();
+    alert(`🎁 Free Gift Claimed!\n\nYou watched an ad and won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
+  };
 
-  alert(`🎁 Free Gift Claimed!\n\nYou watched an ad and won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
+  // Rewarded interstitial
+  show_10691428().then(() => {
+    // You need to add your user reward function here, which will be executed after the user watches the ad.
+    // For more details, please refer to the detailed instructions.
+    alert('You have seen an ad!');
+    onReward();
+  }).catch((err) => {
+    console.warn('show_10691428 notice:', err);
+    onReward();
+  });
 }
+
 window.watchAdForCoins = watchAdForCoins;
 window.buyStars = buyStars;
 

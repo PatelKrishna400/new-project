@@ -175,7 +175,14 @@ function getRankStarPrize(rank) {
 function getOrCreateLeaderboardEvent() {
   const now = Date.now();
 
-  // 1. Check if an explicit manual override was set by Admin in storage
+  // Purge legacy key if present
+  try {
+    if (localStorage.getItem('task_leaderboard_event_v1')) {
+      localStorage.removeItem('task_leaderboard_event_v1');
+    }
+  } catch (e) {}
+
+  // 1. Check if an explicit active event is stored
   let customEvt = null;
   try {
     const raw = localStorage.getItem(EVENT_STORAGE_KEY);
@@ -184,10 +191,11 @@ function getOrCreateLeaderboardEvent() {
     customEvt = null;
   }
 
-  // If an event has finished or a manual override is active, respect it
+  // If an event has finished, respect it
   if (customEvt && customEvt.status === 'finished') {
     return customEvt;
   }
+  // If active manual override is still running
   if (customEvt && customEvt.isManualOverride && now < customEvt.endTime && customEvt.status === 'active') {
     return customEvt;
   }
@@ -212,7 +220,10 @@ function getOrCreateLeaderboardEvent() {
   };
 
   // 3. If stored event was from a previous season, rollover and reset task counters to zero
-  if (customEvt && customEvt.seasonNumber && customEvt.seasonNumber < seasonNumber) {
+  if (customEvt && (
+    (customEvt.seasonNumber && customEvt.seasonNumber < seasonNumber) ||
+    (customEvt.endTime && customEvt.endTime <= now)
+  )) {
     localStorage.setItem(EVENT_TASKS_KEY, '0');
     try {
       const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
@@ -237,23 +248,16 @@ function getOrCreateLeaderboardEvent() {
  * Format milliseconds into DDd HHh MMm SSs (Global Synchronized Timer)
  */
 function formatTimeRemaining(ms) {
-  if (ms <= 0) return '00:00:00';
+  if (ms <= 0) return '00d 00h 00m 00s';
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(totalSec / 86400);
   const hours = Math.floor((totalSec % 86400) / 3600);
   const minutes = Math.floor((totalSec % 3600) / 60);
   const seconds = totalSec % 60;
 
-  if (days > 0) {
-    return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
-  }
-
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
 }
 
-/**
- * Start 1-second countdown clock for the global leaderboard event
- */
 function startEventCountdownTimer() {
   if (eventCountdownInterval) clearInterval(eventCountdownInterval);
 
@@ -327,6 +331,58 @@ function startEventCountdownTimer() {
 function finishLeaderboardEvent() {
   const evt = getOrCreateLeaderboardEvent();
   evt.status = 'finished';
+
+  // Automatically snapshot and archive current session into Session-Wise Store
+  try {
+    const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    const uList = rawUsers ? JSON.parse(rawUsers) : [];
+    const qualified = (Array.isArray(uList) ? uList : [])
+      .filter(u => Number(u.totalTasks || 0) >= 100)
+      .sort((a, b) => (Number(b.eventTasks || 0)) - (Number(a.eventTasks || 0)));
+
+    const now = Date.now();
+    const sessionNum = evt.seasonNumber || 1;
+    const standings = qualified.map((u, idx) => {
+      const rank = idx + 1;
+      const starReward = getRankStarPrize(rank);
+      return {
+        rank,
+        id: u.id || ('usr_' + idx),
+        name: u.name || 'Anonymous',
+        avatar: u.avatar || '⚡',
+        eventTasks: Number(u.eventTasks || 0),
+        totalTasks: Number(u.totalTasks || 0),
+        starReward
+      };
+    });
+
+    const archivedSession = {
+      id: 'session_' + sessionNum + '_' + now,
+      sessionNumber: sessionNum,
+      name: evt.name || ('Season ' + sessionNum + ': 3-Month Championship'),
+      startTime: evt.startTime || (now - (90 * 24 * 60 * 60 * 1000)),
+      endTime: now,
+      archivedAt: now,
+      status: 'concluded',
+      totalContenders: standings.length,
+      totalTasksCompleted: standings.reduce((sum, s) => sum + s.eventTasks, 0),
+      totalStarsAwarded: standings.reduce((sum, s) => sum + s.starReward, 0),
+      topWinner: standings[0] || null,
+      standings
+    };
+
+    const rawSessions = localStorage.getItem('task_game_leaderboard_sessions');
+    const sessionsList = rawSessions ? JSON.parse(rawSessions) : [];
+    const updatedSessions = Array.isArray(sessionsList) ? sessionsList : [];
+    updatedSessions.unshift(archivedSession);
+    localStorage.setItem('task_game_leaderboard_sessions', JSON.stringify(updatedSessions));
+
+    if (window.Firebase && typeof window.Firebase.saveLeaderboardSessionsToCloud === 'function') {
+      window.Firebase.saveLeaderboardSessionsToCloud(updatedSessions);
+    }
+  } catch(e) {
+    console.warn('[Leaderboard] Error auto-archiving finished session:', e.message);
+  }
 
   // 1. Award Star Prizes to user if qualified (100 tasks limit) and placed in top 20!
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
@@ -559,6 +615,7 @@ function getActiveUsersList() {
  * Render the entire real-time leaderboard (Event Banner, Qualification Card, Podium, Contenders, Sticky Bar)
  */
 function renderRealLeaderboard() {
+  updateSeasonTabButton();
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
   const userEventTasks = parseInt(localStorage.getItem(EVENT_TASKS_KEY) || '0', 10);
   isUserQualified = userTotalTasks >= 100;
@@ -821,6 +878,14 @@ try {
   };
 } catch (e) { }
 
+window.addEventListener('balance:changed', () => {
+  renderRealLeaderboard();
+});
+
+window.addEventListener('balance:synced', () => {
+  renderRealLeaderboard();
+});
+
 window.addEventListener('storage', (e) => {
   if (
     e.key === 'task_game_coins' ||
@@ -868,6 +933,7 @@ setInterval(() => {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  updateSeasonTabButton();
   startEventCountdownTimer();
   renderRealLeaderboard();
   setupStickyBarClickListener();
@@ -927,7 +993,10 @@ function updateHeaderBalances() {
 /**
  * Open Leaderboard Season & Rewards Modal
  */
-window.openLeaderboardSeasonModal = function () {
+window.openLeaderboardSeasonModal = function (e) {
+  if (e && typeof e.stopPropagation === 'function') {
+    e.stopPropagation();
+  }
   LeaderboardAudio.playTabSwitch();
   const modal = document.getElementById('leaderboardSeasonModalOverlay');
   if (modal) {
@@ -936,6 +1005,19 @@ window.openLeaderboardSeasonModal = function () {
     updateSeasonModalData();
   }
 };
+
+function updateSeasonTabButton() {
+  const joinBtn = document.getElementById('sessionTabJoinBtn');
+  if (!joinBtn) return;
+  const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
+  if (userTotalTasks >= 100) {
+    joinBtn.innerHTML = '<span>Joined ✓</span>';
+    joinBtn.classList.add('joined');
+  } else {
+    joinBtn.innerHTML = '<span>Join</span>';
+    joinBtn.classList.remove('joined');
+  }
+}
 
 /**
  * Close Leaderboard Season Modal
@@ -1129,47 +1211,45 @@ window.handleSeasonWatchAd = function () {
     return;
   }
 
-  // Trigger ad view
-  try {
-    if (typeof window.openWatchAd === 'function') {
-      window.openWatchAd({
-        onReward: () => {}
-      });
-    } else {
-      window.open('https://otieuche.com/4/8893420', '_blank');
+  const onAdReward = () => {
+    // Increment ads watched count (up to 30)
+    adsWatched = Math.min(30, adsWatched + 1);
+    localStorage.setItem(SEASON_ADS_KEY, adsWatched.toString());
+    localStorage.setItem('task_game_ads_watched_count', (parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1).toString());
+
+    // Award +50 Coins to user balance
+    let coins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + 50;
+    userCoins = coins;
+    localStorage.setItem('task_game_coins', coins.toString());
+    localStorage.setItem('user_coins', coins.toString());
+
+    if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+      window.firebaseSync.addCoins(50);
     }
-  } catch (e) {
-    try { window.open('https://otieuche.com/4/8893420', '_blank'); } catch (err) {}
-  }
 
-  // Increment ads watched count (up to 30)
-  adsWatched = Math.min(30, adsWatched + 1);
-  localStorage.setItem(SEASON_ADS_KEY, adsWatched.toString());
-  localStorage.setItem('task_game_ads_watched_count', (parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1).toString());
+    // Sound feedback
+    LeaderboardAudio.playTabSwitch();
 
-  // Award +50 Coins to user balance
-  let coins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + 50;
-  userCoins = coins;
-  localStorage.setItem('task_game_coins', coins.toString());
-  localStorage.setItem('user_coins', coins.toString());
+    // Toast / notification
+    showToastNotification(`📺 Ad Watched! +50 Coins awarded (${adsWatched}/30 Ads).`);
 
-  if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
-    window.firebaseSync.addCoins(50);
-  }
+    updateHeaderBalances();
+    updateSeasonModalData();
+  };
 
-  // Sound feedback
-  LeaderboardAudio.playTabSwitch();
-
-  // Toast / notification
-  showToastNotification(`📺 Ad Watched! +50 Coins awarded (${adsWatched}/30 Ads).`);
-
-  updateHeaderBalances();
-  updateSeasonModalData();
+  // Rewarded interstitial
+  show_10691428().then(() => {
+    // You need to add your user reward function here, which will be executed after the user watches the ad.
+    // For more details, please refer to the detailed instructions.
+    alert('You have seen an ad!');
+    onAdReward();
+  }).catch((err) => {
+    console.warn('show_10691428 notice:', err);
+    onAdReward();
+  });
 };
 
-/**
- * Claim Season Rank Reward when season finishes and 30 ads are watched
- */
+
 window.handleClaimSeasonRankReward = function () {
   LeaderboardAudio.init();
   const adsWatched = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10);

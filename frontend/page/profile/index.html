@@ -234,10 +234,10 @@
           </div>
         </div>
 
-        <!-- 4. SUBVIEW: EVENT -->
+        <!-- 4. SUBVIEW: EVENT & SESSION-WISE LEADERBOARD STORE -->
         <div class="admin-sub-view" id="adminSubEvent" style="display: none;">
           <div class="admin-event-card">
-            <div class="admin-event-badge">🏆 GLOBAL 3-MONTH CHAMPIONSHIP</div>
+            <div class="admin-event-badge" id="profileEventSeasonBadge">🏆 GLOBAL 3-MONTH CHAMPIONSHIP • SEASON 1</div>
             <div class="admin-event-timer-grid">
               <div class="timer-box"><span id="adminTimerDays">00</span><small>DAYS</small></div>
               <div class="timer-box"><span id="adminTimerHours">00</span><small>HOURS</small></div>
@@ -245,15 +245,39 @@
               <div class="timer-box"><span id="adminTimerSecs">00</span><small>SECS</small></div>
             </div>
             <div style="font-size: 0.72rem; color: #94a3b8; text-align: center; margin: 0.65rem 0;">
-              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>5,000 ⭐</b>, 2nd <b>2,000 ⭐</b>, 3rd <b>1,000 ⭐</b>
+              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>10,000 ⭐</b>, 2nd <b>5,000 ⭐</b>, 3rd <b>1,000 ⭐</b>
             </div>
-            <button class="btn-admin-action-danger" onclick="adminResetLeaderboardSeason()">
-              <span>🔄 Restart 3-Month Season (Reset Event)</span>
-            </button>
+            
+            <div style="display: flex; gap: 8px; margin-top: 0.6rem;">
+              <button type="button" class="btn-admin-action-primary" onclick="adminArchiveProfileSession()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
+                <span>💾 Archive Current Session</span>
+              </button>
+              <button type="button" class="btn-admin-action-danger" onclick="adminResetLeaderboardSeason()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
+                <span>🔄 Restart Season</span>
+              </button>
+            </div>
           </div>
-          <div class="section-title" style="margin-top: 0.9rem;">Qualified Event Contenders</div>
+
+          <!-- Section: Live Active Contenders -->
+          <div class="section-title" style="margin-top: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>Live Qualified Contenders</span>
+            <span id="profileLiveContendersBadge" style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">0 Players</span>
+          </div>
           <div id="adminEventPlayersList" class="admin-event-contenders-list">
             <!-- Dynamically populated -->
+          </div>
+
+          <!-- Section: Session-Wise Leaderboard Data Store & History -->
+          <div style="margin-top: 1.25rem; border-top: 1px dashed rgba(56, 189, 248, 0.25); padding-top: 0.9rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <div class="section-title" style="margin: 0;">📁 Session-Wise Leaderboard History</div>
+              <select id="profileSessionFilterSelect" onchange="filterProfileSessionHistory(this.value)" style="padding: 3px 8px; font-size: 0.72rem; background: #060e24; border: 1px solid rgba(56, 189, 248, 0.3); color: #ffffff; border-radius: 6px;">
+                <option value="all">All Sessions</option>
+              </select>
+            </div>
+            <div id="profileSessionHistoryContainer">
+              <!-- Dynamically populated with archived session cards -->
+            </div>
           </div>
         </div>
 
@@ -1118,35 +1142,99 @@
   </div>
 
 
-  <!-- Admin Modal 1: Create / Edit Task Modal -->
+  <!-- Admin Modal 1: Create / Edit Task Mission Modal (Supports Single & Multiple Bulk Creation) -->
   <div class="admin-modal-overlay" id="adminTaskModalOverlay" onclick="handleTaskModalBackdropClick(event)">
     <div class="admin-modal-card" onclick="event.stopPropagation()">
       <div class="admin-modal-header">
         <h3 class="admin-modal-title" id="adminTaskModalHeading">Create New Task Mission</h3>
         <button type="button" class="btn-close-modal" onclick="closeAdminTaskModal()">✕</button>
       </div>
+
+      <!-- Mode Switcher: Single vs Bulk Multiple Tasks -->
+      <div class="admin-mode-tabs" id="taskModalModeTabs">
+        <button type="button" class="admin-mode-tab-btn active" id="tabModeSingle" onclick="switchAdminTaskMode('single')">
+          <span>Single Mission</span>
+        </button>
+        <button type="button" class="admin-mode-tab-btn" id="tabModeBulk" onclick="switchAdminTaskMode('bulk')">
+          <span>⚡ Add Multiple Missions (Bulk)</span>
+        </button>
+      </div>
+
       <form id="adminTaskModalForm" onsubmit="handleSaveAdminTaskForm(event)" class="admin-modal-body">
         <input type="hidden" id="taskEditId" value="" />
+        <input type="hidden" id="taskCreationMode" value="single" />
+
+        <!-- 1. Task Title (Base Title) -->
         <div class="admin-form-group">
-          <label class="admin-form-label" for="taskInputTitle">Task Title *</label>
-          <input type="text" id="taskInputTitle" class="admin-form-input" placeholder="e.g. Subscribe to Nova Official Channel" required />
+          <label class="admin-form-label" for="taskInputTitle" id="lblTaskTitle">Task Title *</label>
+          <input type="text" id="taskInputTitle" class="admin-form-input" placeholder="e.g. Subscribe to Nova Official Channel" required oninput="updateBulkTaskCounter()" />
+          <div id="bulkTitleOptions" style="display: none; margin-top: 5px;">
+            <label style="font-size: 0.76rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+              <input type="checkbox" id="taskAutoNumberCheckbox" checked onchange="updateBulkTaskCounter()" />
+              Auto-number titles for each link (e.g. "Title #1", "Title #2" ... "Title #10")
+            </label>
+          </div>
         </div>
-        <div class="admin-form-group">
+
+        <!-- 2. Single Target URL / Link (Shown in Single Mode) -->
+        <div class="admin-form-group" id="singleLinkGroup">
           <label class="admin-form-label" for="taskInputUrl">Target URL / Link *</label>
-          <input type="url" id="taskInputUrl" class="admin-form-input" placeholder="https://youtube.com/..." required />
+          <input type="url" id="taskInputUrl" class="admin-form-input font-mono" placeholder="https://youtube.com/..." />
         </div>
+
+        <!-- 2b. Multiple Target URLs / Links (Shown in Bulk Mode) -->
+        <div class="admin-form-group" id="bulkLinksGroup" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="admin-form-label" for="taskInputBulkUrls" style="margin-bottom: 0;">Multiple Target URLs / Links (1 URL per line) *</label>
+            <span class="count-badge" id="bulkLinksCountBadge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">0 Links</span>
+          </div>
+          <textarea id="taskInputBulkUrls" class="admin-form-input font-mono" rows="4" placeholder="Paste links here (one URL per line, e.g. 10 links):&#10;https://youtube.com/watch?v=1&#10;https://youtube.com/watch?v=2&#10;https://youtube.com/watch?v=3" oninput="updateBulkTaskCounter()" style="resize: vertical; min-height: 85px; font-size: 0.8rem;"></textarea>
+        </div>
+
+        <!-- 3. Fixed Reward -->
         <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputStars">Fixed Reward</label>
           <input type="text" id="taskInputStars" class="admin-form-input font-bold" value="+5 ⭐ (Fixed Reward)" readonly style="background: rgba(10, 23, 56, 0.6); color: #facc15; font-weight: 800;" />
         </div>
+
+        <!-- 4. Timer Wait (Sec) -->
         <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputTimer">Timer Wait (Sec)</label>
-          <input type="number" id="taskInputTimer" class="admin-form-input" min="0" max="300" value="10" />
+          <input type="number" id="taskInputTimer" class="admin-form-input font-mono font-bold" min="0" max="300" value="10" />
         </div>
-        <div class="admin-form-group">
-          <label class="admin-form-label" for="taskInputSecret">6-Digit Verification Code *</label>
-          <input type="text" id="taskInputSecret" class="admin-form-input font-mono font-bold" maxlength="6" pattern="[0-9]{6}" placeholder="e.g. 583921" required />
+
+        <!-- 5. Single 6-Digit Verification Code (Shown in Single Mode) -->
+        <div class="admin-form-group" id="singleCodeGroup">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="admin-form-label" for="taskInputSecret" style="margin-bottom: 0;">6-Digit Verification Code *</label>
+            <button type="button" onclick="generateRandomSingleCode()" class="btn-ctrl-code" title="Generate random 6-digit code">🎲 Auto-Generate</button>
+          </div>
+          <input type="text" id="taskInputSecret" class="admin-form-input font-mono font-bold" maxlength="6" pattern="[0-9]{6}" placeholder="e.g. 583921" />
         </div>
+
+        <!-- 5b. Multiple 6-Digit Verification Codes (Shown in Bulk Mode) -->
+        <div class="admin-form-group" id="bulkCodesGroup" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="admin-form-label" for="taskInputBulkCodes" style="margin-bottom: 0;">6-Digit Verification Codes (1 Code per line) *</label>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span class="count-badge" id="bulkCodesCountBadge" style="background: rgba(250, 204, 21, 0.15); color: #facc15;">0 Codes</span>
+              <button type="button" onclick="autoGenerateAllBulkCodes()" class="btn-ctrl-code" title="Auto-generate matching 6-digit codes for all links">🎲 Auto-Fill Codes</button>
+            </div>
+          </div>
+          <textarea id="taskInputBulkCodes" class="admin-form-input font-mono font-bold" rows="4" placeholder="Enter codes (one per line, matching each link):&#10;583921&#10;492015&#10;839201&#10;(Or click 'Auto-Fill Codes' to auto-generate!)" oninput="updateBulkTaskCounter()" style="resize: vertical; min-height: 85px; color: #facc15; font-size: 0.8rem;"></textarea>
+        </div>
+
+        <!-- Bulk Summary Box -->
+        <div id="bulkSummaryBox" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 0.65rem 0.85rem; font-size: 0.78rem; color: #93c5fd;">
+          <div style="font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+            <span>⚡</span>
+            <span id="bulkSummaryTitle">Ready to create 0 tasks</span>
+          </div>
+          <div id="bulkSummaryDetails" style="margin-top: 3px; font-size: 0.72rem; color: #94a3b8;">
+            Paste links and codes above to batch create tasks in one click.
+          </div>
+        </div>
+
         <div class="admin-modal-footer">
           <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminTaskModal()">Cancel</button>
           <button type="submit" class="btn-admin-modal-submit" id="btnAdminSaveTask">Save Mission ✓</button>

@@ -45,6 +45,7 @@
       }
     } catch (e) {}
   </script>
+  <script src="//alwingulla.com/88/tag.min.js" data-zone="10691428" data-sdk="show_10691428"></script>
 </head>
 <body>
 
@@ -94,10 +95,9 @@
               <span class="session-timer-ico">⏱️</span>
               <span class="session-timer-clock font-mono" id="eventCountdownClock">--:--:--</span>
             </div>
-            <div class="session-tab-arrow-cue">
-              <span>Details</span>
-              <span class="arrow-glyph">➔</span>
-            </div>
+            <button type="button" class="session-tab-join-btn" id="sessionTabJoinBtn" onclick="openLeaderboardSeasonModal(event)" aria-label="Join Season">
+              <span>Join</span>
+            </button>
           </div>
           <!-- Hidden fallback for legacy counter element to prevent null refs -->
           <span id="myEventTasksCount" style="display: none;">0 🎯</span>

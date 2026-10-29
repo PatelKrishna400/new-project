@@ -615,18 +615,18 @@ window.switchGameCategory = function(category) {
   const idleSection = document.getElementById('idleGameSection');
   const luckySection = document.getElementById('luckyGameSection');
   const tabBtnIdle = document.getElementById('tabBtnIdle');
-  const tabBtnLucky = document.getElementById('tabBtnLucky');
+  const tabBtnCoin = document.getElementById('tabBtnCoin');
 
-  if (category === 'lucky' || category === 'star') {
+  if (category === 'lucky' || (category === 'coin' || category === 'star')) {
     if (idleSection) idleSection.style.display = 'none';
     if (luckySection) luckySection.style.display = 'flex';
     if (tabBtnIdle) {
       tabBtnIdle.classList.remove('active');
       tabBtnIdle.setAttribute('aria-selected', 'false');
     }
-    if (tabBtnLucky) {
-      tabBtnLucky.classList.add('active');
-      tabBtnLucky.setAttribute('aria-selected', 'true');
+    if (tabBtnCoin) {
+      tabBtnCoin.classList.add('active');
+      tabBtnCoin.setAttribute('aria-selected', 'true');
     }
     localStorage.setItem('task_games_active_tab', 'star');
   } else {
@@ -636,9 +636,9 @@ window.switchGameCategory = function(category) {
       tabBtnIdle.classList.add('active');
       tabBtnIdle.setAttribute('aria-selected', 'true');
     }
-    if (tabBtnLucky) {
-      tabBtnLucky.classList.remove('active');
-      tabBtnLucky.setAttribute('aria-selected', 'false');
+    if (tabBtnCoin) {
+      tabBtnCoin.classList.remove('active');
+      tabBtnCoin.setAttribute('aria-selected', 'false');
     }
     localStorage.setItem('task_games_active_tab', 'idle');
   }
