@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Earner — Webtask</title>
   <script>
-    if (sessionStorage.getItem('task_app_loaded') === 'true') {
-      document.documentElement.classList.add('app-preloaded');
-    }
     // Initialize local defaults only if not already set, preserving real balances
     try {
       if (localStorage.getItem('task_game_coins') === null) localStorage.setItem('task_game_coins', '0');
@@ -38,21 +35,6 @@
 </head>
 <body>
 
-  <!-- Cybernetic Loading / Splash Screen (Transitions into Home Page) -->
-  <div class="app-loading-overlay" id="appLoadingOverlay">
-    <div class="loading-content-box">
-      <div class="loading-logo-ring">
-        <div class="loading-ring-spinner"></div>
-        <div class="loading-logo-core">⚡</div>
-      </div>
-      <h1 class="loading-app-title">TASK EARNER</h1>
-      <div class="loading-subtitle">Cybernetic Gaming &amp; Task Arena</div>
-      <div class="loading-progress-track">
-        <div class="loading-progress-bar" id="loadingProgressBar"></div>
-      </div>
-      <div class="loading-status-text" id="loadingStatusText">INITIALIZING SYSTEM...</div>
-    </div>
-  </div>
 
   <!-- Mobile View Screen Shell -->
   <div class="mobile-container">
@@ -67,11 +49,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" id="coinPill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="userCoinsDisplay">0</span>
         </div>
-        <div class="star-pill" id="starPill" title="Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="userStarsDisplay">0</span>
         </div>

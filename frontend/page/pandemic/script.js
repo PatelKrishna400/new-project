@@ -106,9 +106,12 @@ function saveStats() {
 
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch(e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
 // Multiplier Controls (x1, x2, x3)
@@ -497,12 +500,13 @@ document.addEventListener('DOMContentLoaded', () => {
     drawPandemicBoard();
   }
 
+  balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   updateAllStatsUI();
   setInterval(updateMutationTimer, 1000);
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'task_game_stars' || e.key === 'user_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateAllStatsUI();
     }
   });
@@ -510,8 +514,22 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateAllStatsUI();
     };
   } catch(e) {}
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateAllStatsUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateAllStatsUI();
+  }
 });

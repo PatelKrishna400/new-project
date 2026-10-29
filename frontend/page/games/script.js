@@ -1,10 +1,4 @@
 // Gaming Arena Interactive Logic & Audio Engine
-if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
-  localStorage.setItem('task_game_coins', '0');
-}
-if (localStorage.getItem('task_game_stars') === '850' || !localStorage.getItem('task_game_stars')) {
-  localStorage.setItem('task_game_stars', '0');
-}
 
 let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
@@ -221,9 +215,52 @@ function updateGameDisplays() {
   const tabSeedsEl = document.getElementById('tabSfSeedsSunflower') || document.getElementById('tabSfSeeds');
   const tabBucketsEl = document.getElementById('tabSfBucketsSunflower') || document.getElementById('tabSfBuckets');
 
-  if (tabCoinsEl) tabCoinsEl.textContent = `${Math.floor(sfCoins).toLocaleString()} 🌻`;
-  if (tabSeedsEl) tabSeedsEl.textContent = `${sfSeeds} 🌱`;
-  if (tabBucketsEl) tabBucketsEl.textContent = `${sfBuckets} 💧`;
+  const displaySfCoins = sfCoins > 0 ? Math.floor(sfCoins) : userCoins;
+  if (tabCoinsEl) tabCoinsEl.textContent = displaySfCoins.toLocaleString();
+  if (tabSeedsEl) tabSeedsEl.textContent = sfSeeds.toLocaleString();
+  if (tabBucketsEl) tabBucketsEl.textContent = sfBuckets.toLocaleString();
+
+  // Live Honey Bee Farm Stats from honey_bee_game_state_v1
+  let hbHoney = 15;
+  let hbBees = 4;
+  let hbRate = 4.5;
+
+  try {
+    const rawHb = localStorage.getItem('honey_bee_game_state_v1');
+    if (rawHb) {
+      const hbState = JSON.parse(rawHb);
+      if (typeof hbState.honey === 'number') hbHoney = hbState.honey;
+      if (Array.isArray(hbState.bees)) {
+        hbBees = hbState.bees.reduce((sum, b) => sum + (b.count || 0), 0);
+      }
+      // Calculate rate
+      let hiveSum = 0;
+      if (Array.isArray(hbState.hives)) {
+        hbState.hives.forEach(h => {
+          if (h.unlocked && h.level > 0) hiveSum += h.level * (h.baseRate || 1);
+        });
+      }
+      let beeSum = 0;
+      if (Array.isArray(hbState.bees)) {
+        hbState.bees.forEach(b => {
+          beeSum += (b.count || 0) * (b.rate || 0.5);
+        });
+      }
+      let flowerMult = 1.0;
+      if (Array.isArray(hbState.flowers)) {
+        hbState.flowers.forEach(f => { flowerMult += (f.level || 0) * (f.multStep || 0.1); });
+      }
+      hbRate = (hiveSum + beeSum) * flowerMult;
+    }
+  } catch (e) {}
+
+  const tabHbHoneyEl = document.getElementById('tabHbHoneyJars');
+  const tabHbBeesEl = document.getElementById('tabHbActiveBees');
+  const tabHbRateEl = document.getElementById('tabHbHoneyRate');
+
+  if (tabHbHoneyEl) tabHbHoneyEl.textContent = Math.floor(hbHoney).toLocaleString();
+  if (tabHbBeesEl) tabHbBeesEl.textContent = hbBees.toLocaleString();
+  if (tabHbRateEl) tabHbRateEl.textContent = `+${hbRate.toFixed(1)}/s`;
 }
 
 function rewardPlayer(coins, stars, targetEl) {
@@ -246,6 +283,8 @@ function rewardPlayer(coins, stars, targetEl) {
 
   ArcadeAudio.playCoinChime();
   updateGameDisplays();
+  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances(userCoins, userStars);
+  if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
 }
 
 function showFloatingReward(targetEl, text) {
@@ -613,12 +652,24 @@ document.addEventListener('DOMContentLoaded', () => {
   drawWheel();
   resetMemoryGame();
 
-  const savedTab = localStorage.getItem('task_games_active_tab') || 'idle';
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab') || urlParams.get('category');
+  const savedTab = tabParam || localStorage.getItem('task_games_active_tab') || 'idle';
   switchGameCategory(savedTab);
 
   const sfTab = document.getElementById('sunflowerGameTab');
   if (sfTab) {
     sfTab.addEventListener('click', () => {
+      try {
+        ArcadeAudio.init();
+        ArcadeAudio.playClick();
+      } catch (e) {}
+    });
+  }
+
+  const hbTab = document.getElementById('honeyBeeGameTab');
+  if (hbTab) {
+    hbTab.addEventListener('click', () => {
       try {
         ArcadeAudio.init();
         ArcadeAudio.playClick();
@@ -634,7 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Real-Time Cross-Tab / Cross-Window Synchronization
 window.addEventListener('storage', (e) => {
-  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'ENERGY_TAP_SUNFLOWER_STATE_V4') {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'ENERGY_TAP_SUNFLOWER_STATE_V4' || e.key === 'honey_bee_game_state_v1') {
     updateGameDisplays();
   }
 });
@@ -650,4 +701,12 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     updateGameDisplays();
   }
+});
+
+window.addEventListener('balance:changed', () => {
+  updateGameDisplays();
+});
+
+window.addEventListener('balance:synced', () => {
+  updateGameDisplays();
 });

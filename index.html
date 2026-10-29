@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Earner — Webtask</title>
   <script>
-    if (sessionStorage.getItem('task_app_loaded') === 'true') {
-      document.documentElement.classList.add('app-preloaded');
-    }
     // Initialize local defaults only if not already set, preserving real balances
     try {
       if (localStorage.getItem('task_game_coins') === null) localStorage.setItem('task_game_coins', '0');
@@ -35,10 +32,6 @@
   <!-- Firebase SDK & Analytics Connection -->
   <script type="module" src="frontend/firebase-config.js"></script>
   <style>
-    /* One-Time Loading Page Rule: Never show if already loaded */
-    html.app-preloaded .app-loading-overlay {
-      display: none !important;
-    }
 
     /* Global Scrollbar Hiding */
     *::-webkit-scrollbar {
@@ -78,19 +71,9 @@
       overflow-x: hidden;
     }
 
-    /* ==========================================================================
-       APP CYBERNETIC LOADING SCREEN (START TO HOME PAGE)
-       ========================================================================== */
+    /* Loading Page: Completely Removed */
     .app-loading-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 999999;
-      background: radial-gradient(circle at 50% 40%, #0c1a40 0%, #030816 80%, #01040d 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: none !important;
     }
 
     .app-loading-overlay.fade-out {
@@ -268,19 +251,46 @@
       letter-spacing: 0.04em;
     }
 
-    .coin-pill {
+    .header-pills {
       display: flex;
       align-items: center;
-      gap: 0.4rem;
+      gap: 0.5rem;
+    }
+
+    .coin-pill,
+    .star-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
       background: #0a1738;
-      border: 1px solid #38bdf8;
-      padding: 0.35rem 0.8rem;
+      border: 1.5px solid #38bdf8;
+      padding: 0.32rem 0.75rem;
       border-radius: 9999px;
       font-weight: 800;
       color: #fbbf24;
-      font-size: 0.9rem;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
-      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-size: 0.85rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .coin-pill:hover,
+    .star-pill:hover {
+      transform: translateY(-1.5px) scale(1.04);
+      filter: brightness(1.15);
+    }
+
+    .coin-pill:active,
+    .star-pill:active {
+      transform: scale(0.95);
+    }
+
+    .star-pill {
+      border-color: #facc15;
+      color: #facc15;
+      background: linear-gradient(135deg, #221803 0%, #0a1738 100%);
+      box-shadow: 0 2px 10px rgba(250, 204, 21, 0.25);
     }
 
     /* Tasks Main Content */
@@ -1265,21 +1275,6 @@
 </head>
 <body>
 
-  <!-- Cybernetic Loading / Splash Screen (Transitions into Home Page) -->
-  <div class="app-loading-overlay" id="appLoadingOverlay">
-    <div class="loading-content-box">
-      <div class="loading-logo-ring">
-        <div class="loading-ring-spinner"></div>
-        <div class="loading-logo-core">⚡</div>
-      </div>
-      <h1 class="loading-app-title">TASK EARNER</h1>
-      <div class="loading-subtitle">Cybernetic Gaming &amp; Task Arena</div>
-      <div class="loading-progress-track">
-        <div class="loading-progress-bar" id="loadingProgressBar"></div>
-      </div>
-      <div class="loading-status-text" id="loadingStatusText">INITIALIZING SYSTEM...</div>
-    </div>
-  </div>
 
   <!-- Mobile View Screen Shell -->
   <div class="mobile-container">
@@ -1294,11 +1289,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" id="coinPill" title="Current Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="userCoinsDisplay">0</span>
         </div>
-        <div class="star-pill" id="starPill" title="Current Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="userStarsDisplay">0</span>
         </div>
@@ -1477,62 +1472,27 @@
     const SYNC_FLAG_KEY = 'task_game_sync_flag';
     const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-    // Initial default seed tasks with 6-digit verification codes
-    const DEFAULT_TASKS = [
-      {
-        id: 'task_sponsor_1',
-        title: 'Visit Webtask Sponsor Page',
-        link: 'https://telegram.org',
-        verificationCode: '583921',
-        code: '583921',
-        icon: '🌐',
-        reward: 5,
-        rewardStars: 5,
-        description: 'Open link, get the 6-digit code, and verify',
-        active: true,
-        createdAt: 1700000000000
-      },
-      {
-        id: 'task_sponsor_2',
-        title: 'Join Community Channel',
-        link: 'https://t.me',
-        verificationCode: '729401',
-        code: '729401',
-        icon: '✈️',
-        reward: 5,
-        rewardStars: 5,
-        description: 'Open channel & enter 6-digit verification code',
-        active: true,
-        createdAt: 1700000000001
-      },
-      {
-        id: 'task_sponsor_3',
-        title: 'Explore Gaming Partner Arena',
-        link: 'https://google.com',
-        verificationCode: '314859',
-        code: '314859',
-        icon: '🎮',
-        reward: 5,
-        rewardStars: 5,
-        description: 'Check out partner gaming hub and verify 6-digit code',
-        active: true,
-        createdAt: 1700000000002
-      }
-    ];
+    // Default tasks: empty by default; managed directly from Admin Panel
+    const DEFAULT_TASKS = [];
 
     function getStoredTasks() {
       try {
         const raw = localStorage.getItem(TASKS_STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+          if (Array.isArray(parsed)) {
+            // Purge any legacy demo sponsor tasks
+            const cleaned = parsed.filter(t => t && t.id && !t.id.startsWith('task_sponsor_') && !String(t.title || '').toLowerCase().includes('sponsor'));
+            if (cleaned.length !== parsed.length) {
+              localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(cleaned));
+            }
+            return cleaned;
           }
         }
-        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(DEFAULT_TASKS));
-        return DEFAULT_TASKS;
+        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify([]));
+        return [];
       } catch (e) {}
-      return DEFAULT_TASKS;
+      return [];
     }
 
     function getStoredCompletedTasks() {
@@ -2074,49 +2034,19 @@
     }
 
     // Initialize Page & Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
+    function initHomePage() {
       updateCoinDisplay();
       renderTasks();
 
       // Start live 1-second countdown clock
       setInterval(updateLiveTimers, 1000);
+    }
 
-      // Cybernetic Loading Screen Progression (Runs ONLY once per app session)
-      const overlay = document.getElementById('appLoadingOverlay');
-      const bar = document.getElementById('loadingProgressBar');
-      const statusText = document.getElementById('loadingStatusText');
-      const isAlreadyLoaded = sessionStorage.getItem('task_app_loaded') === 'true';
-
-      if (isAlreadyLoaded) {
-        if (overlay) overlay.remove();
-      } else if (overlay && bar) {
-        sessionStorage.setItem('task_app_loaded', 'true');
-        let progress = 0;
-        const steps = [
-          { p: 25, msg: 'INITIALIZING SYSTEM...' },
-          { p: 55, msg: 'CONNECTING SECURE VAULT...' },
-          { p: 85, msg: 'SYNCHRONIZING REWARDS...' },
-          { p: 100, msg: 'ARENA READY!' }
-        ];
-        let stepIdx = 0;
-
-        const loadInterval = setInterval(() => {
-          if (stepIdx < steps.length) {
-            progress = steps[stepIdx].p;
-            bar.style.width = `${progress}%`;
-            if (statusText) statusText.textContent = steps[stepIdx].msg;
-            stepIdx++;
-          } else {
-            clearInterval(loadInterval);
-            HomeAudio.playStartupChime();
-            setTimeout(() => {
-              overlay.classList.add('fade-out');
-              setTimeout(() => overlay.remove(), 550);
-            }, 300);
-          }
-        }, 220);
-      }
-    });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHomePage);
+    } else {
+      initHomePage();
+    }
 
     // Real-Time Cross-Tab / Cross-Window Synchronization (Admin Edits -> Real-Time Player Screen Updates)
     window.addEventListener('storage', (e) => {

@@ -108,9 +108,8 @@ function handleAdminLogin(event) {
 function quickFillCredentials() {
   const u = document.getElementById('adminUsernameInput');
   const p = document.getElementById('adminPasswordInput');
-  if (u) u.value = '400 @123';
-  if (p) p.value = '0911';
-  showToast('Credentials filled! Click Authenticate.', 'info');
+  if (u) u.value = '';
+  if (p) p.value = '';
 }
 
 function handleAdminLogout() {
@@ -1202,19 +1201,32 @@ function handleSaveUserBalance(event) {
   user.stars = stars;
   user.status = status;
 
-  // If this is the active frontend user (usr_1), update frontend localStorage!
-  if (userId === 'usr_1') {
-    localStorage.setItem('task_game_coins', coins.toString());
-    localStorage.setItem('task_game_stars', stars.toString());
-    if (syncChannel) {
-      syncChannel.postMessage({ type: 'COINS_UPDATED', coins: coins, stars: stars });
-    }
+  // 1. Save directly to Firebase Firestore users/{userId}
+  if (window.Firebase && typeof window.Firebase.saveUserBalanceToCloud === 'function') {
+    window.Firebase.saveUserBalanceToCloud(userId, coins, stars, status);
   }
+
+  // 2. Check if this is the current active player session (by uid or username)
+  const currentUid = localStorage.getItem('player_uid');
+  const isCurrentPlayer = (userId === currentUid || userId === 'usr_1' || (user.uid && user.uid === currentUid));
+  if (isCurrentPlayer) {
+    localStorage.setItem('task_game_coins', coins.toString());
+    localStorage.setItem('user_coins', coins.toString());
+    localStorage.setItem('task_game_stars', stars.toString());
+    localStorage.setItem('user_stars', stars.toString());
+  }
+
+  // 3. Broadcast balance update across all open tabs
+  try {
+    const ch = syncChannel || new BroadcastChannel('nova_task_sync');
+    ch.postMessage({ type: 'COINS_UPDATED', coins: coins, stars: stars, userId: userId });
+    ch.postMessage({ type: 'BALANCES_UPDATED', coins: coins, stars: stars, userId: userId });
+  } catch (e) {}
 
   saveUsersAndSync();
   closeUserEditModal();
   logActivity(`Admin updated balance for ${user.name}: ${coins.toLocaleString()} 🪙, ${stars.toLocaleString()} ⭐`);
-  showToast(`✓ Player ${user.name} balance updated!`, 'success');
+  showToast(`✓ Player ${user.name} balance saved to Firebase & updated on all pages!`, 'success');
 }
 
 function toggleUserStatus(userId) {
@@ -1231,20 +1243,26 @@ function toggleUserStatus(userId) {
 function quickAwardAllPlayers(amount) {
   usersData.forEach(u => {
     u.coins = (u.coins || 0) + amount;
+    if (window.Firebase && typeof window.Firebase.saveUserBalanceToCloud === 'function') {
+      window.Firebase.saveUserBalanceToCloud(u.id, u.coins, u.stars || 0, u.status || 'active');
+    }
   });
 
   // Also give to active player
   let playerCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
   playerCoins += amount;
   localStorage.setItem('task_game_coins', playerCoins.toString());
+  localStorage.setItem('user_coins', playerCoins.toString());
 
-  if (syncChannel) {
-    syncChannel.postMessage({ type: 'COINS_UPDATED', coins: playerCoins });
-  }
+  try {
+    const ch = syncChannel || new BroadcastChannel('nova_task_sync');
+    ch.postMessage({ type: 'COINS_UPDATED', coins: playerCoins });
+    ch.postMessage({ type: 'BALANCES_UPDATED', coins: playerCoins });
+  } catch (e) {}
 
   saveUsersAndSync();
   logActivity(`Admin sent +${amount.toLocaleString()} 🪙 community bounty to all players.`);
-  showToast(`🎉 Sent +${amount.toLocaleString()} coins bonus to all players!`, 'success');
+  showToast(`🎉 Sent +${amount.toLocaleString()} coins bonus to all players (Saved to Firebase)!`, 'success');
 }
 
 async function deleteUser(userId) {

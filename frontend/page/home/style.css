@@ -47,24 +47,9 @@ body {
   color: #f8fafc;
 }
 
-/* ==========================================================================
-   APP CYBERNETIC LOADING SCREEN (START TO HOME PAGE)
-   ========================================================================== */
-/* One-Time Loading Page Rule: Never show if already loaded */
-html.app-preloaded .app-loading-overlay {
-  display: none !important;
-}
-
+/* Loading Page: Completely Removed */
 .app-loading-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 999999;
-  background: radial-gradient(circle at 50% 40%, #0c1a40 0%, #030816 80%, #01040d 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  display: none !important;
 }
 
 .app-loading-overlay.fade-out {

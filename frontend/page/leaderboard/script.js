@@ -18,10 +18,10 @@ const DEFAULT_USERS_POOL = [];
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
   if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
-    localStorage.setItem('task_game_coins', '0');
-    localStorage.setItem('task_game_stars', '0');
-    localStorage.setItem('user_coins', '0');
-    localStorage.setItem('user_stars', '0');
+    if (!localStorage.getItem('task_game_coins')) localStorage.setItem('task_game_coins', '0');
+    if (!localStorage.getItem('task_game_stars')) localStorage.setItem('task_game_stars', '0');
+    if (!localStorage.getItem('user_coins')) localStorage.setItem('user_coins', '0');
+    if (!localStorage.getItem('user_stars')) localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
     localStorage.setItem('completed_tasks_count', '0');
@@ -1002,26 +1002,29 @@ function updateSeasonModalData() {
     if (participationActionRow) participationActionRow.style.display = 'inline-flex';
   }
 
-  // 2. Season Ads Quota (100 Ads with 6-Hour Cooldown)
+  // 2. Season Ads Quota (30 Ads Quota)
   const adsCountBadge = document.getElementById('seasonAdsCountBadge');
   const adsProgressText = document.getElementById('modalAdsProgressText');
   const adsProgressBar = document.getElementById('modalAdsProgressBar');
-  const adsRemainingText = document.getElementById('modalAdsRemainingText');
+  const btnWatchAd = document.getElementById('btnSeasonWatchAd');
+  const btnWatchAdText = document.getElementById('btnSeasonWatchAdText');
 
-  const adPct = Math.min(100, adsWatched);
-  if (adsCountBadge) adsCountBadge.textContent = `${adsWatched} / 100 ADS`;
-  if (adsProgressText) adsProgressText.textContent = `${adsWatched} / 100 (${adPct}%)`;
+  const adPct = Math.min(100, Math.round((adsWatched / 30) * 100));
+  if (adsCountBadge) adsCountBadge.textContent = `${adsWatched} / 30 ADS`;
+  if (adsProgressText) adsProgressText.textContent = `${adsWatched} / 30 (${adPct}%)`;
   if (adsProgressBar) adsProgressBar.style.width = `${adPct}%`;
 
-  if (adsRemainingText) {
-    adsRemainingText.style.display = 'none';
-    adsRemainingText.textContent = '';
+  if (btnWatchAd) {
+    if (adsWatched >= 30) {
+      btnWatchAd.disabled = true;
+      if (btnWatchAdText) btnWatchAdText.textContent = '✅ Completed (30/30)';
+    } else {
+      btnWatchAd.disabled = false;
+      if (btnWatchAdText) btnWatchAdText.textContent = '📺 Watch Ad';
+    }
   }
 
-  // Update 6-Hour Cooldown Clock
-  updateSeasonAdCooldownClock();
-
-  // 3. Leaderboard Rank Standing & Claim Gate (Requires 100 Ads)
+  // 3. Leaderboard Rank Standing & Claim Gate (Requires 30 Ads)
   const userRankBadge = document.getElementById('modalUserRankBadge');
   const userRankText = document.getElementById('modalUserRankText');
   const standingRankName = document.getElementById('modalStandingRankName');
@@ -1069,7 +1072,17 @@ function updateSeasonModalData() {
       btnClaim.className = 'btn-claim-season-reward locked';
       if (btnClaimText) btnClaimText.textContent = '🔒 Complete 100 Tasks to Qualify';
     }
-  } else {
+  } else if (adsWatched < 30) {
+    if (claimWarning) {
+      claimWarning.className = 'claim-req-warning';
+      claimWarning.innerHTML = `<span>🔒</span><span>Watch 30 Ads to qualify for Season Rank Rewards (${adsWatched} / 30 Ads watched).</span>`;
+    }
+    if (btnClaim) {
+      btnClaim.disabled = true;
+      btnClaim.className = 'btn-claim-season-reward locked';
+      if (btnClaimText) btnClaimText.textContent = `🔒 Complete 30 Ads to Qualify (${adsWatched}/30)`;
+    }
+  } else if (isFinished) {
     if (claimWarning) {
       claimWarning.className = 'claim-req-warning satisfied';
       claimWarning.innerHTML = `<span>✅</span><span>Eligible to claim rank reward upon season finish.</span>`;
@@ -1077,104 +1090,85 @@ function updateSeasonModalData() {
     if (btnClaim) {
       btnClaim.disabled = false;
       btnClaim.className = 'btn-claim-season-reward active';
-      if (btnClaimText) btnClaimText.textContent = isFinished ? '🏆 Claim Season Reward' : '⏳ Season Active (Claim on Finish)';
+      if (btnClaimText) btnClaimText.textContent = '🏆 Claim Season Reward';
     }
   } else {
-      // Still in active season
-      if (btnClaim) {
-        btnClaim.disabled = true;
-        btnClaim.className = 'btn-claim-season-reward locked';
-        if (btnClaimText) btnClaimText.textContent = `⏳ Claim Unlocks When Season Finishes (${rankPrize.toLocaleString()} ⭐)`;
-      }
+    // Still in active season
+    if (claimWarning) {
+      claimWarning.className = 'claim-req-warning satisfied';
+      claimWarning.innerHTML = `<span>⏳</span><span>Season 1 is currently active. Claim unlocks upon season end.</span>`;
+    }
+    if (btnClaim) {
+      btnClaim.disabled = true;
+      btnClaim.className = 'btn-claim-season-reward locked';
+      if (btnClaimText) btnClaimText.textContent = `⏳ Claim Unlocks When Season Finishes (${rankPrize.toLocaleString()} ⭐)`;
     }
   }
 }
 
 /**
- * Handle 6-Hour Cooldown Timer Tick (Live Renewal)
+ * Handle 6-Hour Cooldown Timer Tick (Live Renewal) - Deprecated / Optional helper
  */
 function updateSeasonAdCooldownClock() {
   const cooldownClock = document.getElementById('seasonAdCooldownClock');
-  const btnWatchAd = document.getElementById('btnSeasonWatchAd');
-  const btnWatchAdText = document.getElementById('btnSeasonWatchAdText');
-
-  const adsWatched = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10);
-  const cooldownEnd = parseInt(localStorage.getItem(SEASON_COOLDOWN_KEY) || '0', 10);
-  const now = Date.now();
-
-  if (adsWatched >= 100) {
-    if (cooldownClock) cooldownClock.textContent = 'Quota Complete (100/100) ✓';
-    if (btnWatchAd) btnWatchAd.disabled = true;
-    if (btnWatchAdText) btnWatchAdText.textContent = '✅ Completed (100/100)';
-    return;
-  }
-
-  if (cooldownEnd > now) {
-    const remaining = cooldownEnd - now;
-    const hours = Math.floor(remaining / 3600000);
-    const mins = Math.floor((remaining % 3600000) / 60000);
-    const secs = Math.floor((remaining % 60000) / 1000);
-    const formatted = `${String(hours).padStart(2, '0')}h ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
-
-    if (cooldownClock) cooldownClock.textContent = `Next Ad in: ${formatted}`;
-    if (btnWatchAd) btnWatchAd.disabled = true;
-    if (btnWatchAdText) btnWatchAdText.textContent = `⏳ ${formatted}`;
-  } else {
-    // Cooldown finished / Renewed!
-    if (cooldownClock) cooldownClock.textContent = 'Ready to Watch ✓';
-    if (btnWatchAd) btnWatchAd.disabled = false;
-    if (btnWatchAdText) btnWatchAdText.textContent = 'Watch Ad (+50 🪙)';
-  }
+  if (cooldownClock) cooldownClock.textContent = 'Ready to Watch ✓';
 }
 
 /**
  * Watch Ad button clicked inside Season popup:
- * 1. Checks 6-hour cooldown
- * 2. Increments 100-ads quota
- * 3. Sets 6-hour renewal timer
- * 4. Awards +50 coins
+ * 1. Opens ad immediately
+ * 2. Increments 30-ads quota
+ * 3. Awards +50 coins
  */
 window.handleSeasonWatchAd = function () {
   LeaderboardAudio.init();
-  const now = Date.now();
-  const cooldownEnd = parseInt(localStorage.getItem(SEASON_COOLDOWN_KEY) || '0', 10);
-
-  if (cooldownEnd > now) {
-    alert('⏳ 6-Hour Cooldown is currently active!\nPlease wait for the renewal timer to expire before watching the next ad.');
-    return;
-  }
 
   let adsWatched = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10);
-  if (adsWatched >= 100) {
-    alert('✅ Maximum 100 Ads Quota already completed for this season!');
+  if (adsWatched >= 30) {
+    showToastNotification('✅ Maximum 30 Ads Quota already completed for Season Rewards!');
     return;
   }
 
-  // Increment ads watched count (up to 100)
-  adsWatched = Math.min(100, adsWatched + 1);
-  localStorage.setItem(SEASON_ADS_KEY, adsWatched.toString());
+  // Trigger ad view
+  try {
+    if (typeof window.openWatchAd === 'function') {
+      window.openWatchAd({
+        onReward: () => {}
+      });
+    } else {
+      window.open('https://otieuche.com/4/8893420', '_blank');
+    }
+  } catch (e) {
+    try { window.open('https://otieuche.com/4/8893420', '_blank'); } catch (err) {}
+  }
 
-  // Set 6-hour cooldown timer (6 hours = 21,600,000 ms)
-  const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
-  localStorage.setItem(SEASON_COOLDOWN_KEY, (now + SIX_HOURS_MS).toString());
+  // Increment ads watched count (up to 30)
+  adsWatched = Math.min(30, adsWatched + 1);
+  localStorage.setItem(SEASON_ADS_KEY, adsWatched.toString());
+  localStorage.setItem('task_game_ads_watched_count', (parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1).toString());
 
   // Award +50 Coins to user balance
   let coins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + 50;
   userCoins = coins;
   localStorage.setItem('task_game_coins', coins.toString());
+  localStorage.setItem('user_coins', coins.toString());
+
+  if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+    window.firebaseSync.addCoins(50);
+  }
 
   // Sound feedback
   LeaderboardAudio.playTabSwitch();
 
   // Toast / notification
-  showToastNotification(`📺 Ad Watched! +50 Coins awarded (Total: ${adsWatched}/100 Ads). 6-Hour cooldown renewal started.`);
+  showToastNotification(`📺 Ad Watched! +50 Coins awarded (${adsWatched}/30 Ads).`);
 
   updateHeaderBalances();
   updateSeasonModalData();
 };
 
 /**
- * Claim Season Rank Reward when season finishes and 100 ads are watched
+ * Claim Season Rank Reward when season finishes and 30 ads are watched
  */
 window.handleClaimSeasonRankReward = function () {
   LeaderboardAudio.init();
@@ -1188,7 +1182,10 @@ window.handleClaimSeasonRankReward = function () {
     return;
   }
 
-  // 100 Ads rule removed
+  if (adsWatched < 30) {
+    alert(`🔒 You must watch 30 Ads to qualify for Season Rank Rewards!\nCurrent: ${adsWatched} / 30 Ads.`);
+    return;
+  }
 
   if (!isFinished) {
     alert('⏳ The season is still actively running!\nRank rewards can be claimed once the season countdown reaches 0 and concludes.');
@@ -1208,9 +1205,13 @@ window.handleClaimSeasonRankReward = function () {
   localStorage.setItem('task_game_stars', currentStars.toString());
   localStorage.setItem(SEASON_CLAIMED_KEY, 'true');
 
+  if (window.firebaseSync && typeof window.firebaseSync.addStars === 'function') {
+    window.firebaseSync.addStars(starReward);
+  }
+
   LeaderboardAudio.playEventRestart();
 
-  alert(`🎉 CONGRATULATIONS!\n\nYou completed 100 Ads and achieved Rank #${myRank} in Season 1!\n\nClaimed: +${starReward.toLocaleString()} Stars (⭐)!\nYour new balance: ${currentStars.toLocaleString()} ⭐`);
+  alert(`🎉 CONGRATULATIONS!\n\nYou completed 30 Ads and achieved Rank #${myRank} in Season 1!\n\nClaimed: +${starReward.toLocaleString()} Stars (⭐)!\nYour new balance: ${currentStars.toLocaleString()} ⭐`);
 
   updateHeaderBalances();
   updateSeasonModalData();
@@ -1228,12 +1229,12 @@ window.simulateSeasonTasks = function (count = 100) {
   showToastNotification(`🧪 Simulated: Added +${count} tasks! Total tasks: ${tasks}`);
 };
 
-window.simulateSeasonAds = function (count = 10) {
+window.simulateSeasonAds = function (count = 5) {
   let ads = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10) + count;
-  ads = Math.min(100, ads);
+  ads = Math.min(30, ads);
   localStorage.setItem(SEASON_ADS_KEY, ads.toString());
   updateSeasonModalData();
-  showToastNotification(`🧪 Simulated: Added +${count} ads! Season Ads: ${ads}/100`);
+  showToastNotification(`🧪 Simulated: Added +${count} ads! Season Ads: ${ads}/30`);
 };
 
 window.simulateResetAdCooldown = function () {

@@ -130,17 +130,25 @@ function saveBalance() {
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch (e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  } else if (typeof window.saveCurrentProfileToFirestore === 'function') {
+    window.saveCurrentProfileToFirestore();
+  }
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(undefined, balance);
+  }
 }
 
-function addFreeCoins(amount = 200) {
+function addFreeCoins(amount = 50) {
   playTone('win');
   balance += amount;
   saveBalance();
   updateBalanceUI();
-  showToast('Coins Added', `+${amount} coins credited!`, '🪙');
+  showToast('Stars Added', `+${amount} stars credited!`, '⭐');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
@@ -222,7 +230,7 @@ function updateActionButtonState() {
     btn.innerText = cfg.actionVerb;
     btn.className = 'primary-cta-btn bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950';
   } else if (balance < currentBet) {
-    btn.innerText = 'Buy coins';
+    btn.innerText = 'Buy stars';
     btn.className = `primary-cta-btn bg-gradient-to-r ${cfg.btnClass}`;
   } else {
     btn.innerText = cfg.actionVerb;
@@ -399,14 +407,14 @@ const GAME_CONFIGS = {
 // Navigation
 function handleNavigationBack() {
   playTone('click');
-  if (currentTab !== 'lobby') {
-    switchTab('lobby');
-  } else {
-    window.location.href = '../games/index.html';
-  }
+  window.location.href = '../games/index.html?tab=star';
 }
 
 function switchTab(tabId) {
+  if (tabId === 'lobby') {
+    window.location.href = '../games/index.html?tab=star';
+    return;
+  }
   playTone('click');
   currentTab = tabId;
   const config = GAME_CONFIGS[tabId];
@@ -586,7 +594,7 @@ function updateActiveChipUI() {
 }
 
 // Toast System
-function showToast(title, msg, icon = '🪙') {
+function showToast(title, msg, icon = '⭐') {
   const toast = document.getElementById('toastNotification');
   if (!toast) return;
   document.getElementById('toastTitle').innerText = title;
@@ -706,13 +714,13 @@ function rollDiceGame() {
     if (grossWin >= Math.round(currentBet * 7)) {
       if (window.confetti) confetti({ particleCount: 100, spread: 80 });
       playTone('jackpot');
-      showToast('JACKPOT!', `Three Sixes! Paid +${wonAmount} 🪙`, '🔥');
+      showToast('JACKPOT!', `Three Sixes! Paid +${wonAmount} ⭐`, '🔥');
     } else if (baseMult > 1) {
       playTone('win');
-      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} 🪙`, '🎉');
+      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} ⭐`, '🎉');
     } else if (baseMult > 0) {
       playTone('win');
-      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎲');
+      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} ⭐)`, '🎲');
     } else {
       playTone('lose');
       showToast('Rolled a One', 'Face 1 pays ×0. Better luck next roll!', '💀');
@@ -853,7 +861,7 @@ function buyScratchCard() {
     } else if (lowRoll < 0.80) {
       scratchPrize = { tier: 'Bronze Win', mult: 0.2, icon: '🥉' };
     } else {
-      scratchPrize = { tier: 'Lucky Drop', mult: 0.1, icon: '🪙' };
+      scratchPrize = { tier: 'Lucky Drop', mult: 0.1, icon: '⭐' };
     }
   }
 
@@ -892,8 +900,8 @@ function buyScratchCard() {
     document.getElementById('scratchIcon').innerText = scratchPrize.icon;
     document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
     document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
-    const winCoin = Math.round(currentBet * scratchPrize.mult);
-    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+    const winStars = Math.round(currentBet * scratchPrize.mult);
+    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winStars} ⭐` : `0 ⭐`;
 
     // Make the prize active underneath the opaque foil
     if (prizeCard) {
@@ -968,13 +976,13 @@ function revealScratchFinish(canvas, ctx) {
   if (scratchPrize.mult >= 5) {
     if (window.confetti) confetti({ particleCount: 80, spread: 70 });
     playTone('jackpot');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   } else if (scratchPrize.mult >= 1) {
     playTone('win');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   } else {
     playTone('win');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   }
 
   const playBtn = document.getElementById('primaryPlayBtn');
@@ -1153,10 +1161,10 @@ function spinWheelGame() {
     if (landed.mult >= 5) {
       if (window.confetti) confetti({ particleCount: 90, spread: 80 });
       playTone('jackpot');
-      showToast('GOLD WEDGE!', `Landed ×5! Won +${wonAmount} 🪙`, '👑');
+      showToast('GOLD WEDGE!', `Landed ×5! Won +${wonAmount} ⭐`, '👑');
     } else if (landed.mult > 0) {
       playTone('win');
-      showToast('Wedge Hit!', `Landed ${landed.label}! Won +${wonAmount} 🪙`, '🎡');
+      showToast('Wedge Hit!', `Landed ${landed.label}! Won +${wonAmount} ⭐`, '🎡');
     } else {
       playTone('lose');
       showToast('Bust Wedge', 'Landed ×0. Better luck next spin!', '💨');
@@ -1245,10 +1253,10 @@ function dropPlinkoBall() {
       if (mult >= 5) {
         if (window.confetti) confetti({ particleCount: 80, spread: 70 });
         playTone('jackpot');
-        showToast('Outer Edge!', `Landed in ×${mult}! Won ${winAmount} 🪙`, '🎁');
+        showToast('Outer Edge!', `Landed in ×${mult}! Won ${winAmount} ⭐`, '🎁');
       } else {
         playTone('win');
-        showToast('Bucket Hit', `Paid ×${mult} (${winAmount} 🪙)`, '🎁');
+        showToast('Bucket Hit', `Paid ×${mult} (${winAmount} ⭐)`, '🎁');
       }
     }
   }, 80);
@@ -1304,8 +1312,8 @@ function flipCoinGame() {
       updateBalanceUI();
       if (window.confetti) confetti({ particleCount: 70, spread: 60 });
       playTone('win');
-      showToast('Double Up!', `Called ${landedSide.toUpperCase()} correctly! Won +${winAmount} 🪙`, '⭐');
-      if (outcomeText) outcomeText.innerText = `Landed on ${landedSide.toUpperCase()}! You won +${winAmount} 🪙 (×2)!`;
+      showToast('Double Up!', `Called ${landedSide.toUpperCase()} correctly! Won +${winAmount} ⭐`, '⭐');
+      if (outcomeText) outcomeText.innerText = `Landed on ${landedSide.toUpperCase()}! You won +${winAmount} ⭐ (×2)!`;
     } else {
       playTone('lose');
       showToast('Missed Call', `Landed on ${landedSide.toUpperCase()}. Stake lost.`, '❌');
@@ -1429,7 +1437,7 @@ function cashoutMines() {
 
   if (window.confetti) confetti({ particleCount: 70, spread: 60 });
   playTone('jackpot');
-  showToast('Cashed Out!', `Secured ×${mult} (+${winAmount} 🪙)!`, '💰');
+  showToast('Cashed Out!', `Secured ×${mult} (+${winAmount} ⭐)!`, '💰');
 
   revealAllMines();
   const playBtn = document.getElementById('primaryPlayBtn');
@@ -1601,7 +1609,7 @@ function rollUnderOverGame() {
         updateBalanceUI();
         if (window.confetti) confetti({ particleCount: 70, spread: 60 });
         playTone('win');
-        showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} 🪙 (×${payout})`, '🎯');
+        showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} ⭐ (×${payout})`, '🎯');
       } else {
         if (dLeft) dLeft.className = "text-6xl font-black text-rose-400 tracking-tighter select-none";
         if (dRight) dRight.className = "text-6xl font-black text-rose-400 tracking-tighter select-none";

@@ -1,10 +1,10 @@
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
   if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
-    localStorage.setItem('task_game_coins', '0');
-    localStorage.setItem('task_game_stars', '0');
-    localStorage.setItem('user_coins', '0');
-    localStorage.setItem('user_stars', '0');
+    if (!localStorage.getItem('task_game_coins')) localStorage.setItem('task_game_coins', '0');
+    if (!localStorage.getItem('task_game_stars')) localStorage.setItem('task_game_stars', '0');
+    if (!localStorage.getItem('user_coins')) localStorage.setItem('user_coins', '0');
+    if (!localStorage.getItem('user_stars')) localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
     localStorage.setItem('completed_tasks_count', '0');
@@ -46,62 +46,27 @@ const COMPLETED_TASKS_KEY = 'task_game_completed_tasks';
 const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-// Initial default seed tasks with 6-digit verification codes
-const DEFAULT_TASKS = [
-  {
-    id: 'task_sponsor_1',
-    title: 'Visit Webtask Sponsor Page',
-    link: 'https://telegram.org',
-    verificationCode: '583921',
-    code: '583921',
-    icon: '🌐',
-    reward: 5,
-    rewardStars: 5,
-    description: 'Open link, get the 6-digit code, and verify',
-    active: true,
-    createdAt: 1700000000000
-  },
-  {
-    id: 'task_sponsor_2',
-    title: 'Join Community Channel',
-    link: 'https://t.me',
-    verificationCode: '729401',
-    code: '729401',
-    icon: '✈️',
-    reward: 5,
-    rewardStars: 5,
-    description: 'Open channel & enter 6-digit verification code',
-    active: true,
-    createdAt: 1700000000001
-  },
-  {
-    id: 'task_sponsor_3',
-    title: 'Explore Gaming Partner Arena',
-    link: 'https://google.com',
-    verificationCode: '314859',
-    code: '314859',
-    icon: '🎮',
-    reward: 5,
-    rewardStars: 5,
-    description: 'Check out partner gaming hub and verify 6-digit code',
-    active: true,
-    createdAt: 1700000000002
-  }
-];
+// Default tasks: empty by default; managed directly from Admin Panel
+const DEFAULT_TASKS = [];
 
 function getStoredTasks() {
   try {
     const raw = localStorage.getItem(TASKS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+      if (Array.isArray(parsed)) {
+        // Purge any legacy demo sponsor tasks
+        const cleaned = parsed.filter(t => t && t.id && !t.id.startsWith('task_sponsor_') && !String(t.title || '').toLowerCase().includes('sponsor'));
+        if (cleaned.length !== parsed.length) {
+          localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(cleaned));
+        }
+        return cleaned;
       }
     }
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(DEFAULT_TASKS));
-    return DEFAULT_TASKS;
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify([]));
+    return [];
   } catch (e) {}
-  return DEFAULT_TASKS;
+  return [];
 }
 
 function getStoredCompletedTasks() {
@@ -659,49 +624,19 @@ function recordLeaderboardEventTask(totalTasks) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initHomePage() {
   updateCoinDisplay();
   renderTasks();
 
   // Start live countdown timer clock
   setInterval(updateLiveTimers, 1000);
+}
 
-  // Cybernetic Loading Screen Progression (Runs ONLY once per app session)
-  const overlay = document.getElementById('appLoadingOverlay');
-  const bar = document.getElementById('loadingProgressBar');
-  const statusText = document.getElementById('loadingStatusText');
-  const isAlreadyLoaded = sessionStorage.getItem('task_app_loaded') === 'true';
-
-  if (isAlreadyLoaded) {
-    if (overlay) overlay.remove();
-  } else if (overlay && bar) {
-    sessionStorage.setItem('task_app_loaded', 'true');
-    let progress = 0;
-    const steps = [
-      { p: 25, msg: 'INITIALIZING SYSTEM...' },
-      { p: 55, msg: 'CONNECTING SECURE VAULT...' },
-      { p: 85, msg: 'SYNCHRONIZING REWARDS...' },
-      { p: 100, msg: 'ARENA READY!' }
-    ];
-    let stepIdx = 0;
-
-    const loadInterval = setInterval(() => {
-      if (stepIdx < steps.length) {
-        progress = steps[stepIdx].p;
-        bar.style.width = `${progress}%`;
-        if (statusText) statusText.textContent = steps[stepIdx].msg;
-        stepIdx++;
-      } else {
-        clearInterval(loadInterval);
-        HomeAudio.playStartupChime();
-        setTimeout(() => {
-          overlay.classList.add('fade-out');
-          setTimeout(() => overlay.remove(), 550);
-        }, 300);
-      }
-    }, 220);
-  }
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHomePage);
+} else {
+  initHomePage();
+}
 
 // Real-Time Cross-Tab / Cross-Window Synchronization (Admin Edits -> Real-Time Player Screen Updates)
 window.addEventListener('storage', (e) => {
@@ -728,6 +663,14 @@ document.addEventListener('visibilitychange', () => {
     renderTasks();
     updateCoinDisplay();
   }
+});
+
+window.addEventListener('balance:changed', () => {
+  updateCoinDisplay();
+});
+
+window.addEventListener('balance:synced', () => {
+  updateCoinDisplay();
 });
 
 // Expose on window for Firebase Cloud Sync and Admin Real-Time Connection

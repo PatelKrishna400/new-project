@@ -113,17 +113,20 @@ function saveBalance() {
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch (e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
-function addFreeCoins(amount = 200) {
+function addFreeCoins(amount = 50) {
   playTone('win');
   balance += amount;
   saveBalance();
   updateBalanceUI();
-  showToast('Coins Credited', `+${amount} free coins added!`, '🪙');
+  showToast('Stars Credited', `+${amount} free stars added!`, '⭐');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
@@ -156,7 +159,7 @@ function updateActionButtonState() {
   if (!btn) return;
 
   if (balance < currentBet) {
-    btn.innerText = 'Buy coins';
+    btn.innerText = 'Buy stars';
     btn.className = 'primary-cta-btn bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-300 hover:to-blue-400 text-slate-950 shadow-[0_8px_24px_rgba(56,189,248,0.35)]';
   } else {
     btn.innerText = 'Roll';
@@ -317,13 +320,13 @@ function rollDiceGame() {
     if (grossWin >= Math.round(currentBet * 7)) {
       if (window.confetti) confetti({ particleCount: 100, spread: 80 });
       playTone('jackpot');
-      showToast('JACKPOT!', `Three Sixes in a row! Paid +${wonAmount} 🪙`, '🔥');
+      showToast('JACKPOT!', `Three Sixes in a row! Paid +${wonAmount} ⭐`, '🔥');
     } else if (baseMult > 1) {
       playTone('win');
-      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} 🪙`, '🎉');
+      showToast('Winner!', `Rolled a ${rolledFace}! Won +${wonAmount} ⭐`, '🎉');
     } else if (baseMult > 0) {
       playTone('win');
-      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} 🪙)`, '🎲');
+      showToast('Face ' + rolledFace, `Paid ×${baseMult} (+${wonAmount} ⭐)`, '🎲');
     } else {
       playTone('lose');
       showToast('Rolled a One', 'Face 1 pays ×0. Better luck next roll!', '💀');
@@ -400,13 +403,27 @@ function watchAdForMorePlays() {
   showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
 }
 
-// DOM Ready
+// DOM Ready & Firebase Balance Synchronization
 window.addEventListener('DOMContentLoaded', () => {
   const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
-  balance = parseInt(storedStars || '10', 10);
+  balance = parseInt(storedStars || '0', 10);
 
   updateBalanceUI();
   setBet(50);
 
   if (window.lucide) lucide.createIcons();
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

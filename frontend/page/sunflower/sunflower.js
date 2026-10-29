@@ -671,6 +671,51 @@ Object.defineProperty(sunflowerState, 'coins', {
 
 window.sunflowerState = sunflowerState;
 
+// Ensure gameState.player is completely reactive and mapped to main gold coins & star coins
+if (typeof window !== 'undefined') {
+  if (!window.gameState) window.gameState = {};
+  if (!window.gameState.player) window.gameState.player = {};
+  try {
+    Object.defineProperty(window.gameState.player, 'coins', {
+      get() { return window.getPlayerGoldCoins(); },
+      set(val) {
+        const num = Math.max(0, Number(val) || 0);
+        try {
+          localStorage.setItem('task_game_coins', num.toString());
+          localStorage.setItem('user_coins', num.toString());
+        } catch(e) {}
+      },
+      configurable: true,
+      enumerable: true
+    });
+    Object.defineProperty(window.gameState.player, 'diamonds', {
+      get() { return parseInt(localStorage.getItem('task_game_stars') || '0', 10); },
+      set(val) {
+        const num = Math.max(0, Number(val) || 0);
+        try {
+          localStorage.setItem('task_game_stars', num.toString());
+          localStorage.setItem('user_stars', num.toString());
+        } catch(e) {}
+      },
+      configurable: true,
+      enumerable: true
+    });
+    Object.defineProperty(window.gameState.player, 'stars', {
+      get() { return parseInt(localStorage.getItem('task_game_stars') || '0', 10); },
+      set(val) {
+        const num = Math.max(0, Number(val) || 0);
+        try {
+          localStorage.setItem('task_game_stars', num.toString());
+          localStorage.setItem('user_stars', num.toString());
+        } catch(e) {}
+      },
+      configurable: true,
+      enumerable: true
+    });
+  } catch(e) {}
+}
+
+
 // Player's Main Gold Coins Accessors & Synced Deductions (task_game_coins / user_coins / gameState.player.coins)
 window.getPlayerGoldCoins = function() {
   if (typeof window !== 'undefined' && window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') {
@@ -705,6 +750,8 @@ window.deductPlayerGoldCoins = function(amt) {
   } catch (e) {}
 
   window._lastCurrencyDeductionTime = Date.now();
+  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances(next, undefined);
+  if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
   if (typeof window.saveGame === 'function') window.saveGame(true);
   if (typeof window.updateUI === 'function') window.updateUI();
   if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
@@ -1622,23 +1669,9 @@ window.unlockSfPlot = function(plotId, event = null) {
   // LAND 1: Buy for 10 Gold Coins (gameState.player.coins)
   if (plotId === 1) {
     const cost = plot.unlockCost || 10;
-    const playerGoldCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number')
-      ? window.gameState.player.coins
-      : (typeof gameState !== 'undefined' && gameState.player && typeof gameState.player.coins === 'number' ? gameState.player.coins : 0);
-
+    const playerGoldCoins = window.getPlayerGoldCoins();
     if (playerGoldCoins >= cost) {
-      if (window.gameState && window.gameState.player) {
-        window.gameState.player.coins -= cost;
-      } else if (typeof gameState !== 'undefined' && gameState.player) {
-        gameState.player.coins -= cost;
-      }
-      window._lastCurrencyDeductionTime = Date.now();
-      if (typeof window.saveGame === 'function') window.saveGame(true);
-      if (typeof window.updateUI === 'function') window.updateUI();
-      if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-        window.firebaseSync.syncPlayerCurrenciesImmediate();
-      }
-
+      window.deductPlayerGoldCoins(cost);
       plot.unlocked = true;
       plot.boughtFirstLand = true;
       plot.level = 1;
@@ -1678,8 +1711,13 @@ window.unlockSfPlot = function(plotId, event = null) {
   const currentDiamonds = sunflowerState.diamonds;
 
   if (currentDiamonds >= cost) {
+    if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
+      window.firebaseSync.subtractStars(cost, 'Unlock Land #' + plot.id);
+    }
     sunflowerState.diamonds = currentDiamonds - cost;
     window._lastCurrencyDeductionTime = Date.now();
+    if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
+    if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
     if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
       window.firebaseSync.syncPlayerCurrenciesImmediate();
     }
@@ -2231,24 +2269,16 @@ window.updateSunflowerManagersLiveTimers = updateSunflowerManagersLiveTimers;
 
 window.unlockLandManager = function(landId, event) {
   if (event) event.stopPropagation();
-  const mgr = sunflowerState.managers ? sunflowerState.managers.find(m => m.landId === landId) : null;
+  const mgr = (typeof sunflowerState !== 'undefined' ? sunflowerState : honeyState).managers ? (typeof sunflowerState !== 'undefined' ? sunflowerState : honeyState).managers.find(m => m.landId === landId) : null;
   if (!mgr) return;
 
-  const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+  const playerCoins = window.getPlayerGoldCoins();
   if (playerCoins < 300) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
     spawnSfFloat(`❌ Need 300 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
     return;
   }
 
-  // Deduct 300 Gold Coins
-  if (window.gameState && window.gameState.player) {
-    window.gameState.player.coins -= 300;
-    window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
-  }
+  window.deductPlayerGoldCoins(300);
   mgr.unlocked = true;
   mgr.activeTimer = Math.min(360000, 86400); // 1 full day (24 hours, max 100 hours)
   sunflowerState.landWorkersCount = (sunflowerState.landWorkersCount || 0) + 1;
@@ -2269,30 +2299,23 @@ window.unlockLandManager = function(landId, event) {
 
 window.hireLandManagerGoldCoins = function(landId, event) {
   if (event) event.stopPropagation();
-  const mgr = sunflowerState.managers ? sunflowerState.managers.find(m => m.landId === landId) : null;
+  const stateObj = (typeof sunflowerState !== 'undefined' ? sunflowerState : honeyState);
+  const mgr = stateObj.managers ? stateObj.managers.find(m => m.landId === landId) : null;
   if (!mgr || !mgr.unlocked) return;
 
-  const MAX_LIMIT = 360000; // 100 hours in seconds
+  const MAX_LIMIT = 360000;
   if ((mgr.activeTimer || 0) >= MAX_LIMIT) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-    spawnSfFloat(`⚠️ Manager #${landId} is already at the maximum 100 Hours limit!`, window.innerWidth / 2, window.innerHeight / 2, 'text-amber-400 font-bold');
+    spawnSfFloat(`⚠️ Manager #${landId} is already at the maximum limit!`, window.innerWidth / 2, window.innerHeight / 2, 'text-amber-400 font-bold');
     return;
   }
 
-  const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+  const playerCoins = window.getPlayerGoldCoins();
   if (playerCoins < 300) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
     spawnSfFloat(`❌ Need 300 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
     return;
   }
 
-  if (window.gameState && window.gameState.player) {
-    window.gameState.player.coins -= 300;
-    window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
-  }
+  window.deductPlayerGoldCoins(300);
   mgr.activeTimer = Math.min(MAX_LIMIT, (mgr.activeTimer > 0 ? mgr.activeTimer : 0) + 86400); // +24 hours
   if (sunflowerState.plots && sunflowerState.plots[landId - 1]) {
     sunflowerState.plots[landId - 1].hasWorker = true;
@@ -2311,24 +2334,17 @@ window.hireLandManagerDiamonds = window.hireLandManagerGoldCoins; // alias for c
 
 window.unlockWellManager = function(wellId, event) {
   if (event) event.stopPropagation();
-  const wm = sunflowerState.wellManagers ? sunflowerState.wellManagers.find(m => m.wellId === wellId) : null;
+  const stateObj = (typeof sunflowerState !== 'undefined' ? sunflowerState : honeyState);
+  const wm = stateObj.wellManagers ? stateObj.wellManagers.find(m => m.wellId === wellId) : null;
   if (!wm) return;
 
-  const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+  const playerCoins = window.getPlayerGoldCoins();
   if (playerCoins < 300) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
     spawnSfFloat(`❌ Need 300 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
     return;
   }
 
-  // Deduct 300 Gold Coins
-  if (window.gameState && window.gameState.player) {
-    window.gameState.player.coins -= 300;
-    window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
-  }
+  window.deductPlayerGoldCoins(300);
   wm.unlocked = true;
   wm.activeTimer = Math.min(360000, 86400); // 24 hours
   sunflowerState.wellWorkersCount = (sunflowerState.wellWorkersCount || 0) + 1;
@@ -2349,30 +2365,23 @@ window.unlockWellManager = function(wellId, event) {
 
 window.hireWellManagerGoldCoins = function(wellId, event) {
   if (event) event.stopPropagation();
-  const wm = sunflowerState.wellManagers ? sunflowerState.wellManagers.find(m => m.wellId === wellId) : null;
+  const stateObj = (typeof sunflowerState !== 'undefined' ? sunflowerState : honeyState);
+  const wm = stateObj.wellManagers ? stateObj.wellManagers.find(m => m.wellId === wellId) : null;
   if (!wm || !wm.unlocked) return;
 
   const MAX_LIMIT = 360000;
   if ((wm.activeTimer || 0) >= MAX_LIMIT) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-    spawnSfFloat(`⚠️ Well Manager #${wellId} is already at max 100 Hours limit!`, window.innerWidth / 2, window.innerHeight / 2, 'text-amber-400 font-bold');
+    spawnSfFloat(`⚠️ Well Manager #${wellId} is already at the maximum limit!`, window.innerWidth / 2, window.innerHeight / 2, 'text-amber-400 font-bold');
     return;
   }
 
-  const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+  const playerCoins = window.getPlayerGoldCoins();
   if (playerCoins < 300) {
-    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
     spawnSfFloat(`❌ Need 300 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
     return;
   }
 
-  if (window.gameState && window.gameState.player) {
-    window.gameState.player.coins -= 300;
-    window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
-  }
+  window.deductPlayerGoldCoins(300);
   wm.activeTimer = Math.min(MAX_LIMIT, (wm.activeTimer > 0 ? wm.activeTimer : 0) + 86400);
   if (sunflowerState.wells && sunflowerState.wells[wellId - 1]) {
     sunflowerState.wells[wellId - 1].hasWorker = true;
@@ -2847,15 +2856,9 @@ window.hireWellWorker = function(currency = 'coins') {
       spawnSfFloat(`Need ${costCoins} ☀️ Coins to hire a Well Worker!`, window.innerWidth / 2, window.innerHeight / 2, 'text-red-400');
     }
   } else {
-    const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+    const playerCoins = window.getPlayerGoldCoins();
     if (playerCoins >= costGoldCoins) {
-      if (window.gameState && window.gameState.player) {
-        window.gameState.player.coins -= costGoldCoins;
-        window._lastCurrencyDeductionTime = Date.now();
-        if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-          window.firebaseSync.syncPlayerCurrenciesImmediate();
-        }
-      }
+      window.deductPlayerGoldCoins(costGoldCoins);
       sunflowerState.wellWorkersCount = currentCount + 1;
       sunflowerAudio.playUnlockChime();
       spawnSfFloat(`🎉 Hired Well Worker #${sunflowerState.wellWorkersCount}! (-5 🪙 Gold Coins)`, window.innerWidth / 2, window.innerHeight / 2, 'text-cyan-400');
@@ -3006,15 +3009,9 @@ function hireLandWorker(currency = 'coins') {
       spawnSfFloat(`Need ${costCoins} ☀️ Coins to hire a Land Manager!`, window.innerWidth / 2, window.innerHeight / 2, 'text-red-400');
     }
   } else {
-    const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number') ? window.gameState.player.coins : 0;
+    const playerCoins = window.getPlayerGoldCoins();
     if (playerCoins >= costGoldCoins) {
-      if (window.gameState && window.gameState.player) {
-        window.gameState.player.coins -= costGoldCoins;
-        window._lastCurrencyDeductionTime = Date.now();
-        if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-          window.firebaseSync.syncPlayerCurrenciesImmediate();
-        }
-      }
+      window.deductPlayerGoldCoins(costGoldCoins);
       sunflowerState.landWorkersCount = currentCount + 1;
       sunflowerAudio.playUnlockChime();
       spawnSfFloat(`🎉 Hired Land Manager #${sunflowerState.landWorkersCount}! (-5 🪙 Gold Coins)`, window.innerWidth / 2, window.innerHeight / 2, 'text-emerald-400 font-bold');
@@ -3043,13 +3040,22 @@ window.unlockSfWell = function(wellId, event = null) {
   if (!well || well.unlocked) return;
 
   const cost = well.unlockCost || 0;
-  if (cost === 0 || sunflowerState.diamonds >= cost) {
+  const curStars = (typeof window.getPlayerStars === 'function') ? window.getPlayerStars() : (sunflowerState.diamonds || 0);
+  if (cost > 0 && curStars < cost) {
+    if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
+    spawnSfFloat(`❌ Need ${cost} ⭐ Star Coins to unlock Well #${wellId}!`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
+    return;
+  }
+  if (cost === 0 || curStars >= cost) {
     if (cost > 0) {
-      sunflowerState.diamonds -= cost;
-      window._lastCurrencyDeductionTime = Date.now();
-      if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-        window.firebaseSync.syncPlayerCurrenciesImmediate();
+      if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
+        window.firebaseSync.subtractStars(cost, `Unlock Well #${wellId}`);
+      } else {
+        sunflowerState.diamonds = Math.max(0, (sunflowerState.diamonds || 0) - cost);
       }
+      window._lastCurrencyDeductionTime = Date.now();
+      if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
+      if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
     }
     well.unlocked = true;
     well.level = 1;
@@ -4371,24 +4377,36 @@ function updateLiveUpgradeButtons() {
 
 function updateStickyHeaderAndMiniStats() {
   const sCoins = document.getElementById('sfStickyCoins');
-  const sGold = document.getElementById('sfStickyGoldCoins');
-  const sDiamonds = document.getElementById('sfStickyDiamonds');
+  const sGold = document.getElementById('headerCoinDisplay') || document.getElementById('sfStickyGoldCoins');
+  const sDiamonds = document.getElementById('headerStarDisplay') || document.getElementById('sfStickyDiamonds');
   const sSeeds = document.getElementById('sfStickySeeds');
   const sBaskets = document.getElementById('sfStickyBaskets');
   const sShovels = document.getElementById('sfStickyShovels');
   
-  if (sCoins) sCoins.innerText = formatNumber(Math.floor(sunflowerState.coins || 0));
+  const coinsFmt = typeof formatNumber === 'function' ? formatNumber(Math.floor(sunflowerState.coins || 0)) : Math.floor(sunflowerState.coins || 0);
+  const seedsVal = sunflowerState.seeds || 0;
+  const basketsVal = sunflowerState.baskets || 0;
+  const shovelsVal = sunflowerState.shovels || 0;
+
+  if (sCoins) sCoins.innerText = coinsFmt;
+  document.querySelectorAll('.sf-sub-coins-val').forEach(el => el.innerText = coinsFmt);
+
   if (sGold) {
-    const g = (window.gameState && window.gameState.player && window.gameState.player.coins) || 0;
-    sGold.innerText = typeof formatNumber === 'function' ? formatNumber(g) : g;
+    const g = window.getPlayerGoldCoins();
+    sGold.innerText = Number(g || 0).toLocaleString();
   }
   if (sDiamonds) {
-    const d = sunflowerState.diamonds;
-    sDiamonds.innerText = typeof formatNumber === 'function' ? formatNumber(d || 0) : (d || 0);
+    const d = (typeof window.getPlayerStars === 'function') ? window.getPlayerStars() : (sunflowerState.diamonds || 0);
+    sDiamonds.innerText = Number(d || 0).toLocaleString();
   }
-  if (sSeeds) sSeeds.innerText = sunflowerState.seeds || 0;
-  if (sBaskets) sBaskets.innerText = sunflowerState.baskets || 0;
-  if (sShovels) sShovels.innerText = sunflowerState.shovels || 0;
+  if (sSeeds) sSeeds.innerText = seedsVal;
+  document.querySelectorAll('.sf-sub-seeds-val').forEach(el => el.innerText = seedsVal);
+
+  if (sBaskets) sBaskets.innerText = basketsVal;
+  document.querySelectorAll('.sf-sub-baskets-val').forEach(el => el.innerText = basketsVal);
+
+  if (sShovels) sShovels.innerText = shovelsVal;
+  document.querySelectorAll('.sf-sub-shovels-val').forEach(el => el.innerText = shovelsVal);
 
   
 
@@ -4904,43 +4922,42 @@ window.openSunflowerAdModal = function(itemType) {
    SUNFLOWER SHOP PURCHASES & 20-MINUTE HARVEST PROFIT BOOSTERS
    ========================================================================== */
 window.buySunflowerItem = function(itemType, count, currency) {
-  if (typeof gameState === 'undefined' || !gameState.player) return;
   let cost = 0;
+  const playerGold = window.getPlayerGoldCoins();
   if (itemType === 'seed' || itemType === 'plant') {
     cost = 200; // 200 gold coins
-    if ((gameState.player.coins || 0) < cost) {
+    if (playerGold < cost) {
       if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(gameState.player.coins || 0)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
+      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
       return;
     }
-    gameState.player.coins -= cost;
+    window.deductPlayerGoldCoins(cost);
     sunflowerState.seeds = (sunflowerState.seeds || 0) + (count || 1);
     spawnSfFloat(`+${count || 1} 🌱 Baby Plant Seed Purchased! (-200 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-emerald-400 font-black');
   } else if (itemType === 'basket' || itemType === 'bucket') {
     cost = 250; // 250 gold coins for 10 buckets
-    if ((gameState.player.coins || 0) < cost) {
+    if (playerGold < cost) {
       if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 250 🪙 Gold Coins! (Have: ${Math.floor(gameState.player.coins || 0)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
+      spawnSfFloat(`❌ Need 250 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
       return;
     }
-    gameState.player.coins -= cost;
+    window.deductPlayerGoldCoins(cost);
     sunflowerState.baskets = (sunflowerState.baskets || 0) + (count || 10);
     spawnSfFloat(`+${count || 10} 🪣 Water Buckets Purchased! (-250 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-cyan-400 font-black');
   } else if (itemType === 'shovel') {
     cost = 200; // 200 gold coins
-    if ((gameState.player.coins || 0) < cost) {
+    if (playerGold < cost) {
       if (sunflowerAudio && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
-      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(gameState.player.coins || 0)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
+      spawnSfFloat(`❌ Need 200 🪙 Gold Coins! (Have: ${Math.floor(playerGold)})`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold');
       return;
     }
-    gameState.player.coins -= cost;
+    window.deductPlayerGoldCoins(cost);
     sunflowerState.shovels = (sunflowerState.shovels || 0) + (count || 1);
     spawnSfFloat(`+${count || 1} 🪏 Garden Shovel Purchased! (-200 🪙)`, window.innerWidth / 2, window.innerHeight / 2, 'text-orange-400 font-black');
   }
   window._lastCurrencyDeductionTime = Date.now();
-  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-    window.firebaseSync.syncPlayerCurrenciesImmediate();
-  }
+  if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
+  if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
   if (sunflowerAudio && sunflowerAudio.playCoin) sunflowerAudio.playCoin();
   if (typeof window.updateUI === 'function') window.updateUI();
   if (typeof window.saveGame === 'function') window.saveGame(true);
@@ -4980,22 +4997,13 @@ window.activateSunflowerProfitBooster = function(multiplier) {
 
   if (multiplier === 5) {
     // *5: 100 Coins
-    const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number')
-      ? window.gameState.player.coins
-      : (typeof gameState !== 'undefined' && gameState.player && typeof gameState.player.coins === 'number' ? gameState.player.coins : 0);
-
+    const playerCoins = window.getPlayerGoldCoins();
     if (playerCoins < 100) {
       if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
       spawnSfFloat(`❌ Need 100 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold text-sm');
       return;
     }
-
-    if (window.gameState && window.gameState.player) {
-      window.gameState.player.coins -= 100;
-    } else if (typeof gameState !== 'undefined' && gameState.player) {
-      gameState.player.coins -= 100;
-    }
-
+    window.deductPlayerGoldCoins(100);
     if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playCoin) sunflowerAudio.playCoin();
     doActivate();
     if (typeof window.updateUI === 'function') window.updateUI();
@@ -5005,30 +5013,20 @@ window.activateSunflowerProfitBooster = function(multiplier) {
 
   if (multiplier === 10) {
     // *10: 100 Star Coins
-    const playerStars = (typeof sunflowerState !== 'undefined' && typeof sunflowerState.diamonds === 'number')
-      ? sunflowerState.diamonds
-      : ((window.gameState && window.gameState.player && typeof window.gameState.player.diamonds === 'number')
-        ? window.gameState.player.diamonds
-        : (parseInt(localStorage.getItem('task_game_stars') || '0', 10) || 0));
-
+    const playerStars = (typeof window.getPlayerStars === 'function') ? window.getPlayerStars() : (parseInt(localStorage.getItem('task_game_stars') || '0', 10) || 0);
     if (playerStars < 100) {
       if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
       spawnSfFloat(`❌ Need 100 ⭐ Star Coins! You have ${Math.floor(playerStars)} ⭐`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold text-sm');
       return;
     }
-
-    if (typeof sunflowerState !== 'undefined') {
-      sunflowerState.diamonds -= 100;
-    } else if (window.gameState && window.gameState.player) {
-      window.gameState.player.diamonds -= 100;
-    } else if (typeof gameState !== 'undefined' && gameState.player) {
-      gameState.player.diamonds -= 100;
+    if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
+      window.firebaseSync.subtractStars(100, '10X Harvest Profit Booster');
+    } else {
+      sunflowerState.diamonds = Math.max(0, (sunflowerState.diamonds || 0) - 100);
     }
-
     window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
+    if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
+    if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
     if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playUnlockChime) sunflowerAudio.playUnlockChime();
     doActivate();
     if (typeof window.updateUI === 'function') window.updateUI();
@@ -5071,22 +5069,13 @@ window.activateSunflowerSpeedBooster = function(multiplier) {
 
   if (multiplier === 5) {
     // *5: 100 Coins
-    const playerCoins = (window.gameState && window.gameState.player && typeof window.gameState.player.coins === 'number')
-      ? window.gameState.player.coins
-      : (typeof gameState !== 'undefined' && gameState.player && typeof gameState.player.coins === 'number' ? gameState.player.coins : 0);
-
+    const playerCoins = window.getPlayerGoldCoins();
     if (playerCoins < 100) {
       if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
       spawnSfFloat(`❌ Need 100 🪙 Gold Coins! You have ${Math.floor(playerCoins)} 🪙`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold text-sm');
       return;
     }
-
-    if (window.gameState && window.gameState.player) {
-      window.gameState.player.coins -= 100;
-    } else if (typeof gameState !== 'undefined' && gameState.player) {
-      gameState.player.coins -= 100;
-    }
-
+    window.deductPlayerGoldCoins(100);
     if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playCoin) sunflowerAudio.playCoin();
     doActivate();
     if (typeof window.updateUI === 'function') window.updateUI();
@@ -5096,30 +5085,20 @@ window.activateSunflowerSpeedBooster = function(multiplier) {
 
   if (multiplier === 10) {
     // *10: 100 Star Coins
-    const playerStars = (typeof sunflowerState !== 'undefined' && typeof sunflowerState.diamonds === 'number')
-      ? sunflowerState.diamonds
-      : ((window.gameState && window.gameState.player && typeof window.gameState.player.diamonds === 'number')
-        ? window.gameState.player.diamonds
-        : (parseInt(localStorage.getItem('task_game_stars') || '0', 10) || 0));
-
+    const playerStars = (typeof window.getPlayerStars === 'function') ? window.getPlayerStars() : (parseInt(localStorage.getItem('task_game_stars') || '0', 10) || 0);
     if (playerStars < 100) {
       if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playWitherSound) sunflowerAudio.playWitherSound();
       spawnSfFloat(`❌ Need 100 ⭐ Star Coins! You have ${Math.floor(playerStars)} ⭐`, window.innerWidth / 2, window.innerHeight / 2, 'text-rose-400 font-bold text-sm');
       return;
     }
-
-    if (typeof sunflowerState !== 'undefined') {
-      sunflowerState.diamonds -= 100;
-    } else if (window.gameState && window.gameState.player) {
-      window.gameState.player.diamonds -= 100;
-    } else if (typeof gameState !== 'undefined' && gameState.player) {
-      gameState.player.diamonds -= 100;
+    if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
+      window.firebaseSync.subtractStars(100, '10X Production Speed Booster');
+    } else {
+      sunflowerState.diamonds = Math.max(0, (sunflowerState.diamonds || 0) - 100);
     }
-
     window._lastCurrencyDeductionTime = Date.now();
-    if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
-      window.firebaseSync.syncPlayerCurrenciesImmediate();
-    }
+    if (typeof window.updateAllDomBalances === 'function') window.updateAllDomBalances();
+    if (typeof window.saveCurrentProfileToFirestore === 'function') window.saveCurrentProfileToFirestore();
     if (typeof sunflowerAudio !== 'undefined' && sunflowerAudio.playUnlockChime) sunflowerAudio.playUnlockChime();
     doActivate();
     if (typeof window.updateUI === 'function') window.updateUI();

@@ -127,12 +127,14 @@ function updateBalanceUI() {
 function saveBalance() {
   localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
-  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch(e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
 function validateStakeRequirement() {
@@ -147,7 +149,7 @@ function validateStakeRequirement() {
 
   if (balance < currentStake) {
     if (primaryBtn) {
-      primaryBtn.innerText = "BUY COINS";
+      primaryBtn.innerText = "BUY STARS";
       primaryBtn.className = "w-full py-4 rounded-2xl bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#f59e0b] hover:to-[#d97706] text-white font-black text-lg tracking-wider uppercase shadow-[0_8px_24px_rgba(217,119,6,0.4)] active:scale-[0.98] transition-all";
     }
   } else {
@@ -504,16 +506,17 @@ function watchAdForMorePlays() {
   updateBalanceUI();
 }
 
-// Initialization
+// Initialization & Firebase Balance Synchronization
 document.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) lucide.createIcons();
+  balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   updateBalanceUI();
   updateTopMultiplierDisplay();
   renderMinesBoard();
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'task_game_stars' || e.key === 'user_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     }
   });
@@ -521,8 +524,22 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     };
   } catch(e) {}
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

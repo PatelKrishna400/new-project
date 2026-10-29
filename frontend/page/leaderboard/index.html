@@ -61,11 +61,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="leaderboardCoinsTop">0</span>
         </div>
-        <div class="star-pill" title="Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="leaderboardStarsTop">0</span>
         </div>
@@ -465,6 +465,29 @@
             </div>
 
             <div class="section-card-body">
+              <!-- Combined Single-Line Row: 30 Ads Loading Bar on Left + Ads Button on Right -->
+              <div style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                <!-- Left: 30 Ads Progress Bar -->
+                <div class="season-progress-bar-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
+                  <div class="season-progress-header" style="margin-bottom: 0.25rem;">
+                    <span class="progress-lbl" style="font-size: 0.72rem;">Ads Watched:</span>
+                    <span class="progress-val font-mono text-amber" id="modalAdsProgressText" style="font-size: 0.75rem;">0 / 30 (0%)</span>
+                  </div>
+                  <div class="season-bar-track">
+                    <div class="season-bar-fill fill-amber" id="modalAdsProgressBar" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Right: Watch Ad Button in Same Line -->
+                <div class="season-action-row" id="seasonAdActionRow" style="margin-top: 0; flex-shrink: 0;">
+                  <button type="button" class="btn-season-action btn-season-watch-ad" id="btnSeasonWatchAd" onclick="handleSeasonWatchAd()" title="Watch Ad (+50 Coins)" style="padding: 0.55rem 0.85rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap; font-size: 0.78rem;">
+                    <span id="btnSeasonWatchAdText">📺 Watch Ad</span>
+                    <span style="font-size: 0.95rem; font-weight: 900;">➔</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Claim Button -->
               <button type="button" class="btn-claim-season-reward" id="btnClaimSeasonRankReward" onclick="handleClaimSeasonRankReward()" style="width: 100%; padding: 0.85rem; border-radius: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 900; font-size: 0.88rem; cursor: pointer;">
                 <span id="btnClaimSeasonRewardText">🏆 Claim Season Rank Reward</span>
               </button>

@@ -120,7 +120,7 @@ function updateBalanceUI() {
   const dropBtn = document.getElementById('dropActionBtn');
   if (dropBtn) {
     if (balance < totalCost) {
-      dropBtn.querySelector('span.text-xl').innerText = "BUY COINS";
+      dropBtn.querySelector('span.text-xl').innerText = "BUY STARS";
     } else {
       dropBtn.querySelector('span.text-xl').innerText = "DROP";
     }
@@ -130,12 +130,14 @@ function updateBalanceUI() {
 function saveBalance() {
   localStorage.setItem('task_game_stars', Math.max(0, balance).toString());
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
-  localStorage.setItem('task_game_coins', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch(e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
 // Infection Progress (0/66)
@@ -462,12 +464,13 @@ document.addEventListener('DOMContentLoaded', () => {
     animatePlinko();
   }
 
+  balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   updateBalanceUI();
   updateInfectionUI();
 
   window.addEventListener('storage', (e) => {
     if (e.key === 'task_game_stars' || e.key === 'user_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     }
   });
@@ -475,8 +478,22 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const bc = new BroadcastChannel('nova_task_sync');
     bc.onmessage = () => {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
       updateBalanceUI();
     };
   } catch(e) {}
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

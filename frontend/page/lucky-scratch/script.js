@@ -114,17 +114,20 @@ function saveBalance() {
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch (e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
-function addFreeCoins(amount = 200) {
+function addFreeCoins(amount = 50) {
   playTone('win');
   balance += amount;
   saveBalance();
   updateBalanceUI();
-  showToast('Coins Credited', `+${amount} free coins added!`, '🪙');
+  showToast('Stars Credited', `+${amount} free stars added!`, '⭐');
   if (window.confetti) confetti({ particleCount: 35, spread: 60, origin: { y: 0.2 } });
 }
 
@@ -157,7 +160,7 @@ function updateActionButtonState() {
   if (!btn) return;
 
   if (balance < currentBet) {
-    btn.innerText = 'Buy coins';
+    btn.innerText = 'Buy stars';
     btn.className = 'primary-cta-btn bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white shadow-[0_8px_24px_rgba(244,63,94,0.35)]';
   } else {
     btn.innerText = 'Buy card';
@@ -343,7 +346,7 @@ function buyScratchCard() {
     } else if (lowRoll < 0.80) {
       scratchPrize = { tier: 'Bronze Win', mult: 0.2, icon: '🥉' };
     } else {
-      scratchPrize = { tier: 'Lucky Drop', mult: 0.1, icon: '🪙' };
+      scratchPrize = { tier: 'Lucky Drop', mult: 0.1, icon: '⭐' };
     }
   }
 
@@ -382,8 +385,8 @@ function buyScratchCard() {
     document.getElementById('scratchIcon').innerText = scratchPrize.icon;
     document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
     document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
-    const winCoin = Math.round(currentBet * scratchPrize.mult);
-    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winCoin} Coins` : `0 Coins`;
+    const winStars = Math.round(currentBet * scratchPrize.mult);
+    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winStars} ⭐` : `0 ⭐`;
 
     // Make the prize active underneath the opaque foil
     if (prizeCard) {
@@ -458,13 +461,13 @@ function revealScratchFinish(canvas, ctx) {
   if (scratchPrize.mult >= 5) {
     if (window.confetti) confetti({ particleCount: 80, spread: 70 });
     playTone('jackpot');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   } else if (scratchPrize.mult >= 1) {
     playTone('win');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   } else {
     playTone('win');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
   }
 
   const playBtn = document.getElementById('primaryPlayBtn');
@@ -503,10 +506,10 @@ function watchAdForMorePlays() {
   showToast('Plays Added!', 'Added +10 game plays! Good luck!', '⚡');
 }
 
-// DOM Ready
+// DOM Ready & Firebase Balance Synchronization
 window.addEventListener('DOMContentLoaded', () => {
   const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
-  balance = parseInt(storedStars || '10', 10);
+  balance = parseInt(storedStars || '0', 10);
 
   updateBalanceUI();
   setBet(50);
@@ -523,4 +526,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }, 100);
 
   if (window.lucide) lucide.createIcons();
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

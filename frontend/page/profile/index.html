@@ -23,11 +23,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="profileCoinsDisplay">0</span>
         </div>
-        <div class="star-pill" title="Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="profileStarsDisplay">0</span>
         </div>
@@ -129,12 +129,12 @@
           <h2 class="admin-login-title">Admin Control Portal</h2>
           <p class="admin-login-subtitle" style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px; text-align: center;">Administrator authentication required</p>
 
-          <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="admin-form" style="margin-top: 1rem;">
+          <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="admin-form" style="margin-top: 1rem;" autocomplete="off">
             <div class="form-group">
               <label for="adminUsername" class="form-label">Administrator ID / Username</label>
               <div class="input-wrap">
                 <span class="input-ico">👤</span>
-                <input type="text" id="adminUsername" class="admin-input" placeholder="e.g. 400 @123" required autocomplete="username" />
+                <input type="text" id="adminUsername" class="admin-input" placeholder="Enter admin username" required autocomplete="off" />
               </div>
             </div>
 
@@ -142,7 +142,7 @@
               <label for="adminPassword" class="form-label">Security Key / Password</label>
               <div class="input-wrap">
                 <span class="input-ico">🔒</span>
-                <input type="password" id="adminPassword" class="admin-input" placeholder="••••" required autocomplete="current-password" />
+                <input type="password" id="adminPassword" class="admin-input" placeholder="••••" required autocomplete="new-password" />
               </div>
             </div>
 
@@ -154,12 +154,7 @@
               <span>Authenticate &amp; Open Admin 🚀</span>
             </button>
 
-            <div class="login-credentials-hint" style="margin-top: 0.85rem; font-size: 0.72rem; color: #94a3b8; text-align: center; background: rgba(15, 23, 42, 0.6); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px dashed rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: space-between;">
-              <span>Default: <code>400 @123</code> &bull; <code>0911</code></span>
-              <button type="button" class="btn-quick-fill" onclick="quickFillProfileAdmin()" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">Auto-Fill</button>
-            </div>
-
-            <button type="button" onclick="switchProfileTab('profile')" style="background: transparent; border: none; color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 0.8rem; text-decoration: underline; width: 100%;">
+            <button type="button" onclick="switchProfileTab('profile')" style="background: transparent; border: none; color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 1rem; text-decoration: underline; width: 100%;">
               &larr; Back to Player Profile
             </button>
           </form>
@@ -216,11 +211,6 @@
               <span class="mini-lbl">ALL COINS</span>
               <span class="mini-val" style="color: #fbbf24;" id="adminTotalCoins">0 🪙</span>
             </div>
-          </div>
-          <div class="admin-sub-toolbar" style="margin-top: 0.5rem;">
-            <button class="btn-admin-action-secondary" onclick="quickAwardAllPlayers(1000)">
-              <span>🎁 +1,000 Coins to All</span>
-            </button>
           </div>
           <div class="admin-search-box" style="margin: 0.5rem 0;">
             <span class="search-ico">🔍</span>
@@ -1053,14 +1043,14 @@
   </div>
 
   <!-- ========================================================================
-       EDIT TELEGRAM PROFILE MODAL (Name, Username, Bio, Birthday, Note, Avatar)
+       EDIT PROFILE MODAL (Name, Username, Bio, Avatar)
        ======================================================================== -->
   <div class="profile-modal-overlay" id="editTgProfileModalOverlay" onclick="handleEditTgProfileModalBackdrop(event)">
     <div class="profile-modal-box" onclick="event.stopPropagation()" style="max-height: 90vh; overflow-y: auto;">
       <button class="modal-close-btn" onclick="closeEditTgProfileModal()">✕</button>
       <div style="padding: 1.25rem 1rem;">
         <div style="text-align: center; margin-bottom: 1rem;">
-          <h3 style="font-size: 1.1rem; font-weight: 800; color: #fff;">Edit Telegram Profile</h3>
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: #fff;">Edit Profile</h3>
           <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Customize your name, username handle, bio &amp; avatar</p>
         </div>
 
@@ -1069,7 +1059,7 @@
           <div class="admin-form-group">
             <label class="admin-form-label">Profile Avatar Icon</label>
             <div style="display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.35rem 0;" id="tgAvatarOptionList">
-              <!-- Emojis: ⚡, 👤, 👑, 💎, 🚀, 🦊, 🦁, 🎯, 🤖, 💻 populated by JS -->
+              <!-- Emojis populated by JS -->
             </div>
           </div>
 
@@ -1095,22 +1085,6 @@
           <div class="admin-form-group">
             <label class="admin-form-label" for="inputTgBio">Bio (About) <small style="color: #94a3b8;">(Max 70 chars)</small></label>
             <input type="text" id="inputTgBio" class="admin-form-input" maxlength="70" placeholder="e.g. Web Task Champion & Crypto Typist" />
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <div class="admin-form-group">
-              <label class="admin-form-label" for="inputTgBirthday">Birthday</label>
-              <input type="text" id="inputTgBirthday" class="admin-form-input" placeholder="e.g. Oct 12" maxlength="20" />
-            </div>
-            <div class="admin-form-group">
-              <label class="admin-form-label" for="inputTgChannel">Personal Channel</label>
-              <input type="text" id="inputTgChannel" class="admin-form-input" placeholder="e.g. @NovaChannel" maxlength="35" />
-            </div>
-          </div>
-
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="inputTgNote">Private Note <small style="color: #94a3b8;">(Only visible to you)</small></label>
-            <input type="text" id="inputTgNote" class="admin-form-input" placeholder="e.g. Daily goal: 100 tasks" maxlength="100" />
           </div>
 
           <div class="admin-modal-footer">

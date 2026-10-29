@@ -23,11 +23,11 @@
         </a>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="gameCoinsDisplay">0</span>
         </div>
-        <div class="star-pill" title="Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="gameStarsDisplay">0</span>
         </div>
@@ -52,12 +52,12 @@
       </div>
 
       <!-- ========================================================
-           1. IDLE GAME TAB VIEW (SUNFLOWER FARM)
+           1. IDLE GAME TAB VIEW (SUNFLOWER FARM & HONEY BEE FARM)
            ======================================================== -->
       <section class="game-category-view" id="idleGameSection">
         <div class="section-title-row">
-          <h2 class="section-title">Idle Farm</h2>
-          <span class="section-tag">Active Tycoon</span>
+          <h2 class="section-title">Idle Games</h2>
+          <span class="section-tag">2 Active Tycoons</span>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
@@ -79,21 +79,61 @@
             <!-- Merged Single-Line Bottom Bar: Stats + Open Button -->
             <div class="tab-merged-bar">
               <div class="tab-merged-stats">
-                <div class="merged-stat-pill">
-                  <span class="pill-label">Solar Coins</span>
-                  <span class="pill-value text-amber" id="tabSfSolarCoins">0 🌻</span>
+                <div class="merged-stat-pill" title="Solar Coins">
+                  <span class="pill-logo">🪙</span>
+                  <span class="pill-value text-amber" id="tabSfSolarCoins">0</span>
                 </div>
-                <div class="merged-stat-pill">
-                  <span class="pill-label">Seeds Ready</span>
-                  <span class="pill-value text-emerald" id="tabSfSeedsSunflower">3 🌱</span>
+                <div class="merged-stat-pill" title="Seeds Ready">
+                  <span class="pill-logo">🌱</span>
+                  <span class="pill-value text-emerald" id="tabSfSeedsSunflower">0</span>
                 </div>
-                <div class="merged-stat-pill">
-                  <span class="pill-label">Water Buckets</span>
-                  <span class="pill-value text-sky" id="tabSfBucketsSunflower">20 💧</span>
+                <div class="merged-stat-pill" title="Water Buckets">
+                  <span class="pill-logo">💧</span>
+                  <span class="pill-value text-sky" id="tabSfBucketsSunflower">0</span>
                 </div>
               </div>
               <div class="btn-merged-launch sf-launch-btn">
                 <span>🌻 Open Farm</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- 2. HONEY BEE FARM GAME TAB -->
+          <a href="../honey-bee/index.html" class="sunflower-game-tab honey-bee-game-tab" id="honeyBeeGameTab" title="Click to Open Honey Bee Farm">
+            <!-- Main Banner Artwork Stage -->
+            <div class="tab-artwork-stage">
+              <img src="../honey-bee/honey-bg.jpg" alt="Honey Bee Apiary Panorama" class="tab-artwork-img" />
+              <div class="tab-artwork-vignette"></div>
+              <div class="tab-artwork-overlay-content">
+                <div class="tab-floating-icon" style="background: rgba(245, 158, 11, 0.35); border: 1.5px solid #fbbf24;">🐝</div>
+                <div class="tab-artwork-titles">
+                  <h3 class="tab-title" style="color: #fef08a;">Honey Bee Farm</h3>
+                  <span class="tab-tagline">Breed Worker Bees, Extract Golden Honey &amp; Sell Jars</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Merged Single-Line Bottom Bar: Stats + Open Button -->
+            <div class="tab-merged-bar">
+              <div class="tab-merged-stats">
+                <div class="merged-stat-pill" title="Honey Jars">
+                  <span class="pill-logo">🍯</span>
+                  <span class="pill-value text-amber" id="tabHbHoneyJars">0</span>
+                </div>
+                <div class="merged-stat-pill" title="Active Bees">
+                  <span class="pill-logo">🐝</span>
+                  <span class="pill-value text-emerald" id="tabHbActiveBees">0</span>
+                </div>
+                <div class="merged-stat-pill" title="Honey Rate">
+                  <span class="pill-logo">⚡</span>
+                  <span class="pill-value text-sky" id="tabHbHoneyRate">+0/s</span>
+                </div>
+              </div>
+              <div class="btn-merged-launch hb-launch-btn">
+                <span>🐝 Open Apiary</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>

@@ -23,11 +23,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="shopCoinsDisplayTop">0</span>
         </div>
-        <div class="star-pill" title="Star Balance">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="shopStarsDisplayTop">0</span>
         </div>
@@ -57,18 +57,27 @@
 
       <div class="tasks-banner">
         <h1 class="tasks-title">Shop &amp; Rewards</h1>
+        <p class="tasks-subtitle">Exchange coins for Telegram Stars &amp; claim daily bonuses</p>
       </div>
 
       <div class="shop-list">
-        
-        
-            <button class="btn-buy" id="btnWatchAd" style="background:linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 100%); border-color:#60a5fa #2563eb #0b1a3d #1d4ed8;" onclick="watchAdForCoins(this)">
-              Watch Ad
-            </button>
+
+        <!-- 1. Free Gift / Watch Ad for +10 Coins -->
+        <div class="star-shop-card shop-ad-card">
+          <div class="shop-icon-wrap">🎁</div>
+          <div class="shop-info">
+            <div class="shop-name">
+              <span>Free Gift</span>
+              <span class="star-pack-badge" style="background:#10b981; color:#ffffff;">+10 🪙</span>
+            </div>
+            <div class="shop-desc">Watch ad &amp; win 10 free coins</div>
           </div>
+          <button class="btn-buy" id="btnWatchAd" onclick="watchAdForCoins(this)">
+            Watch Ad
+          </button>
         </div>
 
-        <!-- 2. Buy 1 Star for 300 Coins -->
+        <!-- 2. Buy 1 Star for 500 Coins -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">⭐</div>
           <div class="shop-info">
@@ -76,35 +85,38 @@
               <span>1 Star ⭐</span>
               <span class="star-pack-badge">STARTER</span>
             </div>
+            <div class="shop-desc">Starter Pack • Instant exchange</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(1, 300)">300 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(1, 500)">500 Coin 🪙</button>
         </div>
 
-        <!-- 3. Buy 10 Stars for 2900 Coins -->
+        <!-- 3. Buy 10 Stars for 4800 Coins -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">✨</div>
           <div class="shop-info">
             <div class="shop-name">
               <span>10 Stars ⭐</span>
-              <span class="star-pack-badge">3%</span>
+              <span class="star-pack-badge">4%</span>
             </div>
+            <div class="shop-desc">Popular Pack • Save 200 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(10, 2900)">2,900 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(10, 4800)">4,800 Coin 🪙</button>
         </div>
 
-        <!-- 4. Buy 20 Stars for 5000 Coins -->
+        <!-- 4. Buy 20 Stars for 9600 Coins -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">👑</div>
           <div class="shop-info">
             <div class="shop-name">
               <span>20 Stars ⭐</span>
-              <span class="star-pack-badge">17%</span>
+              <span class="star-pack-badge">4%</span>
             </div>
+            <div class="shop-desc">Pro Bundle • Save 400 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(20, 5000)">5,000 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(20, 9600)">9,600 Coin 🪙</button>
         </div>
 
-        <!-- 5. Buy 50 Stars for 12,000 Coins -->
+        <!-- 5. Buy 50 Stars for 20,000 Coins -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">🌟</div>
           <div class="shop-info">
@@ -112,23 +124,13 @@
               <span>50 Stars ⭐</span>
               <span class="star-pack-badge">20%</span>
             </div>
+            <div class="shop-desc">Mega Vault • Save 5,000 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(50, 12000)">12,000 Coin 🪙</button>
-        </div>
-
-        <!-- 6. Buy 100 Stars for 25,000 Coins -->
-        <div class="star-shop-card">
-          <div class="shop-icon-wrap">🏆</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>100 Stars ⭐</span>
-              <span class="star-pack-badge">17%</span>
-            </div>
-          </div>
-          <button class="btn-buy" onclick="buyStars(100, 25000)">25,000 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(50, 20000)">20,000 Coin 🪙</button>
         </div>
 
       </div>
+
 
     </main>
 

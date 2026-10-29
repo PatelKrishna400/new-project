@@ -65,6 +65,11 @@ async function saveTasksToCloud(tasks) {
       updatedAt: Date.now()
     }, { merge: true });
     console.log("[Firebase Admin] Tasks saved to cloud Firestore successfully!");
+    try {
+      const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      ch.postMessage({ type: 'TASKS_UPDATED', timestamp: Date.now() });
+      ch.postMessage({ type: 'TASKS_SYNCED', timestamp: Date.now() });
+    } catch(e) {}
     return true;
   } catch (err) {
     console.warn("[Firebase Admin] Cloud save note:", err.message);
@@ -219,6 +224,46 @@ async function deleteUserFromCloud(userId, userObj = null) {
   return true;
 }
 
+/**
+ * Save / Update user balance directly in Firebase Firestore from Admin
+ */
+async function saveUserBalanceToCloud(userId, coins, stars, status = 'active') {
+  if (!db || !userId) return false;
+  try {
+    const userDocRef = doc(db, 'users', String(userId));
+    await setDoc(userDocRef, {
+      uid: String(userId),
+      coins: parseInt(coins, 10) || 0,
+      stars: parseInt(stars, 10) || 0,
+      status: status || 'active',
+      updatedAt: Date.now()
+    }, { merge: true });
+    console.log(`%c[Firebase Admin] Saved user ${userId} balance in cloud Firestore: ${coins} 🪙, ${stars} ⭐`, "color: #10b981; font-weight: bold;");
+
+    // Also broadcast balance update across all open app tabs
+    try {
+      const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      ch.postMessage({
+        type: 'BALANCES_UPDATED',
+        userId: userId,
+        coins: parseInt(coins, 10) || 0,
+        stars: parseInt(stars, 10) || 0,
+        timestamp: Date.now()
+      });
+      ch.postMessage({
+        type: 'COINS_UPDATED',
+        coins: parseInt(coins, 10) || 0,
+        stars: parseInt(stars, 10) || 0
+      });
+    } catch (e) {}
+
+    return true;
+  } catch (err) {
+    console.warn(`[Firebase Admin] Error saving user ${userId} balance:`, err.message);
+    return false;
+  }
+}
+
 // Expose on Window object for global access across admin dashboard
 window.Firebase = {
   app,
@@ -227,8 +272,14 @@ window.Firebase = {
   config: firebaseConfig,
   saveTasksToCloud,
   listenToCloudTasks,
-  deleteUserFromCloud
+  deleteUserFromCloud,
+  saveUserBalanceToCloud
 };
+
+window.saveTasksToCloud = saveTasksToCloud;
+window.listenToCloudTasks = listenToCloudTasks;
+window.saveUserBalanceToCloud = saveUserBalanceToCloud;
+window.deleteUserFromCloud = deleteUserFromCloud;
 
 window.firebaseApp = app;
 window.firebaseDb = db;
@@ -238,4 +289,4 @@ window.dispatchEvent(new CustomEvent('firebase:ready', {
   detail: { app, analytics, db }
 }));
 
-export { app, analytics, db, firebaseConfig, saveTasksToCloud, listenToCloudTasks, deleteUserFromCloud };
+export { app, analytics, db, firebaseConfig, saveTasksToCloud, listenToCloudTasks, deleteUserFromCloud, saveUserBalanceToCloud };

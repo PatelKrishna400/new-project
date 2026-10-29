@@ -25,11 +25,11 @@
         </div>
       </div>
       <div class="header-pills">
-        <div class="coin-pill" title="Coin Balance">
+        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
           <span>🪙</span>
           <span class="coin-value" id="walletBalanceTop">0</span>
         </div>
-        <div class="star-pill" title="Star Balance (Used for Amazon Gift Cards)">
+        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
           <span>⭐</span>
           <span class="star-value" id="walletStarsTop">0</span>
         </div>
@@ -67,10 +67,10 @@
             <div class="giftcard-actions-bar">
               <div class="giftcard-price">
                 <span class="price-star">⭐</span>
-                <span class="price-val">1,000</span>
+                <span class="price-val">10,000</span>
                 <span class="price-unit">Stars</span>
               </div>
-              <button class="btn-buy-giftcard" onclick="buyGiftCard(100, 1000, '₹100 Amazon Gift Card', 'assets/amazon_100.jpg')">
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(100, 10000, '₹100 Amazon Gift Card', 'assets/amazon_100.jpg')">
                 <span>Buy</span>
               </button>
             </div>
@@ -92,10 +92,10 @@
             <div class="giftcard-actions-bar">
               <div class="giftcard-price">
                 <span class="price-star">⭐</span>
-                <span class="price-val">5,000</span>
+                <span class="price-val">50,000</span>
                 <span class="price-unit">Stars</span>
               </div>
-              <button class="btn-buy-giftcard" onclick="buyGiftCard(500, 5000, '₹500 Amazon Gift Card', 'assets/amazon_500.jpg')">
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(500, 50000, '₹500 Amazon Gift Card', 'assets/amazon_500.jpg')">
                 <span>Buy</span>
               </button>
             </div>
@@ -116,10 +116,10 @@
             <div class="giftcard-actions-bar">
               <div class="giftcard-price">
                 <span class="price-star">⭐</span>
-                <span class="price-val">10,000</span>
+                <span class="price-val">100,000</span>
                 <span class="price-unit">Stars</span>
               </div>
-              <button class="btn-buy-giftcard" onclick="buyGiftCard(1000, 10000, '₹1,000 Amazon Gift Card', 'assets/amazon_1000.jpg')">
+              <button class="btn-buy-giftcard" onclick="buyGiftCard(1000, 100000, '₹1,000 Amazon Gift Card', 'assets/amazon_1000.jpg')">
                 <span>Buy</span>
               </button>
             </div>
@@ -147,7 +147,7 @@
               <h3 class="buy-item-title" id="buyModalTitle">₹100 Amazon Gift Card</h3>
               <div class="buy-item-price">
                 <span class="price-star">⭐</span>
-                <span class="price-val" id="buyModalCost">1,000 Stars</span>
+                <span class="price-val" id="buyModalCost">10,000 Stars</span>
               </div>
             </div>
           </div>
@@ -168,16 +168,16 @@
               <div class="wallet-req-sub" id="buyReqTasksSub">100 website tasks required to unlock this voucher</div>
             </div>
 
-            <!-- Loading Bar 2: Stars Balance (e.g. 1,000 Stars needed) -->
+            <!-- Loading Bar 2: Stars Balance (e.g. 10,000 Stars needed) -->
             <div class="wallet-req-box">
               <div class="wallet-req-header">
                 <span class="req-title">⭐ Stars Balance</span>
-                <span class="req-val font-mono" style="color: #fbbf24;" id="buyReqStarsVal">0 / 1,000</span>
+                <span class="req-val font-mono" style="color: #fbbf24;" id="buyReqStarsVal">0 / 10,000</span>
               </div>
               <div class="wallet-bar-track">
                 <div class="wallet-bar-fill fill-gold" id="buyReqStarsBar" style="width: 0%;"></div>
               </div>
-              <div class="wallet-req-sub" id="buyReqStarsSub">1,000 Stars needed to claim</div>
+              <div class="wallet-req-sub" id="buyReqStarsSub">10,000 Stars needed to claim</div>
             </div>
 
             <div class="buy-modal-actions" style="margin-top: 1rem;">
@@ -194,7 +194,7 @@
 
             <form class="buy-form" id="buyForm" onsubmit="handleConfirmBuy(event)">
               <input type="hidden" id="buyParamRs" value="100">
-              <input type="hidden" id="buyParamStars" value="1000">
+              <input type="hidden" id="buyParamStars" value="10000">
               <input type="hidden" id="buyParamTitle" value="₹100 Amazon Gift Card">
               <input type="hidden" id="buyParamImg" value="assets/amazon_100.jpg">
 

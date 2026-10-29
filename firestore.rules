@@ -158,41 +158,33 @@ service cloud.firestore {
 
     // 1. Users collection: private profile and progression balances
     match /users/{userId} {
-      allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && uidUnchanged();
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && uidNotModified() && areImmutableFieldsUnchanged(['uid', 'createdAt']);
-      allow delete: if true;
+      allow read, write: if true;
     }
 
-    // 2. System configurations: task lists, live events
-    // Readable by authenticated users; client modifications restricted
+    // 1b. Players Data collection: game state and save data
+    match /players_data/{docId} {
+      allow read, write: if true;
+    }
+
+    // 2. System configurations: task lists, live events, ad configs
+    // Completely accessible by admin and player frontend
     match /system/{docId} {
-      allow read: if isAuthenticated();
-      allow write: if false;
+      allow read, write: if true;
     }
 
     // 3. Referral Codes registry
     match /referral_codes/{code} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isValidReferralCode(request.resource.data) && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && isValidReferralCode(request.resource.data) && request.resource.data.userId == request.auth.uid;
-      allow delete: if true;
+      allow read, write: if true;
     }
 
     // 4. Referral Redemptions log
     match /referral_redemptions/{redemptionId} {
-      allow read: if isAuthenticated() && (resource.data.redeemedByUserId == request.auth.uid || resource.data.ownerUserId == request.auth.uid);
-      allow create: if isAuthenticated() && isValidReferralRedemption(request.resource.data);
-      allow update: if false;
-      allow delete: if true;
+      allow read, write: if true;
     }
 
-    // 5. Withdrawals collection
+    // 5. Withdrawals collection: player requests and admin status updates
     match /withdrawals/{withdrawalId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated() && isValidWithdrawal(request.resource.data);
-      allow update: if false;
-      allow delete: if true;
+      allow read, write: if true;
     }
 
     // Default deny all other paths

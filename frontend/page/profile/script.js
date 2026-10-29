@@ -18,10 +18,10 @@ const DEFAULT_WITHDRAWALS = [];
 // Storage sanitization to purge legacy demo data and start everything from 0
 try {
   if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
-    localStorage.setItem('task_game_coins', '0');
-    localStorage.setItem('task_game_stars', '0');
-    localStorage.setItem('user_coins', '0');
-    localStorage.setItem('user_stars', '0');
+    if (!localStorage.getItem('task_game_coins')) localStorage.setItem('task_game_coins', '0');
+    if (!localStorage.getItem('task_game_stars')) localStorage.setItem('task_game_stars', '0');
+    if (!localStorage.getItem('user_coins')) localStorage.setItem('user_coins', '0');
+    if (!localStorage.getItem('user_stars')) localStorage.setItem('user_stars', '0');
     localStorage.setItem('task_game_total_tasks', '0');
     localStorage.setItem('task_game_total_tasks_completed', '0');
     localStorage.setItem('completed_tasks_count', '0');
@@ -151,7 +151,14 @@ function switchProfileTab(tabName) {
       if (adminMenuBar) adminMenuBar.style.display = 'none';
 
       const userInput = document.getElementById('adminUsername');
-      if (userInput) userInput.focus();
+      const passInput = document.getElementById('adminPassword');
+      if (userInput) {
+        userInput.value = '';
+        userInput.focus();
+      }
+      if (passInput) {
+        passInput.value = '';
+      }
     }
   }
 }
@@ -235,10 +242,8 @@ function exitAdminToProfile() {
 function quickFillProfileAdmin() {
   const userField = document.getElementById('adminUsername');
   const passField = document.getElementById('adminPassword');
-  if (userField) userField.value = '400 @123';
-  if (passField) passField.value = '0911';
-  const errBox = document.getElementById('adminLoginError');
-  if (errBox) errBox.style.display = 'none';
+  if (userField) userField.value = '';
+  if (passField) passField.value = '';
 }
 
 /**
@@ -3360,17 +3365,11 @@ function openEditTgProfileModal() {
   const lastNameIn = document.getElementById('inputTgLastName');
   const usernameIn = document.getElementById('inputTgUsername');
   const bioIn = document.getElementById('inputTgBio');
-  const birthdayIn = document.getElementById('inputTgBirthday');
-  const channelIn = document.getElementById('inputTgChannel');
-  const noteIn = document.getElementById('inputTgNote');
 
   if (firstNameIn) firstNameIn.value = (p.firstName && p.firstName !== 'Nova') ? p.firstName : "Task";
   if (lastNameIn) lastNameIn.value = p.lastName || "Earner";
   if (usernameIn) usernameIn.value = ((p.username && p.username !== 'nova_earner') ? p.username : "task_earner").replace('@', '');
   if (bioIn) bioIn.value = p.bio || "";
-  if (birthdayIn) birthdayIn.value = p.birthday || "Oct 12";
-  if (channelIn) channelIn.value = p.personalChannel || "@TaskCommunityOfficial";
-  if (noteIn) noteIn.value = p.note || "";
 
   renderAvatarOptions();
 
@@ -3416,22 +3415,16 @@ function saveEditTgProfileForm(e) {
   const lastNameIn = document.getElementById('inputTgLastName');
   const usernameIn = document.getElementById('inputTgUsername');
   const bioIn = document.getElementById('inputTgBio');
-  const birthdayIn = document.getElementById('inputTgBirthday');
-  const channelIn = document.getElementById('inputTgChannel');
-  const noteIn = document.getElementById('inputTgNote');
 
   p.firstName = firstNameIn ? firstNameIn.value.trim() : p.firstName;
   p.lastName = lastNameIn ? lastNameIn.value.trim() : p.lastName;
   p.username = usernameIn ? usernameIn.value.trim().replace('@', '') : p.username;
   p.bio = bioIn ? bioIn.value.trim() : p.bio;
-  p.birthday = birthdayIn ? birthdayIn.value.trim() : p.birthday;
-  p.personalChannel = channelIn ? channelIn.value.trim() : p.personalChannel;
-  p.note = noteIn ? noteIn.value.trim() : p.note;
   p.avatar = selectedEditAvatar;
 
   saveTgProfile(p);
   closeEditTgProfileModal();
-  showToast('Telegram Profile Updated Successfully! ✓');
+  showToast('Profile Updated Successfully! ✓');
 }
 
 // Emoji Status Picker

@@ -269,10 +269,12 @@ function subscribeToAuth(callback) {
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
       localStorage.setItem('player_logged_in', 'true');
-      localStorage.setItem('player_email', user.email);
+      localStorage.setItem('player_email', user.email || '');
       localStorage.setItem('player_uid', user.uid);
 
-      // Fetch cloud Firestore user document
+      startRealtimeUserSync(user.uid);
+      await initCloudBalances(user.uid);
+
       let profile = null;
       if (db) {
         try {
@@ -280,21 +282,10 @@ function subscribeToAuth(callback) {
           const snap = await getDoc(userDocRef);
           if (snap.exists()) {
             profile = snap.data();
-            // Sync balances
-            if (typeof profile.coins === 'number') localStorage.setItem('user_coins', profile.coins.toString());
-            if (typeof profile.stars === 'number') localStorage.setItem('user_stars', profile.stars.toString());
-            if (typeof profile.tasksCompleted === 'number') localStorage.setItem('completed_tasks_count', profile.tasksCompleted.toString());
-            if (typeof profile.adsWatched === 'number') localStorage.setItem('ads_watched_count', profile.adsWatched.toString());
-            if (profile.displayName) localStorage.setItem('player_username', profile.displayName);
-            if (profile.avatar) localStorage.setItem('player_avatar', profile.avatar);
-          } else {
-            // Document doesn't exist yet, save current local state
-            await saveCurrentProfileToFirestore(user);
           }
-        } catch (e) {
-          console.warn("[Firebase] Auth state profile sync note:", e.message);
-        }
+        } catch (e) {}
       }
+
       if (typeof callback === 'function') callback(user, profile);
     } else {
       localStorage.setItem('player_logged_in', 'false');
@@ -322,40 +313,104 @@ function getEffectivePlayerUid() {
  * Update all DOM balance indicators across any active page and tab in real time
  */
 function updateAllDomBalances(coins, stars) {
-  const c = typeof coins === 'number' ? coins : parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-  const s = typeof stars === 'number' ? stars : parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  const c = typeof coins === 'number' ? coins : parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const s = typeof stars === 'number' ? stars : parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   const coinsFmt = Number(c || 0).toLocaleString();
   const starsFmt = Number(s || 0).toLocaleString();
 
-  // All known coin DOM IDs across all games, hub, shop, wallet
+  // All known coin DOM IDs across all games, hub, shop, wallet, sunflower, leaderboard, profile, admin
   const coinElements = [
-    'userCoinsTop', 'walletCoinsTop', 'shopCoinsDisplay', 'gameCoinsDisplay', 
-    'tabSfCoins', 'tabSfSolarCoins', 'headerCoins', 'statCoinsVal', 'sfCoinDisplay',
-    'playerCoinsDisplay', 'heroCoinsDisplay', 'lobbyCoinsDisplay'
+    'userCoinsDisplay', 'headerCoinDisplay', 'gameCoinsDisplay', 'shopCoinsDisplayTop', 
+    'shopCoinsDisplay', 'walletBalanceTop', 'walletCoinsTop', 'leaderboardCoinsTop', 
+    'profileCoinsDisplay', 'sfTotalCoinsTop', 'hbTotalCoinsTop', 'sfCoinDisplay', 
+    'userCoinsTop', 'tabSfCoins', 'tabSfSolarCoins', 'headerCoins', 'statCoinsVal', 
+    'playerCoinsDisplay', 'heroCoinsDisplay', 'lobbyCoinsDisplay', 'coinBalance',
+    'manageModalCoinsDisplay', 'manageModalCoinsVal', 'editUserCoinsInput', 'adminLiveCoins'
   ];
   coinElements.forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'INPUT') el.value = c;
-      else if (id === 'tabSfCoins') el.textContent = `${coinsFmt} 🍯`;
-      else if (id === 'tabSfSolarCoins') el.textContent = `${coinsFmt} 🪙`;
+      else if (id === 'adminLiveCoins') el.textContent = `${coinsFmt} 🪙`;
       else el.textContent = coinsFmt;
     }
   });
 
-  // All known star DOM IDs across all games, hub, shop, wallet, leaderboard
+  // Query elements with class or data attributes for coin values
+  try {
+    document.querySelectorAll('.header-coin-val, [data-balance="coins"]').forEach(el => {
+      if (el.tagName === 'INPUT') el.value = c;
+      else el.textContent = coinsFmt;
+    });
+  } catch (e) {}
+
+  // All known star DOM IDs across all games, hub, shop, wallet, leaderboard, sunflower, profile, admin
   const starElements = [
-    'userStarsTop', 'walletStarsTop', 'shopStarsDisplay', 'shopStarsDisplayTop', 
-    'statStarsVal', 'headerStars', 'playerStarsDisplay', 'lobbyStarsDisplay'
+    'userStarsDisplay', 'headerStarDisplay', 'gameStarsDisplay', 'shopStarsDisplayTop', 
+    'shopStarsDisplay', 'walletStarsTop', 'leaderboardStarsTop', 'profileStarsDisplay', 
+    'sfStickyDiamonds', 'hbStickyDiamonds', 'sfTotalStarsTop', 'hbTotalStarsTop', 
+    'sfShopDiamondCount', 'userStarsTop', 'statStarsVal', 'headerStars', 
+    'playerStarsDisplay', 'lobbyStarsDisplay', 'starBalance',
+    'manageModalStarsDisplay', 'manageModalStarsVal', 'editUserStarsInput', 'adminLiveStars'
   ];
   starElements.forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'INPUT') el.value = s;
+      else if (id === 'sfShopDiamondCount' || id === 'adminLiveStars') el.textContent = `${starsFmt} ⭐`;
       else el.textContent = starsFmt;
     }
   });
+
+  // Query elements with class or data attributes for star values
+  try {
+    document.querySelectorAll('.header-star-val, [data-balance="stars"]').forEach(el => {
+      if (el.tagName === 'INPUT') el.value = s;
+      else el.textContent = starsFmt;
+    });
+  } catch (e) {}
 }
+window.updateAllDomBalances = updateAllDomBalances;
+
+// Flag to prevent recursive cloud sync loops when updating from Firestore
+let isInternalSync = false;
+const rawSetItem = localStorage.setItem.bind(localStorage);
+
+// Auto-intercept localStorage.setItem for currency keys to keep keys in sync and trigger cloud save
+localStorage.setItem = function(key, val) {
+  rawSetItem(key, val);
+  if (!isInternalSync && (key === 'task_game_coins' || key === 'user_coins' || key === 'task_game_stars' || key === 'user_stars')) {
+    isInternalSync = true;
+    try {
+      if (key === 'task_game_coins') rawSetItem('user_coins', val);
+      else if (key === 'user_coins') rawSetItem('task_game_coins', val);
+      else if (key === 'task_game_stars') rawSetItem('user_stars', val);
+      else if (key === 'user_stars') rawSetItem('task_game_stars', val);
+    } catch (e) {}
+    isInternalSync = false;
+
+    updateAllDomBalances();
+    // Instant cloud profile save on currency mutation
+    if (typeof saveCurrentProfileToFirestore === 'function') {
+      saveCurrentProfileToFirestore();
+    }
+    scheduleCloudBalanceSync(80);
+
+    try {
+      const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      ch.postMessage({ type: 'BALANCES_UPDATED', key, val, timestamp: Date.now() });
+    } catch (e) {}
+
+    window.dispatchEvent(new CustomEvent('balance:changed', {
+      detail: {
+        coins: parseInt(localStorage.getItem('task_game_coins') || '0', 10),
+        stars: parseInt(localStorage.getItem('task_game_stars') || '0', 10),
+        key,
+        val
+      }
+    }));
+  }
+};
 
 /**
  * Save current user profile & balances to Firestore (users/{uid})
@@ -378,7 +433,10 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
     const adsWatched = parseInt(adsRaw, 10);
     const displayName = localStorage.getItem('player_username') || (currentUser ? currentUser.displayName : 'Player');
     const avatar = localStorage.getItem('player_avatar') || '⚡';
-    const email = currentUser && currentUser.email ? currentUser.email : (localStorage.getItem('player_email') || '');
+    let email = currentUser && currentUser.email ? currentUser.email : (localStorage.getItem('player_email') || '');
+    if (!email || !email.includes('@')) {
+      email = `${String(uid).replace(/[^a-zA-Z0-9]/g, '')}@player.app`;
+    }
 
     const userRef = doc(db, 'users', String(uid));
     await setDoc(userRef, {
@@ -400,17 +458,78 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
   }
 }
 
+/**
+ * Fetch latest balances and stats directly from Firestore on page open
+ */
+async function initCloudBalances(targetUid = null) {
+  if (!db) return;
+  const uid = targetUid || getEffectivePlayerUid();
+  if (!uid) return;
+
+  try {
+    const userRef = doc(db, 'users', String(uid));
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      isInternalSync = true;
+      try {
+        if (typeof data.coins === 'number') {
+          rawSetItem('task_game_coins', data.coins.toString());
+          rawSetItem('user_coins', data.coins.toString());
+        }
+        if (typeof data.stars === 'number') {
+          rawSetItem('task_game_stars', data.stars.toString());
+          rawSetItem('user_stars', data.stars.toString());
+        }
+        if (typeof data.tasksCompleted === 'number') {
+          rawSetItem('completed_tasks_count', data.tasksCompleted.toString());
+          rawSetItem('task_game_total_tasks_completed', data.tasksCompleted.toString());
+        }
+        if (typeof data.adsWatched === 'number') {
+          rawSetItem('ads_watched_count', data.adsWatched.toString());
+          rawSetItem('task_game_ads_watched_count', data.adsWatched.toString());
+        }
+        if (data.displayName && data.displayName !== 'Player') {
+          rawSetItem('player_username', data.displayName);
+        }
+        if (data.avatar) {
+          rawSetItem('player_avatar', data.avatar);
+        }
+      } finally {
+        isInternalSync = false;
+      }
+
+      updateAllDomBalances();
+
+      const syncedCoins = typeof data.coins === 'number' ? data.coins : parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      const syncedStars = typeof data.stars === 'number' ? data.stars : parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+
+      window.dispatchEvent(new CustomEvent('balance:synced', {
+        detail: { coins: syncedCoins, stars: syncedStars }
+      }));
+      window.dispatchEvent(new CustomEvent('balance:changed', {
+        detail: { coins: syncedCoins, stars: syncedStars }
+      }));
+    } else {
+      // Initialize profile in Firestore
+      await saveCurrentProfileToFirestore();
+    }
+  } catch (err) {
+    console.warn("[Firebase Cloud] Balance fetch note:", err.message);
+  }
+}
+
 let userDocUnsubscribe = null;
 /**
  * Real-time listener for current user's profile in Firestore
  */
-function startRealtimeUserSync() {
+function startRealtimeUserSync(targetUid = null) {
   if (!db) return null;
-  const uid = getEffectivePlayerUid();
+  const uid = targetUid || getEffectivePlayerUid();
   if (!uid) return null;
 
   if (userDocUnsubscribe) {
-    userDocUnsubscribe();
+    try { userDocUnsubscribe(); } catch (e) {}
     userDocUnsubscribe = null;
   }
 
@@ -421,40 +540,42 @@ function startRealtimeUserSync() {
         const cloudData = docSnap.data() || {};
         let changed = false;
 
-        if (typeof cloudData.coins === 'number') {
-          const currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-          if (cloudData.coins !== currentCoins) {
-            localStorage.setItem('task_game_coins', cloudData.coins.toString());
-            localStorage.setItem('user_coins', cloudData.coins.toString());
+        const currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+        const currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+
+        isInternalSync = true;
+        try {
+          if (typeof cloudData.coins === 'number' && cloudData.coins !== currentCoins) {
+            rawSetItem('task_game_coins', cloudData.coins.toString());
+            rawSetItem('user_coins', cloudData.coins.toString());
             changed = true;
           }
-        }
 
-        if (typeof cloudData.stars === 'number') {
-          const currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-          if (cloudData.stars !== currentStars) {
-            localStorage.setItem('task_game_stars', cloudData.stars.toString());
-            localStorage.setItem('user_stars', cloudData.stars.toString());
+          if (typeof cloudData.stars === 'number' && cloudData.stars !== currentStars) {
+            rawSetItem('task_game_stars', cloudData.stars.toString());
+            rawSetItem('user_stars', cloudData.stars.toString());
             changed = true;
           }
-        }
 
-        if (typeof cloudData.tasksCompleted === 'number') {
-          localStorage.setItem('completed_tasks_count', cloudData.tasksCompleted.toString());
-          localStorage.setItem('task_game_total_tasks_completed', cloudData.tasksCompleted.toString());
-        }
+          if (typeof cloudData.tasksCompleted === 'number') {
+            rawSetItem('completed_tasks_count', cloudData.tasksCompleted.toString());
+            rawSetItem('task_game_total_tasks_completed', cloudData.tasksCompleted.toString());
+          }
 
-        if (typeof cloudData.adsWatched === 'number') {
-          localStorage.setItem('ads_watched_count', cloudData.adsWatched.toString());
-          localStorage.setItem('task_game_ads_watched_count', cloudData.adsWatched.toString());
-        }
+          if (typeof cloudData.adsWatched === 'number') {
+            rawSetItem('ads_watched_count', cloudData.adsWatched.toString());
+            rawSetItem('task_game_ads_watched_count', cloudData.adsWatched.toString());
+          }
 
-        if (cloudData.displayName && cloudData.displayName !== 'Player') {
-          localStorage.setItem('player_username', cloudData.displayName);
-        }
+          if (cloudData.displayName && cloudData.displayName !== 'Player') {
+            rawSetItem('player_username', cloudData.displayName);
+          }
 
-        if (cloudData.avatar) {
-          localStorage.setItem('player_avatar', cloudData.avatar);
+          if (cloudData.avatar) {
+            rawSetItem('player_avatar', cloudData.avatar);
+          }
+        } finally {
+          isInternalSync = false;
         }
 
         updateAllDomBalances();
@@ -464,9 +585,15 @@ function startRealtimeUserSync() {
             const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
             ch.postMessage({ type: 'COINS_SYNCED', timestamp: Date.now() });
           } catch (e) {}
+
+          const nextCoins = typeof cloudData.coins === 'number' ? cloudData.coins : currentCoins;
+          const nextStars = typeof cloudData.stars === 'number' ? cloudData.stars : currentStars;
+
+          window.dispatchEvent(new CustomEvent('balance:changed', {
+            detail: { coins: nextCoins, stars: nextStars }
+          }));
         }
       } else {
-        // Document does not exist in Firestore yet, initialize it
         saveCurrentProfileToFirestore();
       }
     }, (err) => {
@@ -481,20 +608,759 @@ function startRealtimeUserSync() {
 
 // Debounced auto-sync when local balances change
 let cloudBalanceTimer = null;
-function scheduleCloudBalanceSync() {
+function scheduleCloudBalanceSync(delay = 350) {
   if (cloudBalanceTimer) clearTimeout(cloudBalanceTimer);
   cloudBalanceTimer = setTimeout(() => {
     saveCurrentProfileToFirestore();
-  }, 450);
+  }, delay);
 }
 
-// Listen to storage events across tabs to save to Firestore
-window.addEventListener('storage', (e) => {
-  if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
-    scheduleCloudBalanceSync();
+// Global FirebaseSync currency management engine for all games & pages
+const firebaseSync = {
+  get db() { return db; },
+  get auth() { return auth; },
+  get userId() { return getEffectivePlayerUid(); },
+  get database() {
+    return {
+      ref: (path) => ({
+        set: async (data) => {
+          if (!db) return;
+          const uid = getEffectivePlayerUid();
+          const docRef = doc(db, 'players_data', `${uid}_${String(path).replace(/\//g, '_')}`);
+          return setDoc(docRef, { data, updatedAt: Date.now() }, { merge: true });
+        }
+      })
+    };
+  },
+  getCoins() {
+    return parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  },
+  getStars() {
+    return parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
+  },
+  setCoins(val) {
+    const num = Math.max(0, parseInt(val, 10) || 0);
+    localStorage.setItem('task_game_coins', num.toString());
+    localStorage.setItem('user_coins', num.toString());
     updateAllDomBalances();
+    saveCurrentProfileToFirestore();
+    return num;
+  },
+  setStars(val) {
+    const num = Math.max(0, parseInt(val, 10) || 0);
+    localStorage.setItem('task_game_stars', num.toString());
+    localStorage.setItem('user_stars', num.toString());
+    updateAllDomBalances();
+    saveCurrentProfileToFirestore();
+    return num;
+  },
+  addCoins(amount, reason = 'win') {
+    const amt = Math.max(0, parseInt(amount, 10) || 0);
+    const current = this.getCoins();
+    const next = current + amt;
+    this.setCoins(next);
+    console.log(`%c[Firebase Sync] +${amt} Coins added (${reason}). Total: ${next}`, "color: #10b981; font-weight: bold;");
+    return next;
+  },
+  subtractCoins(amount, reason = 'spend') {
+    const amt = Math.max(0, parseInt(amount, 10) || 0);
+    const current = this.getCoins();
+    if (current < amt) return false;
+    const next = Math.max(0, current - amt);
+    this.setCoins(next);
+    console.log(`%c[Firebase Sync] -${amt} Coins deducted (${reason}). Remaining: ${next}`, "color: #f59e0b; font-weight: bold;");
+    return next;
+  },
+  addStars(amount, reason = 'win') {
+    const amt = Math.max(0, parseInt(amount, 10) || 0);
+    const current = this.getStars();
+    const next = current + amt;
+    this.setStars(next);
+    console.log(`%c[Firebase Sync] +${amt} Stars added (${reason}). Total: ${next}`, "color: #10b981; font-weight: bold;");
+    return next;
+  },
+  subtractStars(amount, reason = 'spend') {
+    const amt = Math.max(0, parseInt(amount, 10) || 0);
+    const current = this.getStars();
+    if (current < amt) return false;
+    const next = Math.max(0, current - amt);
+    this.setStars(next);
+    console.log(`%c[Firebase Sync] -${amt} Stars deducted (${reason}). Remaining: ${next}`, "color: #f59e0b; font-weight: bold;");
+    return next;
+  },
+  syncPlayerCurrenciesImmediate() {
+    return saveCurrentProfileToFirestore();
+  },
+  saveUserData() {
+    return saveCurrentProfileToFirestore();
+  },
+  fetchLatestBalances() {
+    return initCloudBalances();
   }
+};
+
+window.firebaseSync = firebaseSync;
+window.FirebaseCurrency = firebaseSync;
+window.playerWallet = firebaseSync;
+
+// Global currency helpers for any purchase, unlock, or gameplay across the entire app
+window.useCoins = function(amount, reason = 'spend') {
+  return firebaseSync.subtractCoins(amount, reason);
+};
+window.useStars = function(amount, reason = 'spend') {
+  return firebaseSync.subtractStars(amount, reason);
+};
+window.winCoins = function(amount, reason = 'win') {
+  return firebaseSync.addCoins(amount, reason);
+};
+window.winStars = function(amount, reason = 'win') {
+  return firebaseSync.addStars(amount, reason);
+};
+window.buyWithCoins = function(amount, itemName = 'item') {
+  return firebaseSync.subtractCoins(amount, `Bought ${itemName}`);
+};
+window.buyWithStars = function(amount, itemName = 'item') {
+  return firebaseSync.subtractStars(amount, `Bought ${itemName}`);
+};
+window.getPlayerCoins = function() {
+  return firebaseSync.getCoins();
+};
+window.getPlayerStars = function() {
+  return firebaseSync.getStars();
+};
+
+
+// =============================================================================
+// GLOBAL BALANCE MANAGER (USE OR WIN COINS & STARS - LIVE FIREBASE SYNCHRONIZER)
+// =============================================================================
+
+function injectBalanceManagerUI() {
+  if (document.getElementById('globalBalanceManagerModal')) return;
+
+  const styleEl = document.createElement('style');
+  styleEl.id = 'gbm-styles';
+  styleEl.textContent = `
+    .gbm-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999999;
+      background: rgba(3, 8, 22, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: gbmFadeIn 0.2s ease-out;
+    }
+    @keyframes gbmFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .gbm-card {
+      width: 100%;
+      max-width: 420px;
+      background: #09132c;
+      border: 1.5px solid #1e3a6a;
+      border-radius: 20px;
+      padding: 1.25rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.15);
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      position: relative;
+      animation: gbmScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-sizing: border-box;
+    }
+    @keyframes gbmScaleUp {
+      from { transform: scale(0.92) translateY(10px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .gbm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    }
+    .gbm-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .gbm-title-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid #38bdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+    .gbm-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .gbm-subtitle {
+      margin: 0;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 2px;
+    }
+    .gbm-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      display: inline-block;
+    }
+    .gbm-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .gbm-close-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+      color: #f87171;
+    }
+    .gbm-balances-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+    .gbm-bal-card {
+      background: #04091a;
+      border: 1.5px solid rgba(56, 189, 248, 0.2);
+      border-radius: 14px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+    .gbm-bal-card.coins {
+      border-color: rgba(251, 191, 36, 0.4);
+      background: linear-gradient(135deg, #1c1503 0%, #04091a 100%);
+    }
+    .gbm-bal-card.stars {
+      border-color: rgba(250, 204, 21, 0.4);
+      background: linear-gradient(135deg, #1a1600 0%, #04091a 100%);
+    }
+    .gbm-bal-lbl {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.04em;
+    }
+    .gbm-bal-val {
+      font-size: 1.15rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #ffffff;
+      font-variant-numeric: tabular-nums;
+    }
+    .gbm-bal-card.coins .gbm-bal-val { color: #fbbf24; }
+    .gbm-bal-card.stars .gbm-bal-val { color: #facc15; }
+    .gbm-tabs {
+      display: flex;
+      gap: 0.35rem;
+      background: rgba(4, 9, 26, 0.6);
+      padding: 3px;
+      border-radius: 12px;
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      margin-bottom: 1rem;
+    }
+    .gbm-tab-btn {
+      flex: 1;
+      padding: 0.5rem 0.3rem;
+      border: none;
+      background: transparent;
+      border-radius: 9px;
+      color: #94a3b8;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    .gbm-tab-btn.active {
+      background: #1e3a6a;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .gbm-tab-btn.btn-win-tab.active { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+    .gbm-tab-btn.btn-use-tab.active { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+    .gbm-tab-btn.btn-edit-tab.active { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
+    .gbm-tab-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .gbm-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .gbm-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    .gbm-curr-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .gbm-radio-lbl {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.45rem;
+      border-radius: 10px;
+      background: #04091a;
+      border: 1.5px solid #1e293b;
+      cursor: pointer;
+      font-size: 0.825rem;
+      font-weight: 800;
+      color: #e2e8f0;
+      transition: all 0.15s ease;
+    }
+    .gbm-radio-lbl:has(input:checked) {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .gbm-radio-lbl input { margin: 0; }
+    .gbm-pills-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .gbm-quick-pill {
+      flex: 1;
+      min-width: 54px;
+      padding: 0.35rem 0.5rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+      font-size: 0.76rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .gbm-quick-pill:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+    .gbm-input {
+      width: 100%;
+      background: #04091a;
+      border: 1.5px solid #1e3a6a;
+      border-radius: 10px;
+      padding: 0.6rem 0.8rem;
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+    .gbm-input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+    .gbm-action-btn {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 12px;
+      border: none;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: #ffffff;
+      margin-top: 0.3rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .gbm-action-btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.1);
+    }
+    .gbm-action-btn:active {
+      transform: scale(0.98);
+    }
+    .gbm-action-btn.btn-win {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+    }
+    .gbm-action-btn.btn-use {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+    }
+    .gbm-action-btn.btn-edit {
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
+    }
+    .gbm-toast {
+      margin-top: 0.75rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-align: center;
+      animation: gbmFadeIn 0.2s ease-out;
+    }
+    .gbm-toast.success {
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .gbm-toast.error {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid #ef4444;
+      color: #f87171;
+    }
+  `;
+  document.head.appendChild(styleEl);
+
+  const modalEl = document.createElement('div');
+  modalEl.id = 'globalBalanceManagerModal';
+  modalEl.className = 'gbm-overlay';
+  modalEl.style.display = 'none';
+  modalEl.onclick = function(e) {
+    if (e.target === modalEl) closeBalanceManageModal();
+  };
+
+  modalEl.innerHTML = `
+    <div class="gbm-card" onclick="event.stopPropagation()">
+      <div class="gbm-header">
+        <div class="gbm-title-wrap">
+          <div class="gbm-title-icon">⚡</div>
+          <div>
+            <h3 class="gbm-title">Balance Manager</h3>
+            <p class="gbm-subtitle"><span class="gbm-live-dot"></span> Firebase Cloud Connected • Real-Time</p>
+          </div>
+        </div>
+        <button type="button" class="gbm-close-btn" onclick="closeBalanceManageModal()" title="Close">✕</button>
+      </div>
+
+      <!-- Live Current Balances Card -->
+      <div class="gbm-balances-row">
+        <div class="gbm-bal-card coins" title="Total Coin Balance">
+          <div class="gbm-bal-lbl">TOTAL COINS</div>
+          <div class="gbm-bal-val"><span>🪙</span><span id="manageModalCoinsVal">0</span></div>
+        </div>
+        <div class="gbm-bal-card stars" title="Total Star Balance">
+          <div class="gbm-bal-lbl">TOTAL STARS</div>
+          <div class="gbm-bal-val"><span>⭐</span><span id="manageModalStarsVal">0</span></div>
+        </div>
+      </div>
+
+      <!-- Tabs (Win, Use, Edit) -->
+      <div class="gbm-tabs">
+        <button type="button" class="gbm-tab-btn btn-win-tab active" id="gbmTabBtnWin" onclick="switchGbmTab('win')">🏆 Win / Earn (+)</button>
+        <button type="button" class="gbm-tab-btn btn-use-tab" id="gbmTabBtnUse" onclick="switchGbmTab('use')">🛍️ Use / Spend (-)</button>
+        <button type="button" class="gbm-tab-btn btn-edit-tab" id="gbmTabBtnEdit" onclick="switchGbmTab('edit')">✏️ Edit Balance</button>
+      </div>
+
+      <!-- Tab 1: WIN / EARN (+) -->
+      <div class="gbm-tab-pane" id="gbmPaneWin">
+        <div class="gbm-form-group">
+          <label class="gbm-label">Choose Currency to Win / Add:</label>
+          <div class="gbm-curr-selector">
+            <label class="gbm-radio-lbl">
+              <input type="radio" name="gbmWinCurr" value="coins" checked onchange="updateGbmQuickPills('win')">
+              <span>🪙 Coins</span>
+            </label>
+            <label class="gbm-radio-lbl">
+              <input type="radio" name="gbmWinCurr" value="stars" onchange="updateGbmQuickPills('win')">
+              <span>⭐ Stars</span>
+            </label>
+          </div>
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label">Quick Amount:</label>
+          <div class="gbm-pills-row" id="gbmWinQuickPills"></div>
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmWinAmount">Amount:</label>
+          <input type="number" id="gbmWinAmount" class="gbm-input" min="1" placeholder="Enter amount to win" value="50">
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmWinReason">Reason / Tag:</label>
+          <input type="text" id="gbmWinReason" class="gbm-input" placeholder="e.g. Game Win, Task Completed, Community Reward" value="Game Win">
+        </div>
+        <button type="button" class="gbm-action-btn btn-win" onclick="submitBalanceWin()">Claim Win &amp; Save to Firebase 🚀</button>
+      </div>
+
+      <!-- Tab 2: USE / SPEND (-) -->
+      <div class="gbm-tab-pane" id="gbmPaneUse" style="display:none;">
+        <div class="gbm-form-group">
+          <label class="gbm-label">Choose Currency to Use / Spend:</label>
+          <div class="gbm-curr-selector">
+            <label class="gbm-radio-lbl">
+              <input type="radio" name="gbmUseCurr" value="coins" checked onchange="updateGbmQuickPills('use')">
+              <span>🪙 Coins</span>
+            </label>
+            <label class="gbm-radio-lbl">
+              <input type="radio" name="gbmUseCurr" value="stars" onchange="updateGbmQuickPills('use')">
+              <span>⭐ Stars</span>
+            </label>
+          </div>
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label">Quick Amount:</label>
+          <div class="gbm-pills-row" id="gbmUseQuickPills"></div>
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmUseAmount">Amount:</label>
+          <input type="number" id="gbmUseAmount" class="gbm-input" min="1" placeholder="Enter amount to use" value="25">
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmUseReason">Reason / Tag:</label>
+          <input type="text" id="gbmUseReason" class="gbm-input" placeholder="e.g. Game Stake, Item Shop, Entry Fee" value="Game Stake">
+        </div>
+        <button type="button" class="gbm-action-btn btn-use" onclick="submitBalanceUse()">Confirm Use &amp; Deduct 💳</button>
+      </div>
+
+      <!-- Tab 3: EDIT BALANCE (DIRECT SET) -->
+      <div class="gbm-tab-pane" id="gbmPaneEdit" style="display:none;">
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmEditCoins">Total Coins Balance (🪙):</label>
+          <input type="number" id="gbmEditCoins" class="gbm-input" min="0" placeholder="0">
+        </div>
+        <div class="gbm-form-group">
+          <label class="gbm-label" for="gbmEditStars">Total Stars Balance (⭐):</label>
+          <input type="number" id="gbmEditStars" class="gbm-input" min="0" placeholder="0">
+        </div>
+        <button type="button" class="gbm-action-btn btn-edit" onclick="submitBalanceSet()">Save Fixed Balances to Firebase 💾</button>
+      </div>
+
+      <div id="gbmToastMsg" class="gbm-toast" style="display:none;"></div>
+    </div>
+  `;
+  document.body.appendChild(modalEl);
+  updateGbmQuickPills('win');
+  updateGbmQuickPills('use');
+}
+
+function updateGbmQuickPills(mode = 'win') {
+  const containerId = mode === 'win' ? 'gbmWinQuickPills' : 'gbmUseQuickPills';
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const radName = mode === 'win' ? 'gbmWinCurr' : 'gbmUseCurr';
+  const selected = document.querySelector(`input[name="${radName}"]:checked`);
+  const isCoin = !selected || selected.value === 'coins';
+
+  const amounts = isCoin ? [10, 50, 100, 500, 1000] : [1, 5, 10, 50, 100];
+  const unit = isCoin ? '🪙' : '⭐';
+
+  container.innerHTML = amounts.map(amt => `
+    <button type="button" class="gbm-quick-pill" onclick="selectGbmQuickAmount('${mode}', ${amt})">
+      ${mode === 'win' ? '+' : '-'}${amt.toLocaleString()} ${unit}
+    </button>
+  `).join('');
+}
+
+function selectGbmQuickAmount(mode, amount) {
+  const inputId = mode === 'win' ? 'gbmWinAmount' : 'gbmUseAmount';
+  const input = document.getElementById(inputId);
+  if (input) input.value = amount;
+}
+
+function switchGbmTab(tabName) {
+  const tabs = ['win', 'use', 'edit'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`gbmTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const pane = document.getElementById(`gbmPane${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    if (btn) btn.classList.toggle('active', t === tabName);
+    if (pane) pane.style.display = (t === tabName) ? 'flex' : 'none';
+  });
+
+  if (tabName === 'edit') {
+    const cInput = document.getElementById('gbmEditCoins');
+    const sInput = document.getElementById('gbmEditStars');
+    if (cInput) cInput.value = firebaseSync.getCoins();
+    if (sInput) sInput.value = firebaseSync.getStars();
+  }
+}
+
+function openBalanceManageModal(preferredType = 'coins', defaultTab = 'win') {
+  injectBalanceManagerUI();
+  const modal = document.getElementById('globalBalanceManagerModal');
+  if (!modal) return;
+
+  // Refresh live display
+  updateAllDomBalances();
+
+  // Pre-select currency radio
+  if (preferredType === 'stars') {
+    const winRadio = document.querySelector('input[name="gbmWinCurr"][value="stars"]');
+    const useRadio = document.querySelector('input[name="gbmUseCurr"][value="stars"]');
+    if (winRadio) winRadio.checked = true;
+    if (useRadio) useRadio.checked = true;
+  } else {
+    const winRadio = document.querySelector('input[name="gbmWinCurr"][value="coins"]');
+    const useRadio = document.querySelector('input[name="gbmUseCurr"][value="coins"]');
+    if (winRadio) winRadio.checked = true;
+    if (useRadio) useRadio.checked = true;
+  }
+
+  updateGbmQuickPills('win');
+  updateGbmQuickPills('use');
+  switchGbmTab(defaultTab);
+
+  modal.style.display = 'flex';
+}
+
+function closeBalanceManageModal() {
+  const modal = document.getElementById('globalBalanceManagerModal');
+  if (modal) modal.style.display = 'none';
+  const toast = document.getElementById('gbmToastMsg');
+  if (toast) toast.style.display = 'none';
+}
+
+function showGbmToast(msg, type = 'success') {
+  const toast = document.getElementById('gbmToastMsg');
+  if (!toast) return;
+  toast.className = `gbm-toast ${type}`;
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    if (toast) toast.style.display = 'none';
+  }, 3200);
+}
+
+function submitBalanceWin() {
+  const selected = document.querySelector('input[name="gbmWinCurr"]:checked');
+  const isCoin = !selected || selected.value === 'coins';
+  const amtInput = document.getElementById('gbmWinAmount');
+  const reasonInput = document.getElementById('gbmWinReason');
+
+  const amt = parseInt(amtInput ? amtInput.value : '0', 10);
+  if (isNaN(amt) || amt <= 0) {
+    showGbmToast('Please enter a valid positive amount.', 'error');
+    return;
+  }
+  const reason = (reasonInput && reasonInput.value.trim()) ? reasonInput.value.trim() : 'Manual Win';
+
+  if (isCoin) {
+    const next = firebaseSync.addCoins(amt, reason);
+    showGbmToast(`✓ Won +${amt.toLocaleString()} 🪙 Coins! New Total: ${next.toLocaleString()} 🪙 (Synced with Firebase)`, 'success');
+  } else {
+    const next = firebaseSync.addStars(amt, reason);
+    showGbmToast(`✓ Won +${amt.toLocaleString()} ⭐ Stars! New Total: ${next.toLocaleString()} ⭐ (Synced with Firebase)`, 'success');
+  }
+}
+
+function submitBalanceUse() {
+  const selected = document.querySelector('input[name="gbmUseCurr"]:checked');
+  const isCoin = !selected || selected.value === 'coins';
+  const amtInput = document.getElementById('gbmUseAmount');
+  const reasonInput = document.getElementById('gbmUseReason');
+
+  const amt = parseInt(amtInput ? amtInput.value : '0', 10);
+  if (isNaN(amt) || amt <= 0) {
+    showGbmToast('Please enter a valid positive amount.', 'error');
+    return;
+  }
+  const reason = (reasonInput && reasonInput.value.trim()) ? reasonInput.value.trim() : 'Manual Spend';
+
+  if (isCoin) {
+    const res = firebaseSync.subtractCoins(amt, reason);
+    if (res === false) {
+      showGbmToast(`Insufficient coins! You have ${firebaseSync.getCoins().toLocaleString()} 🪙.`, 'error');
+      return;
+    }
+    showGbmToast(`✓ Used -${amt.toLocaleString()} 🪙 Coins! Remaining: ${res.toLocaleString()} 🪙 (Synced with Firebase)`, 'success');
+  } else {
+    const res = firebaseSync.subtractStars(amt, reason);
+    if (res === false) {
+      showGbmToast(`Insufficient stars! You have ${firebaseSync.getStars().toLocaleString()} ⭐.`, 'error');
+      return;
+    }
+    showGbmToast(`✓ Used -${amt.toLocaleString()} ⭐ Stars! Remaining: ${res.toLocaleString()} ⭐ (Synced with Firebase)`, 'success');
+  }
+}
+
+function submitBalanceSet() {
+  const cInput = document.getElementById('gbmEditCoins');
+  const sInput = document.getElementById('gbmEditStars');
+
+  const c = parseInt(cInput ? cInput.value : '0', 10);
+  const s = parseInt(sInput ? sInput.value : '0', 10);
+
+  if (isNaN(c) || c < 0 || isNaN(s) || s < 0) {
+    showGbmToast('Please enter valid non-negative values.', 'error');
+    return;
+  }
+
+  firebaseSync.setCoins(c);
+  firebaseSync.setStars(s);
+  showGbmToast(`✓ Fixed balances saved to Firebase: ${c.toLocaleString()} 🪙, ${s.toLocaleString()} ⭐!`, 'success');
+}
+
+window.openBalanceManageModal = openBalanceManageModal;
+window.closeBalanceManageModal = closeBalanceManageModal;
+window.switchGbmTab = switchGbmTab;
+window.updateGbmQuickPills = updateGbmQuickPills;
+window.selectGbmQuickAmount = selectGbmQuickAmount;
+window.submitBalanceWin = submitBalanceWin;
+window.submitBalanceUse = submitBalanceUse;
+window.submitBalanceSet = submitBalanceSet;
+
+// Automatically bind click handlers on any pill with .coin-pill, .star-pill on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  injectBalanceManagerUI();
+
+  // Attach click listener to any unhandled pill
+  document.querySelectorAll('.coin-pill, .header-coin-pill').forEach(el => {
+    if (!el.getAttribute('onclick')) {
+      el.addEventListener('click', () => openBalanceManageModal('coins'));
+      el.style.cursor = 'pointer';
+    }
+  });
+  document.querySelectorAll('.star-pill, .header-star-pill').forEach(el => {
+    if (!el.getAttribute('onclick')) {
+      el.addEventListener('click', () => openBalanceManageModal('stars'));
+      el.style.cursor = 'pointer';
+    }
+  });
 });
+
+
 
 /**
  * Format Firebase Auth error codes into helpful user messages
@@ -597,6 +1463,9 @@ function listenToCloudTasks(onUpdateCallback) {
 
           if (typeof onUpdateCallback === 'function') {
             onUpdateCallback(data.tasks);
+          }
+          if (typeof window.renderTasks === 'function') {
+            window.renderTasks();
           }
         }
       }
@@ -1148,6 +2017,8 @@ window.Firebase = {
   db,
   auth,
   config: firebaseConfig,
+  firebaseSync,
+  initCloudBalances,
   // Player & Auth methods
   getEffectivePlayerUid,
   updateAllDomBalances,
@@ -1173,7 +2044,9 @@ window.Firebase = {
   verifyReferralCodeInCloud,
   redeemReferralCodeInCloud,
   saveGlobalLeaderboardEventToCloud,
-  listenToCloudLeaderboardEvent
+  listenToCloudLeaderboardEvent,
+  openBalanceManageModal,
+  closeBalanceManageModal
 };
 
 window.FirebaseAuth = {
@@ -1194,23 +2067,53 @@ window.firebaseAnalytics = analytics;
 
 // Automatically initialize real-time cloud sync across the current page/tab
 try {
-  // 1. Start user document real-time listener
+  // 1. Fetch latest balances from Firestore immediately on page open
+  initCloudBalances();
+
+  // 2. Start user document real-time listener
   startRealtimeUserSync();
 
-  // 2. Start cloud tasks real-time listener
+  // 3. Start cloud tasks real-time listener
   listenToCloudTasks((tasks) => {
     if (typeof window.renderTasks === 'function') {
       window.renderTasks();
     }
   });
 
-  // 3. Start ad config real-time listener
+  // 4. Start ad config real-time listener
   listenToCloudAdConfig();
 
-  // 4. Update DOM with initial balances
+  // 5. Update DOM with initial balances
   updateAllDomBalances();
 
-  // 5. Try anonymous sign-in if not signed in yet
+  // 6. Cross-tab and real-time balance cloud sync listener
+  try {
+    const syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    syncChannel.onmessage = (event) => {
+      updateAllDomBalances();
+      if (event.data && (event.data.type === 'BALANCES_UPDATED' || event.data.type === 'COINS_SYNCED' || event.data.type === 'TASK_COMPLETED')) {
+        saveCurrentProfileToFirestore();
+      }
+    };
+  } catch (e) {}
+
+  // 7. Flush balances immediately when page closes or is navigated away from
+  const handlePageCloseOrHide = () => {
+    try {
+      saveCurrentProfileToFirestore();
+    } catch (e) {}
+  };
+  window.addEventListener('beforeunload', handlePageCloseOrHide);
+  window.addEventListener('pagehide', handlePageCloseOrHide);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      handlePageCloseOrHide();
+    } else {
+      initCloudBalances();
+    }
+  });
+
+  // 8. Try anonymous sign-in if not signed in yet
   if (auth && !auth.currentUser) {
     try {
       signInAnonymously(auth).catch(() => {});
@@ -1220,9 +2123,13 @@ try {
   console.warn('[Firebase] Auto-sync notice:', e.message);
 }
 
+window.syncBalancesWithCloud = saveCurrentProfileToFirestore;
+window.saveCurrentProfileToFirestore = saveCurrentProfileToFirestore;
+window.initCloudBalances = initCloudBalances;
+
 // Dispatch global ready event
 window.dispatchEvent(new CustomEvent('firebase:ready', {
-  detail: { app, analytics, db, auth }
+  detail: { app, analytics, db, auth, firebaseSync }
 }));
 
 export { 
@@ -1231,6 +2138,8 @@ export {
   db, 
   auth,
   firebaseConfig, 
+  firebaseSync,
+  initCloudBalances,
   getEffectivePlayerUid,
   updateAllDomBalances,
   startRealtimeUserSync,
@@ -1254,5 +2163,7 @@ export {
   verifyReferralCodeInCloud,
   redeemReferralCodeInCloud,
   saveGlobalLeaderboardEventToCloud,
-  listenToCloudLeaderboardEvent
+  listenToCloudLeaderboardEvent,
+  openBalanceManageModal,
+  closeBalanceManageModal
 };

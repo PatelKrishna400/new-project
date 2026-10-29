@@ -33,12 +33,12 @@
         <span id="loginErrorText">Invalid administrator credentials. Access denied!</span>
       </div>
 
-      <form class="login-form" id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+      <form class="login-form" id="adminLoginForm" onsubmit="handleAdminLogin(event)" autocomplete="off">
         <div class="form-group">
           <label class="form-label" for="adminUsernameInput">Administrator ID / Username</label>
           <div class="input-icon-wrap">
             <span class="input-icon">👤</span>
-            <input type="text" id="adminUsernameInput" class="form-input with-icon" placeholder="Enter Admin ID (e.g. 400 @123)" required autocomplete="username">
+            <input type="text" id="adminUsernameInput" class="form-input with-icon" placeholder="Enter Administrator ID" required autocomplete="off">
           </div>
         </div>
 
@@ -46,17 +46,11 @@
           <label class="form-label" for="adminPasswordInput">Security Key / Password</label>
           <div class="input-icon-wrap">
             <span class="input-icon">🔒</span>
-            <input type="password" id="adminPasswordInput" class="form-input with-icon" placeholder="Enter password (e.g. 0911)" required autocomplete="current-password">
+            <input type="password" id="adminPasswordInput" class="form-input with-icon" placeholder="Enter password" required autocomplete="new-password">
           </div>
         </div>
 
-        <div class="login-credentials-hint">
-          <span class="hint-badge">Default Access:</span>
-          <span>Username: <code>400 @123</code> &bull; Password: <code>0911</code></span>
-          <button type="button" class="btn-quick-fill" onclick="quickFillCredentials()">Auto-Fill</button>
-        </div>
-
-        <button type="submit" class="btn-login-submit" id="btnLoginSubmit">
+        <button type="submit" class="btn-login-submit" id="btnLoginSubmit" style="margin-top: 1rem;">
           <span>Authenticate &amp; Launch Console 🚀</span>
         </button>
       </form>
@@ -218,9 +212,6 @@
               <button class="btn-primary-action" onclick="openCreateUserModal()">
                 <span class="btn-icon">＋</span>
                 <span>Add Player Profile</span>
-              </button>
-              <button class="btn-secondary-action" onclick="quickAwardAllPlayers(1000)" title="Give +1,000 coins to all players">
-                <span>🎁 Bonus +1k to All</span>
               </button>
             </div>
 
@@ -540,12 +531,15 @@
 
         <div class="form-group">
           <label class="form-label" for="taskLinkInput">Task Link (URL) *</label>
-          <input type="url" id="taskLinkInput" class="form-input font-mono" placeholder="https://t.me/channel or https://..." required oninput="updateModalPreview()">
+          <input type="text" id="taskLinkInput" class="form-input font-mono" placeholder="https://t.me/channel or t.me/... or https://..." required oninput="updateModalPreview()">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="taskCodeInput">6-Digit Verification Code *</label>
-          <input type="text" id="taskCodeInput" class="form-input font-mono font-bold" placeholder="e.g. 583921 (6-digit code)" maxlength="6" pattern="[0-9]{6}" required oninput="updateModalPreview()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="taskCodeInput" style="margin-bottom: 0;">6-Digit Verification Code *</label>
+            <button type="button" onclick="generateRandom6DigitCode()" class="btn-ctrl" style="padding: 2px 8px; font-size: 0.72rem; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 6px; cursor: pointer;" title="Generate random 6-digit code">🎲 Auto-Generate</button>
+          </div>
+          <input type="text" id="taskCodeInput" class="form-input font-mono font-bold" placeholder="e.g. 583921 (6-digit code)" maxlength="12" required oninput="updateModalPreview()">
         </div>
 
         <!-- Emoji Quick Picker -->

@@ -115,9 +115,12 @@ function saveBalance() {
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch(e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
 function claimFreeRefill() {
@@ -186,7 +189,7 @@ function updateActionButtonState() {
   if (!btn) return;
 
   if (balance < currentBet) {
-    btn.innerText = 'Buy coins';
+    btn.innerText = 'Buy stars';
     btn.className = "primary-cta-btn bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-amber-950 shadow-[0_8px_24px_rgba(234,179,8,0.35)]";
   } else {
     btn.innerText = 'Flip Coin';
@@ -267,7 +270,7 @@ function finishCoinFlip(outcome, isWin) {
     balance += payout;
     saveBalance();
     updateBalanceUI();
-    if (outcomeText) outcomeText.innerHTML = `Landed on <b class="text-white">${outcomeName}</b>! Won +${payout} 🪙 (×2)`;
+    if (outcomeText) outcomeText.innerHTML = `Landed on <b class="text-white">${outcomeName}</b>! Won +${payout} ⭐ (×2)`;
     if (window.confetti) confetti({ particleCount: 50, spread: 70, origin: { y: 0.3 } });
   } else {
     playTone('lose');
@@ -356,10 +359,25 @@ function watchAdForMorePlays() {
   updateBalanceUI();
 }
 
-// Initialize on page load
+// Initialize on page load & Firebase Balance Synchronization
 document.addEventListener('DOMContentLoaded', () => {
+  balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   updateBalanceUI();
   setBet(50);
   selectCoinSide('heads');
   if (window.lucide) lucide.createIcons();
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

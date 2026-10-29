@@ -623,23 +623,91 @@ body {
   animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
 }
 
-/* ==========================================================================
-   5-HOUR AD COOLDOWN COMMENT TAB (ORANGE FILLED TAB & BLACK TIMER TAB)
-   ========================================================================== */
 .shop-ad-card {
+  background: linear-gradient(155deg, #06241a 0%, #0a1738 100%) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 14px !important;
+  padding: 0.85rem 1rem !important;
   display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: 0.65rem !important;
-  position: relative;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.85rem !important;
+  transition: all 0.2s ease !important;
 }
 
-.shop-card-main-row {
+.shop-ad-card:hover {
+  background: linear-gradient(155deg, #093325 0%, #0f1f4a 100%) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
+  transform: translateY(-2px) !important;
+}
+
+.shop-ad-card .shop-icon-wrap {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: rgba(16, 185, 129, 0.2) !important;
+  border: 1.5px solid rgba(52, 211, 153, 0.65) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.35rem !important;
+  flex-shrink: 0 !important;
+}
+
+.shop-ad-card .btn-buy {
+  background: linear-gradient(155deg, #10b981 0%, #059669 50%, #047857 100%);
+  border-color: #6ee7b7 #10b981 #064e3b #059669;
+  color: #ffffff;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.shop-ad-card .btn-buy:hover {
+  background: linear-gradient(155deg, #34d399 0%, #10b981 50%, #059669 100%);
+  border-color: #a7f3d0 #34d399 #047857 #10b981;
+}
+
+/* Star Perks Info Card */
+.shop-perks-card {
+  background: linear-gradient(155deg, #0a1738 0%, #060e24 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.35rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.shop-perks-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  width: 100%;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #facc15;
+}
+
+.shop-perks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.shop-perk-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.73rem;
+  color: #94a3b8;
+  line-height: 1.35;
+}
+
+.shop-perk-item span:last-child {
+  color: #e2e8f0;
 }
 
 .btn-disabled-cooldown {

@@ -116,9 +116,12 @@ function saveBalance() {
   localStorage.setItem('user_stars', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
     bc.close();
   } catch(e) {}
+  if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
+    window.firebaseSync.syncPlayerCurrenciesImmediate();
+  }
 }
 
 function claimFreeRefill() {
@@ -248,7 +251,7 @@ function updateActionButtonState() {
   if (!btn) return;
 
   if (balance < currentBet) {
-    btn.innerText = 'Buy coins';
+    btn.innerText = 'Buy stars';
     btn.className = "primary-cta-btn bg-gradient-to-r from-lime-400 to-green-500 hover:from-lime-300 hover:to-green-400 text-lime-950 shadow-[0_8px_24px_rgba(132,204,22,0.35)]";
   } else {
     btn.innerText = 'Roll';
@@ -461,10 +464,25 @@ function watchAdForMorePlays() {
   updateBalanceUI();
 }
 
-// Initialize on page load
+// Initialize on page load & Firebase Balance Synchronization
 document.addEventListener('DOMContentLoaded', () => {
+  balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
   updateBalanceUI();
   setBet(50);
   setUnderOverMode('under');
   if (window.lucide) lucide.createIcons();
+});
+
+window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
+});
+
+window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.stars === 'number') {
+    balance = e.detail.stars;
+    updateBalanceUI();
+  }
 });

@@ -99,6 +99,10 @@ function getAdCooldownRemaining() {
   const endTimestamp = parseInt(localStorage.getItem('task_game_shop_ad_cooldown') || '0', 10);
   if (!endTimestamp) return 0;
   const remaining = endTimestamp - Date.now();
+  if (remaining > AD_COOLDOWN_MS) {
+    localStorage.removeItem('task_game_shop_ad_cooldown');
+    return 0;
+  }
   return remaining > 0 ? remaining : 0;
 }
 
@@ -169,9 +173,9 @@ function updateAdCooldownUI() {
   }
 }
 
-// Real-Time Percentage Discount Calculator (1 Star = 300 Coins Baseline)
+// Real-Time Percentage Discount Calculator (1 Star = 500 Coins Baseline)
 function updateRealTimeDiscounts() {
-  const baseRatePerStar = 300;
+  const baseRatePerStar = 500;
   document.querySelectorAll('.star-shop-card').forEach(card => {
     const buyBtn = card.querySelector('.btn-buy');
     const badge = card.querySelector('.star-pack-badge');
@@ -222,10 +226,67 @@ function updateDisplays() {
   if (nameEl) nameEl.textContent = localStorage.getItem('player_username') || 'Player';
 }
 
-// Watch Ad -> Win 10 Coins (Triggers 5-Hour Cooldown with Comment Tab)
-function watchAdForCoins() { /* Ad removed */ }
+// Free Gift Reward (+10 Coins using Ads)
+function watchAdForCoins(btn) {
+  const remaining = getAdCooldownRemaining();
+  if (remaining > 0) {
+    alert(`⏳ Free Gift on Cooldown!\n\nPlease wait ${formatCooldownTime(remaining)} before claiming again.`);
+    return;
+  }
 
-// Buy Stars for Coins (1 for 300, 10 for 2900, 20 for 5000)
+  // Trigger ad view
+  try {
+    if (typeof window.openWatchAd === 'function') {
+      window.openWatchAd({
+        onReward: () => {}
+      });
+    } else {
+      window.open('https://otieuche.com/4/8893420', '_blank');
+    }
+  } catch (e) {
+    try { window.open('https://otieuche.com/4/8893420', '_blank'); } catch (err) {}
+  }
+
+  const rewardCoins = 10;
+  if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+    userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Gift');
+  } else {
+    userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + rewardCoins;
+    localStorage.setItem('task_game_coins', userCoins.toString());
+    localStorage.setItem('user_coins', userCoins.toString());
+  }
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof window.saveCurrentProfileToFirestore === 'function') {
+    window.saveCurrentProfileToFirestore();
+  }
+
+  // Set 5-hour cooldown
+  const endTimestamp = Date.now() + AD_COOLDOWN_MS;
+  localStorage.setItem('task_game_shop_ad_cooldown', endTimestamp.toString());
+
+  // Track completed claim / ad count for tasks and leaderboard
+  const adsCount = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1;
+  localStorage.setItem('task_game_ads_watched_count', adsCount.toString());
+  localStorage.setItem('ads_watched_count', adsCount.toString());
+
+  updateDisplays();
+  shopSfx.playCoin();
+
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+  } catch (e) {}
+
+  updateAdCooldownUI();
+
+  alert(`🎁 Free Gift Claimed!\n\nYou watched an ad and won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
+}
+window.watchAdForCoins = watchAdForCoins;
+window.buyStars = buyStars;
+
+// Buy Stars for Coins (1 for 500, 10 for 4800, 20 for 9600, 50 for 20000)
 function buyStars(starAmount, coinCost) {
   if (userCoins < coinCost) {
     const diff = coinCost - userCoins;
@@ -233,11 +294,26 @@ function buyStars(starAmount, coinCost) {
     return;
   }
 
-  userCoins -= coinCost;
-  userStars += starAmount;
+  if (window.firebaseSync && typeof window.firebaseSync.subtractCoins === 'function') {
+    window.firebaseSync.subtractCoins(coinCost, 'Buy Stars');
+    window.firebaseSync.addStars(starAmount, 'Bought Stars');
+    userCoins = window.firebaseSync.getCoins();
+    userStars = window.firebaseSync.getStars();
+  } else {
+    userCoins -= coinCost;
+    userStars += starAmount;
+    localStorage.setItem('task_game_coins', userCoins.toString());
+    localStorage.setItem('user_coins', userCoins.toString());
+    localStorage.setItem('task_game_stars', userStars.toString());
+    localStorage.setItem('user_stars', userStars.toString());
+  }
 
-  localStorage.setItem('task_game_coins', userCoins.toString());
-  localStorage.setItem('task_game_stars', userStars.toString());
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof window.saveCurrentProfileToFirestore === 'function') {
+    window.saveCurrentProfileToFirestore();
+  }
   updateDisplays();
   shopSfx.playStarChime();
 
@@ -270,8 +346,25 @@ function buyItem(btn, price, itemName) {
     return;
   }
 
-  userCoins -= price;
-  localStorage.setItem('task_game_coins', userCoins.toString());
+  if (window.firebaseSync && typeof window.firebaseSync.subtractCoins === 'function') {
+    const res = window.firebaseSync.subtractCoins(price, `Bought ${itemName}`);
+    if (res === false) {
+      alert(`Insufficient coins! You need ${price.toLocaleString()} 🪙 to purchase ${itemName}.`);
+      return;
+    }
+    userCoins = res;
+  } else {
+    userCoins -= price;
+    localStorage.setItem('task_game_coins', userCoins.toString());
+    localStorage.setItem('user_coins', userCoins.toString());
+  }
+
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof window.saveCurrentProfileToFirestore === 'function') {
+    window.saveCurrentProfileToFirestore();
+  }
   updateDisplays();
   shopSfx.playCoin();
 
@@ -303,4 +396,12 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     updateDisplays();
   }
+});
+
+window.addEventListener('balance:changed', () => {
+  updateDisplays();
+});
+
+window.addEventListener('balance:synced', () => {
+  updateDisplays();
 });

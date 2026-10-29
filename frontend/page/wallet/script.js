@@ -254,7 +254,7 @@ function handleConfirmBuy(event) {
   event.preventDefault();
 
   const rsAmount = parseInt(document.getElementById('buyParamRs').value, 10) || 100;
-  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 1000;
+  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 10000;
   const title = document.getElementById('buyParamTitle').value || 'Amazon Gift Card';
   const imgPath = document.getElementById('buyParamImg').value || 'assets/amazon_100.jpg';
 
@@ -286,8 +286,21 @@ function handleConfirmBuy(event) {
   const email = (rawEmail && rawEmail !== 'null') ? rawEmail : 'registered-user@taskgame.app';
 
   // Deduct stars
-  userStars -= starCost;
-  localStorage.setItem('task_game_stars', userStars.toString());
+  if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
+    const res = window.firebaseSync.subtractStars(starCost, `Amazon Gift Card ₹${rsAmount}`);
+    if (res !== false) userStars = res;
+  } else {
+    userStars -= starCost;
+    localStorage.setItem('task_game_stars', userStars.toString());
+    localStorage.setItem('user_stars', userStars.toString());
+  }
+
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof window.saveCurrentProfileToFirestore === 'function') {
+    window.saveCurrentProfileToFirestore();
+  }
   updateWalletDisplays();
 
   // Cloud sync if available
@@ -534,4 +547,12 @@ document.addEventListener('visibilitychange', () => {
     updateWalletDisplays();
     renderWalletOrders();
   }
+});
+
+window.addEventListener('balance:changed', () => {
+  updateWalletDisplays();
+});
+
+window.addEventListener('balance:synced', () => {
+  updateWalletDisplays();
 });
