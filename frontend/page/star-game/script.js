@@ -482,15 +482,7 @@ function switchTab(tabId) {
     updateUnderOverCalculations();
   }
 
-    window.addEventListener('balance:changed', () => {
-    balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
-    updateBalanceUI();
-  });
 
-  window.addEventListener('balance:synced', () => {
-    balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
-    updateBalanceUI();
-  });
 
   if (window.lucide) lucide.createIcons();
 }
@@ -911,7 +903,7 @@ function buyScratchCard() {
     document.getElementById('scratchMultiplierLabel').innerText = `×${scratchPrize.mult}`;
     document.getElementById('scratchTierLabel').innerText = scratchPrize.tier;
     const winStars = Math.round(currentBet * scratchPrize.mult);
-    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winStars} ⭐` : `0 ⭐`;
+    document.getElementById('scratchWinAmountText').innerText = scratchPrize.mult > 0 ? `+${winStars} 🪙` : `0 🪙`;
 
     // Make the prize active underneath the opaque foil
     if (prizeCard) {
@@ -986,7 +978,7 @@ function revealScratchFinish(canvas, ctx) {
   if (scratchPrize.mult >= 5) {
     if (window.confetti) confetti({ particleCount: 80, spread: 70 });
     playTone('jackpot');
-    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
+    showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} 🪙`, scratchPrize.icon);
   } else if (scratchPrize.mult >= 1) {
     playTone('win');
     showToast(scratchPrize.tier, `Uncovered ×${scratchPrize.mult}! Won ${winAmount} ⭐`, scratchPrize.icon);
@@ -1263,10 +1255,10 @@ function dropPlinkoBall() {
       if (mult >= 5) {
         if (window.confetti) confetti({ particleCount: 80, spread: 70 });
         playTone('jackpot');
-        showToast('Outer Edge!', `Landed in ×${mult}! Won ${winAmount} ⭐`, '🎁');
+        showToast('Outer Edge!', `Landed in ×${mult}! Won ${winAmount} 🪙`, '🎁');
       } else {
         playTone('win');
-        showToast('Bucket Hit', `Paid ×${mult} (${winAmount} ⭐)`, '🎁');
+        showToast('Bucket Hit', `Paid ×${mult} (${winAmount} 🪙)`, '🎁');
       }
     }
   }, 80);
@@ -1322,7 +1314,7 @@ function flipCoinGame() {
       updateBalanceUI();
       if (window.confetti) confetti({ particleCount: 70, spread: 60 });
       playTone('win');
-      showToast('Double Up!', `Called ${landedSide.toUpperCase()} correctly! Won +${winAmount} ⭐`, '⭐');
+      showToast('Double Up!', `Called ${landedSide.toUpperCase()} correctly! Won +${winAmount} 🪙`, '🪙');
       if (outcomeText) outcomeText.innerText = `Landed on ${landedSide.toUpperCase()}! You won +${winAmount} ⭐ (×2)!`;
     } else {
       playTone('lose');
@@ -1447,7 +1439,7 @@ function cashoutMines() {
 
   if (window.confetti) confetti({ particleCount: 70, spread: 60 });
   playTone('jackpot');
-  showToast('Cashed Out!', `Secured ×${mult} (+${winAmount} ⭐)!`, '💰');
+  showToast('Cashed Out!', `Secured ×${mult} (+${winAmount} 🪙)!`, '💰');
 
   revealAllMines();
   const playBtn = document.getElementById('primaryPlayBtn');
@@ -1619,7 +1611,7 @@ function rollUnderOverGame() {
         updateBalanceUI();
         if (window.confetti) confetti({ particleCount: 70, spread: 60 });
         playTone('win');
-        showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} ⭐ (×${payout})`, '🎯');
+        showToast('Target Hit!', `Rolled ${finalNumber}! Won ${winAmount} 🪙 (×${payout})`, '🎯');
       } else {
         if (dLeft) dLeft.className = "text-6xl font-black text-rose-400 tracking-tighter select-none";
         if (dRight) dRight.className = "text-6xl font-black text-rose-400 tracking-tighter select-none";
@@ -1700,8 +1692,7 @@ function watchAdForMorePlays() {
 // INITIALIZATION ON DOM READY
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-  const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
-  balance = parseInt(storedStars || '10', 10);
+  balance = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
   
   // Check URL param ?game=dice / scratch / spin
   const urlParams = new URLSearchParams(window.location.search);
@@ -1712,8 +1703,7 @@ window.addEventListener('DOMContentLoaded', () => {
   switchTab(targetGame);
 
   window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_stars' || e.key === 'user_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+    if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
       updateBalanceUI();
     }
   });
@@ -1721,12 +1711,37 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const syncChannel = new BroadcastChannel('nova_task_sync');
     syncChannel.onmessage = (e) => {
-      if (e.data && (e.data.type === 'BALANCES_UPDATED' || e.data.type === 'STARS_UPDATED')) {
-        balance = parseInt(localStorage.getItem('task_game_stars') || '10', 10);
+      if (e.data && (e.data.type === 'BALANCES_UPDATED' || e.data.type === 'COINS_UPDATED' || e.data.type === 'STARS_UPDATED')) {
         updateBalanceUI();
       }
     };
   } catch (e) {}
+
+  window.addEventListener('balance:changed', (e) => {
+  if (e.detail && typeof e.detail.coins === 'number') {
+    balance = e.detail.coins;
+    localStorage.setItem('task_game_coins', balance.toString());
+    localStorage.setItem('user_coins', balance.toString());
+  }
+  if (e.detail && typeof e.detail.stars === 'number') {
+    localStorage.setItem('task_game_stars', e.detail.stars.toString());
+    localStorage.setItem('user_stars', e.detail.stars.toString());
+  }
+  updateBalanceUI();
+});
+
+  window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.coins === 'number') {
+    balance = e.detail.coins;
+    localStorage.setItem('task_game_coins', balance.toString());
+    localStorage.setItem('user_coins', balance.toString());
+  }
+  if (e.detail && typeof e.detail.stars === 'number') {
+    localStorage.setItem('task_game_stars', e.detail.stars.toString());
+    localStorage.setItem('user_stars', e.detail.stars.toString());
+  }
+  updateBalanceUI();
+});
 
   if (window.lucide) lucide.createIcons();
 });

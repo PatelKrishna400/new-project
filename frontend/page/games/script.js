@@ -1,7 +1,7 @@
 // Gaming Arena Interactive Logic & Audio Engine
 
-let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+let userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+let userStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
 let gamesPlayed = parseInt(localStorage.getItem('task_games_played') || '0', 10);
 let coinsWonToday = parseInt(localStorage.getItem('task_coins_won_today') || '0', 10);
 let winStreak = parseInt(localStorage.getItem('task_win_streak') || '0', 10);
@@ -180,13 +180,16 @@ window.toggleArcadeSound = function() {
 };
 
 function updateGameDisplays() {
-  userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-  userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  userStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
 
-  const coinsDisplay = document.getElementById('gameCoinsDisplay');
-  const starsDisplay = document.getElementById('gameStarsDisplay');
+  const coinsDisplay = document.getElementById('gameCoinsDisplay') || document.getElementById('headerCoinDisplay') || document.getElementById('userCoinsDisplay');
+  const starsDisplay = document.getElementById('gameStarsDisplay') || document.getElementById('headerStarDisplay') || document.getElementById('userStarsDisplay');
   if (coinsDisplay) coinsDisplay.textContent = userCoins.toLocaleString();
   if (starsDisplay) starsDisplay.textContent = userStars.toLocaleString();
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
 
   const statPlayed = document.getElementById('statGamesPlayed');
   const statWon = document.getElementById('statCoinsWon');
@@ -195,72 +198,6 @@ function updateGameDisplays() {
   if (statPlayed) statPlayed.textContent = gamesPlayed.toString();
   if (statWon) statWon.textContent = `+${coinsWonToday.toLocaleString()} 🪙`;
   if (statStrk) statStrk.textContent = `${winStreak} 🔥`;
-
-  // Live Sunflower Valley Farm Stats from ENERGY_TAP_SUNFLOWER_STATE_V4
-  let sfCoins = 0;
-  let sfSeeds = 3;
-  let sfBuckets = 20;
-
-  try {
-    const rawSf = localStorage.getItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
-    if (rawSf) {
-      const sfState = JSON.parse(rawSf);
-      if (typeof sfState.coins === 'number') sfCoins = sfState.coins;
-      if (typeof sfState.seeds === 'number') sfSeeds = sfState.seeds;
-      if (typeof sfState.baskets === 'number') sfBuckets = sfState.baskets;
-    }
-  } catch (e) {}
-
-  const tabCoinsEl = document.getElementById('tabSfSolarCoins') || document.getElementById('tabSfCoins');
-  const tabSeedsEl = document.getElementById('tabSfSeedsSunflower') || document.getElementById('tabSfSeeds');
-  const tabBucketsEl = document.getElementById('tabSfBucketsSunflower') || document.getElementById('tabSfBuckets');
-
-  const displaySfCoins = sfCoins > 0 ? Math.floor(sfCoins) : userCoins;
-  if (tabCoinsEl) tabCoinsEl.textContent = displaySfCoins.toLocaleString();
-  if (tabSeedsEl) tabSeedsEl.textContent = sfSeeds.toLocaleString();
-  if (tabBucketsEl) tabBucketsEl.textContent = sfBuckets.toLocaleString();
-
-  // Live Honey Bee Farm Stats from honey_bee_game_state_v1
-  let hbHoney = 15;
-  let hbBees = 4;
-  let hbRate = 4.5;
-
-  try {
-    const rawHb = localStorage.getItem('honey_bee_game_state_v1');
-    if (rawHb) {
-      const hbState = JSON.parse(rawHb);
-      if (typeof hbState.honey === 'number') hbHoney = hbState.honey;
-      if (Array.isArray(hbState.bees)) {
-        hbBees = hbState.bees.reduce((sum, b) => sum + (b.count || 0), 0);
-      }
-      // Calculate rate
-      let hiveSum = 0;
-      if (Array.isArray(hbState.hives)) {
-        hbState.hives.forEach(h => {
-          if (h.unlocked && h.level > 0) hiveSum += h.level * (h.baseRate || 1);
-        });
-      }
-      let beeSum = 0;
-      if (Array.isArray(hbState.bees)) {
-        hbState.bees.forEach(b => {
-          beeSum += (b.count || 0) * (b.rate || 0.5);
-        });
-      }
-      let flowerMult = 1.0;
-      if (Array.isArray(hbState.flowers)) {
-        hbState.flowers.forEach(f => { flowerMult += (f.level || 0) * (f.multStep || 0.1); });
-      }
-      hbRate = (hiveSum + beeSum) * flowerMult;
-    }
-  } catch (e) {}
-
-  const tabHbHoneyEl = document.getElementById('tabHbHoneyJars');
-  const tabHbBeesEl = document.getElementById('tabHbActiveBees');
-  const tabHbRateEl = document.getElementById('tabHbHoneyRate');
-
-  if (tabHbHoneyEl) tabHbHoneyEl.textContent = Math.floor(hbHoney).toLocaleString();
-  if (tabHbBeesEl) tabHbBeesEl.textContent = hbBees.toLocaleString();
-  if (tabHbRateEl) tabHbRateEl.textContent = `+${hbRate.toFixed(1)}/s`;
 }
 
 function rewardPlayer(coins, stars, targetEl) {
@@ -268,12 +205,14 @@ function rewardPlayer(coins, stars, targetEl) {
     userCoins += coins;
     coinsWonToday += coins;
     localStorage.setItem('task_game_coins', userCoins.toString());
+    localStorage.setItem('user_coins', userCoins.toString());
     localStorage.setItem('task_coins_won_today', coinsWonToday.toString());
     if (targetEl) showFloatingReward(targetEl, `+${coins} 🪙`);
   }
   if (stars > 0) {
     userStars += stars;
     localStorage.setItem('task_game_stars', userStars.toString());
+    localStorage.setItem('user_stars', userStars.toString());
     if (targetEl) showFloatingReward(targetEl, `+${stars} ⭐`);
   }
   gamesPlayed += 1;
@@ -602,46 +541,12 @@ function onMemoryCardClick(card) {
 }
 
 /* ==========================================================================
-   GAME CATEGORY SWITCHER (IDLE GAME VS LUCKY GAME)
+   GAME CATEGORY VIEW (COIN GAMES)
    ========================================================================== */
 window.switchGameCategory = function(category) {
-  try {
-    if (typeof ArcadeAudio !== 'undefined' && ArcadeAudio.playClick) {
-      ArcadeAudio.init();
-      ArcadeAudio.playClick();
-    }
-  } catch (e) {}
-
-  const idleSection = document.getElementById('idleGameSection');
   const luckySection = document.getElementById('luckyGameSection');
-  const tabBtnIdle = document.getElementById('tabBtnIdle');
-  const tabBtnCoin = document.getElementById('tabBtnCoin');
-
-  if (category === 'lucky' || (category === 'coin' || category === 'star')) {
-    if (idleSection) idleSection.style.display = 'none';
-    if (luckySection) luckySection.style.display = 'flex';
-    if (tabBtnIdle) {
-      tabBtnIdle.classList.remove('active');
-      tabBtnIdle.setAttribute('aria-selected', 'false');
-    }
-    if (tabBtnCoin) {
-      tabBtnCoin.classList.add('active');
-      tabBtnCoin.setAttribute('aria-selected', 'true');
-    }
-    localStorage.setItem('task_games_active_tab', 'star');
-  } else {
-    if (idleSection) idleSection.style.display = 'flex';
-    if (luckySection) luckySection.style.display = 'none';
-    if (tabBtnIdle) {
-      tabBtnIdle.classList.add('active');
-      tabBtnIdle.setAttribute('aria-selected', 'true');
-    }
-    if (tabBtnCoin) {
-      tabBtnCoin.classList.remove('active');
-      tabBtnCoin.setAttribute('aria-selected', 'false');
-    }
-    localStorage.setItem('task_games_active_tab', 'idle');
-  }
+  if (luckySection) luckySection.style.display = 'flex';
+  localStorage.setItem('task_games_active_tab', 'coin');
 };
 
 /* ==========================================================================
@@ -652,30 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
   drawWheel();
   resetMemoryGame();
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const tabParam = urlParams.get('tab') || urlParams.get('category');
-  const savedTab = tabParam || localStorage.getItem('task_games_active_tab') || 'idle';
-  switchGameCategory(savedTab);
-
-  const sfTab = document.getElementById('sunflowerGameTab');
-  if (sfTab) {
-    sfTab.addEventListener('click', () => {
-      try {
-        ArcadeAudio.init();
-        ArcadeAudio.playClick();
-      } catch (e) {}
-    });
-  }
-
-  const hbTab = document.getElementById('honeyBeeGameTab');
-  if (hbTab) {
-    hbTab.addEventListener('click', () => {
-      try {
-        ArcadeAudio.init();
-        ArcadeAudio.playClick();
-      } catch (e) {}
-    });
-  }
+  const luckySection = document.getElementById('luckyGameSection');
+  if (luckySection) luckySection.style.display = 'flex';
 
   // Resume Web Audio context on first click
   document.addEventListener('click', () => {
@@ -685,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Real-Time Cross-Tab / Cross-Window Synchronization
 window.addEventListener('storage', (e) => {
-  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'ENERGY_TAP_SUNFLOWER_STATE_V4' || e.key === 'honey_bee_game_state_v1') {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'user_coins' || e.key === 'user_stars') {
     updateGameDisplays();
   }
 });

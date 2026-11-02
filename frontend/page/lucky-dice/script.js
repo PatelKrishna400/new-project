@@ -99,13 +99,22 @@ function toggleSound(checked) {
 
 // Balance Management
 function updateBalanceUI() {
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
   const userStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
-  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance');
-  const elStars = document.getElementById('headerStarDisplay');
+  balance = userCoins;
 
-  if (elCoins) elCoins.innerText = balance.toLocaleString();
+  const elCoins = document.getElementById('headerCoinDisplay') || document.getElementById('coinBalance') || document.getElementById('gameCoinsDisplay');
+  const elStars = document.getElementById('headerStarDisplay') || document.getElementById('starBalanceDisplay') || document.getElementById('gameStarsDisplay');
+
+  if (elCoins) elCoins.innerText = userCoins.toLocaleString();
   if (elStars) elStars.innerText = userStars.toLocaleString();
-  updateActionButtonState();
+  
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof updateActionButtonState === 'function') {
+    updateActionButtonState();
+  }
 }
 
 function saveBalance() {
@@ -113,7 +122,11 @@ function saveBalance() {
   localStorage.setItem('user_coins', Math.max(0, balance).toString());
   try {
     const bc = new BroadcastChannel('nova_task_sync');
-    bc.postMessage({ type: 'BALANCES_UPDATED', stars: balance, timestamp: Date.now() });
+    const curStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
+    if (typeof window.updateAllDomBalances === 'function') {
+      window.updateAllDomBalances(balance, curStars);
+    }
+    bc.postMessage({ type: 'BALANCES_UPDATED', coins: balance, stars: curStars, timestamp: Date.now() });
     bc.close();
   } catch (e) {}
   if (window.firebaseSync && typeof window.firebaseSync.syncPlayerCurrenciesImmediate === 'function') {
@@ -439,7 +452,7 @@ function watchAdForMorePlays() {
 // DOM Ready & Firebase Balance Synchronization
 window.addEventListener('DOMContentLoaded', () => {
   const storedStars = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars');
-  balance = parseInt(storedStars || '0', 10);
+  balance = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
 
   updateBalanceUI();
   setBet(50);
@@ -448,15 +461,33 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('balance:changed', (e) => {
-  if (e.detail && typeof e.detail.stars === 'number') {
-    balance = e.detail.stars;
-    updateBalanceUI();
+  if (e.detail && typeof e.detail.coins === 'number') {
+    balance = e.detail.coins;
+    localStorage.setItem('task_game_coins', balance.toString());
+    localStorage.setItem('user_coins', balance.toString());
   }
+  if (e.detail && typeof e.detail.stars === 'number') {
+    localStorage.setItem('task_game_stars', e.detail.stars.toString());
+    localStorage.setItem('user_stars', e.detail.stars.toString());
+  }
+  updateBalanceUI();
 });
 
 window.addEventListener('balance:synced', (e) => {
+  if (e.detail && typeof e.detail.coins === 'number') {
+    balance = e.detail.coins;
+    localStorage.setItem('task_game_coins', balance.toString());
+    localStorage.setItem('user_coins', balance.toString());
+  }
   if (e.detail && typeof e.detail.stars === 'number') {
-    balance = e.detail.stars;
+    localStorage.setItem('task_game_stars', e.detail.stars.toString());
+    localStorage.setItem('user_stars', e.detail.stars.toString());
+  }
+  updateBalanceUI();
+});
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
     updateBalanceUI();
   }
 });

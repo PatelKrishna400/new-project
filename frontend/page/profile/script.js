@@ -730,7 +730,8 @@ function handleSaveAdminTaskForm(e) {
       let url = urls[i];
       if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
       const code = (codes[i] && codes[i].length >= 4) ? codes[i] : Math.floor(100000 + Math.random() * 900000).toString();
-      const taskTitle = (urls.length > 1 && autoNumber) ? `${baseTitle} #${i + 1}` : baseTitle;
+      // All tasks created in multi-task mode share the exact same title without any #tag numbering
+      const taskTitle = baseTitle;
       const taskId = `task_${now}_${i}_${Math.random().toString(36).substring(2, 6)}`;
 
       const newTask = {

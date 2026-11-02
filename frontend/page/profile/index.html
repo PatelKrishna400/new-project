@@ -1169,10 +1169,9 @@
           <label class="admin-form-label" for="taskInputTitle" id="lblTaskTitle">Task Title *</label>
           <input type="text" id="taskInputTitle" class="admin-form-input" placeholder="e.g. Subscribe to Nova Official Channel" required oninput="updateBulkTaskCounter()" />
           <div id="bulkTitleOptions" style="display: none; margin-top: 5px;">
-            <label style="font-size: 0.76rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-              <input type="checkbox" id="taskAutoNumberCheckbox" checked onchange="updateBulkTaskCounter()" />
-              Auto-number titles for each link (e.g. "Title #1", "Title #2" ... "Title #10")
-            </label>
+            <span style="font-size: 0.74rem; color: #38bdf8; display: flex; align-items: center; gap: 4px;">
+              ✓ Same name will be given to all created tasks (no #tag)
+            </span>
           </div>
         </div>
 

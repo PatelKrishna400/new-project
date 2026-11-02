@@ -505,8 +505,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateMutationTimer, 1000);
 
   window.addEventListener('storage', (e) => {
-    if (e.key === 'task_game_stars' || e.key === 'user_stars') {
-      balance = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+    if (e.key === 'task_game_coins' || e.key === 'user_coins' || e.key === 'task_game_stars' || e.key === 'user_stars') {
+      balance = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
       updateAllStatsUI();
     }
   });
@@ -523,13 +523,13 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('balance:changed', (e) => {
   if (e.detail && typeof e.detail.stars === 'number') {
     balance = e.detail.stars;
-    updateAllStatsUI();
   }
+  updateAllStatsUI();
 });
 
 window.addEventListener('balance:synced', (e) => {
   if (e.detail && typeof e.detail.stars === 'number') {
     balance = e.detail.stars;
-    updateAllStatsUI();
   }
+  updateAllStatsUI();
 });

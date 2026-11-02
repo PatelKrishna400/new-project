@@ -37,116 +37,16 @@
     <!-- Page Content -->
     <main class="page-content">
 
-      <!-- Top Game Category Switcher: Idle Game vs Star Game -->
-      <div class="top-nav-tabs" role="tablist" aria-label="Game Categories">
-        <button type="button" class="top-tab-btn active" id="tabBtnIdle" onclick="switchGameCategory('idle')" role="tab" aria-selected="true" aria-controls="idleGameSection">
-          <span class="tab-icon">🌾</span>
-          <span>Idle Game</span>
-          <span class="tab-live-dot" id="idleLiveDot"></span>
-        </button>
-        <button type="button" class="top-tab-btn" id="tabBtnCoin" onclick="switchGameCategory('coin')" role="tab" aria-selected="false" aria-controls="luckyGameSection">
-          <span class="tab-icon">🪙</span>
-          <span>Coin Game</span>
-          <span class="tab-live-dot tab-live-dot-gold" id="luckyLiveDot"></span>
-        </button>
+      <!-- Top Header / Title for Coin Games -->
+      <div class="section-title-row" style="margin-bottom: 0.75rem;">
+        <h2 class="section-title">🪙 Coin Games</h2>
+        <span class="section-tag">7 Games Available</span>
       </div>
 
       <!-- ========================================================
-           1. IDLE GAME TAB VIEW (SUNFLOWER FARM & HONEY BEE FARM)
+           STAR / COIN GAME VIEW (7 CLASSIC ARCADE GAMES)
            ======================================================== -->
-      <section class="game-category-view" id="idleGameSection">
-        <div class="section-title-row">
-          <h2 class="section-title">Idle Games</h2>
-          <span class="section-tag">2 Active Tycoons</span>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <!-- 1. SUNFLOWER FARM GAME TAB -->
-          <a href="../sunflower/index.html" class="sunflower-game-tab" id="sunflowerGameTab" title="Click to Open Sunflower Farm">
-            <!-- Main Banner Artwork Stage -->
-            <div class="tab-artwork-stage">
-              <img src="../sunflower/sunflower-bg.png" alt="Sunflower Farm Panorama" class="tab-artwork-img" />
-              <div class="tab-artwork-vignette"></div>
-              <div class="tab-artwork-overlay-content">
-                <div class="tab-floating-icon" style="background: rgba(234, 179, 8, 0.3); border: 1.5px solid #facc15;">🌻</div>
-                <div class="tab-artwork-titles">
-                  <h3 class="tab-title" style="color: #fef08a;">Sunflower Farm</h3>
-                  <span class="tab-tagline">Grow Sunflowers, Harvest Solar Coins &amp; Rebirth</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Merged Single-Line Bottom Bar: Stats + Open Button -->
-            <div class="tab-merged-bar">
-              <div class="tab-merged-stats">
-                <div class="merged-stat-pill" title="Solar Coins">
-                  <span class="pill-logo">🪙</span>
-                  <span class="pill-value text-amber" id="tabSfSolarCoins">0</span>
-                </div>
-                <div class="merged-stat-pill" title="Seeds Ready">
-                  <span class="pill-logo">🌱</span>
-                  <span class="pill-value text-emerald" id="tabSfSeedsSunflower">0</span>
-                </div>
-                <div class="merged-stat-pill" title="Water Buckets">
-                  <span class="pill-logo">💧</span>
-                  <span class="pill-value text-sky" id="tabSfBucketsSunflower">0</span>
-                </div>
-              </div>
-              <div class="btn-merged-launch sf-launch-btn">
-                <span>🌻 Open Farm</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </div>
-            </div>
-          </a>
-
-          <!-- 2. HONEY BEE FARM GAME TAB -->
-          <a href="../honey-bee/index.html" class="sunflower-game-tab honey-bee-game-tab" id="honeyBeeGameTab" title="Click to Open Honey Bee Farm">
-            <!-- Main Banner Artwork Stage -->
-            <div class="tab-artwork-stage">
-              <img src="../honey-bee/honey-bg.jpg" alt="Honey Bee Apiary Panorama" class="tab-artwork-img" />
-              <div class="tab-artwork-vignette"></div>
-              <div class="tab-artwork-overlay-content">
-                <div class="tab-floating-icon" style="background: rgba(245, 158, 11, 0.35); border: 1.5px solid #fbbf24;">🐝</div>
-                <div class="tab-artwork-titles">
-                  <h3 class="tab-title" style="color: #fef08a;">Honey Bee Farm</h3>
-                  <span class="tab-tagline">Breed Worker Bees, Extract Golden Honey &amp; Sell Jars</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Merged Single-Line Bottom Bar: Stats + Open Button -->
-            <div class="tab-merged-bar">
-              <div class="tab-merged-stats">
-                <div class="merged-stat-pill" title="Honey Jars">
-                  <span class="pill-logo">🍯</span>
-                  <span class="pill-value text-amber" id="tabHbHoneyJars">0</span>
-                </div>
-                <div class="merged-stat-pill" title="Active Bees">
-                  <span class="pill-logo">🐝</span>
-                  <span class="pill-value text-emerald" id="tabHbActiveBees">0</span>
-                </div>
-                <div class="merged-stat-pill" title="Honey Rate">
-                  <span class="pill-logo">⚡</span>
-                  <span class="pill-value text-sky" id="tabHbHoneyRate">+0/s</span>
-                </div>
-              </div>
-              <div class="btn-merged-launch hb-launch-btn">
-                <span>🐝 Open Apiary</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </div>
-            </div>
-          </a>
-        </div>
-      </section>
-
-      <!-- ========================================================
-           2. STAR GAME TAB VIEW (7 CLASSIC ARCADE GAMES)
-           ======================================================== -->
-      <section class="game-category-view" id="luckyGameSection" style="display:none;">
+      <section class="game-category-view" id="luckyGameSection" style="display:flex;">
 
         <!-- Grid of 7 Dedicated Arcade Game Cards (Matches user image design) -->
         <div class="lucky-games-grid">

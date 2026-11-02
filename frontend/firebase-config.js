@@ -423,12 +423,11 @@ function updateAllDomBalances(coins, stars) {
   _prevDomCoins = c;
   _prevDomStars = s;
 
-  // All known coin DOM IDs across all games, hub, shop, wallet, sunflower, leaderboard, profile, admin
+  // All known coin DOM IDs across all games, hub, shop, wallet, leaderboard, profile, admin
   const coinElements = [
     'userCoinsDisplay', 'headerCoinDisplay', 'gameCoinsDisplay', 'shopCoinsDisplayTop', 
     'shopCoinsDisplay', 'walletBalanceTop', 'walletCoinsTop', 'leaderboardCoinsTop', 
-    'profileCoinsDisplay', 'sfTotalCoinsTop', 'hbTotalCoinsTop', 'sfCoinDisplay', 
-    'userCoinsTop', 'tabSfCoins', 'tabSfSolarCoins', 'headerCoins', 'statCoinsVal', 
+    'profileCoinsDisplay', 'userCoinsTop', 'headerCoins', 'statCoinsVal', 
     'playerCoinsDisplay', 'heroCoinsDisplay', 'lobbyCoinsDisplay', 'coinBalance',
     'manageModalCoinsDisplay', 'manageModalCoinsVal', 'editUserCoinsInput', 'adminLiveCoins'
   ];
@@ -449,12 +448,11 @@ function updateAllDomBalances(coins, stars) {
     });
   } catch (e) {}
 
-  // All known star DOM IDs across all games, hub, shop, wallet, leaderboard, sunflower, profile, admin
+  // All known star DOM IDs across all games, hub, shop, wallet, leaderboard, profile, admin
   const starElements = [
     'userStarsDisplay', 'headerStarDisplay', 'gameStarsDisplay', 'shopStarsDisplayTop', 
     'shopStarsDisplay', 'walletStarsTop', 'leaderboardStarsTop', 'profileStarsDisplay', 
-    'sfStickyDiamonds', 'hbStickyDiamonds', 'sfTotalStarsTop', 'hbTotalStarsTop', 
-    'sfShopDiamondCount', 'userStarsTop', 'statStarsVal', 'headerStars', 
+    'userStarsTop', 'statStarsVal', 'headerStars', 
     'playerStarsDisplay', 'lobbyStarsDisplay', 'starBalance',
     'manageModalStarsDisplay', 'manageModalStarsVal', 'editUserStarsInput', 'adminLiveStars'
   ];
@@ -462,7 +460,7 @@ function updateAllDomBalances(coins, stars) {
     const el = document.getElementById(id);
     if (el) {
       if (el.tagName === 'INPUT') el.value = s;
-      else if (id === 'sfShopDiamondCount' || id === 'adminLiveStars') el.textContent = `${starsFmt} ⭐`;
+      else if (id === 'adminLiveStars') el.textContent = `${starsFmt} ⭐`;
       else el.textContent = starsFmt;
     }
   });

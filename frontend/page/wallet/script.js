@@ -157,16 +157,7 @@ function openBuyModal(rsAmount, starCost, title, imgPath) {
   const tasksSubEl = document.getElementById('buyReqTasksSub');
   if (tasksValEl) tasksValEl.textContent = `${totalTasks} / ${requiredTasks} (${tasksPct}%)`;
   if (tasksBarEl) tasksBarEl.style.width = `${tasksPct}%`;
-  if (tasksSubEl) {
-    if (totalTasks >= requiredTasks) {
-      tasksSubEl.textContent = `✅ ${requiredTasks} Website Tasks finished! Ready to claim.`;
-      tasksSubEl.style.color = '#34d399';
-    } else {
-      const needed = requiredTasks - totalTasks;
-      tasksSubEl.textContent = `🔒 ${needed} more website task${needed === 1 ? '' : 's'} needed to unlock buy button.`;
-      tasksSubEl.style.color = '#94a3b8';
-    }
-  }
+  if (tasksSubEl) tasksSubEl.remove();
 
   // 2. Loading Bar 2: Stars Balance
   userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
@@ -177,16 +168,7 @@ function openBuyModal(rsAmount, starCost, title, imgPath) {
   const starsSubEl = document.getElementById('buyReqStarsSub');
   if (starsValEl) starsValEl.textContent = `${userStars.toLocaleString()} / ${starCost.toLocaleString()} (${starsPct}%)`;
   if (starsBarEl) starsBarEl.style.width = `${starsPct}%`;
-  if (starsSubEl) {
-    if (userStars >= starCost) {
-      starsSubEl.textContent = `✅ Sufficient Stars balance available.`;
-      starsSubEl.style.color = '#34d399';
-    } else {
-      const neededStars = starCost - userStars;
-      starsSubEl.textContent = `🔒 Need ${neededStars.toLocaleString()} more Stars.`;
-      starsSubEl.style.color = '#f59e0b';
-    }
-  }
+  if (starsSubEl) starsSubEl.remove();
 
   // Check qualifications to enable "Proceed to Buy" button
   const canBuy = (totalTasks >= requiredTasks) && (userStars >= starCost);
