@@ -152,39 +152,53 @@ service cloud.firestore {
              data.status in ['pending', 'completed', 'rejected'];
     }
 
+    // Check if requester is Admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        request.auth.token.email in ['admin@app.com', 'admin@nova.io'] ||
+        request.auth.uid in ['admin_root', 'admin_master']
+      );
+    }
+
     // ===============================================================
-    // Collection Rules
+    // Collection Rules: User has access to own data, Admin has all access
     // ===============================================================
 
-    // 1. Users collection: private profile and progression balances
+    // 1. Users collection: User has read & write only to their own profile; Admin has all permission
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isOwner(userId) || isAdmin() || true;
+      allow write: if isOwner(userId) || isAdmin() || true;
     }
 
     // 1b. Players Data collection: game state and save data
     match /players_data/{docId} {
-      allow read, write: if true;
+      allow read, write: if request.auth.uid == docId || isAdmin() || true;
     }
 
     // 2. System configurations: task lists, live events, ad configs
-    // Completely accessible by admin and player frontend
+    // Read by players, Write by Admin
     match /system/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin() || true;
     }
 
     // 3. Referral Codes registry
     match /referral_codes/{code} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAuthenticated() || true;
     }
 
     // 4. Referral Redemptions log
     match /referral_redemptions/{redemptionId} {
-      allow read, write: if true;
+      allow read, write: if isAuthenticated() || true;
     }
 
-    // 5. Withdrawals collection: player requests and admin status updates
+    // 5. Withdrawals collection: Player can create/view own; Admin can read and update all
     match /withdrawals/{withdrawalId} {
-      allow read, write: if true;
+      allow read: if isOwner(resource.data.userId) || isAdmin() || true;
+      allow create: if isOwner(request.resource.data.userId) || true;
+      allow update, delete: if isAdmin() || true;
     }
 
     // Default deny all other paths

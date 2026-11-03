@@ -187,6 +187,19 @@
               <span>🔄 Reset Cooldowns</span>
             </button>
           </div>
+          <!-- Mission Category Filter (All / Simple / Premium) -->
+          <div class="admin-mode-tabs" style="margin: 0.5rem 0;" id="adminTaskFilterTabs">
+            <button type="button" class="admin-mode-tab-btn active" id="btnFilterCatAll" onclick="filterAdminTasksCategory('all')">
+              <span>All Missions (<span id="countAdminFilterAll">0</span>)</span>
+            </button>
+            <button type="button" class="admin-mode-tab-btn" id="btnFilterCatSimple" onclick="filterAdminTasksCategory('simple')">
+              <span>📋 Simple (<span id="countAdminFilterSimple">0</span>)</span>
+            </button>
+            <button type="button" class="admin-mode-tab-btn" id="btnFilterCatPremium" onclick="filterAdminTasksCategory('premium')">
+              <span>💎 Premium (<span id="countAdminFilterPremium">0</span>)</span>
+            </button>
+          </div>
+
           <div class="admin-search-box" style="margin: 0.5rem 0;">
             <span class="search-ico">🔍</span>
             <input type="text" id="adminTaskSearch" placeholder="Filter tasks..." oninput="handleAdminTaskSearch(this.value)">
@@ -1164,6 +1177,15 @@
         <input type="hidden" id="taskEditId" value="" />
         <input type="hidden" id="taskCreationMode" value="single" />
 
+        <!-- Mission Category (Simple vs Premium) -->
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="taskInputCategory">Task Category / Type *</label>
+          <select id="taskInputCategory" class="admin-form-input" onchange="handleAdminTaskCategoryChange(this.value)" style="font-weight: 800;">
+            <option value="simple">📋 Simple Task (Standard Bounty)</option>
+            <option value="premium">💎 Premium Task (VIP High Bounty)</option>
+          </select>
+        </div>
+
         <!-- 1. Task Title (Base Title) -->
         <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputTitle" id="lblTaskTitle">Task Title *</label>
@@ -1190,10 +1212,13 @@
           <textarea id="taskInputBulkUrls" class="admin-form-input font-mono" rows="4" placeholder="Paste links here (one URL per line, e.g. 10 links):&#10;https://youtube.com/watch?v=1&#10;https://youtube.com/watch?v=2&#10;https://youtube.com/watch?v=3" oninput="updateBulkTaskCounter()" style="resize: vertical; min-height: 85px; font-size: 0.8rem;"></textarea>
         </div>
 
-        <!-- 3. Fixed Reward -->
+        <!-- 3. Star Reward -->
         <div class="admin-form-group">
-          <label class="admin-form-label" for="taskInputStars">Fixed Reward</label>
-          <input type="text" id="taskInputStars" class="admin-form-input font-bold" value="+5 ⭐ (Fixed Reward)" readonly style="background: rgba(10, 23, 56, 0.6); color: #facc15; font-weight: 800;" />
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="admin-form-label" for="taskInputStars" style="margin-bottom: 0;">Star Reward (⭐) *</label>
+            <span id="taskRewardTypeBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">📋 Standard Bounty</span>
+          </div>
+          <input type="number" id="taskInputStars" class="admin-form-input font-bold" min="1" max="1000" value="5" required style="background: rgba(10, 23, 56, 0.7); color: #facc15; font-weight: 900; font-size: 1rem;" />
         </div>
 
         <!-- 4. Timer Wait (Sec) -->
@@ -1266,16 +1291,6 @@
           <div class="admin-form-group">
             <label class="admin-form-label" for="userEditStars">Stars (⭐)</label>
             <input type="number" id="userEditStars" class="admin-form-input" min="0" step="1" required />
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="userEditSfCoins">Sunflower Coins (🌻)</label>
-            <input type="number" id="userEditSfCoins" class="admin-form-input" min="0" step="10" placeholder="0" />
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label" for="userEditSfBuckets">Water Buckets (💧)</label>
-            <input type="number" id="userEditSfBuckets" class="admin-form-input" min="0" step="1" placeholder="0" />
           </div>
         </div>
         <div class="admin-form-group">

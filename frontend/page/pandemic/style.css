@@ -589,3 +589,186 @@ input[type=range].lime-range::-webkit-slider-thumb {
   border-radius: 6px;
   letter-spacing: 0.5px;
 }
+/* ==========================================================================
+   UNIVERSAL RESPONSIVE BUTTON ENGINE FOR ALL COIN GAMES
+   ========================================================================== */
+
+/* Universal Mobile Touch Reset & Micro-interactions */
+button,
+.bet-pill-btn,
+.bet-adj-btn,
+.primary-cta-btn,
+.header-back-btn,
+.coin-pill,
+.star-pill,
+.drop-count-btn,
+.plinko-bet-chip,
+.bomb-pill-btn,
+.mine-tile-6x6,
+.nav-tab-item,
+.modal-sheet button {
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: manipulation !important;
+  cursor: pointer;
+}
+
+/* Quick Bet Chips (30, 50, 100, 500) Responsive */
+.bet-pill-btn {
+  width: 100% !important;
+  min-height: 42px !important;
+  padding: clamp(6px, 1.8vw, 10px) clamp(2px, 1.2vw, 8px) !important;
+  border-radius: 14px !important;
+  background: #141822 !important;
+  border: 1.5px solid #202738 !important;
+  font-size: clamp(11px, 2.8vw, 13px) !important;
+  font-weight: 800 !important;
+  color: #cbd5e1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.bet-pill-btn:hover {
+  background: #1c2230 !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+}
+
+.bet-pill-btn:active {
+  transform: scale(0.93) !important;
+}
+
+.bet-pill-btn.active {
+  background: rgba(56, 189, 248, 0.14) !important;
+  border-color: #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
+}
+
+/* Bet Stepper Buttons (1/2, 2x, etc.) */
+.bet-adj-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 42px !important;
+  min-height: 40px !important;
+  padding: 6px 14px !important;
+  border-radius: 12px !important;
+  font-size: clamp(13px, 3.2vw, 15px) !important;
+  font-weight: 800 !important;
+  color: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  transition: all 0.15s ease !important;
+}
+
+.bet-adj-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.bet-adj-btn:active {
+  transform: scale(0.88) !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Primary CTA Button (Roll, Spin, Buy card, etc.) */
+.primary-cta-btn {
+  width: 100% !important;
+  min-height: 52px !important;
+  padding: clamp(12px, 3vw, 16px) clamp(16px, 4vw, 24px) !important;
+  border-radius: 18px !important;
+  font-size: clamp(15px, 3.8vw, 18px) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.03em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-sizing: border-box !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease, filter 0.15s ease !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+.primary-cta-btn:active:not(:disabled) {
+  transform: scale(0.97) !important;
+  filter: brightness(1.1) !important;
+}
+
+.primary-cta-btn:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: grayscale(0.5) !important;
+}
+
+/* Header Back Button */
+.header-back-btn {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #0f1523 !important;
+  border: 1px solid #1f2a40 !important;
+  color: #94a3b8 !important;
+  transition: all 0.15s ease !important;
+}
+
+.header-back-btn:hover {
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  background: #141d30 !important;
+}
+
+.header-back-btn:active {
+  transform: scale(0.90) !important;
+}
+
+/* Header Balance Pills */
+.coin-pill, .star-pill {
+  min-height: 36px !important;
+  padding: clamp(4px, 1.2vw, 6px) clamp(8px, 2.2vw, 12px) !important;
+  border-radius: 9999px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: clamp(11px, 2.6vw, 13px) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.coin-pill:active, .star-pill:active {
+  transform: scale(0.94) !important;
+}
+
+/* Small Screen Optimizations (< 360px wide) */
+@media (max-width: 360px) {
+  .bet-pill-btn {
+    min-height: 38px !important;
+    padding: 6px 2px !important;
+    font-size: 11px !important;
+    gap: 2px !important;
+  }
+  .bet-adj-btn {
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+  }
+  .primary-cta-btn {
+    min-height: 48px !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+  }
+}

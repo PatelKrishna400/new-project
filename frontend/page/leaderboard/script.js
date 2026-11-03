@@ -40,8 +40,6 @@ try {
     localStorage.removeItem('task_game_stars_rating');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
-    localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
-    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');

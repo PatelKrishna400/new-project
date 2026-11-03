@@ -1,7 +1,7 @@
 // Profile & Admin Portal Script
 // Credentials: Username: 400 @123 | Password: 0911 (Masked, not shown on UI)
 
-const SF_STORAGE_KEY = 'ENERGY_TAP_SUNFLOWER_STATE_V4';
+// Sunflower removed
 const TASKS_STORAGE_KEY = 'task_game_tasks';
 const CLAIMS_STORAGE_KEY = 'task_game_claims';
 const WITHDRAW_STORAGE_KEY = 'task_game_withdrawals';
@@ -40,8 +40,7 @@ try {
     localStorage.removeItem('task_game_stars_rating');
     localStorage.removeItem('task_game_cloud_referral_codes');
     localStorage.removeItem('task_game_ad_timer_end');
-    localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
-    localStorage.removeItem('sunflower_state');
+    // Cleaned
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -213,6 +212,7 @@ function handleAdminLogin(event) {
     if (adminMenuBar) adminMenuBar.style.display = 'flex';
 
     loadAllAdminData();
+    initAdminCloudListeners();
     switchAdminSubView('tasks');
     updateAdminLiveDisplays();
     showToast('Root administrator authenticated! Mobile Control Panel Ready.');
@@ -426,6 +426,45 @@ function updateAdminCounters() {
 // -----------------------------------------------------------------------------
 // 1. EDIT TASKS SUBVIEW LOGIC
 // -----------------------------------------------------------------------------
+
+
+let currentAdminTaskCategoryFilter = 'all';
+
+function filterAdminTasksCategory(cat) {
+  currentAdminTaskCategoryFilter = cat;
+  ['btnFilterCatAll', 'btnFilterCatSimple', 'btnFilterCatPremium'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.remove('active');
+  });
+  if (cat === 'all') document.getElementById('btnFilterCatAll')?.classList.add('active');
+  if (cat === 'simple') document.getElementById('btnFilterCatSimple')?.classList.add('active');
+  if (cat === 'premium') document.getElementById('btnFilterCatPremium')?.classList.add('active');
+  renderAdminTasksList();
+}
+window.filterAdminTasksCategory = filterAdminTasksCategory;
+
+function handleAdminTaskCategoryChange(val) {
+  const starsInput = document.getElementById('taskInputStars');
+  const badge = document.getElementById('taskRewardTypeBadge');
+  if (val === 'premium') {
+    if (starsInput && (starsInput.value === '5' || !starsInput.value)) {
+      starsInput.value = '20';
+    }
+    if (badge) {
+      badge.textContent = '💎 VIP Premium Bounty';
+      badge.style.color = '#facc15';
+    }
+  } else {
+    if (starsInput && (starsInput.value === '20' || !starsInput.value)) {
+      starsInput.value = '5';
+    }
+    if (badge) {
+      badge.textContent = '📋 Standard Bounty';
+      badge.style.color = '#38bdf8';
+    }
+  }
+}
+window.handleAdminTaskCategoryChange = handleAdminTaskCategoryChange;
 
 function renderAdminTasksList() {
   const container = document.getElementById('adminTasksList');
@@ -926,6 +965,17 @@ function toggleUserActiveStatus(userId) {
   const isCurrentlyActive = user.status === 'active' || (!user.status || (user.status !== 'inactive' && user.status !== 'suspended'));
   user.status = isCurrentlyActive ? 'inactive' : 'active';
 
+  // Save status to Firebase Cloud
+  const cloudSaver = (window.Firebase && window.Firebase.saveUserToCloud) || window.saveUserToCloud;
+  if (typeof cloudSaver === 'function') {
+    cloudSaver({
+      id: user.id,
+      uid: user.id,
+      displayName: user.name,
+      status: user.status
+    }).catch(() => {});
+  }
+
   // Save and broadcast
   localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
   if (syncChannel) {
@@ -952,20 +1002,7 @@ function openEditUserModal(userId) {
   document.getElementById('userEditCoins').value = user.coins || 0;
   document.getElementById('userEditStars').value = user.stars || 0;
 
-  // Sunflower Coins & Water Buckets
-  let sfCoins = user.sfCoins || 0;
-  let sfBuckets = user.sfBuckets || 0;
-  if (user.id === 'usr_1' || user.name === (localStorage.getItem('player_username') || 'Player')) {
-    try {
-      const sfState = JSON.parse(localStorage.getItem('sunflower_state') || '{}');
-      if (typeof sfState.coins === 'number') sfCoins = sfState.coins;
-      if (typeof sfState.baskets === 'number') sfBuckets = sfState.baskets;
-    } catch (e) {}
-  }
-  const sfCoinsInput = document.getElementById('userEditSfCoins');
-  const sfBucketsInput = document.getElementById('userEditSfBuckets');
-  if (sfCoinsInput) sfCoinsInput.value = sfCoins;
-  if (sfBucketsInput) sfBucketsInput.value = sfBuckets;
+
 
   document.getElementById('userEditStatus').value = user.status || 'active';
 
@@ -988,39 +1025,43 @@ function handleSaveAdminUserForm(e) {
   const userId = document.getElementById('userEditId')?.value;
   const coins = parseInt(document.getElementById('userEditCoins')?.value || '0', 10);
   const stars = parseInt(document.getElementById('userEditStars')?.value || '0', 10);
-  const sfCoins = parseInt(document.getElementById('userEditSfCoins')?.value || '0', 10);
-  const sfBuckets = parseInt(document.getElementById('userEditSfBuckets')?.value || '0', 10);
   const status = document.getElementById('userEditStatus')?.value || 'active';
 
   const user = usersData.find(u => u.id === userId);
   if (user) {
     user.coins = coins;
     user.stars = stars;
-    user.sfCoins = sfCoins;
-    user.sfBuckets = sfBuckets;
     user.status = status;
 
-    const currentName = localStorage.getItem('player_username') || 'NovaEarner';
-    if (user.id === 'usr_1' || user.name === currentName) {
+    // Save directly to Firebase Cloud Firestore
+    const cloudSaver = (window.Firebase && window.Firebase.saveUserToCloud) || window.saveUserToCloud;
+    if (typeof cloudSaver === 'function') {
+      cloudSaver({
+        id: user.id,
+        uid: user.id,
+        displayName: user.name,
+        coins: user.coins,
+        stars: user.stars,
+        status: user.status
+      }).catch(() => {});
+    }
+
+    const currentUid = localStorage.getItem('player_uid');
+    const currentName = localStorage.getItem('player_username') || 'Player';
+    if (user.id === 'usr_1' || user.id === currentUid || user.name === currentName) {
       localStorage.setItem('task_game_coins', coins.toString());
+      localStorage.setItem('user_coins', coins.toString());
       localStorage.setItem('task_game_stars', stars.toString());
-
-      // Update Sunflower state & game resources
-      try {
-        let sfState = JSON.parse(localStorage.getItem('sunflower_state') || '{}');
-        sfState.coins = sfCoins;
-        sfState.baskets = sfBuckets;
-        localStorage.setItem('sunflower_state', JSON.stringify(sfState));
-      } catch (err) {}
-      localStorage.setItem('task_game_sf_solar_coins', sfCoins.toString());
-      localStorage.setItem('task_game_sf_water_buckets', sfBuckets.toString());
-
+      localStorage.setItem('user_stars', stars.toString());
+      if (typeof window.updateAllDomBalances === 'function') {
+        window.updateAllDomBalances(coins, stars);
+      }
       updateAdminLiveDisplays();
     }
 
     saveUsersAndSync();
     closeAdminUserModal();
-    showToast(`Updated balance & farm resources for ${user.name}! ✓`);
+    showToast(`Updated balance for ${user.name} in Firebase Cloud! ✓`);
   }
 }
 
@@ -1032,6 +1073,13 @@ async function handleDeleteUserFromModal() {
 
   const deletedCopy = user ? { ...user } : { id: userId };
   usersData = usersData.filter(u => u.id !== userId);
+
+  // Purge from Firebase Cloud Firestore
+  const cloudDeleter = (window.Firebase && window.Firebase.deleteUserFromCloud) || window.deleteUserFromCloud;
+  if (typeof cloudDeleter === 'function') {
+    cloudDeleter(userId, deletedCopy).catch(() => {});
+  }
+
   saveUsersAndSync();
   closeAdminUserModal();
 
@@ -1207,6 +1255,13 @@ function approveWithdrawal(wdId) {
     wd.deliveryLink = cleanLink;
     wd.link = cleanLink;
   }
+
+  // Save update to Firebase Cloud
+  const cloudWdSaver = (window.Firebase && window.Firebase.saveWithdrawalToCloud) || window.saveWithdrawalToCloud;
+  if (typeof cloudWdSaver === 'function') {
+    cloudWdSaver(wd).catch(() => {});
+  }
+
   saveWithdrawalsAndSync();
   showToast(`✅ Request ${wd.id} Approved with link!`);
 }
@@ -1215,6 +1270,13 @@ function rejectWithdrawal(wdId) {
   const wd = withdrawalsData.find(w => w.id === wdId);
   if (!wd) return;
   wd.status = 'rejected';
+
+  // Save update to Firebase Cloud
+  const cloudWdSaver = (window.Firebase && window.Firebase.saveWithdrawalToCloud) || window.saveWithdrawalToCloud;
+  if (typeof cloudWdSaver === 'function') {
+    cloudWdSaver(wd).catch(() => {});
+  }
+
   saveWithdrawalsAndSync();
   showToast(`Request ${wd.id} Rejected.`);
 }
@@ -1483,25 +1545,7 @@ function updateAdminLiveDisplays() {
   const adminStars = document.getElementById('adminLiveStars');
   if (adminStars) adminStars.textContent = `${currentStars.toLocaleString()} ⭐`;
 
-  // Read Sunflower Tycoon state
-  let seedsCount = 0;
-  let wellsCount = 0;
-  try {
-    const raw = localStorage.getItem(SF_STORAGE_KEY);
-    if (raw) {
-      const state = JSON.parse(raw);
-      seedsCount = state.seeds || 0;
-      wellsCount = state.baskets || 0;
-    }
-  } catch (e) {
-    console.warn('Error reading SF Tycoon state:', e);
-  }
 
-  const adminSeeds = document.getElementById('adminLiveSeeds');
-  if (adminSeeds) adminSeeds.textContent = `${seedsCount.toLocaleString()} 🌱`;
-
-  const adminWells = document.getElementById('adminLiveWells');
-  if (adminWells) adminWells.textContent = `${wellsCount.toLocaleString()} 🪣`;
 }
 
 // -----------------------------------------------------------------------------
@@ -1582,81 +1626,67 @@ function adminAddStars() {
 }
 
 // -----------------------------------------------------------------------------
-// Sunflower Valley Tycoon Admin Actions
+// Real-time Cloud Data Synchronization for Admin Dashboard
 // -----------------------------------------------------------------------------
 
-/**
- * Give Sunflower seeds and water buckets
- */
-function adminGiveFarmSupplies(seedsToAdd, bucketsToAdd) {
-  try {
-    let state = {};
-    const raw = localStorage.getItem(SF_STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
+function initAdminCloudListeners() {
+  // 1. Real-time Users Listener from Firestore (users collection)
+  const listenUsers = (window.Firebase && window.Firebase.listenToCloudUsers) || window.listenToCloudUsers;
+  if (typeof listenUsers === 'function') {
+    listenUsers((cloudUsers) => {
+      if (Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+        usersData = cloudUsers.map(u => ({
+          id: u.id || u.uid,
+          name: u.displayName || u.name || 'Player',
+          email: u.email || '',
+          avatar: u.avatar || '⚡',
+          level: u.level || 'LVL 1 • NOVICE',
+          coins: typeof u.coins === 'number' ? u.coins : 0,
+          stars: typeof u.stars === 'number' ? u.stars : 0,
+          totalTasks: u.tasksCompleted || u.totalTasks || 0,
+          adsWatched: u.adsWatched || 0,
+          status: u.status || 'active',
+          joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active',
+          lastActive: u.lastActive ? new Date(u.lastActive).toLocaleDateString() : 'Recently'
+        }));
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
+        renderAdminUsersList();
+      }
+    });
+  }
 
-    state.seeds = Math.max(0, (state.seeds || 0) + seedsToAdd);
-    state.baskets = Math.max(0, (state.baskets || 0) + bucketsToAdd);
-
-    localStorage.setItem(SF_STORAGE_KEY, JSON.stringify(state));
-    updateAdminLiveDisplays();
-    logAdminAction(`Granted +${seedsToAdd} Seeds & +${bucketsToAdd} Water Buckets to Sunflower Tycoon.`);
-  } catch (e) {
-    console.error('Failed to grant farm supplies:', e);
+  // 2. Real-time Withdrawals / Requests Listener from Firestore (withdrawals collection)
+  const listenWds = (window.Firebase && window.Firebase.listenToCloudWithdrawals) || window.listenToCloudWithdrawals;
+  if (typeof listenWds === 'function') {
+    listenWds((cloudWds) => {
+      if (Array.isArray(cloudWds)) {
+        withdrawalsData = cloudWds.map(w => ({
+          id: w.id,
+          userId: w.userId,
+          playerName: w.playerName || w.userName || 'Player',
+          playerAvatar: w.playerAvatar || '⚡',
+          amount: w.amount || w.rsAmount || 100,
+          starCost: w.starCost || w.stars || 10000,
+          method: w.method || w.title || 'Amazon Gift Card',
+          details: w.details || w.userWhatsapp || w.mobile || 'Voucher Claim',
+          deliveryLink: w.deliveryLink || w.link || '',
+          status: w.status || 'pending',
+          time: w.createdAt ? new Date(w.createdAt).toLocaleString() : 'Recently'
+        }));
+        localStorage.setItem(WITHDRAW_STORAGE_KEY, JSON.stringify(withdrawalsData));
+        renderAdminWithdrawalsList();
+      }
+    });
   }
 }
-
-/**
- * Give Sunflower game coins
- */
-function adminGiveSunflowerCoins(amount) {
-  try {
-    let state = {};
-    const raw = localStorage.getItem(SF_STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
-
-    state.coins = Math.max(0, (state.coins || 0) + amount);
-
-    localStorage.setItem(SF_STORAGE_KEY, JSON.stringify(state));
-    updateAdminLiveDisplays();
-    logAdminAction(`Granted +${amount.toLocaleString()} Sunflower Coins to Sunflower Tycoon.`);
-  } catch (e) {
-    console.error('Failed to grant Sunflower coins:', e);
-  }
-}
-
-/**
- * Reset all 20 land plots to fully bloomed harvest-ready sunflowers
- */
-function adminResetFarmPlots() {
-  try {
-    let state = {};
-    const raw = localStorage.getItem(SF_STORAGE_KEY);
-    if (raw) state = JSON.parse(raw);
-
-    if (Array.isArray(state.plots)) {
-      state.plots.forEach((p, idx) => {
-        p.unlocked = true;
-        p.plantStatus = 'alive';
-        p.growthTimer = 0;
-        p.isWithered = false;
-        p.uncollectedCoins = (p.coinProduction || 10) * 5;
-        p.readyToCollect = true;
-        p.lifeTimer = 300; // 300s healthy life
-      });
-    }
-
-    localStorage.setItem(SF_STORAGE_KEY, JSON.stringify(state));
-    updateAdminLiveDisplays();
-    logAdminAction('Restored all 20 land plots to Harvest-Ready Sunflower state!');
-  } catch (e) {
-    console.error('Failed to reset farm plots:', e);
-  }
-}
+window.initAdminCloudListeners = initAdminCloudListeners;
 
 // -----------------------------------------------------------------------------
 // DOM Ready Lifecycle Initialization
 // -----------------------------------------------------------------------------
+window.addEventListener('firebase:ready', () => { initAdminCloudListeners(); });
 document.addEventListener('DOMContentLoaded', () => {
+  initAdminCloudListeners();
   // Automatic Telegram login process
   autoLoginWithTelegram();
 

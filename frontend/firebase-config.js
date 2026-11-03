@@ -87,8 +87,6 @@ try {
 
   // Purge legacy mock data keys only once
   if (!localStorage.getItem('task_game_legacy_mock_cleared')) {
-    localStorage.removeItem('ENERGY_TAP_SUNFLOWER_STATE_V4');
-    localStorage.removeItem('sunflower_state');
     localStorage.removeItem('task_game_stars_rating');
     const existingName = localStorage.getItem('player_username');
     if (!existingName || existingName.toLowerCase().includes('nova') || existingName === 'Demo User') {
@@ -268,17 +266,26 @@ function subscribeToAuth(callback) {
   if (!auth) return () => {};
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
-      localStorage.setItem('player_logged_in', 'true');
-      localStorage.setItem('player_email', user.email || '');
-      localStorage.setItem('player_uid', user.uid);
+      const storedUid = localStorage.getItem('player_uid');
+      let effectiveUid = user.uid;
 
-      startRealtimeUserSync(user.uid);
-      await initCloudBalances(user.uid);
+      // Preserve existing persistent player ID so anonymous session refresh does not create a new blank user
+      if (user.isAnonymous && storedUid && storedUid !== 'null' && storedUid !== 'undefined') {
+        effectiveUid = storedUid;
+      } else {
+        localStorage.setItem('player_uid', user.uid);
+      }
+
+      localStorage.setItem('player_logged_in', 'true');
+      if (user.email) localStorage.setItem('player_email', user.email);
+
+      startRealtimeUserSync(effectiveUid);
+      await initCloudBalances(effectiveUid);
 
       let profile = null;
       if (db) {
         try {
-          const userDocRef = doc(db, 'users', user.uid);
+          const userDocRef = doc(db, 'users', effectiveUid);
           const snap = await getDoc(userDocRef);
           if (snap.exists()) {
             profile = snap.data();
@@ -289,6 +296,12 @@ function subscribeToAuth(callback) {
       if (typeof callback === 'function') callback(user, profile);
     } else {
       localStorage.setItem('player_logged_in', 'false');
+      // If user logs out or session is pending, still sync using existing persistent player_uid
+      const storedUid = localStorage.getItem('player_uid');
+      if (storedUid && storedUid !== 'null' && storedUid !== 'undefined') {
+        startRealtimeUserSync(storedUid);
+        initCloudBalances(storedUid);
+      }
       if (typeof callback === 'function') callback(null, null);
     }
   });
@@ -296,16 +309,28 @@ function subscribeToAuth(callback) {
 
 /**
  * Get or create persistent Unique ID for current player (supports Auth UID or device UID)
+ * Ensures returning users always keep their existing user ID across visits
  */
 function getEffectivePlayerUid() {
-  if (auth && auth.currentUser && auth.currentUser.uid) {
+  // If authenticated with real account (e.g. Email/Password)
+  if (auth && auth.currentUser && !auth.currentUser.isAnonymous && auth.currentUser.uid) {
+    localStorage.setItem('player_uid', auth.currentUser.uid);
     return auth.currentUser.uid;
   }
+  // Otherwise check persistent localStorage
   let uid = localStorage.getItem('player_uid');
-  if (!uid || uid === 'null' || uid === 'undefined') {
-    uid = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
-    localStorage.setItem('player_uid', uid);
+  if (uid && uid !== 'null' && uid !== 'undefined' && uid.trim() !== '') {
+    return uid;
   }
+  // If auth has anonymous user uid, use that
+  if (auth && auth.currentUser && auth.currentUser.uid) {
+    uid = auth.currentUser.uid;
+    localStorage.setItem('player_uid', uid);
+    return uid;
+  }
+  // Generate stable ID once
+  uid = 'usr_' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+  localStorage.setItem('player_uid', uid);
   return uid;
 }
 
@@ -551,6 +576,13 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
       stars: isNaN(stars) ? 0 : stars,
       tasksCompleted: isNaN(tasksCompleted) ? 0 : tasksCompleted,
       adsWatched: isNaN(adsWatched) ? 0 : adsWatched,
+      sunflowerState: localStorage.getItem('sunflower_game_state') || null,
+      honeyBeeState: localStorage.getItem('honeybee_game_state') || null,
+      gameStats: {
+        gamesPlayed: parseInt(localStorage.getItem('task_games_played') || '0', 10),
+        coinsWonToday: parseInt(localStorage.getItem('task_coins_won_today') || '0', 10),
+        winStreak: parseInt(localStorage.getItem('task_win_streak') || '0', 10)
+      },
       updatedAt: Date.now()
     }, { merge: true });
 
@@ -598,6 +630,17 @@ async function initCloudBalances(targetUid = null) {
         if (data.avatar) {
           rawSetItem('player_avatar', data.avatar);
         }
+        if (data.sunflowerState) {
+          rawSetItem('sunflower_game_state', typeof data.sunflowerState === 'string' ? data.sunflowerState : JSON.stringify(data.sunflowerState));
+        }
+        if (data.honeyBeeState) {
+          rawSetItem('honeybee_game_state', typeof data.honeyBeeState === 'string' ? data.honeyBeeState : JSON.stringify(data.honeyBeeState));
+        }
+        if (data.gameStats) {
+          if (typeof data.gameStats.gamesPlayed === 'number') rawSetItem('task_games_played', data.gameStats.gamesPlayed.toString());
+          if (typeof data.gameStats.coinsWonToday === 'number') rawSetItem('task_coins_won_today', data.gameStats.coinsWonToday.toString());
+          if (typeof data.gameStats.winStreak === 'number') rawSetItem('task_win_streak', data.gameStats.winStreak.toString());
+        }
       } finally {
         isInternalSync = false;
       }
@@ -613,6 +656,11 @@ async function initCloudBalances(targetUid = null) {
       window.dispatchEvent(new CustomEvent('balance:changed', {
         detail: { coins: syncedCoins, stars: syncedStars }
       }));
+
+      // Update last active time for existing player
+      try {
+        setDoc(userRef, { lastActive: Date.now(), updatedAt: Date.now() }, { merge: true }).catch(() => {});
+      } catch (e) {}
     } else {
       // Initialize profile in Firestore
       await saveCurrentProfileToFirestore();
@@ -2365,6 +2413,47 @@ window.saveCurrentProfileToFirestore = saveCurrentProfileToFirestore;
 window.initCloudBalances = initCloudBalances;
 window.saveTasksToCloud = saveTasksToCloud;
 window.listenToCloudTasks = listenToCloudTasks;
+window.listenToCloudUsers = listenToCloudUsers;
+window.saveUserToCloud = saveUserToCloud;
+window.deleteUserFromCloud = deleteUserFromCloud;
+window.listenToCloudWithdrawals = listenToCloudWithdrawals;
+window.saveWithdrawalToCloud = saveWithdrawalToCloud;
+
+window.Firebase = {
+  app, 
+  analytics, 
+  db, 
+  auth,
+  firebaseConfig, 
+  firebaseSync,
+  initCloudBalances,
+  getEffectivePlayerUid,
+  updateAllDomBalances,
+  startRealtimeUserSync,
+  saveCurrentProfileToFirestore,
+  signUpWithEmail,
+  signInWithEmail,
+  signOutUser,
+  sendPasswordReset,
+  subscribeToAuth,
+  saveTasksToCloud, 
+  listenToCloudTasks,
+  listenToCloudUsers,
+  listenToLeaderboardFromCloud,
+  saveUserToCloud,
+  deleteUserFromCloud,
+  saveWithdrawalToCloud,
+  listenToCloudWithdrawals,
+  saveAdConfigToCloud,
+  listenToCloudAdConfig,
+  registerReferralCodeInCloud,
+  verifyReferralCodeInCloud,
+  redeemReferralCodeInCloud,
+  saveGlobalLeaderboardEventToCloud,
+  listenToCloudLeaderboardEvent,
+  openBalanceManageModal,
+  closeBalanceManageModal
+};
 
 // Dispatch global ready event
 window.dispatchEvent(new CustomEvent('firebase:ready', {
@@ -2406,3 +2495,5 @@ export {
   openBalanceManageModal,
   closeBalanceManageModal
 };
+
+
