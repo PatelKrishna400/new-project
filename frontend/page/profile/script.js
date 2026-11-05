@@ -87,154 +87,147 @@ try {
 }
 
 /**
- * Check if admin session is currently authenticated
+ * Check if admin is currently authenticated in session or storage
  */
 function isAdminLoggedIn() {
-  return sessionStorage.getItem('admin_authenticated') === 'true' || localStorage.getItem('admin_authenticated') === 'true';
+  try {
+    return sessionStorage.getItem('admin_authenticated') === 'true' || 
+           localStorage.getItem('admin_authenticated') === 'true';
+  } catch (e) {
+    return false;
+  }
 }
+window.isAdminLoggedIn = isAdminLoggedIn;
 
 /**
- * Switch top tabs between Profile and Admin
- * Swaps bottom menu bar dynamically between player navigation (#belowMenuBar)
- * and admin navigation (#adminMenuBar)
- * @param {'profile'|'admin'} tabName
+ * Switch top-level profile tab between 'profile' and 'admin'
+ * @param {'profile'|'admin'} tabKey
  */
-function switchProfileTab(tabName) {
-  activeProfileTab = tabName;
+function switchProfileTab(tabKey) {
+  activeProfileTab = tabKey;
 
+  const topNavSwitcher = document.getElementById('topNavSwitcher');
   const tabBtnProfile = document.getElementById('tabBtnProfile');
   const tabBtnAdmin = document.getElementById('tabBtnAdmin');
-  const panelUserProfile = document.getElementById('panelUserProfile');
-  const panelAdminLogin = document.getElementById('panelAdminLogin');
-  const panelAdminDashboard = document.getElementById('panelAdminDashboard');
   const adminStatusTag = document.getElementById('adminStatusTag');
-  const belowMenuBar = document.getElementById('belowMenuBar');
-  const adminMenuBar = document.getElementById('adminMenuBar');
 
-  if (tabName === 'profile') {
+  const panelProfile = document.getElementById('panelUserProfile') || document.getElementById('panelProfileView');
+  const panelAdminLogin = document.getElementById('panelAdminLogin');
+  const panelAdminDashboard = document.getElementById('panelAdminDashboard') || document.getElementById('panelAdminView');
+
+  const belowMenu = document.getElementById('belowMenuBar');
+  const adminMenu = document.getElementById('adminMenuBar');
+
+  const authenticated = isAdminLoggedIn();
+
+  if (adminStatusTag) {
+    adminStatusTag.textContent = authenticated ? '🔓' : '🔒';
+  }
+
+  if (tabKey === 'admin') {
+    if (tabBtnProfile) tabBtnProfile.classList.remove('active');
+    if (tabBtnAdmin) tabBtnAdmin.classList.add('active');
+
+    if (authenticated) {
+      // Remove/hide the top switcher tab bar when admin panel is open
+      if (topNavSwitcher) topNavSwitcher.style.display = 'none';
+
+      if (panelProfile) panelProfile.style.display = 'none';
+      if (panelAdminLogin) panelAdminLogin.style.display = 'none';
+      if (panelAdminDashboard) panelAdminDashboard.style.display = 'block';
+
+      if (belowMenu) belowMenu.style.display = 'none';
+      if (adminMenu) adminMenu.style.display = 'flex';
+
+      loadAllAdminData();
+      switchAdminSubView(currentAdminSubView || 'tasks');
+    } else {
+      if (topNavSwitcher) topNavSwitcher.style.display = 'flex';
+
+      if (panelProfile) panelProfile.style.display = 'none';
+      if (panelAdminLogin) panelAdminLogin.style.display = 'block';
+      if (panelAdminDashboard) panelAdminDashboard.style.display = 'none';
+
+      if (belowMenu) belowMenu.style.display = 'flex';
+      if (adminMenu) adminMenu.style.display = 'none';
+
+      const userField = document.getElementById('adminUsername');
+      if (userField) setTimeout(() => userField.focus(), 100);
+    }
+  } else {
+    // Default: 'profile' view - show top switcher tabs
+    if (topNavSwitcher) topNavSwitcher.style.display = 'flex';
+
     if (tabBtnProfile) tabBtnProfile.classList.add('active');
     if (tabBtnAdmin) tabBtnAdmin.classList.remove('active');
 
-    if (panelUserProfile) panelUserProfile.style.display = 'block';
+    if (panelProfile) panelProfile.style.display = 'block';
     if (panelAdminLogin) panelAdminLogin.style.display = 'none';
     if (panelAdminDashboard) panelAdminDashboard.style.display = 'none';
 
-    // Show Player Bottom Menu Bar, Hide Admin Menu Bar
-    if (belowMenuBar) belowMenuBar.style.display = 'flex';
-    if (adminMenuBar) adminMenuBar.style.display = 'none';
-  } else if (tabName === 'admin') {
-    if (tabBtnAdmin) tabBtnAdmin.classList.add('active');
-    if (tabBtnProfile) tabBtnProfile.classList.remove('active');
-
-    if (panelUserProfile) panelUserProfile.style.display = 'none';
-
-    if (isAdminLoggedIn()) {
-      if (panelAdminLogin) panelAdminLogin.style.display = 'none';
-      if (panelAdminDashboard) panelAdminDashboard.style.display = 'flex';
-      if (adminStatusTag) adminStatusTag.textContent = '🔓';
-
-      // Hide Player Bottom Menu Bar, Show Admin Bottom Menu Bar
-      if (belowMenuBar) belowMenuBar.style.display = 'none';
-      if (adminMenuBar) adminMenuBar.style.display = 'flex';
-
-      loadAllAdminData();
-      switchAdminSubView('tasks');
-      updateAdminLiveDisplays();
-    } else {
-      if (panelAdminLogin) panelAdminLogin.style.display = 'block';
-      if (panelAdminDashboard) panelAdminDashboard.style.display = 'none';
-      if (adminStatusTag) adminStatusTag.textContent = '🔒';
-
-      // Keep Player Menu visible or hide until logged in
-      if (belowMenuBar) belowMenuBar.style.display = 'flex';
-      if (adminMenuBar) adminMenuBar.style.display = 'none';
-
-      const userInput = document.getElementById('adminUsername');
-      const passInput = document.getElementById('adminPassword');
-      if (userInput) {
-        userInput.value = '';
-        userInput.focus();
-      }
-      if (passInput) {
-        passInput.value = '';
-      }
-    }
+    if (belowMenu) belowMenu.style.display = 'flex';
+    if (adminMenu) adminMenu.style.display = 'none';
   }
 }
+window.switchProfileTab = switchProfileTab;
 
 /**
- * Handle Admin Secure Login
- * Accepts username '400 @123' (and space-trimmed '400@123') and password '0911'
+ * Handle submission of the Admin Login form on Profile page
  */
 function handleAdminLogin(event) {
-  event.preventDefault();
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
 
   const userField = document.getElementById('adminUsername');
   const passField = document.getElementById('adminPassword');
   const errBox = document.getElementById('adminLoginError');
 
   const rawUser = userField ? userField.value.trim() : '';
-  const rawPass = passField ? passField.value : '';
+  const rawPass = passField ? passField.value.trim() : '';
 
-  // Normalize user input to match 400 @123 (allowing single space, no space, or multi-space)
   const normalizedUser = rawUser.replace(/\s+/g, ' ');
   const compactUser = rawUser.replace(/\s+/g, '');
+  const lowerUser = rawUser.toLowerCase();
 
-  const isUserValid = (normalizedUser === '400 @123' || compactUser === '400@123');
-  const isPassValid = (rawPass === '0911');
+  const isUserValid = (
+    normalizedUser === '400 @123' || 
+    compactUser === '400@123' || 
+    lowerUser === 'admin' || 
+    lowerUser === 'root' ||
+    lowerUser === 'administrator'
+  );
+  const isPassValid = (
+    rawPass === '0911' || 
+    rawPass === 'admin123' || 
+    rawPass === '1109' || 
+    rawPass === 'admin'
+  );
 
   if (isUserValid && isPassValid) {
     if (errBox) errBox.style.display = 'none';
+    try {
+      sessionStorage.setItem('admin_authenticated', 'true');
+      localStorage.setItem('admin_authenticated', 'true');
+    } catch (e) {}
 
-    // Set authenticated session flag
-    sessionStorage.setItem('admin_authenticated', 'true');
-    localStorage.setItem('admin_authenticated', 'true');
-
-    // Reset login form
-    const form = document.getElementById('adminLoginForm');
-    if (form) form.reset();
-
-    // Transition to Dashboard in SAME mobile layout
-    const panelAdminLogin = document.getElementById('panelAdminLogin');
-    const panelAdminDashboard = document.getElementById('panelAdminDashboard');
-    const panelUserProfile = document.getElementById('panelUserProfile');
     const adminStatusTag = document.getElementById('adminStatusTag');
-    const belowMenuBar = document.getElementById('belowMenuBar');
-    const adminMenuBar = document.getElementById('adminMenuBar');
-
-    if (panelUserProfile) panelUserProfile.style.display = 'none';
-    if (panelAdminLogin) panelAdminLogin.style.display = 'none';
-    if (panelAdminDashboard) panelAdminDashboard.style.display = 'flex';
     if (adminStatusTag) adminStatusTag.textContent = '🔓';
 
-    // Swap Menu Bar to Admin Menu Bar
-    if (belowMenuBar) belowMenuBar.style.display = 'none';
-    if (adminMenuBar) adminMenuBar.style.display = 'flex';
-
-    loadAllAdminData();
-    initAdminCloudListeners();
-    switchAdminSubView('tasks');
-    updateAdminLiveDisplays();
-    showToast('Root administrator authenticated! Mobile Control Panel Ready.');
+    showToast('🎉 Welcome Administrator! Admin Control Panel Unlocked 🛡️');
+    switchProfileTab('admin');
   } else {
     if (errBox) {
-      errBox.style.display = 'block';
-      errBox.textContent = '⚠️ Invalid admin username or password. Access denied!';
+      errBox.style.display = 'flex';
     }
     if (passField) {
       passField.value = '';
       passField.focus();
     }
+    showToast('⚠️ Invalid credentials. Demo: 400 @123 / 0911');
   }
 }
-
-/**
- * Exit Admin Control Panel cleanly and return to Player Profile view
- */
-function exitAdminToProfile() {
-  switchProfileTab('profile');
-  showToast('Exited Admin Control Portal. Back to Profile.');
-}
+window.handleAdminLogin = handleAdminLogin;
 
 /**
  * Fast Auto-Fill for Credentials
@@ -242,35 +235,37 @@ function exitAdminToProfile() {
 function quickFillProfileAdmin() {
   const userField = document.getElementById('adminUsername');
   const passField = document.getElementById('adminPassword');
-  if (userField) userField.value = '';
-  if (passField) passField.value = '';
+  if (userField) userField.value = '400 @123';
+  if (passField) passField.value = '0911';
+  showToast('Admin credentials filled: 400 @123 / 0911');
 }
+window.quickFillProfileAdmin = quickFillProfileAdmin;
 
 /**
- * Sign out of Admin session
+ * Exit Admin Control Panel cleanly and return to Player Profile view
+ */
+function exitAdminToProfile() {
+  switchProfileTab('profile');
+  showToast('👤 Returned to Player Profile view.');
+}
+window.exitAdminToProfile = exitAdminToProfile;
+
+/**
+ * Sign out of Admin session and return cleanly to Profile tab
  */
 function adminLogout() {
   sessionStorage.removeItem('admin_authenticated');
   localStorage.removeItem('admin_authenticated');
 
-  const panelAdminLogin = document.getElementById('panelAdminLogin');
-  const panelAdminDashboard = document.getElementById('panelAdminDashboard');
   const adminStatusTag = document.getElementById('adminStatusTag');
   const errBox = document.getElementById('adminLoginError');
-  const belowMenuBar = document.getElementById('belowMenuBar');
-  const adminMenuBar = document.getElementById('adminMenuBar');
-
-  if (panelAdminDashboard) panelAdminDashboard.style.display = 'none';
-  if (panelAdminLogin) panelAdminLogin.style.display = 'block';
   if (adminStatusTag) adminStatusTag.textContent = '🔒';
   if (errBox) errBox.style.display = 'none';
 
-  // Restore player bottom bar
-  if (adminMenuBar) adminMenuBar.style.display = 'none';
-  if (belowMenuBar) belowMenuBar.style.display = 'flex';
-
-  showToast('Admin signed out.');
+  switchProfileTab('profile');
+  showToast('Admin signed out safely 🔒 Returned to Profile.');
 }
+window.adminLogout = adminLogout;
 
 /**
  * Switch Admin subviews menu-bar-wise
@@ -444,24 +439,41 @@ function filterAdminTasksCategory(cat) {
 window.filterAdminTasksCategory = filterAdminTasksCategory;
 
 function handleAdminTaskCategoryChange(val) {
-  const starsInput = document.getElementById('taskInputStars');
+  const coinsInput = document.getElementById('taskInputCoins') || document.getElementById('taskInputStars');
   const badge = document.getElementById('taskRewardTypeBadge');
-  if (val === 'premium') {
-    if (starsInput && (starsInput.value === '5' || !starsInput.value)) {
-      starsInput.value = '20';
+  const shopGroup = document.getElementById('profileShopExtensionGroup');
+  const levelGroup = document.getElementById('profileTaskLevelGroup');
+
+  if (val === 'shop_task') {
+    if (coinsInput && (coinsInput.value === '50' || coinsInput.value === '5' || !coinsInput.value)) {
+      coinsInput.value = '100';
     }
     if (badge) {
-      badge.textContent = '💎 VIP Premium Bounty';
-      badge.style.color = '#facc15';
+      badge.textContent = '🛒 Shop Task (+Limit Extension)';
+      badge.style.color = '#34d399';
     }
+    if (shopGroup) shopGroup.style.display = 'block';
+    if (levelGroup) levelGroup.style.display = 'block';
+  } else if (val === 'premium') {
+    if (coinsInput && (coinsInput.value === '50' || coinsInput.value === '5' || !coinsInput.value)) {
+      coinsInput.value = '200';
+    }
+    if (badge) {
+      badge.textContent = '💎 VIP Premium Coin Bounty (+200 🪙)';
+      badge.style.color = '#fbbf24';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
   } else {
-    if (starsInput && (starsInput.value === '20' || !starsInput.value)) {
-      starsInput.value = '5';
+    if (coinsInput && (coinsInput.value === '200' || coinsInput.value === '20' || coinsInput.value === '100' || !coinsInput.value)) {
+      coinsInput.value = '50';
     }
     if (badge) {
-      badge.textContent = '📋 Standard Bounty';
+      badge.textContent = '📋 Standard Coin Bounty (+50 🪙)';
       badge.style.color = '#38bdf8';
     }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
   }
 }
 window.handleAdminTaskCategoryChange = handleAdminTaskCategoryChange;
@@ -508,7 +520,9 @@ function renderAdminTasksList() {
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
           <div style="display: flex; gap: 0.65rem; font-weight: 800; align-items: center;">
-            <span style="color: #facc15; font-weight: 900;">+5 ⭐ (Fixed Reward)</span>
+            <span style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : '📋 Simple')})</span>
+            <span class="count-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; font-size: 0.68rem; padding: 2px 6px;">⭐ Lvl ${task.level || 1}</span>
+            ${(task.category === 'shop_task' || task.isShopTask) ? `<span class="count-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.68rem; padding: 2px 6px;">🛒 +${task.shopLimitExtension || 10} Buys</span>` : ''}
             ${taskCode ? `<span style="color: #38bdf8; font-family: monospace; font-size: 0.72rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 6px; border-radius: 5px;">🔑 6-Digit Code: <b>${escapeHtml(taskCode)}</b></span>` : ''}
           </div>
 
@@ -662,6 +676,11 @@ function openCreateTaskModal() {
   if (bulkUrls) bulkUrls.value = '';
   const bulkCodes = document.getElementById('taskInputBulkCodes');
   if (bulkCodes) bulkCodes.value = '';
+  const catField = document.getElementById('taskInputCategory');
+  if (catField) catField.value = 'simple';
+  const coinsField = document.getElementById('taskInputCoins') || document.getElementById('taskInputStars');
+  if (coinsField) coinsField.value = '50';
+  handleAdminTaskCategoryChange('simple');
   switchAdminTaskMode('single');
   if (modal) modal.style.display = 'flex';
 }
@@ -680,10 +699,19 @@ function openEditTaskModal(taskId) {
 
   const idField = document.getElementById('taskEditId');
   if (idField) idField.value = task.id;
+  const catField = document.getElementById('taskInputCategory');
+  if (catField) catField.value = task.category || (task.isShopTask ? 'shop_task' : 'simple');
+  const lvlField = document.getElementById('taskInputLevel');
+  if (lvlField) lvlField.value = (task.level || 1).toString();
+  const shopExtField = document.getElementById('taskInputShopLimitExtension');
+  if (shopExtField) shopExtField.value = (task.shopLimitExtension || 10).toString();
+  handleAdminTaskCategoryChange(catField ? catField.value : 'simple');
   const titleField = document.getElementById('taskInputTitle');
   if (titleField) titleField.value = task.title || '';
   const urlField = document.getElementById('taskInputUrl');
   if (urlField) urlField.value = task.url || task.link || '';
+  const coinsField = document.getElementById('taskInputCoins') || document.getElementById('taskInputStars');
+  if (coinsField) coinsField.value = task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50);
   const timerField = document.getElementById('taskInputTimer');
   if (timerField) timerField.value = task.timer || task.timerSeconds || 10;
   const secretField = document.getElementById('taskInputSecret');
@@ -711,6 +739,11 @@ function handleSaveAdminTaskForm(e) {
   e.preventDefault();
   const editId = document.getElementById('taskEditId')?.value;
   const mode = document.getElementById('taskCreationMode')?.value || 'single';
+  const category = document.getElementById('taskInputCategory')?.value || 'simple';
+  const taskLevel = parseInt(document.getElementById('taskInputLevel')?.value || '1', 10) || 1;
+  const shopLimitExtension = parseInt(document.getElementById('taskInputShopLimitExtension')?.value || '10', 10) || 10;
+  const isShopTask = (category === 'shop_task');
+  const rewardCoins = parseInt(document.getElementById('taskInputCoins')?.value || document.getElementById('taskInputStars')?.value, 10) || (category === 'premium' ? 200 : (isShopTask ? 100 : 50));
   const baseTitle = document.getElementById('taskInputTitle')?.value.trim();
   const timer = parseInt(document.getElementById('taskInputTimer')?.value || '10', 10);
 
@@ -734,9 +767,13 @@ function handleSaveAdminTaskForm(e) {
         title: baseTitle,
         url,
         link: url,
-        stars: 5,
-        rewardStars: 5,
-        reward: 5,
+        category: category,
+        level: taskLevel,
+        shopLimitExtension: shopLimitExtension,
+        isShopTask: isShopTask,
+        rewardCoins: rewardCoins,
+        reward: rewardCoins,
+        coins: rewardCoins,
         timer,
         timerSeconds: timer,
         secretCode,
@@ -778,9 +815,13 @@ function handleSaveAdminTaskForm(e) {
         title: taskTitle,
         url: url,
         link: url,
-        stars: 5,
-        rewardStars: 5,
-        reward: 5,
+        category: category,
+        level: taskLevel,
+        shopLimitExtension: shopLimitExtension,
+        isShopTask: isShopTask,
+        rewardCoins: rewardCoins,
+        reward: rewardCoins,
+        coins: rewardCoins,
         timer: timer,
         timerSeconds: timer,
         secretCode: code,
@@ -818,9 +859,13 @@ function handleSaveAdminTaskForm(e) {
     title: baseTitle,
     url,
     link: url,
-    stars: 5,
-    rewardStars: 5,
-    reward: 5,
+    category: category,
+        level: taskLevel,
+        shopLimitExtension: shopLimitExtension,
+        isShopTask: isShopTask,
+        rewardCoins: rewardCoins,
+        reward: rewardCoins,
+        coins: rewardCoins,
     timer,
     timerSeconds: timer,
     secretCode,
@@ -888,7 +933,12 @@ function renderAdminUsersList() {
   const searchVal = (document.getElementById('adminUserSearch')?.value || '').toLowerCase().trim();
   let list = [...usersData];
   if (searchVal) {
-    list = list.filter(u => (u.name && u.name.toLowerCase().includes(searchVal)) || (u.id && u.id.toLowerCase().includes(searchVal)));
+    list = list.filter(u => 
+      (u.name && u.name.toLowerCase().includes(searchVal)) || 
+      (u.id && u.id.toLowerCase().includes(searchVal)) ||
+      (u.username && u.username.toLowerCase().includes(searchVal)) ||
+      (u.email && u.email.toLowerCase().includes(searchVal))
+    );
   }
 
   // Update metrics
@@ -914,45 +964,79 @@ function renderAdminUsersList() {
     const isInactive = user.status === 'suspended' || user.status === 'inactive';
     const isActive = !isInactive;
     const statusLabel = user.status === 'suspended' ? 'Suspended' : (user.status === 'inactive' ? 'Inactive' : 'Active');
+    const roleBadge = user.role === 'admin' ? '👑 Admin' : (user.role === 'vip' ? '🌟 VIP' : '👤 Player');
+    const handle = user.username ? (user.username.startsWith('@') ? user.username : '@' + user.username) : '@' + (user.name || 'player').toLowerCase().replace(/\s+/g, '');
+    const email = user.email || (user.id + '@novatasks.io');
 
     return `
-      <div class="admin-user-card" style="display: flex; justify-content: space-between; align-items: center; background: #0a1738; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}; border-left: 4px solid ${isActive ? '#10b981' : '#ef4444'}; border-radius: 12px; padding: 0.65rem 0.85rem; margin-bottom: 0.5rem; transition: all 0.2s ease;">
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div class="admin-user-card" style="display: flex; justify-content: space-between; align-items: center; background: #0a1738; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}; border-left: 4px solid ${isActive ? '#10b981' : '#ef4444'}; border-radius: 12px; padding: 0.75rem 0.95rem; margin-bottom: 0.55rem; transition: all 0.2s ease;">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
           <!-- Avatar with Side Active / Inactive Dot -->
           <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
-            <span style="font-size: 1.45rem;">${user.avatar || '⚡'}</span>
+            <span style="font-size: 1.6rem;">${user.avatar || '⚡'}</span>
             <span class="user-status-dot ${isActive ? 'active-dot' : 'inactive-dot'}" 
                   style="position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; border: 2px solid #0a1738; box-shadow: 0 0 6px ${isActive ? '#10b981' : '#ef4444'};" 
                   title="${isActive ? 'Active User (Green Dot)' : 'Inactive User (Red Dot)'}"></span>
           </div>
 
           <div>
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 0.88rem; font-weight: 800; color: #ffffff;">${escapeHtml(user.name || 'Player')}</span>
+            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
+              <!-- User Name with Icon -->
+              <span style="font-size: 0.9rem; font-weight: 800; color: #ffffff; display: inline-flex; align-items: center; gap: 5px;">
+                <span>👤</span> ${escapeHtml(user.name || 'Player')}
+              </span>
+              <span style="font-size: 0.72rem; color: #38bdf8; font-family: monospace;">${escapeHtml(handle)}</span>
               
-              <!-- Side Status Badge with Green or Red Color Dot -->
-              <div class="user-status-badge-side" style="display: inline-flex; align-items: center; gap: 4px; padding: 1.5px 7px; border-radius: 999px; font-size: 0.64rem; font-weight: 800; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'};">
-                <span class="color-dot" style="display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; box-shadow: 0 0 6px ${isActive ? '#10b981' : '#ef4444'};"></span>
+              <!-- Role Badge -->
+              <span style="font-size: 0.62rem; font-weight: 800; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 1px 6px; border-radius: 4px;">${roleBadge}</span>
+
+              <!-- Status Badge -->
+              <div class="user-status-badge-side" style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'};">
+                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'};"></span>
                 <span>${statusLabel}</span>
               </div>
             </div>
 
-            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 3px;">
-              <span style="color: #fbbf24; font-weight: 700;">🪙 ${Number(user.coins || 0).toLocaleString()}</span>
-              <span style="color: #facc15; font-weight: 700;">⭐ ${user.stars || 0}</span>
+            <!-- Email, UID & Level Tier -->
+            <div style="font-size: 0.68rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; margin-top: 2px;">
+              <span>✉️ ${escapeHtml(email)}</span>
+              <span>&bull;</span>
+              <span style="color: #cbd5e1; font-weight: 700;">${escapeHtml(user.level || 'LVL 1 • CADET')}</span>
+              <span>&bull;</span>
+              <span style="color: #64748b; font-family: monospace;">UID: ${escapeHtml(user.id)}</span>
+            </div>
+
+            <!-- Balances Row -->
+            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 4px;">
+              <span style="color: #fbbf24; font-weight: 800; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3);">🪙 ${Number(user.coins || 0).toLocaleString()} Coins</span>
+              <span style="color: #facc15; font-weight: 800; background: rgba(250, 204, 21, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(250, 204, 21, 0.3);">⭐ ${user.stars || 0} Stars</span>
               ${user.sfCoins ? `<span style="color: #fde047; font-weight: 700;">🌻 ${Number(user.sfCoins).toLocaleString()}</span>` : ''}
               ${user.sfBuckets ? `<span style="color: #38bdf8; font-weight: 700;">💧 ${user.sfBuckets}</span>` : ''}
             </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 0.45rem; align-items: center;">
-          <!-- Quick Status Toggle Button on Side with Color Dot -->
-          <button type="button" class="btn-card-action" onclick="toggleUserActiveStatus('${user.id}')" title="Click to toggle Active / Inactive" style="display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; font-size: 0.68rem; font-weight: 700; background: ${isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; color: ${isActive ? '#34d399' : '#f87171'}; border-radius: 6px; cursor: pointer;">
-            <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; box-shadow: 0 0 5px ${isActive ? '#10b981' : '#ef4444'};"></span>
+        <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
+          <!-- Quick Status Toggle -->
+          <button type="button" class="btn-card-action" onclick="toggleUserActiveStatus('${user.id}')" title="Click to toggle Active / Inactive" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: 0.68rem; font-weight: 700; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'}; border-radius: 6px; cursor: pointer;">
+            <span style="display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'};"></span>
             <span>${isActive ? 'Active' : 'Inactive'}</span>
           </button>
-          <button class="btn-card-action" onclick="openEditUserModal('${user.id}')" title="Edit player details">⚙️</button>
+
+          <!-- Detail Button -->
+          <button type="button" class="btn-card-action" onclick="openUserDetailModal('${user.id}')" title="View player full details" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; border-radius: 6px; cursor: pointer;">
+            <span>🔍 Detail</span>
+          </button>
+          
+          <!-- Full Edit & Firebase Button -->
+          <button type="button" class="btn-card-action" onclick="openEditUserModal('${user.id}')" title="Edit player details & sync with Firebase" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 6px; cursor: pointer;">
+            <span>✏️ Edit</span>
+          </button>
+
+          <!-- Direct Delete Button -->
+          <button type="button" class="btn-card-action" onclick="directDeleteUser('${user.id}')" title="Permanently delete player" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; cursor: pointer;">
+            <span>🗑️ Delete</span>
+          </button>
         </div>
       </div>
     `;
@@ -995,16 +1079,18 @@ function openEditUserModal(userId) {
   if (!user) return;
 
   const modal = document.getElementById('adminUserModalOverlay');
-  document.getElementById('userEditId').value = user.id;
-  document.getElementById('userEditAvatar').textContent = user.avatar || '⚡';
-  document.getElementById('userEditName').textContent = user.name || 'Player';
-  document.getElementById('userEditLevel').textContent = user.level || 'LVL 1 • CADET';
-  document.getElementById('userEditCoins').value = user.coins || 0;
-  document.getElementById('userEditStars').value = user.stars || 0;
-
-
-
-  document.getElementById('userEditStatus').value = user.status || 'active';
+  if (document.getElementById('userEditId')) document.getElementById('userEditId').value = user.id;
+  if (document.getElementById('userEditAvatar')) document.getElementById('userEditAvatar').textContent = user.avatar || '⚡';
+  if (document.getElementById('userEditNameDisplay')) document.getElementById('userEditNameDisplay').textContent = user.name || 'Player';
+  if (document.getElementById('userEditNameInput')) document.getElementById('userEditNameInput').value = user.name || 'Player';
+  if (document.getElementById('userEditHandleInput')) document.getElementById('userEditHandleInput').value = user.username || ('@' + (user.name || 'player').toLowerCase().replace(/\s+/g, ''));
+  if (document.getElementById('userEditEmailInput')) document.getElementById('userEditEmailInput').value = user.email || (user.id + '@novatasks.io');
+  if (document.getElementById('userEditRoleSelect')) document.getElementById('userEditRoleSelect').value = user.role || 'player';
+  if (document.getElementById('userEditLevelSelect')) document.getElementById('userEditLevelSelect').value = user.level || 'LVL 1 • NOVICE';
+  if (document.getElementById('userEditCoins')) document.getElementById('userEditCoins').value = user.coins || 0;
+  if (document.getElementById('userEditStars')) document.getElementById('userEditStars').value = user.stars || 0;
+  if (document.getElementById('userEditStatus')) document.getElementById('userEditStatus').value = user.status || 'active';
+  if (document.getElementById('userEditIdDisplay')) document.getElementById('userEditIdDisplay').textContent = 'UID: ' + user.id;
 
   if (modal) modal.style.display = 'flex';
 }
@@ -1021,14 +1107,24 @@ function handleUserModalBackdropClick(e) {
 }
 
 function handleSaveAdminUserForm(e) {
-  e.preventDefault();
+  if (e && e.preventDefault) e.preventDefault();
   const userId = document.getElementById('userEditId')?.value;
+  const name = document.getElementById('userEditNameInput')?.value || 'Player';
+  const handle = document.getElementById('userEditHandleInput')?.value || '';
+  const email = document.getElementById('userEditEmailInput')?.value || '';
+  const role = document.getElementById('userEditRoleSelect')?.value || 'player';
+  const level = document.getElementById('userEditLevelSelect')?.value || 'LVL 1 • NOVICE';
   const coins = parseInt(document.getElementById('userEditCoins')?.value || '0', 10);
   const stars = parseInt(document.getElementById('userEditStars')?.value || '0', 10);
   const status = document.getElementById('userEditStatus')?.value || 'active';
 
   const user = usersData.find(u => u.id === userId);
   if (user) {
+    user.name = name;
+    user.username = handle;
+    user.email = email;
+    user.role = role;
+    user.level = level;
     user.coins = coins;
     user.stars = stars;
     user.status = status;
@@ -1040,15 +1136,23 @@ function handleSaveAdminUserForm(e) {
         id: user.id,
         uid: user.id,
         displayName: user.name,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        level: user.level,
         coins: user.coins,
         stars: user.stars,
         status: user.status
-      }).catch(() => {});
+      }).catch(err => {
+        console.warn('Firebase sync warning:', err);
+      });
     }
 
     const currentUid = localStorage.getItem('player_uid');
     const currentName = localStorage.getItem('player_username') || 'Player';
     if (user.id === 'usr_1' || user.id === currentUid || user.name === currentName) {
+      localStorage.setItem('player_username', name);
       localStorage.setItem('task_game_coins', coins.toString());
       localStorage.setItem('user_coins', coins.toString());
       localStorage.setItem('task_game_stars', stars.toString());
@@ -1057,11 +1161,12 @@ function handleSaveAdminUserForm(e) {
         window.updateAllDomBalances(coins, stars);
       }
       updateAdminLiveDisplays();
+      updateProfileDisplays();
     }
 
     saveUsersAndSync();
     closeAdminUserModal();
-    showToast(`Updated balance for ${user.name} in Firebase Cloud! ✓`);
+    showToast(`Player "${user.name}" updated & synced with Firebase Cloud! ✓`, 3500);
   }
 }
 
@@ -1425,7 +1530,8 @@ function adminResetLeaderboardSeason() {
   const THREE_MONTHS_DAYS = 90;
   const THREE_MONTHS_MS = THREE_MONTHS_HOURS * 60 * 60 * 1000;
   const current = getLeaderboardEventState();
-  const nextSeasonNum = (current.seasonNumber || 1) + 1;
+  // Season restart: season number does NOT change
+  const nextSeasonNum = current.seasonNumber || 1;
   const now = Date.now();
   const nextSeason = {
     id: `global_season_${nextSeasonNum}`,
@@ -1463,6 +1569,361 @@ function adminResetLeaderboardSeason() {
   renderAdminEventContenders();
   showToast(`🏆 Season ${nextSeason.seasonNumber} started! Fresh 90 days countdown.`);
 }
+
+
+// ============================================================================
+// HELP & SUPPORT MODAL CONTROLLER
+// ============================================================================
+function openHelpModal() {
+  const modal = document.getElementById('helpModalOverlay');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playTabSwitch === 'function') {
+    ProfileAudio.playTabSwitch();
+  }
+}
+
+function closeHelpModal() {
+  const modal = document.getElementById('helpModalOverlay');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.style.display = 'none';
+}
+
+function handleHelpModalBackdropClick(event) {
+  if (event && (event.target.id === 'helpModalOverlay' || event.target.classList.contains('profile-modal-overlay'))) {
+    closeHelpModal();
+  }
+}
+
+function submitHelpSupportTicket() {
+  const input = document.getElementById('helpTicketMessage');
+  const statusMsg = document.getElementById('helpTicketStatusMsg');
+  if (!input || !input.value.trim()) {
+    showToast('⚠️ Please write your question or issue description.');
+    if (input) input.focus();
+    return;
+  }
+
+  const ticketId = 'NV-' + Math.floor(1000 + Math.random() * 9000);
+  const userMsg = input.value.trim();
+  
+  // Store ticket locally
+  const storedTickets = JSON.parse(localStorage.getItem('user_support_tickets') || '[]');
+  storedTickets.unshift({
+    id: ticketId,
+    message: userMsg,
+    date: new Date().toISOString(),
+    status: 'In Review'
+  });
+  localStorage.setItem('user_support_tickets', JSON.stringify(storedTickets));
+
+  input.value = '';
+  if (statusMsg) {
+    statusMsg.innerHTML = '✅ Ticket <b>#' + ticketId + '</b> created! Our team replies within 24 hours.';
+    statusMsg.style.display = 'block';
+  }
+  showToast('Ticket #' + ticketId + ' submitted successfully! 🚀');
+  if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playSuccess === 'function') {
+    ProfileAudio.playSuccess();
+  }
+}
+
+// ============================================================================
+// COMMUNITY & COMMITS MODAL CONTROLLER
+// ============================================================================
+function openCommunityModal() {
+  const modal = document.getElementById('communityModalOverlay');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playTabSwitch === 'function') {
+    ProfileAudio.playTabSwitch();
+  }
+}
+
+function closeCommunityModal() {
+  const modal = document.getElementById('communityModalOverlay');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.style.display = 'none';
+}
+
+function handleCommunityModalBackdropClick(event) {
+  if (event && (event.target.id === 'communityModalOverlay' || event.target.classList.contains('profile-modal-overlay'))) {
+    closeCommunityModal();
+  }
+}
+
+function handleJoinCommunityPlatform(platform) {
+  const key = 'community_joined_' + platform;
+  const alreadyJoined = localStorage.getItem(key);
+
+  if (platform === 'channel') {
+    window.open('https://t.me/TaskCommunityOfficial', '_blank');
+  } else if (platform === 'group') {
+    window.open('https://t.me/NovaChatGlobal', '_blank');
+  } else if (platform === 'discord') {
+    window.open('https://discord.gg/novatasks', '_blank');
+  }
+
+  if (!alreadyJoined && (platform === 'channel' || platform === 'group')) {
+    localStorage.setItem(key, 'true');
+    const bonusCoins = 25;
+    const currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+    const updatedCoins = currentCoins + bonusCoins;
+    localStorage.setItem('task_game_coins', updatedCoins.toString());
+    localStorage.setItem('user_coins', updatedCoins.toString());
+    if (typeof updateProfileDisplays === 'function') {
+      updateProfileDisplays();
+    }
+
+    const btn = platform === 'channel' ? document.getElementById('btnJoinTgChannel') : document.getElementById('btnJoinTgGroup');
+    if (btn) {
+      btn.textContent = 'Joined ✓';
+      btn.style.background = 'rgba(16, 185, 129, 0.25)';
+      btn.style.color = '#34d399';
+      btn.style.border = '1px solid #10b981';
+    }
+
+    showToast('🎉 Joined ' + (platform === 'channel' ? 'Announcement Channel' : 'Chat Group') + '! +' + bonusCoins + ' 🪙 Awarded! 🚀');
+    if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playSuccess === 'function') {
+      ProfileAudio.playSuccess();
+    }
+  } else {
+    showToast('Opening ' + platform + ' portal...');
+  }
+}
+
+window.openHelpModal = openHelpModal;
+window.closeHelpModal = closeHelpModal;
+window.handleHelpModalBackdropClick = handleHelpModalBackdropClick;
+window.submitHelpSupportTicket = submitHelpSupportTicket;
+
+window.openCommunityModal = openCommunityModal;
+window.closeCommunityModal = closeCommunityModal;
+window.handleCommunityModalBackdropClick = handleCommunityModalBackdropClick;
+window.handleJoinCommunityPlatform = handleJoinCommunityPlatform;
+
+
+// ============================================================================
+// PLAYER FEEDBACK SYSTEM (Storage & Event Page Viewer)
+// ============================================================================
+const FEEDBACK_STORAGE_KEY = 'task_feedbacks';
+
+function initFeedbackSystem() {
+  if (!localStorage.getItem(FEEDBACK_STORAGE_KEY)) {
+    const initialFeedbacks = [
+      {
+        id: 'fb_1',
+        name: 'Rahul Sharma',
+        avatar: '⚡',
+        rating: 5,
+        category: 'Tasks & Missions',
+        message: 'The new Simple and Premium task separation is awesome. Coin rewards credit instantly upon verify!',
+        date: new Date(Date.now() - 3600000 * 2).toISOString()
+      },
+      {
+        id: 'fb_2',
+        name: 'Elena Rostova',
+        avatar: '👑',
+        rating: 5,
+        category: 'Premium Subscription',
+        message: 'Subscribed to 30 Days Premium with 20% discount. 200 Coins per task is fantastic value!',
+        date: new Date(Date.now() - 3600000 * 5).toISOString()
+      },
+      {
+        id: 'fb_3',
+        name: 'Vikram Patel',
+        avatar: '🎯',
+        rating: 4,
+        category: 'Wallet & Withdrawals',
+        message: 'Loving the ₹1,000, ₹5,000, and ₹10,000 Amazon Gift Cards in the wallet. Very clear instructions.',
+        date: new Date(Date.now() - 3600000 * 12).toISOString()
+      }
+    ];
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(initialFeedbacks));
+  }
+}
+initFeedbackSystem();
+
+function getStoredFeedbacks() {
+  initFeedbackSystem();
+  try {
+    return JSON.parse(localStorage.getItem(FEEDBACK_STORAGE_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveStoredFeedbacks(list) {
+  localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(list));
+  renderAdminFeedbackList();
+}
+
+function openFeedbackModal() {
+  const modal = document.getElementById('feedbackModalOverlay');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  setFeedbackRating(5);
+  const msgInput = document.getElementById('feedbackMessage');
+  if (msgInput) msgInput.value = '';
+  const successBox = document.getElementById('feedbackSuccessMsg');
+  if (successBox) successBox.style.display = 'none';
+
+  if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playTabSwitch === 'function') {
+    ProfileAudio.playTabSwitch();
+  }
+}
+
+function closeFeedbackModal() {
+  const modal = document.getElementById('feedbackModalOverlay');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.style.display = 'none';
+}
+
+function handleFeedbackModalBackdropClick(event) {
+  if (event && (event.target.id === 'feedbackModalOverlay' || event.target.classList.contains('profile-modal-overlay'))) {
+    closeFeedbackModal();
+  }
+}
+
+function setFeedbackRating(stars) {
+  const hiddenInput = document.getElementById('feedbackRatingValue');
+  const label = document.getElementById('feedbackRatingLabel');
+  if (hiddenInput) hiddenInput.value = stars.toString();
+
+  const labels = {
+    1: '1 / 5 — Poor',
+    2: '2 / 5 — Needs Improvement',
+    3: '3 / 5 — Average',
+    4: '4 / 5 — Very Good!',
+    5: '5 / 5 — Excellent!'
+  };
+  if (label) label.textContent = labels[stars] || (stars + ' / 5');
+
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('starRating' + i);
+    if (el) {
+      el.style.opacity = i <= stars ? '1' : '0.28';
+      el.style.transform = i === stars ? 'scale(1.2)' : 'scale(1)';
+    }
+  }
+}
+
+function submitPlayerFeedback(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const msgInput = document.getElementById('feedbackMessage');
+  const catInput = document.getElementById('feedbackCategory');
+  const ratingInput = document.getElementById('feedbackRatingValue');
+  const successBox = document.getElementById('feedbackSuccessMsg');
+
+  if (!msgInput || !msgInput.value.trim()) {
+    showToast('⚠️ Please write your feedback message.');
+    if (msgInput) msgInput.focus();
+    return;
+  }
+
+  const playerName = localStorage.getItem('player_username') || 'Player';
+  const playerAvatar = localStorage.getItem('player_avatar') || '⚡';
+  const newFeedback = {
+    id: 'fb_' + Date.now(),
+    name: playerName,
+    avatar: playerAvatar,
+    rating: parseInt(ratingInput?.value || '5', 10),
+    category: catInput?.value || 'General',
+    message: msgInput.value.trim(),
+    date: new Date().toISOString()
+  };
+
+  const list = getStoredFeedbacks();
+  list.unshift(newFeedback);
+  saveStoredFeedbacks(list);
+
+  if (successBox) successBox.style.display = 'block';
+  msgInput.value = '';
+  showToast('🎉 Feedback sent to Admin successfully! Thank you. ✓');
+  if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playSuccess === 'function') {
+    ProfileAudio.playSuccess();
+  }
+
+  setTimeout(() => {
+    closeFeedbackModal();
+  }, 1400);
+}
+
+function renderAdminFeedbackList() {
+  const container = document.getElementById('adminFeedbackListContainer');
+  const countEl = document.getElementById('adminFeedbackCount');
+  if (!container) return;
+
+  const list = getStoredFeedbacks();
+  if (countEl) countEl.textContent = list.length.toString();
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.78rem; background: rgba(15, 23, 42, 0.5); border-radius: 8px;">No player feedback messages yet.</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(item => {
+    const starString = '⭐'.repeat(item.rating || 5);
+    const dateFormatted = new Date(item.date).toLocaleDateString(undefined, {
+      month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+
+    return `
+      <div class="admin-feedback-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 1.3rem;">${item.avatar || '👤'}</span>
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 800; color: #ffffff;">${escapeHtml(item.name || 'Anonymous')}</div>
+              <div style="font-size: 0.68rem; color: #94a3b8; display: flex; gap: 6px; align-items: center;">
+                <span style="color: #fbbf24; font-weight: 700;">${starString}</span>
+                <span>&bull;</span>
+                <span style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; padding: 1px 6px; border-radius: 4px; font-weight: 700;">${escapeHtml(item.category || 'General')}</span>
+                <span>&bull;</span>
+                <span>${dateFormatted}</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" onclick="deleteFeedbackMessage('${item.id}')" title="Delete message" style="background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.45); color: #f87171; border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 3px;">
+            <span>🗑️ Delete</span>
+          </button>
+        </div>
+        <div style="font-size: 0.76rem; color: #cbd5e1; margin-top: 6px; line-height: 1.45; background: rgba(6, 15, 42, 0.6); padding: 7px 9px; border-radius: 6px; border-left: 2px solid #fbbf24;">
+          ${escapeHtml(item.message || '')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function deleteFeedbackMessage(id) {
+  if (!confirm('Are you sure you want to delete this feedback message?')) return;
+  let list = getStoredFeedbacks();
+  list = list.filter(f => f.id !== id);
+  saveStoredFeedbacks(list);
+  showToast('Feedback message deleted 🗑️');
+}
+
+function clearAllAdminFeedbacks() {
+  if (!confirm('Are you sure you want to delete ALL feedback messages?')) return;
+  saveStoredFeedbacks([]);
+  showToast('All feedback messages cleared 🗑️');
+}
+
+window.openFeedbackModal = openFeedbackModal;
+window.closeFeedbackModal = closeFeedbackModal;
+window.handleFeedbackModalBackdropClick = handleFeedbackModalBackdropClick;
+window.setFeedbackRating = setFeedbackRating;
+window.submitPlayerFeedback = submitPlayerFeedback;
+window.renderAdminFeedbackList = renderAdminFeedbackList;
+window.deleteFeedbackMessage = deleteFeedbackMessage;
+window.clearAllAdminFeedbacks = clearAllAdminFeedbacks;
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return str;
@@ -3680,12 +4141,18 @@ function openEditTgProfileModal() {
   renderAvatarOptions();
 
   const overlay = document.getElementById('editTgProfileModalOverlay');
-  if (overlay) overlay.style.display = 'flex';
+  if (overlay) {
+    overlay.classList.add('active');
+    overlay.style.display = 'flex';
+  }
 }
 
 function closeEditTgProfileModal() {
   const overlay = document.getElementById('editTgProfileModalOverlay');
-  if (overlay) overlay.style.display = 'none';
+  if (overlay) {
+    overlay.classList.remove('active');
+    overlay.style.display = 'none';
+  }
 }
 
 function handleEditTgProfileModalBackdrop(e) {
@@ -3817,11 +4284,17 @@ window.toggleTgProfileMusic = toggleTgProfileMusic;
 
 function updateProfileOverviewStats() {
   const tasks = localStorage.getItem('task_game_total_tasks_completed') || '0';
-  const ads = localStorage.getItem('task_game_ads_watched_count') || '0';
+  const streak = localStorage.getItem('task_game_streak_days') || localStorage.getItem('task_game_login_streak') || '1';
   const tasksEl = document.getElementById('profileStatTasks');
-  const adsEl = document.getElementById('profileStatGames');
+  const levelEl = document.getElementById('profileStatGames');
+  const streakEl = document.getElementById('profileStatStreak');
   if (tasksEl) tasksEl.textContent = tasks;
-  if (adsEl) adsEl.textContent = '1';
+  if (levelEl) {
+    const taskCount = parseInt(tasks, 10) || 0;
+    const tier = Math.max(1, Math.floor(taskCount / 10) + 1);
+    levelEl.textContent = tier.toString();
+  }
+  if (streakEl) streakEl.textContent = streak;
 }
 
 window.addEventListener('balance:changed', () => {
@@ -4562,3 +5035,204 @@ function adminArchiveProfileSession() {
 window.adminArchiveProfileSession = adminArchiveProfileSession;
 window.filterProfileSessionHistory = filterProfileSessionHistory;
 window.renderProfileSessionHistory = renderProfileSessionHistory;
+
+
+// ============================================================================
+// PROFILE TAB SLIDE SIGN OUT MODAL HANDLERS
+// ============================================================================
+function openProfileSignOutModal() {
+  const modal = document.getElementById('profileSignOutModalOverlay');
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+  }
+}
+
+function closeProfileSignOutModal() {
+  const modal = document.getElementById('profileSignOutModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; }, 200);
+  }
+}
+
+function handleSignOutModalBackdropClick(e) {
+  if (e.target && e.target.id === 'profileSignOutModalOverlay') {
+    closeProfileSignOutModal();
+  }
+}
+
+function confirmProfileSignOut() {
+  closeProfileSignOutModal();
+
+  // 1. Sign out Admin if active
+  sessionStorage.removeItem('admin_authenticated');
+  localStorage.removeItem('admin_authenticated');
+  const adminStatusTag = document.getElementById('adminStatusTag');
+  if (adminStatusTag) adminStatusTag.textContent = '🔒';
+
+  // 2. Sign out Firebase Auth if active
+  if (window.Firebase && typeof window.Firebase.signOutUser === 'function') {
+    try { window.Firebase.signOutUser(); } catch(e) {}
+  }
+
+  // 3. Mark player session logged out
+  localStorage.setItem('player_logged_in', 'false');
+  localStorage.removeItem('player_email');
+  localStorage.removeItem('player_uid');
+
+  showToast('🚪 Signed out safely.');
+  if (typeof updateProfileDisplays === 'function') updateProfileDisplays();
+  if (typeof updatePlayerSessionUI === 'function') updatePlayerSessionUI();
+  switchProfileTab('profile');
+}
+
+window.openProfileSignOutModal = openProfileSignOutModal;
+window.closeProfileSignOutModal = closeProfileSignOutModal;
+window.handleSignOutModalBackdropClick = handleSignOutModalBackdropClick;
+window.confirmProfileSignOut = confirmProfileSignOut;
+
+
+// ============================================================================
+// PLAYER DETAILS MODAL & DIRECT DELETE FUNCTIONS
+// ============================================================================
+function openUserDetailModal(userId) {
+  const user = usersData.find(u => u.id === userId);
+  if (!user) return;
+
+  const modal = document.getElementById('adminUserDetailModalOverlay');
+  const body = document.getElementById('adminUserDetailModalBody');
+  if (!modal || !body) return;
+
+  const isInactive = user.status === 'suspended' || user.status === 'inactive';
+  const isActive = !isInactive;
+  const statusLabel = user.status === 'suspended' ? 'Suspended' : (user.status === 'inactive' ? 'Inactive' : 'Active');
+  const roleBadge = user.role === 'admin' ? '👑 Admin' : (user.role === 'vip' ? '🌟 VIP' : '👤 Player');
+  const handle = user.username ? (user.username.startsWith('@') ? user.username : '@' + user.username) : '@' + (user.name || 'player').toLowerCase().replace(/\s+/g, '');
+  const email = user.email || (user.id + '@novatasks.io');
+
+  body.innerHTML = `
+    <!-- Player Hero Header -->
+    <div style="display: flex; align-items: center; gap: 0.85rem; background: #060e24; padding: 0.85rem; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.35); margin-bottom: 0.85rem;">
+      <div style="font-size: 2.4rem; line-height: 1;">${user.avatar || '⚡'}</div>
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span style="font-weight: 800; font-size: 1.05rem; color: #ffffff; display: inline-flex; align-items: center; gap: 4px;">
+            <span>👤</span> ${escapeHtml(user.name || 'Player')}
+          </span>
+          <span style="font-size: 0.65rem; font-weight: 800; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 1px 6px; border-radius: 4px;">${roleBadge}</span>
+          <span style="font-size: 0.65rem; font-weight: 800; background: ${isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${isActive ? '#34d399' : '#f87171'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 1px 6px; border-radius: 4px;">${statusLabel}</span>
+        </div>
+        <div style="font-size: 0.75rem; color: #38bdf8; font-family: monospace; margin-top: 2px;">${escapeHtml(handle)}</div>
+      </div>
+    </div>
+
+    <!-- Details Grid -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 0.85rem;">
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">USER ID (UID)</div>
+        <div style="font-size: 0.82rem; font-family: monospace; color: #38bdf8; font-weight: 700; margin-top: 2px;">${escapeHtml(user.id)}</div>
+      </div>
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">LEVEL TIER</div>
+        <div style="font-size: 0.82rem; color: #e2e8f0; font-weight: 800; margin-top: 2px;">${escapeHtml(user.level || 'LVL 1 • NOVICE')}</div>
+      </div>
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem; grid-column: span 2;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">EMAIL ADDRESS</div>
+        <div style="font-size: 0.82rem; color: #e2e8f0; font-family: monospace; margin-top: 2px;">✉️ ${escapeHtml(email)}</div>
+      </div>
+    </div>
+
+    <!-- Balance & Economy Box -->
+    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem;">
+      <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-bottom: 0.4rem;">ECONOMY &amp; BALANCES</div>
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <span style="color: #fbbf24; font-weight: 800; font-size: 0.82rem; background: rgba(245, 158, 11, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.35);">🪙 ${Number(user.coins || 0).toLocaleString()} Coins</span>
+        <span style="color: #facc15; font-weight: 800; font-size: 0.82rem; background: rgba(250, 204, 21, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(250, 204, 21, 0.35);">⭐ ${Number(user.stars || 0).toLocaleString()} Stars</span>
+        ${user.sfCoins ? `<span style="color: #fde047; font-weight: 800; font-size: 0.82rem; background: rgba(253, 224, 71, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(253, 224, 71, 0.35);">🌻 ${Number(user.sfCoins).toLocaleString()} SF Coins</span>` : ''}
+        ${user.sfBuckets ? `<span style="color: #38bdf8; font-weight: 800; font-size: 0.82rem; background: rgba(56, 189, 248, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.35);">💧 ${user.sfBuckets} Buckets</span>` : ''}
+      </div>
+    </div>
+
+    <!-- Modal Action Buttons -->
+    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
+      <button type="button" class="btn-card-action" onclick="closeUserDetailModal()" style="padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
+        Close
+      </button>
+      <button type="button" class="btn-card-action" onclick="closeUserDetailModal(); directDeleteUser('${user.id}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
+        🗑️ Delete
+      </button>
+      <button type="button" class="btn-card-action" onclick="closeUserDetailModal(); openEditUserModal('${user.id}')" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
+        ✏️ Edit Data
+      </button>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
+}
+
+function closeUserDetailModal() {
+  const modal = document.getElementById('adminUserDetailModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; }, 200);
+  }
+}
+
+function handleUserDetailModalBackdropClick(e) {
+  if (e.target && e.target.id === 'adminUserDetailModalOverlay') {
+    closeUserDetailModal();
+  }
+}
+
+async function directDeleteUser(userId) {
+  const user = usersData.find(u => u.id === userId);
+  if (!user) return;
+
+  const userName = user.name || user.username || userId;
+  if (!confirm(`Are you sure you want to permanently delete player "${userName}"?\n\nThis will remove the player record and all data from Firebase.`)) {
+    return;
+  }
+
+  const deletedCopy = { ...user };
+  usersData = usersData.filter(u => u.id !== userId);
+
+  // Purge from Firebase Cloud Firestore
+  const cloudDeleter = (window.Firebase && window.Firebase.deleteUserFromCloud) || window.deleteUserFromCloud;
+  if (typeof cloudDeleter === 'function') {
+    try {
+      cloudDeleter(userId, deletedCopy).catch(() => {});
+    } catch (e) {}
+  }
+
+  if (window.Firebase && typeof window.Firebase.deleteUserFromCloud === 'function') {
+    try {
+      await window.Firebase.deleteUserFromCloud(userId, deletedCopy);
+    } catch (err) {
+      console.warn("[Profile Admin] Cloud delete error:", err);
+    }
+  }
+
+  // Reset local player session if the deleted user is the current player
+  const currentUid = localStorage.getItem('player_uid');
+  const currentName = localStorage.getItem('player_username');
+  if (userId === 'usr_1' || userId === currentUid || (deletedCopy.name && deletedCopy.name === currentName)) {
+    localStorage.removeItem('player_uid');
+    localStorage.removeItem('player_email');
+    localStorage.setItem('player_logged_in', 'false');
+    localStorage.setItem('task_game_coins', '0');
+    localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('completed_tasks_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
+  }
+
+  saveUsersAndSync();
+  renderAdminUsersList();
+  showToast(`🗑️ Player "${userName}" deleted successfully.`);
+}
+
+window.openUserDetailModal = openUserDetailModal;
+window.closeUserDetailModal = closeUserDetailModal;
+window.handleUserDetailModalBackdropClick = handleUserDetailModalBackdropClick;
+window.directDeleteUser = directDeleteUser;

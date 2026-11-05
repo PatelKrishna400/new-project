@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 /* ==========================================================================
    TELEGRAM STARS (XTR) PAYMENT & TOP-UP SYSTEM STYLES
    Official Telegram Stars UI • Fragment TON • MTProto Transaction Ledger
@@ -720,4 +721,9 @@
 .leaderboard-prizes-card,
 .qualification-card {
   display: none !important;
+}
+
+/* Global Fredoka Typography for All Text, Headings & Paragraphs */
+h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

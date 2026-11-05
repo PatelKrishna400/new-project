@@ -289,61 +289,447 @@ function showFloatingCoin(targetElement, text) {
   }, 800);
 }
 
-// Dynamic Task Rendering with Open / Verify & Fixed 5 Star Reward
+
+
+// ==========================================================================
+// ==========================================================================
+// VIP SUBSCRIPTION SYSTEM (15 Days / 30 Days / 3 Months with Daily Limits)
+// Starter Pass: 5 tasks/day | Popular: 10 tasks/day | Best Value: 20 tasks/day
+// ==========================================================================
+const VIP_STORAGE_KEY = 'premium_vip_expiry';
+const VIP_PLAN_KEY = 'premium_vip_plan';
+const VIP_DAILY_LIMIT_KEY = 'premium_vip_daily_limit';
+const VIP_TODAY_DATE_KEY = 'premium_tasks_today_date';
+const VIP_TODAY_COUNT_KEY = 'premium_tasks_today_count';
+
+function getTodayDateKey() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getVipSubscriptionExpiry() {
+  const expiry = parseInt(localStorage.getItem(VIP_STORAGE_KEY) || '0', 10);
+  return isNaN(expiry) ? 0 : expiry;
+}
+
+function hasActivePremiumSubscription() {
+  const expiry = getVipSubscriptionExpiry();
+  return expiry > Date.now();
+}
+
+function getRemainingVipDays() {
+  const expiry = getVipSubscriptionExpiry();
+  const diff = expiry - Date.now();
+  if (diff <= 0) return 0;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function getVipDailyTaskLimit() {
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 20;
+  if (plan === '30days') return 10;
+  return 5; // Starter pass is 5 tasks/day
+}
+
+function getVipMaxAllowedLevel() {
+  if (!hasActivePremiumSubscription()) return 0;
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 5;
+  if (plan === '30days') return 4;
+  return 2; // 15days plan allows Level 1 & Level 2 tasks
+}
+
+function getVipPlanName() {
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 'Best Value Pass (20 tasks/day, Levels 1-5)';
+  if (plan === '30days') return 'Popular Pass (10 tasks/day, Levels 1-4)';
+  return 'Starter Pass (5 tasks/day, Levels 1-2)';
+}
+
+function getTodayCompletedPremiumTasksCount() {
+  const todayKey = getTodayDateKey();
+  const storedDate = localStorage.getItem(VIP_TODAY_DATE_KEY);
+  if (storedDate !== todayKey) {
+    localStorage.setItem(VIP_TODAY_DATE_KEY, todayKey);
+    localStorage.setItem(VIP_TODAY_COUNT_KEY, '0');
+    return 0;
+  }
+  const count = parseInt(localStorage.getItem(VIP_TODAY_COUNT_KEY) || '0', 10);
+  return isNaN(count) ? 0 : count;
+}
+
+function hasReachedDailyTaskLimit() {
+  const count = getTodayCompletedPremiumTasksCount();
+  const limit = getVipDailyTaskLimit();
+  return count >= limit;
+}
+
+function incrementTodayCompletedPremiumTasks() {
+  const count = getTodayCompletedPremiumTasksCount();
+  localStorage.setItem(VIP_TODAY_COUNT_KEY, (count + 1).toString());
+}
+
+window.hasActivePremiumSubscription = hasActivePremiumSubscription;
+window.getRemainingVipDays = getRemainingVipDays;
+window.getVipDailyTaskLimit = getVipDailyTaskLimit;
+window.getVipMaxAllowedLevel = getVipMaxAllowedLevel;
+window.getVipPlanName = getVipPlanName;
+window.getTodayCompletedPremiumTasksCount = getTodayCompletedPremiumTasksCount;
+window.hasReachedDailyTaskLimit = hasReachedDailyTaskLimit;
+window.incrementTodayCompletedPremiumTasks = incrementTodayCompletedPremiumTasks;
+
+window.openSubscriptionModal = function() {
+  const modal = document.getElementById('vipSubscriptionModal');
+  if (!modal) return;
+  const userStarsDisplay = document.getElementById('vipModalUserStars');
+  const userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  if (userStarsDisplay) userStarsDisplay.textContent = userStars.toLocaleString();
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
+};
+
+window.closeSubscriptionModal = function() {
+  const modal = document.getElementById('vipSubscriptionModal');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; }, 200);
+  }
+};
+
+window.handleVipModalBackdropClick = function(e) {
+  if (e.target && e.target.id === 'vipSubscriptionModal') {
+    closeSubscriptionModal();
+  }
+};
+
+window.handleDailyLimitReachedClick = function() {
+  const planKey = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  const planName = getVipPlanName();
+  const dailyLimit = getVipDailyTaskLimit();
+
+  if (planKey === '90days') {
+    alert(`🛑 Daily Limit Reached!\n\nYou have completed your maximum quota of ${dailyLimit} Premium Tasks today on the ${planName}.\n\nYour limit will automatically reset tomorrow at midnight!`);
+  } else {
+    const upgradeText = planKey === '15days'
+      ? 'Popular Pass (10 tasks/day) or Best Value Pass (20 tasks/day)'
+      : 'Best Value Pass (20 tasks/day)';
+    if (confirm(`🛑 Daily Limit Reached!\n\nYou have completed ${dailyLimit}/${dailyLimit} Premium Tasks today on your ${planName}.\n\nWould you like to upgrade your VIP Pass to ${upgradeText} to complete more tasks per day?`)) {
+      openSubscriptionModal();
+    }
+  }
+};
+
+window.purchaseVipPlan = function(planKey) {
+  const plans = {
+    '15days': { days: 15, stars: 500, label: 'Starter Pass', dailyLimit: 5, maxLevel: 2 },
+    '30days': { days: 30, stars: 1000, label: 'Popular Pass', dailyLimit: 10, maxLevel: 4 },
+    '90days': { days: 90, stars: 5000, label: 'Best Value Pass', dailyLimit: 20, maxLevel: 5 }
+  };
+  const plan = plans[planKey];
+  if (!plan) return;
+
+  let currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  if (currentStars < plan.stars) {
+    alert(`❌ Insufficient Stars! You need ${plan.stars.toLocaleString()} ⭐ for the ${plan.label} (${plan.dailyLimit} tasks/day), but you currently have ${currentStars.toLocaleString()} ⭐.\n\nPlease earn more stars or visit the Shop to top up!`);
+    return;
+  }
+
+  // Deduct stars
+  currentStars -= plan.stars;
+  localStorage.setItem('task_game_stars', currentStars.toString());
+  localStorage.setItem('user_stars', currentStars.toString());
+
+  // Calculate new expiry (extends if already active)
+  const now = Date.now();
+  const currentExpiry = getVipSubscriptionExpiry();
+  const baseTime = (currentExpiry > now) ? currentExpiry : now;
+  const newExpiry = baseTime + (plan.days * 24 * 60 * 60 * 1000);
+
+  localStorage.setItem(VIP_STORAGE_KEY, newExpiry.toString());
+  localStorage.setItem(VIP_PLAN_KEY, planKey);
+  localStorage.setItem(VIP_DAILY_LIMIT_KEY, plan.dailyLimit.toString());
+  localStorage.setItem('premium_vip_activated_at', now.toString());
+
+  // Notify cross-tab channels of VIP update (including 30-day/90-day 20 shop limit upgrade)
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'VIP_PURCHASED', plan: planKey, timestamp: now });
+  } catch (e) {}
+
+  // Update displays & play audio
+  updateCoinDisplay();
+  if (window.HomeAudio && typeof window.HomeAudio.playCoinClaim === 'function') {
+    window.HomeAudio.playCoinClaim();
+  }
+
+  // Sync balances with cloud if available
+  if (typeof window.syncBalancesWithCloud === 'function') {
+    try { window.syncBalancesWithCloud(); } catch(e) {}
+  }
+
+  closeSubscriptionModal();
+
+  // Floating celebration notification
+  const targetBtn = document.getElementById('tabPremiumTasks') || document.body;
+  if (typeof showFloatingCoin === 'function') {
+    showFloatingCoin(targetBtn, `👑 ${plan.label} (${plan.dailyLimit} Tasks/Day, Levels 1-${plan.maxLevel}) Activated!`);
+  }
+
+  // Switch to Premium Tasks tab & render
+  switchTaskTab('premium');
+};
+
+let currentTaskTab = localStorage.getItem('task_active_tab') || 'simple';
+
+window.switchTaskTab = function(tab) {
+  // If user clicks Premium Tasks without active subscription, open the 3-plans subscription popup
+  if (tab === 'premium' && !hasActivePremiumSubscription()) {
+    openSubscriptionModal();
+    return;
+  }
+
+  currentTaskTab = tab;
+  localStorage.setItem('task_active_tab', tab);
+
+  const tabSimple = document.getElementById('tabSimpleTasks');
+  const tabPremium = document.getElementById('tabPremiumTasks');
+  const banner = document.getElementById('tasksModeBanner');
+  const badge = document.getElementById('modeBannerBadge');
+  const title = document.getElementById('modeBannerTitle');
+  const desc = document.getElementById('modeBannerDesc');
+
+  if (tab === 'premium') {
+    if (tabSimple) tabSimple.classList.remove('active');
+    if (tabPremium) tabPremium.classList.add('active');
+    if (banner) banner.classList.add('banner-premium');
+    const daysLeft = getRemainingVipDays();
+    const dailyLimit = getVipDailyTaskLimit();
+    const completedToday = getTodayCompletedPremiumTasksCount();
+    const remainingToday = Math.max(0, dailyLimit - completedToday);
+    const planName = getVipPlanName();
+
+    if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
+    if (title) title.innerHTML = '💎 Premium VIP Tasks';
+    if (desc) {
+      if (completedToday >= dailyLimit) {
+        desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
+      } else {
+        desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
+      }
+    }
+  } else {
+    if (tabPremium) tabPremium.classList.remove('active');
+    if (tabSimple) tabSimple.classList.add('active');
+    if (banner) banner.classList.remove('banner-premium');
+    if (badge) badge.textContent = 'STANDARD MISSIONS';
+    if (title) title.innerHTML = '📋 Simple Tasks';
+    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
+  }
+
+  renderTasks();
+};
+
+// Dynamic Task Rendering with Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
 function renderTasks() {
   const container = document.getElementById('tasksList');
   if (!container) return;
 
+  const activeTab = localStorage.getItem('task_active_tab') || 'simple';
+
+  // Ensure banner & tab buttons match activeTab
+  const tabSimple = document.getElementById('tabSimpleTasks');
+  const tabPremium = document.getElementById('tabPremiumTasks');
+  const banner = document.getElementById('tasksModeBanner');
+  const badge = document.getElementById('modeBannerBadge');
+  const title = document.getElementById('modeBannerTitle');
+  const desc = document.getElementById('modeBannerDesc');
+
+  const isVipActive = hasActivePremiumSubscription();
+  const daysLeft = getRemainingVipDays();
+  const dailyLimit = getVipDailyTaskLimit();
+  const completedToday = getTodayCompletedPremiumTasksCount();
+  const remainingToday = Math.max(0, dailyLimit - completedToday);
+  const limitReached = isVipActive && (completedToday >= dailyLimit);
+
+  if (activeTab === 'premium') {
+    if (tabSimple) tabSimple.classList.remove('active');
+    if (tabPremium) tabPremium.classList.add('active');
+    if (banner) banner.classList.add('banner-premium');
+    if (isVipActive) {
+      const planName = getVipPlanName();
+      if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
+      if (title) title.innerHTML = '💎 Premium VIP Tasks';
+      if (desc) {
+        if (limitReached) {
+          desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
+        } else {
+          desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
+        }
+      }
+    } else {
+      if (badge) badge.textContent = '🔒 VIP SUBSCRIPTION REQUIRED';
+      if (title) title.innerHTML = '💎 Premium VIP Tasks';
+      if (desc) desc.innerHTML = 'Subscription required for Premium Tasks. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Unlock VIP Now ↗</button>';
+    }
+  } else {
+    if (tabPremium) tabPremium.classList.remove('active');
+    if (tabSimple) tabSimple.classList.add('active');
+    if (banner) banner.classList.remove('banner-premium');
+    if (badge) badge.textContent = 'STANDARD MISSIONS';
+    if (title) title.innerHTML = '📋 Simple Tasks';
+    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
+  }
+
   const tasks = getStoredTasks();
   const completedTasks = getStoredCompletedTasks();
-
   const claims = getStoredClaims();
 
-  // Once a user finishes a task, remove it from the home page permanently.
-  // Never show it a second time in life!
+  // Active uncompleted tasks
   const activeTasks = tasks.filter(t => {
     if (!t || t.active === false) return false;
-    // Permanent completion check: If completed or claimed by user, remove permanently
     if (completedTasks && completedTasks[t.id]) return false;
     if (claims && claims[t.id]) return false;
     return true;
   });
 
-  if (activeTasks.length === 0) {
+  const isTaskShop = (t) => t.category === 'shop_task' || t.isShopTask || (t.title && t.title.toLowerCase().includes('shop task'));
+
+  // Calculate and update category count badges
+  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || (!t.category && !isTaskShop(t)));
+  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || isTaskShop(t));
+
+  // Level Gating:
+  // 15 days plan: only show Level 1 & Level 2 tasks
+  // 30 days plan: show Level 1, 2, 3, 4 tasks
+  // 3 months (90 days) plan: show Level 1, 2, 3, 4, 5 tasks (all)
+  const maxAllowedLevel = getVipMaxAllowedLevel();
+  const premiumTasks = isVipActive 
+    ? allPremiumTasks.filter(t => {
+        const lvl = parseInt(t.level || 1, 10);
+        return lvl <= maxAllowedLevel;
+      })
+    : allPremiumTasks;
+
+  const simpleBadge = document.getElementById('simpleTasksCount');
+  const premiumBadge = document.getElementById('premiumTasksCount');
+  if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
+  if (premiumBadge) premiumBadge.textContent = premiumTasks.length;
+
+  const currentList = (activeTab === 'premium') ? premiumTasks : simpleTasks;
+
+  if (activeTab === 'premium' && !isVipActive) {
     container.innerHTML = `
-      <div class="empty-tasks-box">
-        <div class="empty-tasks-icon">🎯</div>
-        <div class="empty-tasks-text">All webtasks completed! Great job!</div>
-        <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
+      <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.45); padding: 2rem 1rem;">
+        <div class="empty-tasks-icon" style="font-size: 2.8rem;">🔒</div>
+        <div class="empty-tasks-text" style="color: #facc15; font-size: 1.15rem; font-weight: 900;">Premium VIP Tasks Locked</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.5rem auto 1.25rem; max-width: 320px; line-height: 1.45;">
+          Subscribe to VIP Pass to unlock exclusive high-reward missions and claim massive Star earnings!
+        </div>
+        <button type="button" class="btn-claim" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 900; padding: 0.65rem 1.6rem; border-radius: 12px; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45); cursor: pointer;">
+          👑 View VIP Subscription Plans
+        </button>
       </div>
     `;
     return;
   }
 
-  // Show first 5 tasks only. When a user finishes one, it is removed and the next task in queue appears automatically!
-  const visibleTasks = activeTasks.slice(0, 5);
+  if (currentList.length === 0) {
+    if (activeTab === 'premium') {
+      const lockedHigher = allPremiumTasks.length - premiumTasks.length;
+      container.innerHTML = `
+        <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.35);">
+          <div class="empty-tasks-icon">💎</div>
+          <div class="empty-tasks-text" style="color: #facc15;">No Premium VIP Tasks Available</div>
+          <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.35rem;">
+            ${lockedHigher > 0 ? `${lockedHigher} higher-level tasks locked on your current plan. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer;">Upgrade Pass ↗</button>` : 'New VIP missions created by admin will appear here immediately!'}
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-tasks-box">
+          <div class="empty-tasks-icon">🎯</div>
+          <div class="empty-tasks-text">All simple webtasks completed! Great job!</div>
+          <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
+        </div>
+      `;
+    }
+    return;
+  }
 
-  container.innerHTML = visibleTasks.map(task => {
+  let statusBarHtml = '';
+  if (activeTab === 'premium' && isVipActive) {
+    const lockedHigherCount = allPremiumTasks.length - premiumTasks.length;
+    if (limitReached) {
+      statusBarHtml = `
+        <div class="vip-daily-status-bar limit-reached" style="background: rgba(239, 68, 68, 0.12); border: 1.5px solid rgba(239, 68, 68, 0.45); border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+          <div>
+            <div style="color: #f87171; font-weight: 900; font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>🛑</span> Daily Quota Reached (${completedToday}/${dailyLimit} Tasks)
+            </div>
+            <div style="color: #94a3b8; font-size: 0.7rem; margin-top: 0.15rem;">
+              You've completed all ${dailyLimit} tasks allowed today for your plan. Resets at midnight!
+            </div>
+          </div>
+          ${localStorage.getItem('premium_vip_plan') !== '90days' ? '<button type="button" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; border: none; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.72rem; cursor: pointer; white-space: nowrap;">Upgrade Pass ↗</button>' : ''}
+        </div>
+      `;
+    } else {
+      statusBarHtml = `
+        <div class="vip-daily-status-bar" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 0.55rem 0.9rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+          <span style="font-size: 0.75rem; color: #bae6fd; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+            <span>⚡</span> Daily Progress: <b style="color: #ffffff;">${completedToday} / ${dailyLimit}</b> Tasks • Lvl 1-${maxAllowedLevel}
+          </span>
+          <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">
+            ${remainingToday} Left ${lockedHigherCount > 0 ? `<button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; margin-left:4px;">(${lockedHigherCount} Locked ↗)</button>` : ''}
+          </span>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = statusBarHtml + currentList.map(task => {
     const opened = isTaskOpened(task.id);
+    const taskShop = isTaskShop(task);
+    const isPremium = task.category === 'premium' || taskShop;
+    const taskLevel = parseInt(task.level || 1, 10);
+    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : 50));
+    const shopExtension = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
 
-    // "first tab on claim to change a open than click open button link open than open button change to verify button"
     let btnHtml = '';
-    if (opened) {
+    if (isPremium && limitReached) {
+      btnHtml = `<button type="button" class="btn-claim btn-task-limit" onclick="handleDailyLimitReachedClick()" style="background: #334155; color: #94a3b8; border: 1px solid #475569; cursor: pointer;">Limit Reached (${completedToday}/${dailyLimit})</button>`;
+    } else if (opened) {
       btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
     } else {
       btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
     }
 
+    const cardClass = isPremium ? 'task-card task-card-premium' : 'task-card';
+    let statusPill = '';
+    if (taskShop) {
+      statusPill = `<span class="task-status-pill vip-pill" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-color: #34d399; color: #ffffff;">🛒 +${shopExtension} Shop Limit • Lvl ${taskLevel}</span>`;
+    } else if (isPremium) {
+      statusPill = `<span class="task-status-pill vip-pill">💎 Lvl ${taskLevel} • +${rewardCoins} 🪙</span>`;
+    } else {
+      statusPill = `<span class="task-status-pill ready">🪙 ${rewardCoins} Coins</span>`;
+    }
+
     return `
-      <div class="task-card" id="taskCard_${task.id}">
-        <div class="task-icon-wrap">${task.icon || '⚡'}</div>
-        <div class="task-info">
-          <div class="task-name-row">
-            <span class="task-name">${escapeHtml(task.title)}</span>
-            <span class="task-status-pill ready">⭐ 5 Stars</span>
+      <div class="${cardClass}" id="taskCard_${task.id}">
+        <div class="task-icon-wrap">${task.icon || (taskShop ? '🛒' : (isPremium ? '💎' : '⚡'))}</div>
+        <div class="task-details">
+          <div class="task-header-row">
+            <span class="task-title-text">${escapeHtml(task.title || 'Webtask Mission')}</span>
+            ${statusPill}
           </div>
-          <div class="task-desc-row">
-            <span class="task-reward" style="color: #facc15; font-weight: 800;">+5 ⭐</span>
+          <div class="task-reward-row">
+            <span class="task-reward" style="color: #fbbf24; font-weight: 900;">+${rewardCoins} 🪙</span>
+            ${taskShop ? `<span style="font-size: 0.72rem; color: #34d399; font-weight: 800; margin-left: 6px;">🛒 +${shopExtension} Shop Buy Limit</span>` : ''}
+            ${task.description ? `<span style="font-size: 0.68rem; color: #94a3b8; margin-left: 6px;">• ${escapeHtml(task.description)}</span>` : ''}
           </div>
         </div>
         <div class="task-action-wrap" id="action_${task.id}">
@@ -354,62 +740,14 @@ function renderTasks() {
   }).join('');
 }
 
-// Open Button Click: opens link in new tab, changes button to Verify, opens modal
-window.handleOpenTask = function(taskId) {
-  const tasks = getStoredTasks();
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-
-  // 1. Open task link in a new tab/window
-  const targetLink = (task.link || task.url || '').trim();
-  if (targetLink) {
-    window.open(targetLink, '_blank');
-  }
-
-  // 2. Mark opened in storage
-  setTaskOpened(taskId);
-
-  // 3. Immediately change the button from "Open" to "Verify" on the UI
-  const actionWrap = document.getElementById(`action_${taskId}`);
-  if (actionWrap) {
-    actionWrap.innerHTML = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${taskId}')">Verify</button>`;
-  }
-
-  // 4. Open the verify modal automatically so user can enter the 6-digit code
-  setTimeout(() => {
-    openVerifyModal(taskId);
-  }, 400);
-};
-
 let currentVerifyTaskId = null;
 
+// Open Verify Modal directly
 window.openVerifyModal = function(taskId) {
-  const tasks = getStoredTasks();
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-
   currentVerifyTaskId = taskId;
-
   const modal = document.getElementById('taskVerifyModalOverlay');
-  const titleEl = document.getElementById('verifyModalTaskTitle');
-  const descEl = document.getElementById('verifyModalTaskDesc');
-  const iconEl = document.getElementById('verifyModalTaskIcon');
-  const linkBtn = document.getElementById('verifyModalLinkBtn');
   const codeInput = document.getElementById('verifyCodeInput');
   const errorMsg = document.getElementById('verifyErrorMsg');
-
-  if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
-  if (descEl) descEl.textContent = 'Enter 6-digit verification code to win +5 ⭐';
-  if (iconEl) iconEl.textContent = task.icon || '⚡';
-  if (linkBtn) {
-    const url = (task.link || task.url || '').trim();
-    if (url) {
-      linkBtn.href = url;
-      linkBtn.style.display = 'inline-flex';
-    } else {
-      linkBtn.style.display = 'none';
-    }
-  }
   if (codeInput) {
     codeInput.value = '';
     codeInput.classList.remove('input-error');
@@ -426,6 +764,41 @@ window.openVerifyModal = function(taskId) {
       if (codeInput) codeInput.focus();
     }, 200);
   }
+};
+
+// Open Button Click: opens link in new tab, changes button to Verify, opens modal
+window.handleOpenTask = function(taskId) {
+  const tasks = getStoredTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const isTaskShop = task.category === 'shop_task' || task.isShopTask || (task.title && task.title.toLowerCase().includes('shop task'));
+  const isPremium = task.category === 'premium' || isTaskShop;
+
+  if (isPremium) {
+    if (!hasActivePremiumSubscription()) {
+      openSubscriptionModal();
+      return;
+    }
+    const maxLevel = getVipMaxAllowedLevel();
+    const taskLevel = parseInt(task.level || 1, 10);
+    if (taskLevel > maxLevel) {
+      alert(`🔒 Level ${taskLevel} Mission Locked!\n\nYour current VIP plan unlocks tasks up to Level ${maxLevel}.\nUpgrade your plan to unlock Level ${taskLevel} missions!`);
+      openSubscriptionModal();
+      return;
+    }
+    if (hasReachedDailyTaskLimit()) {
+      handleDailyLimitReachedClick();
+      return;
+    }
+  }
+
+  setTaskOpened(taskId);
+  if (task.url || task.link) {
+    window.open(task.url || task.link, '_blank');
+  }
+  openVerifyModal(taskId);
+  renderTasks();
 };
 
 window.closeVerifyModal = function() {
@@ -447,15 +820,12 @@ window.handleVerifyModalBackdropClick = function(e) {
 
 window.handleVerifyCodeInput = function(input) {
   if (!input) return;
-  // Allow only digits
   input.value = input.value.replace(/[^0-9]/g, '');
   const errorMsg = document.getElementById('verifyErrorMsg');
   if (errorMsg) errorMsg.style.display = 'none';
   input.classList.remove('input-error');
 };
 
-// Verify button submit handler:
-// "user code and verification are same than task compelted than win 5 star each task that fixed a reward . and fininshed task remove. new add automatically."
 window.submitTaskVerification = function(event) {
   if (event) event.preventDefault();
 
@@ -470,7 +840,6 @@ window.submitTaskVerification = function(event) {
 
   const correctCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
 
-  // Validate 6-digit code:
   if (!userCode || (correctCode && userCode !== correctCode)) {
     if (codeInput) {
       codeInput.classList.add('input-error');
@@ -483,32 +852,49 @@ window.submitTaskVerification = function(event) {
     return;
   }
 
-  // Code matches! User wins 5 Stars fixed reward:
-  userStars += 5;
-  localStorage.setItem('task_game_stars', userStars.toString());
-  localStorage.setItem('user_stars', userStars.toString());
+  const isTaskShop = task.category === 'shop_task' || task.isShopTask || (task.title && task.title.toLowerCase().includes('shop task'));
+  const isPremium = task.category === 'premium' || isTaskShop;
+  const rewardAmount = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : 50));
+  userCoins += rewardAmount;
+  localStorage.setItem('task_game_coins', userCoins.toString());
+  localStorage.setItem('user_coins', userCoins.toString());
 
-  // Also track total completed tasks for wallet/leaderboard
+  if (isPremium) {
+    incrementTodayCompletedPremiumTasks();
+  }
+
+  let shopBonusMsg = '';
+  if (isTaskShop) {
+    const extAmount = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
+    const curBonus = parseInt(localStorage.getItem('task_game_shop_bonus_limit') || '0', 10);
+    const newBonus = curBonus + extAmount;
+    localStorage.setItem('task_game_shop_bonus_limit', newBonus.toString());
+    shopBonusMsg = `\n🛒 Shop Buy Limit Extended by +${extAmount}! (Total Bonus: +${newBonus})`;
+
+    try {
+      const syncChannel = new BroadcastChannel('nova_task_sync');
+      syncChannel.postMessage({ type: 'SHOP_LIMIT_EXTENDED', bonusLimit: newBonus, timestamp: Date.now() });
+    } catch (e) {}
+  }
+
   let completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
   localStorage.setItem('task_game_total_tasks_completed', completedCount.toString());
   localStorage.setItem('completed_tasks_count', completedCount.toString());
   recordLeaderboardEventTask(completedCount);
 
-  // Mark task completed so finished task is removed:
   markTaskCompleted(task.id);
-
-  // Update coin & star display
   updateCoinDisplay();
 
-  // Audio and floating animation
   HomeAudio.playCoinClaim();
   const submitBtn = document.getElementById('btnVerifyConfirm');
-  if (submitBtn) showFloatingCoin(submitBtn, '+5 ⭐ Won!');
+  if (submitBtn) showFloatingCoin(submitBtn, `+${rewardAmount} 🪙 Won!${isTaskShop ? ' +Limit' : ''}`);
 
-  // Close modal
   closeVerifyModal();
 
-  // "fininshed task remove. new add automatically."
+  if (shopBonusMsg) {
+    alert(`🎉 Mission Verified!\n\nYou earned +${rewardAmount} 🪙 Coins!${shopBonusMsg}\nYou can now purchase more items in the Shop!`);
+  }
+
   const taskCard = document.getElementById(`taskCard_${task.id}`);
   if (taskCard) {
     taskCard.style.transition = 'all 0.35s ease';

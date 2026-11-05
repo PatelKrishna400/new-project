@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 /* Core Resets */
 a {
   text-decoration: none;
@@ -41,7 +42,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   color: #f8fafc;
 }
@@ -1521,7 +1522,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   background: rgba(2, 6, 20, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 10px;
   padding: 0.35rem 0.65rem;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -1532,12 +1533,13 @@ body {
 }
 
 .session-timer-clock {
-  font-family: 'JetBrains Mono', monospace, -apple-system, sans-serif;
-  font-size: 0.82rem;
+  font-family: 'Impact', 'Chakra Petch', 'Arial Black', 'JetBrains Mono', monospace, sans-serif;
+  font-size: 0.95rem;
   font-weight: 900;
-  color: #38bdf8;
-  letter-spacing: 0.04em;
-  text-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+  color: #ffffff !important;
+  letter-spacing: 0.08em;
+  text-shadow: none !important;
+  filter: none !important;
 }
 
 .session-tab-join-btn {
@@ -1725,9 +1727,11 @@ body {
 }
 
 .season-modal-timer-pill .timer-time {
-  color: #38bdf8;
+  color: #ffffff !important;
   font-size: 0.82rem;
   font-weight: 900;
+  text-shadow: none !important;
+  filter: none !important;
 }
 
 .season-modal-body {
@@ -2566,4 +2570,9 @@ body {
 #leaderboardPrizesCard,
 #qualificationCard {
   display: none !important;
+}
+
+/* Global Fredoka Typography for All Text, Headings & Paragraphs */
+h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

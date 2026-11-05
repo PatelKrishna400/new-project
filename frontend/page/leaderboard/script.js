@@ -156,13 +156,17 @@ const GLOBAL_EPOCH_ANCHOR = Date.UTC(2026, 9, 1, 0, 0, 0);
  * 6th - 10th: 500 ⭐
  * 11th - 20th: 100 ⭐
  */
-function getRankStarPrize(rank) {
+function getRankCoinPrize(rank) {
   if (rank === 1) return 10000;
   if (rank === 2) return 5000;
-  if (rank >= 3 && rank <= 5) return 1000;
-  if (rank >= 6 && rank <= 10) return 500;
-  if (rank >= 11 && rank <= 20) return 100;
+  if (rank >= 3 && rank <= 5) return 2500;
+  if (rank >= 6 && rank <= 10) return 1000;
+  if (rank >= 11 && rank <= 15) return 500;
+  if (rank >= 16 && rank <= 20) return 100;
   return 0;
+}
+function getRankStarPrize(rank) {
+  return getRankCoinPrize(rank);
 }
 
 /**
@@ -246,14 +250,15 @@ function getOrCreateLeaderboardEvent() {
  * Format milliseconds into DDd HHh MMm SSs (Global Synchronized Timer)
  */
 function formatTimeRemaining(ms) {
-  if (ms <= 0) return '00d 00h 00m 00s';
+  if (ms <= 0) return '00:00:00:00';
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(totalSec / 86400);
   const hours = Math.floor((totalSec % 86400) / 3600);
   const minutes = Math.floor((totalSec % 3600) / 60);
   const seconds = totalSec % 60;
 
-  return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+  // Digital gaming timer format: DD:HH:MM:SS (e.g. 77:03:28:57)
+  return `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 function startEventCountdownTimer() {
@@ -267,7 +272,7 @@ function startEventCountdownTimer() {
     const seasonTag = document.getElementById('podiumSeasonTag');
     const titleDisplay = document.getElementById('eventTitleDisplay');
 
-    const cleanName = (evt.name || `Season ${evt.seasonNumber || 1}: 3-Month Championship`).replace(/\s*\([^)]*Prize Pool[^)]*\)/i, '');
+    const cleanName = `Season ${evt.seasonNumber || 1}`;
     if (titleDisplay) {
       titleDisplay.textContent = cleanName;
     }
@@ -298,7 +303,11 @@ function startEventCountdownTimer() {
     } else {
       // Event is actively running globally
       const timeStr = formatTimeRemaining(remaining);
-      if (clockEl) clockEl.textContent = timeStr;
+      if (clockEl) {
+        clockEl.textContent = timeStr;
+        clockEl.style.color = '#ffffff';
+        clockEl.style.textShadow = 'none';
+      }
       if (liveBadge) {
         liveBadge.style.display = 'none';
       }
@@ -390,12 +399,16 @@ function finishLeaderboardEvent() {
   const myRank = myIndex >= 0 ? myIndex + 1 : 0;
 
   if (myRank >= 1 && myRank <= 20) {
-    const starReward = getRankStarPrize(myRank);
-    if (starReward > 0) {
-      let currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-      currentStars += starReward;
-      localStorage.setItem('task_game_stars', currentStars.toString());
-      alert(`🎉 3-Month Leaderboard Season Concluded!\n\nOutstanding! You placed Rank #${myRank} and won +${starReward.toLocaleString()} Stars (⭐)!\nYour new balance: ${currentStars.toLocaleString()} ⭐`);
+    const coinReward = getRankCoinPrize(myRank);
+    if (coinReward > 0) {
+      let currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+      currentCoins += coinReward;
+      localStorage.setItem('task_game_coins', currentCoins.toString());
+      localStorage.setItem('user_coins', currentCoins.toString());
+      if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+        window.firebaseSync.addCoins(coinReward, 'Season Rank Reward');
+      }
+      alert(`🎉 3-Month Leaderboard Season Concluded!\n\nOutstanding! You placed Rank #${myRank} and won +${coinReward.toLocaleString()} Coins (🪙)!\nYour new balance: ${currentCoins.toLocaleString()} 🪙`);
     }
   }
 
@@ -444,7 +457,18 @@ window.restartLeaderboardEvent = function (durationHours = THREE_MONTHS_HOURS, n
 
   const now = Date.now();
   const dur = Number(durationHours) || THREE_MONTHS_HOURS;
-  const title = newTitle || 'Season 1: 3-Month Championship';
+  
+  // On season restart: season number does NOT change!
+  let currentSeasonNum = 1;
+  try {
+    const rawEvt = localStorage.getItem(EVENT_STORAGE_KEY);
+    if (rawEvt) {
+      const parsed = JSON.parse(rawEvt);
+      if (parsed && parsed.seasonNumber) currentSeasonNum = parsed.seasonNumber;
+    }
+  } catch(e) {}
+
+  const title = newTitle || `Season ${currentSeasonNum}: 3-Month Championship`;
 
   // 1. Old event task data removed / reset counter to zero
   localStorage.setItem(EVENT_TASKS_KEY, '0');
@@ -463,9 +487,10 @@ window.restartLeaderboardEvent = function (durationHours = THREE_MONTHS_HOURS, n
     }
   } catch (e) { }
 
-  // 3. Create fresh global 3-month event window
+  // 3. Create fresh global 3-month event window with seasonNumber UNCHANGED
   const newEvt = {
-    id: 'evt_' + now,
+    id: `global_season_${currentSeasonNum}`,
+    seasonNumber: currentSeasonNum, // Keep season number unchanged on restart
     name: title,
     startTime: now,
     endTime: now + (dur * 60 * 60 * 1000),
@@ -685,8 +710,8 @@ function renderRealLeaderboard() {
 
         const statsInfo = `${Number(u.totalTasks || 0)} Total Web Tasks`;
         const taskBadge = `<span class="row-task-pill">${Number(u.eventTasks || 0)} 🎯 Season</span>`;
-        const starPrize = getRankStarPrize(rank);
-        const starBadge = starPrize > 0 ? `<span class="row-star-prize">+${starPrize.toLocaleString()} ⭐</span>` : '';
+        const coinPrize = getRankCoinPrize(rank);
+        const starBadge = coinPrize > 0 ? `<span class="row-star-prize">+${coinPrize.toLocaleString()} 🪙</span>` : '';
 
         return `
           <div class="${highlightClass}" ${rowId}>
@@ -1123,11 +1148,11 @@ function updateSeasonModalData() {
   if (isParticipated && myRank > 0) {
     if (userRankText) userRankText.textContent = `Rank #${myRank}`;
     if (standingRankName) standingRankName.textContent = `Rank #${myRank} • Participating`;
-    if (standingPrizeStars) standingPrizeStars.textContent = `+${rankPrize.toLocaleString()} ⭐`;
+    if (standingPrizeStars) standingPrizeStars.textContent = `+${rankPrize.toLocaleString()} 🪙`;
   } else {
     if (userRankText) userRankText.textContent = 'Not Ranked';
     if (standingRankName) standingRankName.textContent = 'Not Ranked (Complete 100 Tasks)';
-    if (standingPrizeStars) standingPrizeStars.textContent = '+0 ⭐';
+    if (standingPrizeStars) standingPrizeStars.textContent = '+0 🪙';
   }
 
   const isFinished = evt.status === 'finished' || (evt.endTime && (evt.endTime - Date.now() <= 0));
@@ -1135,7 +1160,7 @@ function updateSeasonModalData() {
   if (isClaimed) {
     if (claimWarning) {
       claimWarning.className = 'claim-req-warning satisfied';
-      claimWarning.innerHTML = `<span>✅</span><span>Season Rank Reward already claimed (+${rankPrize.toLocaleString()} ⭐ received)!</span>`;
+      claimWarning.innerHTML = `<span>✅</span><span>Season Rank Reward already claimed (+${rankPrize.toLocaleString()} 🪙 received)!</span>`;
     }
     if (btnClaim) {
       btnClaim.disabled = true;
@@ -1181,7 +1206,7 @@ function updateSeasonModalData() {
     if (btnClaim) {
       btnClaim.disabled = true;
       btnClaim.className = 'btn-claim-season-reward locked';
-      if (btnClaimText) btnClaimText.textContent = `⏳ Claim Unlocks When Season Finishes (${rankPrize.toLocaleString()} ⭐)`;
+      if (btnClaimText) btnClaimText.textContent = `⏳ Claim Unlocks When Season Finishes (${rankPrize.toLocaleString()} 🪙)`;
     }
   }
 }
@@ -1235,16 +1260,8 @@ window.handleSeasonWatchAd = function () {
     updateSeasonModalData();
   };
 
-  // Rewarded interstitial
-  show_10691428().then(() => {
-    // You need to add your user reward function here, which will be executed after the user watches the ad.
-    // For more details, please refer to the detailed instructions.
-    alert('You have seen an ad!');
-    onAdReward();
-  }).catch((err) => {
-    console.warn('show_10691428 notice:', err);
-    onAdReward();
-  });
+  // Ad call removed
+  onAdReward();
 };
 
 
@@ -1276,20 +1293,21 @@ window.handleClaimSeasonRankReward = function () {
     return;
   }
 
-  const starReward = getRankStarPrize(myRank);
-  let currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
-  currentStars += starReward;
-  userStars = currentStars;
-  localStorage.setItem('task_game_stars', currentStars.toString());
+  const coinReward = getRankCoinPrize(myRank);
+  let currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
+  currentCoins += coinReward;
+  userCoins = currentCoins;
+  localStorage.setItem('task_game_coins', currentCoins.toString());
+  localStorage.setItem('user_coins', currentCoins.toString());
   localStorage.setItem(SEASON_CLAIMED_KEY, 'true');
 
-  if (window.firebaseSync && typeof window.firebaseSync.addStars === 'function') {
-    window.firebaseSync.addStars(starReward);
+  if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+    window.firebaseSync.addCoins(coinReward, 'Season Rank Reward');
   }
 
   LeaderboardAudio.playEventRestart();
 
-  alert(`🎉 CONGRATULATIONS!\n\nYou completed 30 Ads and achieved Rank #${myRank} in Season 1!\n\nClaimed: +${starReward.toLocaleString()} Stars (⭐)!\nYour new balance: ${currentStars.toLocaleString()} ⭐`);
+  alert(`🎉 CONGRATULATIONS!\n\nYou completed 30 Ads and achieved Rank #${myRank} in Season 1!\n\nClaimed: +${coinReward.toLocaleString()} Coins (🪙)!\nYour new balance: ${currentCoins.toLocaleString()} 🪙`);
 
   updateHeaderBalances();
   updateSeasonModalData();

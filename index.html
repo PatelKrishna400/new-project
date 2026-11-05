@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Fredoka Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Earner — Webtask</title>
@@ -30,6 +34,7 @@
   <!-- Firebase SDK & Analytics Connection -->
   <script type="module" src="frontend/firebase-config.js"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 
     /* Global Scrollbar Hiding */
     *::-webkit-scrollbar {
@@ -63,10 +68,14 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       color: #f8fafc;
       overflow-x: hidden;
+    }
+
+    button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, label {
+      font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     /* Loading Page: Completely Removed */
@@ -1269,8 +1278,539 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(250, 204, 21, 0.6);
     }
-  </style>
-  <script src="//alwingulla.com/88/tag.min.js" data-zone="10691428" data-sdk="show_10691428"></script>
+  
+/* ==========================================================================
+   SIMPLE TASKS / PREMIUM TASKS MODE SWITCHER & STYLING
+   ========================================================================== */
+.task-category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.task-category-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: rgba(10, 23, 56, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.22);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  color: #94a3b8;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.task-category-tab:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(14, 30, 71, 0.95);
+  transform: translateY(-1px);
+}
+
+.task-category-tab:active {
+  transform: translateY(1px);
+}
+
+.task-category-tab.active {
+  background: linear-gradient(145deg, #1d4ed8 0%, #0f2b6b 50%, #0a1738 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+}
+
+.task-category-tab.tab-cat-premium {
+  border-color: rgba(250, 204, 21, 0.3);
+}
+
+.task-category-tab.tab-cat-premium.active {
+  background: linear-gradient(145deg, #7e22ce 0%, #9a3412 50%, #1e1338 100%);
+  border-color: #facc15;
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(250, 204, 21, 0.35), 0 0 16px rgba(168, 85, 247, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
+}
+
+.tab-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-cat-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.tab-cat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.tab-cat-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.tab-cat-sub {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.task-category-tab.active .tab-cat-sub {
+  color: #93c5fd;
+}
+
+.task-category-tab.tab-cat-premium.active .tab-cat-sub {
+  color: #fde047;
+}
+
+.tab-cat-count {
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.tab-cat-count.premium-count {
+  background: rgba(250, 204, 21, 0.2);
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.5);
+}
+
+/* Dynamic Mode Banner */
+.tasks-mode-banner {
+  background: linear-gradient(135deg, rgba(14, 30, 71, 0.8) 0%, rgba(7, 18, 51, 0.95) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.tasks-mode-banner.banner-premium {
+  background: linear-gradient(135deg, rgba(59, 7, 100, 0.75) 0%, rgba(120, 53, 15, 0.7) 50%, rgba(16, 10, 31, 0.95) 100%);
+  border-color: rgba(250, 204, 21, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.2);
+}
+
+.mode-banner-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+}
+
+.tasks-mode-banner.banner-premium .mode-banner-badge {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.18);
+  border-color: rgba(250, 204, 21, 0.5);
+}
+
+.tasks-mode-banner .tasks-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.tasks-mode-banner.banner-premium .tasks-title {
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+}
+
+.tasks-mode-banner .tasks-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.35;
+}
+
+.tasks-mode-banner.banner-premium .tasks-subtitle {
+  color: #f1f5f9;
+}
+
+/* Premium Task Cards */
+.task-card.task-card-premium {
+  background: linear-gradient(145deg, #1b1233 0%, #0d1629 50%, #171129 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(250, 204, 21, 0.12);
+}
+
+.task-card.task-card-premium:hover {
+  border-color: #facc15;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.28);
+}
+
+.task-status-pill.vip-pill {
+  color: #fbbf24;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  font-weight: 900;
+}
+
+  
+/* ==========================================================================
+   VIP SUBSCRIPTION POPUP MODAL & 3 PLANS STYLING
+   ========================================================================== */
+.vip-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 22, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.vip-modal-overlay.active {
+  opacity: 1;
+}
+
+.vip-modal-box {
+  background: linear-gradient(165deg, #0e172e 0%, #070e24 50%, #150f29 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 32px rgba(250, 204, 21, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.15);
+  border-radius: 22px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.25rem 1.25rem;
+  position: relative;
+  text-align: center;
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vip-modal-overlay.active .vip-modal-box {
+  transform: scale(1);
+}
+
+.vip-modal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+.vip-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.vip-crown-badge {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  animation: crownPulse 2s ease-in-out infinite;
+}
+
+@keyframes crownPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 16px rgba(250, 204, 21, 0.8)); }
+}
+
+.vip-modal-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.4);
+}
+
+.vip-modal-subtitle {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0.3rem auto 0.75rem;
+  line-height: 1.35;
+  max-width: 340px;
+}
+
+.vip-balance-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(10, 23, 56, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.vip-balance-pill {
+  color: #facc15;
+  font-weight: 800;
+}
+
+.vip-plans-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.vip-plan-card {
+  background: rgba(10, 23, 56, 0.75);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  position: relative;
+  padding-top: 1.25rem;
+  overflow: hidden;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.vip-plan-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.vip-plan-card.popular-plan {
+  background: linear-gradient(155deg, rgba(29, 78, 216, 0.2) 0%, rgba(10, 23, 56, 0.85) 100%);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.15);
+}
+
+.vip-plan-card.popular-plan:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.3);
+}
+
+.vip-plan-card.best-value-plan {
+  background: linear-gradient(155deg, rgba(217, 119, 6, 0.25) 0%, rgba(147, 51, 234, 0.2) 50%, rgba(10, 23, 56, 0.9) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.6);
+  box-shadow: 0 6px 22px rgba(250, 204, 21, 0.2);
+}
+
+.vip-plan-card.best-value-plan:hover {
+  border-color: #facc15;
+  box-shadow: 0 10px 28px rgba(250, 204, 21, 0.35);
+}
+
+.plan-discount-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.plan-discount-badge.starter-badge {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.plan-discount-badge.popular-badge {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.plan-discount-badge.best-badge {
+  background: linear-gradient(90deg, #d97706, #facc15, #ec4899);
+  color: #0f172a;
+  font-weight: 900;
+  box-shadow: 0 2px 10px rgba(250, 204, 21, 0.5);
+}
+
+.plan-card-body {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.plan-duration-badge {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0.2rem 0;
+}
+
+.plan-price-stars {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: -0.02em;
+}
+
+.plan-price-unit {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fde047;
+}
+
+.plan-rate-sub {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-bottom: 0.55rem;
+}
+
+.plan-features-list {
+  list-style: none;
+  margin: 0 0 0.85rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plan-features-list li {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-buy-vip-plan {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-buy-vip-plan:hover {
+  background: #38bdf8;
+  color: #030816;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.5);
+}
+
+.btn-buy-vip-plan.popular-btn {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+.btn-buy-vip-plan.popular-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.5);
+}
+
+.btn-buy-vip-plan.best-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+  border-color: #fef08a;
+  color: #0b1329;
+  font-weight: 900;
+}
+
+.btn-buy-vip-plan.best-btn:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #fef08a 100%);
+  box-shadow: 0 4px 18px rgba(250, 204, 21, 0.6);
+  transform: translateY(-1px);
+}
+
+.vip-modal-footer-note {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+  
+
+/* VIP Pass Daily Limit Pills & Status Bars */
+.plan-task-limit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.65rem;
+  border-radius: 8px;
+  margin-bottom: 0.55rem;
+  width: fit-content;
+}
+
+.plan-task-limit-pill.starter-pill {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.plan-task-limit-pill.popular-pill {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+}
+
+.plan-task-limit-pill.best-pill {
+  background: rgba(250, 204, 21, 0.18);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+}
+
+.vip-daily-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+</style>
 </head>
 <body>
 
@@ -1302,8 +1842,29 @@
     <!-- Page Content (Tasks) -->
     <main class="page-content">
 
-      <div class="tasks-banner">
-        <h1 class="tasks-title">Webtask</h1>
+      <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
+      <div class="task-category-tabs">
+        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">📋</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Simple Tasks</span>
+              <span class="tab-cat-sub">Standard missions</span>
+            </div>
+          </div>
+          <span class="tab-cat-count" id="simpleTasksCount">0</span>
+        </button>
+
+        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">💎</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Premium Tasks</span>
+              <span class="tab-cat-sub">VIP High Bounty</span>
+            </div>
+          </div>
+          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
+        </button>
       </div>
 
       <div class="tasks-list" id="tasksList">
@@ -1379,20 +1940,115 @@
 
   </div>
 
+    <!-- VIP Premium Pass Subscription Modal (3 Plans with Discount Percentages) -->
+  <div class="vip-modal-overlay" id="vipSubscriptionModal" style="display: none;" onclick="handleVipModalBackdropClick(event)">
+    <div class="vip-modal-box" onclick="event.stopPropagation()">
+      <button type="button" class="vip-modal-close-btn" onclick="closeSubscriptionModal()" aria-label="Close modal">✕</button>
+
+      <div class="vip-modal-header">
+        <div class="vip-crown-badge">👑</div>
+        <h2 class="vip-modal-title">VIP Premium Pass</h2>
+        <p class="vip-modal-subtitle">Unlock exclusive high-reward Premium Tasks &amp; claim huge star bounties!</p>
+        
+        <div class="vip-balance-strip">
+          <span>Your Balance:</span>
+          <span class="vip-balance-pill">⭐ <b id="vipModalUserStars">0</b> Stars</span>
+        </div>
+      </div>
+
+      <div class="vip-plans-grid">
+        
+        <!-- PLAN 1: 500 Stars for 15 Days (5 tasks / day) -->
+        <div class="vip-plan-card" id="plan15Days">
+          <div class="plan-discount-badge starter-badge">STARTER PASS • LEVEL 1 &amp; 2 • 5 TASKS/DAY</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">15 DAYS</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">500</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">~33 ⭐ / day</div>
+            <div class="plan-task-limit-pill starter-pill">⚡ 5 Tasks / Day Limit • Level 1-2</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks Level 1 &amp; Level 2 Premium Tasks</li>
+              <li>✓ Complete up to 5 Premium Tasks per day</li>
+              <li>✓ 15 Days full VIP task clearance</li>
+              <li>✓ Instant 6-digit verification</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan" onclick="purchaseVipPlan('15days')">
+              Activate for 500 ⭐ (Level 1 &amp; 2)
+            </button>
+          </div>
+        </div>
+
+        <!-- PLAN 2: 1000 Stars for 30 Days (15% OFF, 10 tasks / day) -->
+        <div class="vip-plan-card popular-plan" id="plan30Days">
+          <div class="plan-discount-badge popular-badge">🔥 POPULAR • LEVEL 1-4 • 20 SHOP LIMIT</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">30 DAYS (1 MONTH)</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">1,000</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">Full month VIP access</div>
+            <div class="plan-task-limit-pill popular-pill">⚡ 10 Tasks/Day • 20 Shop Buy Limit</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks Level 1, Level 2, Level 3 &amp; Level 4 Tasks</li>
+              <li>✓ Upgrades Shop Buy Limit to 20 / Day</li>
+              <li>✓ Complete up to 10 Premium Tasks per day</li>
+              <li>✓ Priority task updates &amp; support</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan popular-btn" onclick="purchaseVipPlan('30days')">
+              Activate for 1,000 ⭐ (Level 1-4)
+            </button>
+          </div>
+        </div>
+
+        <!-- PLAN 3: 5000 Stars for 3 Months (All Levels 1-5 Unlocked, 20 tasks / day) -->
+        <div class="vip-plan-card best-value-plan" id="plan90Days">
+          <div class="plan-discount-badge best-badge">⚡ ULTIMATE PASS • ALL LEVELS 1-5 • 20 TASKS/DAY</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">3 MONTHS (90 DAYS)</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">5,000</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">Full 3-Month Ultimate VIP clearance</div>
+            <div class="plan-task-limit-pill best-pill">⚡ Level 5 Unlocked • 20 Tasks/Day</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks All Levels: Level 1, 2, 3, 4 &amp; Level 5</li>
+              <li>✓ Upgrades Shop Buy Limit to 20 / Day</li>
+              <li>✓ Complete up to 20 Premium Tasks per day</li>
+              <li>✓ 90 Days (3 Months) Ultimate clearance</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan best-btn" onclick="purchaseVipPlan('90days')">
+              Activate for 5,000 ⭐ (Level 5 Unlocked)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="vip-modal-footer-note">
+        <span>Simple Tasks remain 100% free with no subscription required.</span>
+      </div>
+
+    </div>
+  </div>
   <!-- 6-Digit Code Task Verification Modal -->
   <div class="task-verify-modal-overlay" id="taskVerifyModalOverlay" style="display: none;" onclick="handleVerifyModalBackdropClick(event)">
     <div class="task-verify-modal-box" onclick="event.stopPropagation()">
       <button type="button" class="verify-modal-close-btn" onclick="closeVerifyModal()" aria-label="Close modal">✕</button>
       
       <div class="verify-modal-header">
-        <div class="verify-modal-badge">
+        <div class="verify-modal-badge" id="verifyModalHeaderBadge">
           <span class="verify-badge-dot"></span>
-          <span>WEBTASK VERIFICATION</span>
+          <span id="verifyModalHeaderBadgeText">WEBTASK VERIFICATION</span>
         </div>
         <h2 class="verify-modal-title">Enter 6-Digit Code</h2>
         <div class="verify-modal-reward-badge">
-          <span>Fixed Reward:</span>
-          <span class="reward-highlight">+5 ⭐</span>
+          <span>Reward:</span>
+          <span class="reward-highlight" id="verifyModalRewardHighlight">+5 ⭐</span>
         </div>
       </div>
 
@@ -1426,7 +2082,7 @@
 
         <div class="verify-modal-btn-row">
           <button type="button" class="btn-verify-cancel" onclick="closeVerifyModal()">Cancel</button>
-          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win 5 ⭐</button>
+          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win Coins 🪙</button>
         </div>
       </form>
     </div>
@@ -1687,123 +2343,462 @@
       setTimeout(() => { floatEl.remove(); }, 800);
     }
 
-    // Dynamic Task Rendering with Open / Verify & Fixed 5 Star Reward
-    function renderTasks() {
-      const container = document.getElementById('tasksList');
-      if (!container) return;
+    // ==========================================================================
+// VIP SUBSCRIPTION SYSTEM (15 Days / 30 Days / 3 Months with Daily Limits)
+// Starter Pass: 5 tasks/day | Popular: 10 tasks/day | Best Value: 20 tasks/day
+// ==========================================================================
+const VIP_STORAGE_KEY = 'premium_vip_expiry';
+const VIP_PLAN_KEY = 'premium_vip_plan';
+const VIP_DAILY_LIMIT_KEY = 'premium_vip_daily_limit';
+const VIP_TODAY_DATE_KEY = 'premium_tasks_today_date';
+const VIP_TODAY_COUNT_KEY = 'premium_tasks_today_count';
 
-      const tasks = getStoredTasks();
-      const completedTasks = getStoredCompletedTasks();
+function getTodayDateKey() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
-      const claims = getStoredClaims();
+function getVipSubscriptionExpiry() {
+  const expiry = parseInt(localStorage.getItem(VIP_STORAGE_KEY) || '0', 10);
+  return isNaN(expiry) ? 0 : expiry;
+}
 
-      // Once a user finishes a task, remove it from the home page permanently.
-      // Never show it a second time in life!
-      const activeTasks = tasks.filter(t => {
-        if (!t || t.active === false) return false;
-        // Permanent completion check: If completed or claimed by user, remove permanently
-        if (completedTasks && completedTasks[t.id]) return false;
-        if (claims && claims[t.id]) return false;
-        return true;
-      });
+function hasActivePremiumSubscription() {
+  const expiry = getVipSubscriptionExpiry();
+  return expiry > Date.now();
+}
 
-      if (activeTasks.length === 0) {
-        container.innerHTML = `
-          <div class="empty-tasks-box">
-            <div class="empty-tasks-icon">🎯</div>
-            <div class="empty-tasks-text">All webtasks completed! Great job!</div>
-            <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
-          </div>
-        `;
-        return;
+function getRemainingVipDays() {
+  const expiry = getVipSubscriptionExpiry();
+  const diff = expiry - Date.now();
+  if (diff <= 0) return 0;
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function getVipDailyTaskLimit() {
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 20;
+  if (plan === '30days') return 10;
+  return 5; // Starter pass is 5 tasks/day
+}
+
+function getVipMaxAllowedLevel() {
+  if (!hasActivePremiumSubscription()) return 0;
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 5;
+  if (plan === '30days') return 4;
+  return 2; // 15days plan allows Level 1 & Level 2 tasks
+}
+
+function getVipPlanName() {
+  const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  if (plan === '90days') return 'Best Value Pass (20 tasks/day, Levels 1-5)';
+  if (plan === '30days') return 'Popular Pass (10 tasks/day, Levels 1-4)';
+  return 'Starter Pass (5 tasks/day, Levels 1-2)';
+}
+
+function getTodayCompletedPremiumTasksCount() {
+  const todayKey = getTodayDateKey();
+  const storedDate = localStorage.getItem(VIP_TODAY_DATE_KEY);
+  if (storedDate !== todayKey) {
+    localStorage.setItem(VIP_TODAY_DATE_KEY, todayKey);
+    localStorage.setItem(VIP_TODAY_COUNT_KEY, '0');
+    return 0;
+  }
+  const count = parseInt(localStorage.getItem(VIP_TODAY_COUNT_KEY) || '0', 10);
+  return isNaN(count) ? 0 : count;
+}
+
+function hasReachedDailyTaskLimit() {
+  const count = getTodayCompletedPremiumTasksCount();
+  const limit = getVipDailyTaskLimit();
+  return count >= limit;
+}
+
+function incrementTodayCompletedPremiumTasks() {
+  const count = getTodayCompletedPremiumTasksCount();
+  localStorage.setItem(VIP_TODAY_COUNT_KEY, (count + 1).toString());
+}
+
+window.hasActivePremiumSubscription = hasActivePremiumSubscription;
+window.getRemainingVipDays = getRemainingVipDays;
+window.getVipDailyTaskLimit = getVipDailyTaskLimit;
+window.getVipMaxAllowedLevel = getVipMaxAllowedLevel;
+window.getVipPlanName = getVipPlanName;
+window.getTodayCompletedPremiumTasksCount = getTodayCompletedPremiumTasksCount;
+window.hasReachedDailyTaskLimit = hasReachedDailyTaskLimit;
+window.incrementTodayCompletedPremiumTasks = incrementTodayCompletedPremiumTasks;
+
+window.openSubscriptionModal = function() {
+  const modal = document.getElementById('vipSubscriptionModal');
+  if (!modal) return;
+  const userStarsDisplay = document.getElementById('vipModalUserStars');
+  const userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  if (userStarsDisplay) userStarsDisplay.textContent = userStars.toLocaleString();
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
+};
+
+window.closeSubscriptionModal = function() {
+  const modal = document.getElementById('vipSubscriptionModal');
+  if (modal) {
+    modal.classList.remove('active');
+    setTimeout(() => { modal.style.display = 'none'; }, 200);
+  }
+};
+
+window.handleVipModalBackdropClick = function(e) {
+  if (e.target && e.target.id === 'vipSubscriptionModal') {
+    closeSubscriptionModal();
+  }
+};
+
+window.handleDailyLimitReachedClick = function() {
+  const planKey = localStorage.getItem(VIP_PLAN_KEY) || '15days';
+  const planName = getVipPlanName();
+  const dailyLimit = getVipDailyTaskLimit();
+
+  if (planKey === '90days') {
+    alert(`🛑 Daily Limit Reached!\n\nYou have completed your maximum quota of ${dailyLimit} Premium Tasks today on the ${planName}.\n\nYour limit will automatically reset tomorrow at midnight!`);
+  } else {
+    const upgradeText = planKey === '15days'
+      ? 'Popular Pass (10 tasks/day) or Best Value Pass (20 tasks/day)'
+      : 'Best Value Pass (20 tasks/day)';
+    if (confirm(`🛑 Daily Limit Reached!\n\nYou have completed ${dailyLimit}/${dailyLimit} Premium Tasks today on your ${planName}.\n\nWould you like to upgrade your VIP Pass to ${upgradeText} to complete more tasks per day?`)) {
+      openSubscriptionModal();
+    }
+  }
+};
+
+window.purchaseVipPlan = function(planKey) {
+  const plans = {
+    '15days': { days: 15, stars: 500, label: 'Starter Pass', dailyLimit: 5, maxLevel: 2 },
+    '30days': { days: 30, stars: 1000, label: 'Popular Pass', dailyLimit: 10, maxLevel: 4 },
+    '90days': { days: 90, stars: 5000, label: 'Best Value Pass', dailyLimit: 20, maxLevel: 5 }
+  };
+  const plan = plans[planKey];
+  if (!plan) return;
+
+  let currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  if (currentStars < plan.stars) {
+    alert(`❌ Insufficient Stars! You need ${plan.stars.toLocaleString()} ⭐ for the ${plan.label} (${plan.dailyLimit} tasks/day), but you currently have ${currentStars.toLocaleString()} ⭐.\n\nPlease earn more stars or visit the Shop to top up!`);
+    return;
+  }
+
+  // Deduct stars
+  currentStars -= plan.stars;
+  localStorage.setItem('task_game_stars', currentStars.toString());
+  localStorage.setItem('user_stars', currentStars.toString());
+
+  // Calculate new expiry (extends if already active)
+  const now = Date.now();
+  const currentExpiry = getVipSubscriptionExpiry();
+  const baseTime = (currentExpiry > now) ? currentExpiry : now;
+  const newExpiry = baseTime + (plan.days * 24 * 60 * 60 * 1000);
+
+  localStorage.setItem(VIP_STORAGE_KEY, newExpiry.toString());
+  localStorage.setItem(VIP_PLAN_KEY, planKey);
+  localStorage.setItem(VIP_DAILY_LIMIT_KEY, plan.dailyLimit.toString());
+  localStorage.setItem('premium_vip_activated_at', now.toString());
+
+  // Notify cross-tab channels of VIP update (including 30-day/90-day 20 shop limit upgrade)
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'VIP_PURCHASED', plan: planKey, timestamp: now });
+  } catch (e) {}
+
+  // Update displays & play audio
+  updateCoinDisplay();
+  if (window.HomeAudio && typeof window.HomeAudio.playCoinClaim === 'function') {
+    window.HomeAudio.playCoinClaim();
+  }
+
+  // Sync balances with cloud if available
+  if (typeof window.syncBalancesWithCloud === 'function') {
+    try { window.syncBalancesWithCloud(); } catch(e) {}
+  }
+
+  closeSubscriptionModal();
+
+  // Floating celebration notification
+  const targetBtn = document.getElementById('tabPremiumTasks') || document.body;
+  if (typeof showFloatingCoin === 'function') {
+    showFloatingCoin(targetBtn, `👑 ${plan.label} (${plan.dailyLimit} Tasks/Day) Activated!`);
+  }
+
+  // Switch to Premium Tasks tab & render
+  switchTaskTab('premium');
+};
+
+let currentTaskTab = localStorage.getItem('task_active_tab') || 'simple';
+
+window.switchTaskTab = function(tab) {
+  // If user clicks Premium Tasks without active subscription, open the 3-plans subscription popup
+  if (tab === 'premium' && !hasActivePremiumSubscription()) {
+    openSubscriptionModal();
+    return;
+  }
+
+  currentTaskTab = tab;
+  localStorage.setItem('task_active_tab', tab);
+
+  const tabSimple = document.getElementById('tabSimpleTasks');
+  const tabPremium = document.getElementById('tabPremiumTasks');
+  const banner = document.getElementById('tasksModeBanner');
+  const badge = document.getElementById('modeBannerBadge');
+  const title = document.getElementById('modeBannerTitle');
+  const desc = document.getElementById('modeBannerDesc');
+
+  if (tab === 'premium') {
+    if (tabSimple) tabSimple.classList.remove('active');
+    if (tabPremium) tabPremium.classList.add('active');
+    if (banner) banner.classList.add('banner-premium');
+    const daysLeft = getRemainingVipDays();
+    const dailyLimit = getVipDailyTaskLimit();
+    const completedToday = getTodayCompletedPremiumTasksCount();
+    const remainingToday = Math.max(0, dailyLimit - completedToday);
+    const planName = getVipPlanName();
+
+    if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
+    if (title) title.innerHTML = '💎 Premium VIP Tasks';
+    if (desc) {
+      if (completedToday >= dailyLimit) {
+        desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
+      } else {
+        desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
       }
+    }
+  } else {
+    if (tabPremium) tabPremium.classList.remove('active');
+    if (tabSimple) tabSimple.classList.add('active');
+    if (banner) banner.classList.remove('banner-premium');
+    if (badge) badge.textContent = 'STANDARD MISSIONS';
+    if (title) title.innerHTML = '📋 Simple Tasks';
+    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
+  }
 
-      // Show first 5 tasks only. When a user finishes one, it is removed and the next task in queue appears automatically!
-      const visibleTasks = activeTasks.slice(0, 5);
+  renderTasks();
+};
 
-      container.innerHTML = visibleTasks.map(task => {
-        const opened = isTaskOpened(task.id);
+// Dynamic Task Rendering with Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
+function renderTasks() {
+  const container = document.getElementById('tasksList');
+  if (!container) return;
 
-        let btnHtml = '';
-        if (opened) {
-          btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
+  const activeTab = localStorage.getItem('task_active_tab') || 'simple';
+
+  // Ensure banner & tab buttons match activeTab
+  const tabSimple = document.getElementById('tabSimpleTasks');
+  const tabPremium = document.getElementById('tabPremiumTasks');
+  const banner = document.getElementById('tasksModeBanner');
+  const badge = document.getElementById('modeBannerBadge');
+  const title = document.getElementById('modeBannerTitle');
+  const desc = document.getElementById('modeBannerDesc');
+
+  const isVipActive = hasActivePremiumSubscription();
+  const daysLeft = getRemainingVipDays();
+  const dailyLimit = getVipDailyTaskLimit();
+  const completedToday = getTodayCompletedPremiumTasksCount();
+  const remainingToday = Math.max(0, dailyLimit - completedToday);
+  const limitReached = isVipActive && (completedToday >= dailyLimit);
+
+  if (activeTab === 'premium') {
+    if (tabSimple) tabSimple.classList.remove('active');
+    if (tabPremium) tabPremium.classList.add('active');
+    if (banner) banner.classList.add('banner-premium');
+    if (isVipActive) {
+      const planName = getVipPlanName();
+      if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
+      if (title) title.innerHTML = '💎 Premium VIP Tasks';
+      if (desc) {
+        if (limitReached) {
+          desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
         } else {
-          btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
+          desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
         }
+      }
+    } else {
+      if (badge) badge.textContent = '🔒 VIP SUBSCRIPTION REQUIRED';
+      if (title) title.innerHTML = '💎 Premium VIP Tasks';
+      if (desc) desc.innerHTML = 'Subscription required for Premium Tasks. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Unlock VIP Now ↗</button>';
+    }
+  } else {
+    if (tabPremium) tabPremium.classList.remove('active');
+    if (tabSimple) tabSimple.classList.add('active');
+    if (banner) banner.classList.remove('banner-premium');
+    if (badge) badge.textContent = 'STANDARD MISSIONS';
+    if (title) title.innerHTML = '📋 Simple Tasks';
+    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
+  }
 
-        return `
-          <div class="task-card" id="taskCard_${task.id}">
-            <div class="task-icon-wrap">${task.icon || '⚡'}</div>
-            <div class="task-info">
-              <div class="task-name-row">
-                <span class="task-name">${escapeHtml(task.title)}</span>
-                <span class="task-status-pill ready">⭐ 5 Stars</span>
-              </div>
-              <div class="task-desc-row">
-                <span class="task-reward" style="color: #facc15; font-weight: 800;">+5 ⭐</span>
-                ${task.description ? `<span class="task-desc-sep">•</span><span class="task-desc-text">${escapeHtml(task.description)}</span>` : ''}
-              </div>
+  const tasks = getStoredTasks();
+  const completedTasks = getStoredCompletedTasks();
+  const claims = getStoredClaims();
+
+  // Active uncompleted tasks
+  const activeTasks = tasks.filter(t => {
+    if (!t || t.active === false) return false;
+    if (completedTasks && completedTasks[t.id]) return false;
+    if (claims && claims[t.id]) return false;
+    return true;
+  });
+
+  const isTaskShop = (t) => t.category === 'shop_task' || t.isShopTask || (t.title && t.title.toLowerCase().includes('shop task'));
+
+  // Calculate and update category count badges
+  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || (!t.category && !isTaskShop(t)));
+  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || isTaskShop(t));
+
+  // Level Gating:
+  // 15 days plan: only show Level 1 & Level 2 tasks
+  // 30 days plan: show Level 1, 2, 3, 4 tasks
+  // 3 months (90 days) plan: show Level 1, 2, 3, 4, 5 tasks (all)
+  const maxAllowedLevel = getVipMaxAllowedLevel();
+  const premiumTasks = isVipActive 
+    ? allPremiumTasks.filter(t => {
+        const lvl = parseInt(t.level || 1, 10);
+        return lvl <= maxAllowedLevel;
+      })
+    : allPremiumTasks;
+
+  const simpleBadge = document.getElementById('simpleTasksCount');
+  const premiumBadge = document.getElementById('premiumTasksCount');
+  if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
+  if (premiumBadge) premiumBadge.textContent = premiumTasks.length;
+
+  const currentList = (activeTab === 'premium') ? premiumTasks : simpleTasks;
+
+  if (activeTab === 'premium' && !isVipActive) {
+    container.innerHTML = `
+      <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.45); padding: 2rem 1rem;">
+        <div class="empty-tasks-icon" style="font-size: 2.8rem;">🔒</div>
+        <div class="empty-tasks-text" style="color: #facc15; font-size: 1.15rem; font-weight: 900;">Premium VIP Tasks Locked</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.5rem auto 1.25rem; max-width: 320px; line-height: 1.45;">
+          Subscribe to VIP Pass to unlock exclusive high-reward missions and claim massive Star earnings!
+        </div>
+        <button type="button" class="btn-claim" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 900; padding: 0.65rem 1.6rem; border-radius: 12px; font-size: 0.88rem; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45); cursor: pointer;">
+          👑 View VIP Subscription Plans
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  if (currentList.length === 0) {
+    if (activeTab === 'premium') {
+      const lockedHigher = allPremiumTasks.length - premiumTasks.length;
+      container.innerHTML = `
+        <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.35);">
+          <div class="empty-tasks-icon">💎</div>
+          <div class="empty-tasks-text" style="color: #facc15;">No Premium VIP Tasks Available</div>
+          <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.35rem;">
+            ${lockedHigher > 0 ? `${lockedHigher} higher-level tasks locked on your current plan. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer;">Upgrade Pass ↗</button>` : 'New VIP missions created by admin will appear here immediately!'}
+          </div>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="empty-tasks-box">
+          <div class="empty-tasks-icon">🎯</div>
+          <div class="empty-tasks-text">All simple webtasks completed! Great job!</div>
+          <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  let statusBarHtml = '';
+  if (activeTab === 'premium' && isVipActive) {
+    const lockedHigherCount = allPremiumTasks.length - premiumTasks.length;
+    if (limitReached) {
+      statusBarHtml = `
+        <div class="vip-daily-status-bar limit-reached" style="background: rgba(239, 68, 68, 0.12); border: 1.5px solid rgba(239, 68, 68, 0.45); border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+          <div>
+            <div style="color: #f87171; font-weight: 900; font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>🛑</span> Daily Quota Reached (${completedToday}/${dailyLimit} Tasks)
             </div>
-            <div class="task-action-wrap" id="action_${task.id}">
-              ${btnHtml}
+            <div style="color: #94a3b8; font-size: 0.7rem; margin-top: 0.15rem;">
+              You've completed all ${dailyLimit} tasks allowed today for your plan. Resets at midnight!
             </div>
           </div>
-        `;
-      }).join('');
+          ${localStorage.getItem('premium_vip_plan') !== '90days' ? '<button type="button" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; border: none; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.72rem; cursor: pointer; white-space: nowrap;">Upgrade Pass ↗</button>' : ''}
+        </div>
+      `;
+    } else {
+      statusBarHtml = `
+        <div class="vip-daily-status-bar" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 0.55rem 0.9rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+          <span style="font-size: 0.75rem; color: #bae6fd; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+            <span>⚡</span> Daily Progress: <b style="color: #ffffff;">${completedToday} / ${dailyLimit}</b> Tasks • Lvl 1-${maxAllowedLevel}
+          </span>
+          <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">
+            ${remainingToday} Left ${lockedHigherCount > 0 ? `<button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; margin-left:4px;">(${lockedHigherCount} Locked ↗)</button>` : ''}
+          </span>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = statusBarHtml + currentList.map(task => {
+    const opened = isTaskOpened(task.id);
+    const taskShop = isTaskShop(task);
+    const isPremium = task.category === 'premium' || taskShop;
+    const taskLevel = parseInt(task.level || 1, 10);
+    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : 50));
+    const shopExtension = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
+
+    let btnHtml = '';
+    if (isPremium && limitReached) {
+      btnHtml = `<button type="button" class="btn-claim btn-task-limit" onclick="handleDailyLimitReachedClick()" style="background: #334155; color: #94a3b8; border: 1px solid #475569; cursor: pointer;">Limit Reached (${completedToday}/${dailyLimit})</button>`;
+    } else if (opened) {
+      btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
+    } else {
+      btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
     }
 
-    // Open Button Click: opens link in new tab, changes button to Verify, opens modal
-    window.handleOpenTask = function(taskId) {
-      const tasks = getStoredTasks();
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
+    const cardClass = isPremium ? 'task-card task-card-premium' : 'task-card';
+    let statusPill = '';
+    if (taskShop) {
+      statusPill = `<span class="task-status-pill vip-pill" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-color: #34d399; color: #ffffff;">🛒 +${shopExtension} Shop Limit • Lvl ${taskLevel}</span>`;
+    } else if (isPremium) {
+      statusPill = `<span class="task-status-pill vip-pill">💎 Lvl ${taskLevel} • +${rewardCoins} 🪙</span>`;
+    } else {
+      statusPill = `<span class="task-status-pill ready">🪙 ${rewardCoins} Coins</span>`;
+    }
 
-      const targetLink = (task.link || task.url || '').trim();
-      if (targetLink) {
-        window.open(targetLink, '_blank');
-      }
-
-      setTaskOpened(taskId);
-
-      const actionWrap = document.getElementById(`action_${taskId}`);
-      if (actionWrap) {
-        actionWrap.innerHTML = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${taskId}')">Verify</button>`;
-      }
-
-      setTimeout(() => {
-        openVerifyModal(taskId);
-      }, 400);
-    };
+    return `
+      <div class="${cardClass}" id="taskCard_${task.id}">
+        <div class="task-icon-wrap">${task.icon || (taskShop ? '🛒' : (isPremium ? '💎' : '⚡'))}</div>
+        <div class="task-details">
+          <div class="task-header-row">
+            <span class="task-title-text">${escapeHtml(task.title || 'Webtask Mission')}</span>
+            ${statusPill}
+          </div>
+          <div class="task-reward-row">
+            <span class="task-reward" style="color: #fbbf24; font-weight: 900;">+${rewardCoins} 🪙</span>
+            ${taskShop ? `<span style="font-size: 0.72rem; color: #34d399; font-weight: 800; margin-left: 6px;">🛒 +${shopExtension} Shop Buy Limit</span>` : ''}
+            ${task.description ? `<span style="font-size: 0.68rem; color: #94a3b8; margin-left: 6px;">• ${escapeHtml(task.description)}</span>` : ''}
+          </div>
+        </div>
+        <div class="task-action-wrap" id="action_${task.id}">
+          ${btnHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
     let currentVerifyTaskId = null;
 
+    // Open Verify Modal directly
     window.openVerifyModal = function(taskId) {
-      const tasks = getStoredTasks();
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-
       currentVerifyTaskId = taskId;
-
       const modal = document.getElementById('taskVerifyModalOverlay');
-      const titleEl = document.getElementById('verifyModalTaskTitle');
-      const descEl = document.getElementById('verifyModalTaskDesc');
-      const iconEl = document.getElementById('verifyModalTaskIcon');
-      const linkBtn = document.getElementById('verifyModalLinkBtn');
       const codeInput = document.getElementById('verifyCodeInput');
       const errorMsg = document.getElementById('verifyErrorMsg');
-
-      if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
-      if (descEl) descEl.textContent = task.description || 'Visit link & enter 6-digit code to win 5 ⭐';
-      if (iconEl) iconEl.textContent = task.icon || '⚡';
-      if (linkBtn) {
-        const url = (task.link || task.url || '').trim();
-        if (url) {
-          linkBtn.href = url;
-          linkBtn.style.display = 'inline-flex';
-        } else {
-          linkBtn.style.display = 'none';
-        }
-      }
       if (codeInput) {
         codeInput.value = '';
         codeInput.classList.remove('input-error');
@@ -1820,6 +2815,41 @@
           if (codeInput) codeInput.focus();
         }, 200);
       }
+    };
+
+    // Open Button Click: opens link in new tab, changes button to Verify, opens modal
+    window.handleOpenTask = function(taskId) {
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const isTaskShop = task.category === 'shop_task' || task.isShopTask || (task.title && task.title.toLowerCase().includes('shop task'));
+      const isPremium = task.category === 'premium' || isTaskShop;
+
+      if (isPremium) {
+        if (!hasActivePremiumSubscription()) {
+          openSubscriptionModal();
+          return;
+        }
+        const maxLevel = getVipMaxAllowedLevel();
+        const taskLevel = parseInt(task.level || 1, 10);
+        if (taskLevel > maxLevel) {
+          alert(`🔒 Level ${taskLevel} Mission Locked!\n\nYour current VIP plan unlocks tasks up to Level ${maxLevel}.\nUpgrade your plan to unlock Level ${taskLevel} missions!`);
+          openSubscriptionModal();
+          return;
+        }
+        if (hasReachedDailyTaskLimit()) {
+          handleDailyLimitReachedClick();
+          return;
+        }
+      }
+
+      setTaskOpened(taskId);
+      if (task.url || task.link) {
+        window.open(task.url || task.link, '_blank');
+      }
+      openVerifyModal(taskId);
+      renderTasks();
     };
 
     window.closeVerifyModal = function() {
@@ -1873,9 +2903,30 @@
         return;
       }
 
-      userStars += 5;
-      localStorage.setItem('task_game_stars', userStars.toString());
-      localStorage.setItem('user_stars', userStars.toString());
+      const isTaskShop = task.category === 'shop_task' || task.isShopTask || (task.title && task.title.toLowerCase().includes('shop task'));
+      const isPremium = task.category === 'premium' || isTaskShop;
+      const rewardAmount = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : 50));
+      userCoins += rewardAmount;
+      localStorage.setItem('task_game_coins', userCoins.toString());
+      localStorage.setItem('user_coins', userCoins.toString());
+
+      if (isPremium) {
+        incrementTodayCompletedPremiumTasks();
+      }
+
+      let shopBonusMsg = '';
+      if (isTaskShop) {
+        const extAmount = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
+        const curBonus = parseInt(localStorage.getItem('task_game_shop_bonus_limit') || '0', 10);
+        const newBonus = curBonus + extAmount;
+        localStorage.setItem('task_game_shop_bonus_limit', newBonus.toString());
+        shopBonusMsg = `\n🛒 Shop Buy Limit Extended by +${extAmount}! (Total Bonus: +${newBonus})`;
+
+        try {
+          const syncChannel = new BroadcastChannel('nova_task_sync');
+          syncChannel.postMessage({ type: 'SHOP_LIMIT_EXTENDED', bonusLimit: newBonus, timestamp: Date.now() });
+        } catch (e) {}
+      }
 
       let completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
       localStorage.setItem('task_game_total_tasks_completed', completedCount.toString());
@@ -1887,9 +2938,13 @@
 
       HomeAudio.playCoinClaim();
       const submitBtn = document.getElementById('btnVerifyConfirm');
-      if (submitBtn) showFloatingCoin(submitBtn, '+5 ⭐ Won!');
+      if (submitBtn) showFloatingCoin(submitBtn, `+${rewardAmount} 🪙 Won!${isTaskShop ? ' +Limit' : ''}`);
 
       closeVerifyModal();
+
+      if (shopBonusMsg) {
+        alert(`🎉 Mission Verified!\n\nYou earned +${rewardAmount} 🪙 Coins!${shopBonusMsg}\nYou can now purchase more items in the Shop!`);
+      }
 
       const taskCard = document.getElementById(`taskCard_${task.id}`);
       if (taskCard) {
@@ -1931,7 +2986,7 @@
       const globalEvt = {
         id: `global_season_${seasonNumber}`,
         seasonNumber: seasonNumber,
-        name: `Season ${seasonNumber}: 3-Month Championship (21,500 ⭐ Prize Pool)`,
+        name: `Season ${seasonNumber}: 3-Month Championship (21,500 🪙 Prize Pool)`,
         startTime: startTime,
         endTime: endTime,
         durationHours: THREE_MONTHS_HOURS,

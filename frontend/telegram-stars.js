@@ -73,7 +73,7 @@
       badge: 'VIP ELITE',
       popular: false,
       icon: '💎',
-      desc: '₹100 Amazon Voucher Ready'
+      desc: 'Amazon Voucher Ready'
     },
     {
       id: 'stars_2500',

@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Fredoka Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Frontend — User Profile</title>
@@ -89,7 +93,7 @@
         <!-- Account Settings / Menu Options -->
         <div class="section-title">Account Menu</div>
         <div class="profile-links-list">
-          <!-- Edit Profile Option -->
+          <!-- 1. Edit Profile Option -->
           <div class="profile-link-item highlight-edit" onclick="openEditTgProfileModal()" id="btnOpenEditProfileModal" title="Click to edit name and avatar" style="cursor: pointer;">
             <div class="invite-tab-left">
               <span class="invite-tab-gift">✏️</span>
@@ -98,8 +102,8 @@
             <span class="link-arrow">&rarr;</span>
           </div>
 
-          <!-- Invite Friends Tab (Opens Popup on Click) -->
-          <div class="profile-link-item highlight-invite" onclick="openInviteFriendsModal()" id="btnOpenInviteModal" title="Click to open Invite Friends popup">
+          <!-- 2. Invite Friends Tab (Opens Popup on Click) -->
+          <div class="profile-link-item highlight-invite" onclick="openInviteFriendsModal()" id="btnOpenInviteModal" title="Click to open Invite Friends popup" style="cursor: pointer;">
             <div class="invite-tab-left">
               <span class="invite-tab-gift">🎁</span>
               <span class="invite-tab-title">Invite Friends (<b class="gold-text">+100 🪙 Only</b>)</span>
@@ -107,16 +111,32 @@
             <span class="invite-menu-pill">+100 🪙</span>
           </div>
 
-          <div class="profile-link-item" onclick="alert('Security: Two-Factor Authentication enabled.')">
-            <span>🔒 Security &amp; 2FA</span>
-            <span class="link-arrow">&rarr;</span>
-          </div>
-          <div class="profile-link-item" onclick="alert('Support: Support ticket portal ready.')">
-            <span>💬 Help &amp; Community</span>
-            <span class="link-arrow">&rarr;</span>
+          <!-- 3. Help Tab (Opens Help & Support Popup Modal) -->
+          <div class="profile-link-item highlight-help" onclick="openHelpModal()" id="btnOpenHelpModal" title="Click to open Help & FAQs" style="cursor: pointer;">
+            <div class="invite-tab-left">
+              <span class="invite-tab-gift" style="background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; font-size: 1.1rem;">❓</span>
+              <span class="invite-tab-title">Help &amp; Support</span>
+            </div>
+            <span class="invite-menu-pill" style="background: rgba(56, 189, 248, 0.18); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">24/7 FAQs</span>
           </div>
 
+          <!-- 4. Feedback Tab (Opens Feedback & Suggestions Modal) -->
+          <div class="profile-link-item highlight-feedback" onclick="openFeedbackModal()" id="btnOpenFeedbackModal" title="Send Feedback &amp; Suggestions to Admin" style="cursor: pointer;">
+            <div class="invite-tab-left">
+              <span class="invite-tab-gift" style="background: rgba(245, 158, 11, 0.15); border-color: #f59e0b; font-size: 1.1rem;">💬</span>
+              <span class="invite-tab-title">Feedback &amp; Suggestions</span>
+            </div>
+            <span class="invite-menu-pill" style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4);">Send Feedback ✍️</span>
+          </div>
 
+          <!-- 5. Community & Socials Tab (Opens Community & Release Commits Modal) -->
+          <div class="profile-link-item highlight-community" onclick="openCommunityModal()" id="btnOpenCommunityModal" title="Join Official Telegram Channel & Discord Guild" style="cursor: pointer;">
+            <div class="invite-tab-left">
+              <span class="invite-tab-gift" style="background: rgba(168, 85, 247, 0.15); border-color: #a855f7; font-size: 1.1rem;">🌐</span>
+              <span class="invite-tab-title">Community &amp; Socials</span>
+            </div>
+            <span class="invite-menu-pill" style="background: rgba(168, 85, 247, 0.18); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">Join Channels 🚀</span>
+          </div>
         </div>
       </section>
 
@@ -154,6 +174,12 @@
               <span>Authenticate &amp; Open Admin 🚀</span>
             </button>
 
+            <div style="text-align: center; margin-top: 0.75rem;">
+              <button type="button" class="btn-admin-hint" onclick="quickFillProfileAdmin()" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.72rem; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
+                ⚡ Quick Fill Credentials (Demo)
+              </button>
+            </div>
+
             <button type="button" onclick="switchProfileTab('profile')" style="background: transparent; border: none; color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 1rem; text-decoration: underline; width: 100%;">
               &larr; Back to Player Profile
             </button>
@@ -167,14 +193,12 @@
       <section class="admin-dashboard-panel" id="panelAdminDashboard" style="display: none;">
         
         <!-- Top Admin Status Header -->
-        <div class="admin-dash-header">
+        <div class="admin-dash-header" style="display: flex; justify-content: space-between; align-items: center;">
           <div class="admin-dash-title-wrap">
             <span class="admin-root-pill">● ROOT ADMIN ACTIVE</span>
             <h2 class="admin-dash-title" id="adminActivePageTitle">Edit Task &amp; Missions</h2>
           </div>
-          <button class="btn-admin-logout" onclick="adminLogout()" title="Sign Out of Admin">
-            <span>Sign Out 🔒</span>
-          </button>
+
         </div>
 
         <!-- 1. SUBVIEW: EDIT TASK -->
@@ -258,7 +282,7 @@
               <div class="timer-box"><span id="adminTimerSecs">00</span><small>SECS</small></div>
             </div>
             <div style="font-size: 0.72rem; color: #94a3b8; text-align: center; margin: 0.65rem 0;">
-              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>10,000 ⭐</b>, 2nd <b>5,000 ⭐</b>, 3rd <b>1,000 ⭐</b>
+              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>10,000 🪙</b>, 2nd <b>5,000 🪙</b>, 3rd <b>2,500 🪙</b>
             </div>
             
             <div style="display: flex; gap: 8px; margin-top: 0.6rem;">
@@ -292,6 +316,23 @@
               <!-- Dynamically populated with archived session cards -->
             </div>
           </div>
+
+          <!-- Section: Player Feedback Messages (See & Delete in Event Page) -->
+          <div style="margin-top: 1.25rem; border-top: 1.5px dashed rgba(245, 158, 11, 0.35); padding-top: 0.9rem;" id="adminEventFeedbackSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+              <div class="section-title" style="margin: 0; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+                <span>📩</span> Player Feedback Messages (<span id="adminFeedbackCount">0</span>)
+              </div>
+              <button type="button" onclick="clearAllAdminFeedbacks()" style="padding: 3px 9px; font-size: 0.7rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; cursor: pointer;">
+                Clear All 🗑️
+              </button>
+            </div>
+            
+            <div id="adminFeedbackListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+              <!-- Dynamically populated with feedback cards -->
+            </div>
+          </div>
+
         </div>
 
       </section>
@@ -415,16 +456,15 @@
         <span class="menu-label">Event</span>
       </button>
 
-      <!-- 5. Exit Admin (Back to Profile) -->
-      <button type="button" class="admin-menu-item btn-exit-admin-tab" id="adminMenuExit" onclick="exitAdminToProfile()" title="Exit Admin Portal">
-        <div class="menu-icon-wrap" style="background: linear-gradient(135deg, #be185d 0%, #831843 100%); border-color: #f472b6;">
+      <!-- 5. Logout Admin -> Safely Sign Out to Profile -->
+      <button type="button" class="admin-menu-item btn-exit-admin-tab" id="adminMenuExit" onclick="adminLogout()" title="Sign out of Admin session & return to Profile">
+        <div class="menu-icon-wrap" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-color: #f87171;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
         </div>
-        <span class="menu-label" style="color: #f472b6;">Exit</span>
+        <span class="menu-label" style="color: #f87171;">Logout</span>
       </button>
     </nav>
 
@@ -573,11 +613,338 @@
 
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- ========================================================================
+       HELP & SUPPORT: COMPREHENSIVE TASK GUIDE & YOUTUBE WALKTHROUGH
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="helpModalOverlay" onclick="handleHelpModalBackdropClick(event)">
+    <div class="profile-modal-box invite-modal-wrapper" onclick="event.stopPropagation()" style="max-width: 480px;">
+      
+      <!-- Modal Exit Header Bar with Close (✕) Button -->
+      <div class="invite-modal-exit-bar" style="justify-content: space-between;">
+        <span style="font-size: 0.92rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+          <span>❓</span> Task Guide &amp; Help Center
+        </span>
+        <button type="button" class="btn-invite-exit-circle" onclick="closeHelpModal()" aria-label="Close window" title="Close">✕</button>
+      </div>
+
+      <div class="invite-friends-card popup-card" style="padding: 1.1rem;">
+        
+        <!-- Hero Header -->
+        <div style="text-align: center; margin-bottom: 0.9rem;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">🎬</div>
+          <h3 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin: 0;">How Tasks Work &amp; How To Use</h3>
+          <p style="color: #94a3b8; font-size: 0.76rem; margin-top: 4px; line-height: 1.4;">
+            Watch the video tutorial and follow step-by-step guides to complete tasks, earn coins &amp; unlock premium subscriptions!
+          </p>
+        </div>
+
+        <!-- Video Walkthrough Section with Direct YouTube Embed & External Link -->
+        <div style="background: rgba(6, 15, 42, 0.85); border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 12px; padding: 0.85rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <div style="font-size: 0.82rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+              <span>📺</span> Official Video Tutorial
+            </div>
+            <a href="https://www.youtube.com/watch?v=jfKfPfyJRdk" target="_blank" style="font-size: 0.7rem; color: #fbbf24; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+              <span>Watch on YouTube</span> <span>↗</span>
+            </a>
+          </div>
+          
+          <div class="help-video-wrapper">
+            <iframe src="https://www.youtube-nocookie.com/embed/jfKfPfyJRdk?rel=0" title="How to complete tasks & earn coins" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-top: 0.4rem;">
+            <button type="button" class="btn-admin-action-primary" onclick="window.open('https://www.youtube.com/watch?v=jfKfPfyJRdk', '_blank')" style="flex: 1; padding: 6px 10px; font-size: 0.74rem; justify-content: center;">
+              <span>▶ Watch Video on YouTube</span>
+            </button>
+            <button type="button" class="btn-admin-action-secondary" onclick="window.open('https://www.youtube.com/', '_blank')" style="padding: 6px 10px; font-size: 0.74rem; justify-content: center;">
+              <span>🔍 More Guides</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step-by-Step Task Execution Guide -->
+        <div style="margin-bottom: 1.1rem;">
+          <div style="font-size: 0.84rem; font-weight: 800; color: #ffffff; margin-bottom: 0.6rem; display: flex; align-items: center; gap: 6px;">
+            <span>📋</span> Step-by-Step Task Walkthrough
+          </div>
+
+          <div class="help-guide-step-card">
+            <span class="help-step-badge">STEP 1</span>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9;">Choose Simple or Premium Task</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 2px; line-height: 1.4;">
+                <b>Simple Tasks (📋)</b> are free for all players (earn <b>50 🪙</b> each). <b>Premium Tasks (💎)</b> give massive payouts (earn <b>200 🪙</b> each) for subscribed VIP members.
+              </div>
+            </div>
+          </div>
+
+          <div class="help-guide-step-card">
+            <span class="help-step-badge">STEP 2</span>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9;">Click &quot;GO&quot; &amp; View Mission Target</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 2px; line-height: 1.4;">
+                Tap the &quot;GO&quot; button to open the mission URL (YouTube video, Telegram channel, website, or sponsor link). Keep the page active for the required watch duration.
+              </div>
+            </div>
+          </div>
+
+          <div class="help-guide-step-card">
+            <span class="help-step-badge">STEP 3</span>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9;">Click &quot;VERIFY&quot; &amp; Win Instant Coins</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 2px; line-height: 1.4;">
+                Once your mission timer finishes, tap <b>VERIFY</b>. Anti-cheat validates your visit and instantly credits <b>+50 🪙</b> or <b>+200 🪙</b> directly to your live wallet balance!
+              </div>
+            </div>
+          </div>
+
+          <div class="help-guide-step-card">
+            <span class="help-step-badge">STEP 4</span>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9;">How to Subscribe to Premium Tasks</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 2px; line-height: 1.4;">
+                Open the <b>Premium Task</b> tab on the Home page. Choose from 3 discounted plans: <b>15 Days (500 ⭐ • 10% OFF)</b>, <b>30 Days (1,000 ⭐ • 20% OFF)</b>, or <b>3 Months (2,000 ⭐ • 35% OFF)</b> to unlock all VIP tasks.
+              </div>
+            </div>
+          </div>
+
+          <div class="help-guide-step-card">
+            <span class="help-step-badge">ADMIN</span>
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9;">For Admins: How to Create &amp; Edit Tasks</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 2px; line-height: 1.4;">
+                In the Admin Panel &rarr; <b>Edit Task</b> &rarr; tap <b>＋ Add Mission</b>. Select Simple or Premium, input title, coin bounty, target URL, and cooldown time, then click Save!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick FAQ Accordions -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem;">
+          
+          <details class="help-faq-item" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 0.65rem 0.85rem; cursor: pointer;">
+            <summary style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>💳 How do I redeem Amazon Gift Cards?</span>
+              <span style="color: #38bdf8; font-size: 0.75rem;">▼</span>
+            </summary>
+            <p style="font-size: 0.74rem; color: #94a3b8; margin: 0.5rem 0 0.1rem 0; line-height: 1.45;">
+              Navigate to the <b>Wallet</b> page in the bottom menu. Select your voucher: <b>₹1,000 (100,000 ⭐)</b>, <b>₹5,000 (500,000 ⭐)</b>, or <b>₹10,000 (1,000,000 ⭐)</b> to cash out.
+            </p>
+          </details>
+
+          <details class="help-faq-item" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 0.65rem 0.85rem; cursor: pointer;">
+            <summary style="font-size: 0.82rem; font-weight: 700; color: #f1f5f9; outline: none; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+              <span>🏆 What are the Season Leaderboard Prizes?</span>
+              <span style="color: #38bdf8; font-size: 0.75rem;">▼</span>
+            </summary>
+            <p style="font-size: 0.74rem; color: #94a3b8; margin: 0.5rem 0 0.1rem 0; line-height: 1.45;">
+              Top contenders win huge Coin rewards: <b>1st: 10,000 🪙</b>, <b>2nd: 5,000 🪙</b>, <b>3rd: 2,500 🪙</b>. Qualify by completing at least 100 tasks in the active season!
+            </p>
+          </details>
+
+        </div>
+
+        <!-- Submit Support Ticket Form -->
+        <div style="background: rgba(6, 15, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 0.9rem;">
+          <div style="font-size: 0.84rem; font-weight: 800; color: #ffffff; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 6px;">
+            <span>📩</span> Submit a Support Ticket
+          </div>
+          <textarea id="helpTicketMessage" rows="3" placeholder="Describe your issue or question in detail..." style="width: 100%; box-sizing: border-box; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; color: #f8fafc; font-size: 0.78rem; padding: 8px; resize: none; font-family: inherit;"></textarea>
+          <button type="button" class="btn-admin-action-primary" onclick="submitHelpSupportTicket()" style="width: 100%; margin-top: 0.6rem; padding: 8px 12px; font-size: 0.82rem; justify-content: center;">
+            <span>🚀 Send Support Ticket</span>
+          </button>
+          <div id="helpTicketStatusMsg" style="display: none; margin-top: 0.6rem; font-size: 0.74rem; color: #34d399; text-align: center; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 6px; border-radius: 6px;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FEEDBACK & SUGGESTIONS POPUP MODAL
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="feedbackModalOverlay" onclick="handleFeedbackModalBackdropClick(event)">
+    <div class="profile-modal-box invite-modal-wrapper" onclick="event.stopPropagation()">
+      
+      <!-- Modal Exit Header Bar with Close (✕) Button -->
+      <div class="invite-modal-exit-bar" style="justify-content: space-between;">
+        <span style="font-size: 0.92rem; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+          <span>💬</span> Player Feedback &amp; Suggestions
+        </span>
+        <button type="button" class="btn-invite-exit-circle" onclick="closeFeedbackModal()" aria-label="Close window" title="Close">✕</button>
+      </div>
+
+      <div class="invite-friends-card popup-card" style="padding: 1.1rem;">
+        
+        <!-- Hero Header -->
+        <div style="text-align: center; margin-bottom: 1.1rem;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">✍️</div>
+          <h3 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin: 0;">We Value Your Feedback!</h3>
+          <p style="color: #94a3b8; font-size: 0.76rem; margin-top: 4px; line-height: 1.4;">
+            Send suggestions, report issues, or rate your gaming experience. Your feedback is sent directly to the Admin Panel.
+          </p>
+        </div>
+
+        <!-- Feedback Form -->
+        <form id="playerFeedbackForm" onsubmit="submitPlayerFeedback(event)" style="display: flex; flex-direction: column; gap: 10px;">
+          
+          <!-- Rating Star Picker -->
+          <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 10px; text-align: center;">
+            <label style="font-size: 0.75rem; color: #cbd5e1; font-weight: 700; display: block; margin-bottom: 6px;">Rate Your Experience</label>
+            <div id="feedbackStarRatingRow" style="display: flex; justify-content: center; gap: 8px; font-size: 1.6rem;">
+              <span class="star-rating-item" onclick="setFeedbackRating(1)" id="starRating1">⭐</span>
+              <span class="star-rating-item" onclick="setFeedbackRating(2)" id="starRating2">⭐</span>
+              <span class="star-rating-item" onclick="setFeedbackRating(3)" id="starRating3">⭐</span>
+              <span class="star-rating-item" onclick="setFeedbackRating(4)" id="starRating4">⭐</span>
+              <span class="star-rating-item" onclick="setFeedbackRating(5)" id="starRating5">⭐</span>
+            </div>
+            <input type="hidden" id="feedbackRatingValue" value="5" />
+            <span id="feedbackRatingLabel" style="font-size: 0.72rem; color: #fbbf24; font-weight: 800; margin-top: 4px; display: inline-block;">5 / 5 — Excellent!</span>
+          </div>
+
+          <!-- Category Selection -->
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="feedbackCategory">Feedback Category</label>
+            <select id="feedbackCategory" class="admin-form-select">
+              <option value="Tasks & Missions">📋 Tasks &amp; Missions</option>
+              <option value="Coin & Star Rewards">🪙 Coin &amp; Star Rewards</option>
+              <option value="Wallet & Withdrawals">💳 Wallet &amp; Withdrawals</option>
+              <option value="Premium Subscription">💎 Premium Subscription</option>
+              <option value="Bug Report">🐛 Bug Report</option>
+              <option value="Feature Suggestion">💡 Feature Suggestion</option>
+              <option value="General">💬 General Feedback</option>
+            </select>
+          </div>
+
+          <!-- Feedback Textarea -->
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="feedbackMessage">Your Message / Suggestions *</label>
+            <textarea id="feedbackMessage" rows="4" required placeholder="Write your detailed feedback, ideas, or issues here..." style="width: 100%; box-sizing: border-box; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 8px; color: #f8fafc; font-size: 0.78rem; padding: 10px; resize: none; font-family: inherit;"></textarea>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-admin-action-primary" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-color: #fbbf24; color: #000; font-weight: 800; padding: 10px; font-size: 0.85rem; justify-content: center;">
+            <span>🚀 Send Feedback to Admin</span>
+          </button>
+          
+          <div id="feedbackSuccessMsg" style="display: none; font-size: 0.75rem; color: #34d399; text-align: center; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 8px; border-radius: 8px;">
+            🎉 Thank you! Your feedback has been delivered to Admin.
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       COMMUNITY & SOCIALS POPUP MODAL
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="communityModalOverlay" onclick="handleCommunityModalBackdropClick(event)">
+    <div class="profile-modal-box invite-modal-wrapper" onclick="event.stopPropagation()">
+      
+      <!-- Modal Exit Header Bar with Close (✕) Button -->
+      <div class="invite-modal-exit-bar" style="justify-content: space-between;">
+        <span style="font-size: 0.92rem; font-weight: 800; color: #c084fc; display: flex; align-items: center; gap: 6px;">
+          <span>🌐</span> Community Hub &amp; Socials
+        </span>
+        <button type="button" class="btn-invite-exit-circle" onclick="closeCommunityModal()" aria-label="Close window" title="Close">✕</button>
+      </div>
+
+      <div class="invite-friends-card popup-card" style="padding: 1.1rem;">
+        
+        <!-- Hero Header -->
+        <div style="text-align: center; margin-bottom: 1.1rem;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.35rem;">🚀</div>
+          <h3 style="color: #ffffff; font-size: 1.15rem; font-weight: 800; margin: 0;">Join the Player Community</h3>
+          <p style="color: #94a3b8; font-size: 0.76rem; margin-top: 4px; line-height: 1.4;">
+            Stay updated with announcements, patch notes, giveaways, and connect with thousands of active players worldwide.
+          </p>
+        </div>
+
+        <!-- Social Channels List -->
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.1rem;">
+          
+          <!-- Telegram Announcement Channel -->
+          <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.4rem;">📢</span>
+              <div>
+                <div style="font-size: 0.84rem; font-weight: 800; color: #ffffff;">Official Telegram Channel</div>
+                <div style="font-size: 0.71rem; color: #94a3b8;">@TaskCommunityOfficial</div>
+              </div>
+            </div>
+            <button type="button" class="btn-community-join" id="btnJoinTgChannel" onclick="handleJoinCommunityPlatform('channel')" style="background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: #ffffff; border: none; padding: 5px 12px; font-size: 0.74rem; font-weight: 800; border-radius: 8px; cursor: pointer;">
+              Join (+25 🪙)
+            </button>
+          </div>
+
+          <!-- Telegram Discussion Group -->
+          <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.4rem;">💬</span>
+              <div>
+                <div style="font-size: 0.84rem; font-weight: 800; color: #ffffff;">Player Discussion Chat</div>
+                <div style="font-size: 0.71rem; color: #94a3b8;">@NovaChatGlobal</div>
+              </div>
+            </div>
+            <button type="button" class="btn-community-join" id="btnJoinTgGroup" onclick="handleJoinCommunityPlatform('group')" style="background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); color: #ffffff; border: none; padding: 5px 12px; font-size: 0.74rem; font-weight: 800; border-radius: 8px; cursor: pointer;">
+              Join (+25 🪙)
+            </button>
+          </div>
+
+          <!-- Discord Guild -->
+          <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.4rem;">🎮</span>
+              <div>
+                <div style="font-size: 0.84rem; font-weight: 800; color: #ffffff;">Discord Server &amp; Guild</div>
+                <div style="font-size: 0.71rem; color: #94a3b8;">discord.gg/novatasks</div>
+              </div>
+            </div>
+            <button type="button" class="btn-community-join" onclick="handleJoinCommunityPlatform('discord')" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.5); padding: 5px 12px; font-size: 0.74rem; font-weight: 800; border-radius: 8px; cursor: pointer;">
+              Connect
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Latest Version Commits & Updates Section -->
+        <div style="background: rgba(6, 15, 42, 0.85); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 12px; padding: 0.9rem;">
+          <div style="font-size: 0.84rem; font-weight: 800; color: #c084fc; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; align-items: center; gap: 6px;"><span>🚀</span> Release Commits &amp; Changelog</span>
+            <span style="font-size: 0.68rem; color: #34d399; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 6px; border-radius: 6px;">v2.4.0 Live</span>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 7px; font-size: 0.72rem;">
+            <div style="border-left: 2px solid #a855f7; padding-left: 8px;">
+              <div style="color: #e2e8f0; font-weight: 700;">commit <code style="color: #c084fc;">7a8f92c</code> &bull; Premium Subscriptions</div>
+              <div style="color: #94a3b8;">Added 15-day (500 ⭐), 30-day (1,000 ⭐), and 3-month (2,000 ⭐) plans with discount badges.</div>
+            </div>
+            <div style="border-left: 2px solid #38bdf8; padding-left: 8px;">
+              <div style="color: #e2e8f0; font-weight: 700;">commit <code style="color: #38bdf8;">4d1e05b</code> &bull; Coin Economy Upgrades</div>
+              <div style="color: #94a3b8;">Converted leaderboard prizes (1st: 10,000 🪙) &amp; task verification rewards to Coins.</div>
+            </div>
+            <div style="border-left: 2px solid #f59e0b; padding-left: 8px;">
+              <div style="color: #e2e8f0; font-weight: 700;">commit <code style="color: #f59e0b;">9b2c34a</code> &bull; Wallet Amazon Gift Cards</div>
+              <div style="color: #94a3b8;">Scaled gift vouchers to ₹1,000, ₹5,000, and ₹10,000 Amazon cards with cyber card art.</div>
+            </div>
+            <div style="border-left: 2px solid #10b981; padding-left: 8px;">
+              <div style="color: #e2e8f0; font-weight: 700;">commit <code style="color: #10b981;">1f6e890</code> &bull; Admin Navigation &amp; Exit</div>
+              <div style="color: #94a3b8;">Exit button on Admin menu bar cleanly switches to Profile tab.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<!-- ========================================================================
        TELEGRAM USER AUTHORIZATION SUITE (MTProto auth.sendCode / auth.signIn / QR / Passkey)
        ======================================================================== -->
   <div class="profile-modal-overlay" id="playerLoginModalOverlay" onclick="handlePlayerLoginModalBackdropClick(event)">
@@ -1177,12 +1544,36 @@
         <input type="hidden" id="taskEditId" value="" />
         <input type="hidden" id="taskCreationMode" value="single" />
 
-        <!-- Mission Category (Simple vs Premium) -->
+        <!-- Mission Category (Simple vs Premium vs Shop Task) -->
         <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputCategory">Task Category / Type *</label>
           <select id="taskInputCategory" class="admin-form-input" onchange="handleAdminTaskCategoryChange(this.value)" style="font-weight: 800;">
             <option value="simple">📋 Simple Task (Standard Bounty)</option>
             <option value="premium">💎 Premium Task (VIP High Bounty)</option>
+            <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
+          </select>
+        </div>
+
+        <!-- Task Level Selector (Levels 1 - 5) -->
+        <div class="admin-form-group" id="profileTaskLevelGroup">
+          <label class="admin-form-label" for="taskInputLevel">Task Level (VIP Plan Access Gating) *</label>
+          <select id="taskInputLevel" class="admin-form-input" style="font-weight: 800;">
+            <option value="1">⭐ Level 1 (Starter Pass - 15 Days)</option>
+            <option value="2">⭐ Level 2 (Starter Pass - 15 Days)</option>
+            <option value="3">⭐ Level 3 (Popular Pass - 30 Days)</option>
+            <option value="4">⭐ Level 4 (Popular Pass - 30 Days)</option>
+            <option value="5">👑 Level 5 (Best Value Pass - 3 Months / 90 Days)</option>
+          </select>
+        </div>
+
+        <!-- Shop Limit Extension Selector -->
+        <div class="admin-form-group" id="profileShopExtensionGroup" style="display: none;">
+          <label class="admin-form-label" for="taskInputShopLimitExtension">Shop Limit Extension (+ Purchases) *</label>
+          <select id="taskInputShopLimitExtension" class="admin-form-input font-bold" style="color: #34d399; font-weight: 800;">
+            <option value="10">+10 Purchases Limit Extension (Standard)</option>
+            <option value="5">+5 Purchases Limit Extension</option>
+            <option value="15">+15 Purchases Limit Extension</option>
+            <option value="20">+20 Purchases Limit Extension</option>
           </select>
         </div>
 
@@ -1212,13 +1603,13 @@
           <textarea id="taskInputBulkUrls" class="admin-form-input font-mono" rows="4" placeholder="Paste links here (one URL per line, e.g. 10 links):&#10;https://youtube.com/watch?v=1&#10;https://youtube.com/watch?v=2&#10;https://youtube.com/watch?v=3" oninput="updateBulkTaskCounter()" style="resize: vertical; min-height: 85px; font-size: 0.8rem;"></textarea>
         </div>
 
-        <!-- 3. Star Reward -->
+        <!-- 3. Coin Reward -->
         <div class="admin-form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <label class="admin-form-label" for="taskInputStars" style="margin-bottom: 0;">Star Reward (⭐) *</label>
-            <span id="taskRewardTypeBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">📋 Standard Bounty</span>
+            <label class="admin-form-label" for="taskInputCoins" style="margin-bottom: 0;">Coin Reward (🪙) *</label>
+            <span id="taskRewardTypeBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">📋 Standard Coin Bounty (+50 🪙)</span>
           </div>
-          <input type="number" id="taskInputStars" class="admin-form-input font-bold" min="1" max="1000" value="5" required style="background: rgba(10, 23, 56, 0.7); color: #facc15; font-weight: 900; font-size: 1rem;" />
+          <input type="number" id="taskInputCoins" class="admin-form-input font-bold" min="1" max="1000000" value="50" required style="background: rgba(10, 23, 56, 0.7); color: #fbbf24; font-weight: 900; font-size: 1rem;" />
         </div>
 
         <!-- 4. Timer Wait (Sec) -->
@@ -1267,44 +1658,114 @@
     </div>
   </div>
 
-  <!-- Admin Modal 2: Edit User Coins & Status Modal -->
-  <div class="admin-modal-overlay" id="adminUserModalOverlay" onclick="handleUserModalBackdropClick(event)">
-    <div class="admin-modal-card" onclick="event.stopPropagation()">
+  
+  <!-- Admin Modal 2B: View Player Complete Details Modal -->
+  <div class="admin-modal-overlay" id="adminUserDetailModalOverlay" onclick="handleUserDetailModalBackdropClick(event)">
+    <div class="admin-modal-card" onclick="event.stopPropagation()" style="max-width: 440px;">
       <div class="admin-modal-header">
-        <h3 class="admin-modal-title">Edit Player Balance &amp; Status</h3>
+        <h3 class="admin-modal-title" style="color: #c084fc; display: flex; align-items: center; gap: 6px;">
+          <span>🔍</span> Player Details
+        </h3>
+        <button type="button" class="btn-close-modal" onclick="closeUserDetailModal()">✕</button>
+      </div>
+      <div class="admin-modal-body" id="adminUserDetailModalBody">
+        <!-- Injected dynamically by openUserDetailModal() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Modal 2: Edit User All Data & Sync to Firebase -->
+  <div class="admin-modal-overlay" id="adminUserModalOverlay" onclick="handleUserModalBackdropClick(event)">
+    <div class="admin-modal-card" onclick="event.stopPropagation()" style="max-width: 440px;">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title" style="color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+          <span>👤</span> Edit Player Data (Firebase Sync)
+        </h3>
         <button type="button" class="btn-close-modal" onclick="closeAdminUserModal()">✕</button>
       </div>
       <form id="adminUserModalForm" onsubmit="handleSaveAdminUserForm(event)" class="admin-modal-body">
         <input type="hidden" id="userEditId" value="" />
-        <div style="display: flex; align-items: center; gap: 0.75rem; background: #060e24; padding: 0.65rem; border-radius: 10px; border: 1px solid #1e293b;">
-          <span style="font-size: 1.8rem;" id="userEditAvatar">⚡</span>
-          <div>
-            <div style="font-weight: 800; color: #ffffff;" id="userEditName">Player</div>
-            <div style="font-size: 0.7rem; color: #94a3b8;" id="userEditLevel">LVL 1 • NOVICE</div>
+        
+        <!-- User Identity Header Banner -->
+        <div style="display: flex; align-items: center; gap: 0.75rem; background: #060e24; padding: 0.75rem; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.35);">
+          <span style="font-size: 2rem;" id="userEditAvatar">⚡</span>
+          <div style="flex: 1;">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;" id="userEditNameDisplay">Player</div>
+            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; margin-top: 2px;">
+              <span id="userEditIdDisplay" style="font-family: monospace; color: #38bdf8;">UID: usr_1</span>
+              <span>&bull;</span>
+              <span id="userEditCloudSyncBadge" style="color: #34d399; font-weight: 700;">🔥 Firebase Cloud Synced</span>
+            </div>
           </div>
         </div>
+
+        <!-- Editable Name & Username Handle -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.6rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditNameInput">Display Name *</label>
+            <input type="text" id="userEditNameInput" class="admin-form-input" required maxlength="30" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditHandleInput">Username Handle</label>
+            <input type="text" id="userEditHandleInput" class="admin-form-input" maxlength="25" placeholder="@username" />
+          </div>
+        </div>
+
+        <!-- Email & Role -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
           <div class="admin-form-group">
-            <label class="admin-form-label" for="userEditCoins">Coins (🪙)</label>
+            <label class="admin-form-label" for="userEditEmailInput">Email Address</label>
+            <input type="email" id="userEditEmailInput" class="admin-form-input" placeholder="player@gmail.com" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditRoleSelect">Account Role</label>
+            <select id="userEditRoleSelect" class="admin-form-select">
+              <option value="player">Player 👤</option>
+              <option value="vip">VIP Contender 🌟</option>
+              <option value="moderator">Moderator 🛡️</option>
+              <option value="admin">Administrator 👑</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Level Tier & Account Status -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditLevelSelect">Level Tier</label>
+            <select id="userEditLevelSelect" class="admin-form-select">
+              <option value="LVL 1 • NOVICE">LVL 1 • Novice</option>
+              <option value="LVL 2 • CADET">LVL 2 • Cadet</option>
+              <option value="LVL 5 • TASK MASTER">LVL 5 • Task Master</option>
+              <option value="LVL 10 • CHAMPION">LVL 10 • Champion</option>
+              <option value="LVL 20 • LEGEND">LVL 20 • Legend VIP</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditStatus">Account Status</label>
+            <select id="userEditStatus" class="admin-form-select">
+              <option value="active">Active Player 🟢</option>
+              <option value="inactive">Inactive Player ⚪</option>
+              <option value="suspended">Suspended / Banned 🔴</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Coins and Stars Balances -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="admin-form-group">
+            <label class="admin-form-label" for="userEditCoins" style="color: #fbbf24;">Coins (🪙)</label>
             <input type="number" id="userEditCoins" class="admin-form-input" min="0" step="50" required />
           </div>
           <div class="admin-form-group">
-            <label class="admin-form-label" for="userEditStars">Stars (⭐)</label>
+            <label class="admin-form-label" for="userEditStars" style="color: #facc15;">Stars (⭐)</label>
             <input type="number" id="userEditStars" class="admin-form-input" min="0" step="1" required />
           </div>
         </div>
-        <div class="admin-form-group">
-          <label class="admin-form-label" for="userEditStatus">Account Status</label>
-          <select id="userEditStatus" class="admin-form-select">
-            <option value="active">Active Player 🟢</option>
-            <option value="inactive">Inactive Player 🔴</option>
-            <option value="suspended">Suspended / Banned 🔴</option>
-          </select>
-        </div>
+
         <div class="admin-modal-footer">
           <button type="button" class="btn-card-action danger" onclick="handleDeleteUserFromModal()" style="padding: 0.65rem 0.8rem;">Delete</button>
           <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminUserModal()">Cancel</button>
-          <button type="submit" class="btn-admin-modal-submit">Save Changes ✓</button>
+          <button type="submit" class="btn-admin-modal-submit" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">Save &amp; Sync to Firebase ✓</button>
         </div>
       </form>
     </div>
@@ -1544,5 +2005,27 @@
   <script type="module" src="../../firebase-config.js"></script>
   <script src="../../telegram-stars.js"></script>
   <script src="script.js"></script>
+
+  <!-- ========================================================================
+       MODAL: SLIDE SIGN OUT CONFIRMATION MODAL
+       ======================================================================== -->
+  <div class="profile-modal-overlay" id="profileSignOutModalOverlay" onclick="handleSignOutModalBackdropClick(event)">
+    <div class="profile-modal-box slide-signout-card" onclick="event.stopPropagation()" style="max-width: 340px; text-align: center; border: 1.5px solid rgba(239, 68, 68, 0.45); box-shadow: 0 12px 36px rgba(239, 68, 68, 0.25);">
+      <div style="font-size: 2.8rem; margin-bottom: 0.4rem;">🚪</div>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin-bottom: 0.35rem;">Sign Out Account?</h3>
+      <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.45; margin-bottom: 1.25rem;">
+        Are you sure you want to sign out? Your balances and completed missions will remain securely saved.
+      </p>
+      <div style="display: flex; gap: 0.6rem; justify-content: center;">
+        <button type="button" class="btn-admin-modal-cancel" onclick="closeProfileSignOutModal()" style="flex: 1; padding: 0.65rem; border-radius: 10px; font-weight: 700;">
+          Cancel
+        </button>
+        <button type="button" onclick="confirmProfileSignOut()" style="flex: 1; padding: 0.65rem; border-radius: 10px; font-weight: 800; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; border: 1px solid #f87171; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); cursor: pointer;">
+          Sign Out ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

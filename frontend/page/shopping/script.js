@@ -1,3 +1,133 @@
+
+// ============================================================================
+// 24-HOUR BACKEND SHOP BUY LIMIT SYSTEM (NO COUNTDOWN TIMER DISPLAYED ON UI)
+// Standard Limit: 10 buys per item | 30-Day VIP Pass: 20 buys per item
+// Completing "Shop Task" in Tasks adds bonus limit (+10 or +5)
+// ============================================================================
+const SHOP_CYCLE_KEY = 'task_game_shop_cycle_start';
+const SHOP_PURCHASES_KEY = 'task_game_shop_item_purchases';
+const SHOP_BONUS_LIMIT_KEY = 'task_game_shop_bonus_limit';
+const SHOP_CYCLE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function checkAndResetShopCycle() {
+  const now = Date.now();
+  const cycleStart = parseInt(localStorage.getItem(SHOP_CYCLE_KEY) || '0', 10);
+  if (!cycleStart || (now - cycleStart >= SHOP_CYCLE_DURATION_MS)) {
+    // 24 hours elapsed: silently reset backend cycle without displaying timer on UI
+    localStorage.setItem(SHOP_CYCLE_KEY, now.toString());
+    localStorage.setItem(SHOP_PURCHASES_KEY, '{}');
+    localStorage.setItem(SHOP_BONUS_LIMIT_KEY, '0');
+  }
+}
+
+function getShopBaseLimit() {
+  const expiry = parseInt(localStorage.getItem('premium_vip_expiry') || '0', 10);
+  const isVip = expiry > Date.now();
+  if (isVip) {
+    const plan = localStorage.getItem('premium_vip_plan') || '15days';
+    if (plan === '30days' || plan === '90days') {
+      return 20; // 30-Day and 3-Month VIP plans upgrade shop limit to 20
+    }
+  }
+  return 10; // Default base limit is 10
+}
+
+function getShopBonusLimit() {
+  checkAndResetShopCycle();
+  const bonus = parseInt(localStorage.getItem(SHOP_BONUS_LIMIT_KEY) || '0', 10);
+  return isNaN(bonus) ? 0 : bonus;
+}
+
+function getShopTotalLimit() {
+  return getShopBaseLimit() + getShopBonusLimit();
+}
+
+function getShopPurchasesMap() {
+  checkAndResetShopCycle();
+  try {
+    const raw = localStorage.getItem(SHOP_PURCHASES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function getItemPurchasedCount(itemId) {
+  const map = getShopPurchasesMap();
+  const val = parseInt(map[itemId] || '0', 10);
+  return isNaN(val) ? 0 : val;
+}
+
+function recordItemPurchase(itemId) {
+  checkAndResetShopCycle();
+  try {
+    const map = getShopPurchasesMap();
+    map[itemId] = (parseInt(map[itemId] || '0', 10)) + 1;
+    localStorage.setItem(SHOP_PURCHASES_KEY, JSON.stringify(map));
+  } catch (e) {}
+}
+
+function updateShopItemLimitsUI() {
+  checkAndResetShopCycle();
+  const baseLimit = getShopBaseLimit();
+  const bonusLimit = getShopBonusLimit();
+  const totalLimit = baseLimit + bonusLimit;
+
+  // Header banner removed as requested
+  const limitBanner = document.getElementById('shopLimitBanner');
+  if (limitBanner) {
+    limitBanner.innerHTML = '';
+    limitBanner.style.display = 'none';
+  }
+
+  // Update each star card: hide the limit pill (second image view) as requested
+  document.querySelectorAll('.star-shop-card').forEach((card) => {
+    if (card.classList.contains('shop-ad-card')) return;
+
+    // Hide any limit pill
+    const limitPill = card.querySelector('.item-limit-pill');
+    if (limitPill) {
+      limitPill.style.display = 'none';
+    }
+
+    const buyBtn = card.querySelector('.btn-buy');
+    if (!buyBtn) return;
+
+    const onclickStr = buyBtn.getAttribute('onclick') || '';
+    const match = onclickStr.match(/buyStars\((\d+),\s*(\d+)/);
+    if (!match) return;
+
+    const starAmount = match[1];
+    const itemId = 'star_' + starAmount;
+    const bought = getItemPurchasedCount(itemId);
+    const limitReached = bought >= totalLimit;
+
+    if (limitReached) {
+      buyBtn.disabled = true;
+      buyBtn.style.background = '#334155';
+      buyBtn.style.color = '#94a3b8';
+      buyBtn.style.border = '1px solid #475569';
+      buyBtn.style.cursor = 'not-allowed';
+      buyBtn.title = 'Daily buy limit reached. Complete a Shop Task to unlock more purchases!';
+    } else {
+      buyBtn.disabled = false;
+      buyBtn.style.background = '';
+      buyBtn.style.color = '';
+      buyBtn.style.border = '';
+      buyBtn.style.cursor = 'pointer';
+      buyBtn.title = '';
+    }
+  });
+}
+
+window.checkAndResetShopCycle = checkAndResetShopCycle;
+window.getShopBaseLimit = getShopBaseLimit;
+window.getShopBonusLimit = getShopBonusLimit;
+window.getShopTotalLimit = getShopTotalLimit;
+window.getItemPurchasedCount = getItemPurchasedCount;
+window.recordItemPurchase = recordItemPurchase;
+window.updateShopItemLimitsUI = updateShopItemLimitsUI;
+
 // Shop Logic with Star Exchange & Watch Ad Rewards
 if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
   localStorage.setItem('task_game_coins', '0');
@@ -142,9 +272,9 @@ function updateAdCooldownUI() {
   }
 }
 
-// Real-Time Percentage Discount Calculator (1 Star = 500 Coins Baseline)
+// Real-Time Percentage Discount Calculator (1 Star = 50 Coins Baseline)
 function updateRealTimeDiscounts() {
-  const baseRatePerStar = 500;
+  const baseRatePerStar = 50;
   document.querySelectorAll('.star-shop-card').forEach(card => {
     const buyBtn = card.querySelector('.btn-buy');
     const badge = card.querySelector('.star-pack-badge');
@@ -169,6 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
   autoLoginWithTelegram();
   updateDisplays();
   updateRealTimeDiscounts();
+  checkAndResetShopCycle();
+  updateShopItemLimitsUI();
   updateAdCooldownUI();
 });
 
@@ -189,7 +321,7 @@ function updateDisplays() {
   if (topStars) topStars.textContent = userStars.toLocaleString();
 }
 
-// Free Gift Reward (+10 Coins using Ads)
+// Free Gift Reward (+100 Coins using Ads)
 function watchAdForCoins(btn) {
   const remaining = getAdCooldownRemaining();
   if (remaining > 0) {
@@ -198,7 +330,7 @@ function watchAdForCoins(btn) {
   }
 
   const onReward = () => {
-    const rewardCoins = 10;
+    const rewardCoins = 100;
     if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
       userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Gift');
     } else {
@@ -235,23 +367,26 @@ function watchAdForCoins(btn) {
     alert(`🎁 Free Gift Claimed!\n\nYou watched an ad and won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
   };
 
-  // Rewarded interstitial
-  show_10691428().then(() => {
-    // You need to add your user reward function here, which will be executed after the user watches the ad.
-    // For more details, please refer to the detailed instructions.
-    alert('You have seen an ad!');
-    onReward();
-  }).catch((err) => {
-    console.warn('show_10691428 notice:', err);
-    onReward();
-  });
+  // Ad call removed
+  onReward();
 }
 
 window.watchAdForCoins = watchAdForCoins;
 window.buyStars = buyStars;
 
-// Buy Stars for Coins (1 for 500, 10 for 4800, 20 for 9600, 50 for 20000)
-function buyStars(starAmount, coinCost) {
+// Buy Stars for Coins (10 for 480, 20 for 920, 50 for 2,000, 100 for 3,750, 500 for 15,000)
+function buyStars(starAmount, coinCost, explicitItemId) {
+  checkAndResetShopCycle();
+  const itemId = explicitItemId || ('star_' + starAmount);
+  const totalLimit = getShopTotalLimit();
+  const currentPurchases = getItemPurchasedCount(itemId);
+
+  if (currentPurchases >= totalLimit) {
+    if (confirm(`🛑 Purchase Limit Reached!\n\nYou have purchased this item ${currentPurchases}/${totalLimit} times today.\n\nWould you like to complete a "Shop Task" in the Tasks section to unlock +10 more purchases?`)) {
+      window.location.href = '../home/index.html';
+    }
+    return;
+  }
   if (userCoins < coinCost) {
     const diff = coinCost - userCoins;
     alert(`Insufficient Coins!\n\nYou have ${userCoins.toLocaleString()} 🪙 but need ${coinCost.toLocaleString()} 🪙 (${diff.toLocaleString()} more).\n\nComplete webtasks or play in the Games Arena to earn more coins!`);
@@ -279,6 +414,8 @@ function buyStars(starAmount, coinCost) {
     window.saveCurrentProfileToFirestore();
   }
   updateDisplays();
+  recordItemPurchase(itemId);
+  updateShopItemLimitsUI();
   shopSfx.playStarChime();
 
   alert(`⭐ Star Purchase Successful!\n\nYou converted ${coinCost.toLocaleString()} 🪙 Coins into +${starAmount} ⭐ Stars!\nTotal Stars: ${userStars.toLocaleString()} ⭐`);

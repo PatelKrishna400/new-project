@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 /* Core Resets */
 a {
   text-decoration: none;
@@ -50,7 +51,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   color: #f8fafc;
 }
@@ -2685,11 +2686,11 @@ body {
 }
 
 .btn-exit-admin-tab {
-  color: #ec4899 !important;
+  color: #f87171 !important;
 }
 
 .btn-exit-admin-tab:hover {
-  color: #f472b6 !important;
+  color: #ef4444 !important;
 }
 
 /* Admin Modals */
@@ -4742,4 +4743,192 @@ body {
 .btn-ctrl-code:hover {
   background: rgba(56, 189, 248, 0.35);
   color: #ffffff;
+}
+
+/* ==========================================================================
+   HELP & COMMUNITY (COMMIT) TAB & MODAL STYLES
+   ========================================================================== */
+.profile-link-item.highlight-help {
+  background: linear-gradient(135deg, #0b1536 0%, #060e24 100%) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  padding: 0.85rem 1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.profile-link-item.highlight-help:hover {
+  border-color: #38bdf8 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25) !important;
+}
+
+.profile-link-item.highlight-community {
+  background: linear-gradient(135deg, #160d2e 0%, #0c061d 100%) !important;
+  border: 1.5px solid rgba(168, 85, 247, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  padding: 0.85rem 1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.profile-link-item.highlight-community:hover {
+  border-color: #c084fc !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.25) !important;
+}
+
+.help-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ==========================================================================
+   HELP VIDEO & TASK GUIDE STYLES
+   ========================================================================== */
+.help-video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
+  margin: 0.85rem 0;
+  background: #000;
+}
+
+.help-video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.help-guide-step-card {
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 0.6rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.help-step-badge {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   FEEDBACK TAB & STAR RATING STYLES
+   ========================================================================== */
+.profile-link-item.highlight-feedback {
+  background: linear-gradient(135deg, #241604 0%, #100a02 100%) !important;
+  border: 1.5px solid rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  padding: 0.85rem 1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.profile-link-item.highlight-feedback:hover {
+  border-color: #fbbf24 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.25) !important;
+}
+
+.star-rating-item {
+  transition: transform 0.15s ease, filter 0.15s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.star-rating-item:hover {
+  transform: scale(1.25);
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.8));
+}
+
+/* ==========================================================================
+   ADMIN EVENT FEEDBACK CARDS STYLES
+   ========================================================================== */
+.admin-feedback-card {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-left: 4px solid #f59e0b;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.admin-feedback-card:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.timer-box span {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* Global Fredoka Typography for All Text, Headings & Paragraphs */
+body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, label, span, a, div, summary {
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+
+/* ==========================================================================
+   Highlight: Sign Out Account Item
+   ========================================================================== */
+.profile-link-item.highlight-signout {
+  background: linear-gradient(135deg, #240a0a 0%, #100404 100%) !important;
+  border: 1.5px solid rgba(239, 68, 68, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
+  padding: 0.85rem 1rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-radius: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.profile-link-item.highlight-signout:hover {
+  border-color: #f87171 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.25) !important;
+}
+
+.slide-signout-card {
+  animation: slideSignOutUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideSignOutUp {
+  from {
+    transform: translateY(30px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }

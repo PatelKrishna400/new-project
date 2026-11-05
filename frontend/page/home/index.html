@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Fredoka Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Earner — Webtask</title>
@@ -60,9 +64,36 @@
     <!-- Page Content (Tasks) -->
     <main class="page-content">
 
-      <!-- Tasks Section Header -->
-      <div class="tasks-banner">
-        <h1 class="tasks-title">Webtask</h1>
+      <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
+      <div class="task-category-tabs">
+        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">📋</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Simple Tasks</span>
+              <span class="tab-cat-sub">Standard missions</span>
+            </div>
+          </div>
+          <span class="tab-cat-count" id="simpleTasksCount">0</span>
+        </button>
+
+        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">💎</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Premium Tasks</span>
+              <span class="tab-cat-sub">VIP High Bounty</span>
+            </div>
+          </div>
+          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
+        </button>
+      </div>
+
+      <!-- Dynamic Header Banner for Current Tab -->
+      <div class="tasks-mode-banner" id="tasksModeBanner">
+        <div class="mode-banner-badge" id="modeBannerBadge">STANDARD MISSIONS</div>
+        <h1 class="tasks-title" id="modeBannerTitle">Simple Tasks</h1>
+        <p class="tasks-subtitle" id="modeBannerDesc">Complete quick missions &amp; enter 6-digit code to win stars!</p>
       </div>
 
       <!-- Tasks List -->
@@ -140,20 +171,116 @@
 
   </div>
 
+    <!-- VIP Premium Pass Subscription Modal (3 Plans with Discount Percentages) -->
+  <div class="vip-modal-overlay" id="vipSubscriptionModal" style="display: none;" onclick="handleVipModalBackdropClick(event)">
+    <div class="vip-modal-box" onclick="event.stopPropagation()">
+      <button type="button" class="vip-modal-close-btn" onclick="closeSubscriptionModal()" aria-label="Close modal">✕</button>
+
+      <div class="vip-modal-header">
+        <div class="vip-crown-badge">👑</div>
+        <h2 class="vip-modal-title">VIP Premium Pass</h2>
+        <p class="vip-modal-subtitle">Unlock exclusive high-reward Premium Tasks &amp; claim huge star bounties!</p>
+        
+        <div class="vip-balance-strip">
+          <span>Your Balance:</span>
+          <span class="vip-balance-pill">⭐ <b id="vipModalUserStars">0</b> Stars</span>
+        </div>
+      </div>
+
+      <div class="vip-plans-grid">
+        
+        <!-- PLAN 1: 500 Stars for 15 Days (5 tasks / day) -->
+        <div class="vip-plan-card" id="plan15Days">
+          <div class="plan-discount-badge starter-badge">STARTER PASS • LEVEL 1 &amp; 2 • 5 TASKS/DAY</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">15 DAYS</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">500</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">~33 ⭐ / day</div>
+            <div class="plan-task-limit-pill starter-pill">⚡ 5 Tasks / Day Limit • Level 1-2</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks Level 1 &amp; Level 2 Premium Tasks</li>
+              <li>✓ Complete up to 5 Premium Tasks per day</li>
+              <li>✓ 15 Days full VIP task clearance</li>
+              <li>✓ Instant 6-digit verification</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan" onclick="purchaseVipPlan('15days')">
+              Activate for 500 ⭐ (Level 1 &amp; 2)
+            </button>
+          </div>
+        </div>
+
+        <!-- PLAN 2: 1000 Stars for 30 Days (15% OFF, 10 tasks / day) -->
+        <div class="vip-plan-card popular-plan" id="plan30Days">
+          <div class="plan-discount-badge popular-badge">🔥 POPULAR • LEVEL 1-4 • 20 SHOP LIMIT</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">30 DAYS (1 MONTH)</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">1,000</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">Full month VIP access</div>
+            <div class="plan-task-limit-pill popular-pill">⚡ 10 Tasks/Day • 20 Shop Buy Limit</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks Level 1, Level 2, Level 3 &amp; Level 4 Tasks</li>
+              <li>✓ Upgrades Shop Buy Limit to 20 / Day</li>
+              <li>✓ Complete up to 10 Premium Tasks per day</li>
+              <li>✓ Priority task updates &amp; support</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan popular-btn" onclick="purchaseVipPlan('30days')">
+              Activate for 1,000 ⭐ (Level 1-4)
+            </button>
+          </div>
+        </div>
+
+        <!-- PLAN 3: 5000 Stars for 3 Months (All Levels 1-5 Unlocked, 20 tasks / day) -->
+        <div class="vip-plan-card best-value-plan" id="plan90Days">
+          <div class="plan-discount-badge best-badge">⚡ ULTIMATE PASS • ALL LEVELS 1-5 • 20 TASKS/DAY</div>
+          <div class="plan-card-body">
+            <div class="plan-duration-badge">3 MONTHS (90 DAYS)</div>
+            <div class="plan-price-row">
+              <span class="plan-price-stars">5,000</span>
+              <span class="plan-price-unit">⭐ Stars</span>
+            </div>
+            <div class="plan-rate-sub">Full 3-Month Ultimate VIP clearance</div>
+            <div class="plan-task-limit-pill best-pill">⚡ Level 5 Unlocked • 20 Tasks/Day</div>
+            <ul class="plan-features-list">
+              <li>✓ Unlocks All Levels: Level 1, 2, 3, 4 &amp; Level 5</li>
+              <li>✓ Upgrades Shop Buy Limit to 20 / Day</li>
+              <li>✓ Complete up to 20 Premium Tasks per day</li>
+              <li>✓ 90 Days (3 Months) Ultimate clearance</li>
+            </ul>
+            <button type="button" class="btn-buy-vip-plan best-btn" onclick="purchaseVipPlan('90days')">
+              Activate for 5,000 ⭐ (Level 5 Unlocked)
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="vip-modal-footer-note">
+        <span>Simple Tasks remain 100% free with no subscription required.</span>
+      </div>
+
+    </div>
+  </div>
+
   <!-- 6-Digit Code Task Verification Modal -->
   <div class="task-verify-modal-overlay" id="taskVerifyModalOverlay" style="display: none;" onclick="handleVerifyModalBackdropClick(event)">
     <div class="task-verify-modal-box" onclick="event.stopPropagation()">
       <button type="button" class="verify-modal-close-btn" onclick="closeVerifyModal()" aria-label="Close modal">✕</button>
       
       <div class="verify-modal-header">
-        <div class="verify-modal-badge">
+        <div class="verify-modal-badge" id="verifyModalHeaderBadge">
           <span class="verify-badge-dot"></span>
-          <span>WEBTASK VERIFICATION</span>
+          <span id="verifyModalHeaderBadgeText">WEBTASK VERIFICATION</span>
         </div>
         <h2 class="verify-modal-title">Enter 6-Digit Code</h2>
         <div class="verify-modal-reward-badge">
-          <span>Fixed Reward:</span>
-          <span class="reward-highlight">+5 ⭐</span>
+          <span>Reward:</span>
+          <span class="reward-highlight" id="verifyModalRewardHighlight">+5 ⭐</span>
         </div>
       </div>
 
@@ -187,7 +314,7 @@
 
         <div class="verify-modal-btn-row">
           <button type="button" class="btn-verify-cancel" onclick="closeVerifyModal()">Cancel</button>
-          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win 5 ⭐</button>
+          <button type="submit" class="btn-verify-confirm" id="btnVerifyConfirm">Verify &amp; Win Coins 🪙</button>
         </div>
       </form>
     </div>

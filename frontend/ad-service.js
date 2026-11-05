@@ -15,10 +15,10 @@ if (typeof window.show_10691428 !== 'function') {
 }
 
 const DEFAULT_AD_CONFIG = {
-  enabled: true,
+  enabled: false,
   provider: 'monetag',
   zoneId: '10691428',
-  adUrl: 'https://otieuche.com/4/8893420',
+  adUrl: '',
   openMethod: 'rewarded_interstitial',
   countdownSeconds: 0,
   scriptCode: 'show_10691428'
@@ -48,7 +48,7 @@ function openWatchAd(options = {}) {
     show_10691428().then(() => {
       // You need to add your user reward function here, which will be executed after the user watches the ad.
       // For more details, please refer to the detailed instructions.
-      alert('You have seen an ad!');
+      // ad removed
       rewardFunc();
     }).catch((err) => {
       console.warn('[AdService] show_10691428 error:', err);
@@ -56,7 +56,7 @@ function openWatchAd(options = {}) {
     });
   } else if (typeof window.show_10691428 === 'function') {
     window.show_10691428().then(() => {
-      alert('You have seen an ad!');
+      // ad removed
       rewardFunc();
     }).catch((err) => {
       console.warn('[AdService] show_10691428 error:', err);
@@ -65,11 +65,11 @@ function openWatchAd(options = {}) {
   } else {
     try {
       show_10691428().then(() => {
-        alert('You have seen an ad!');
+        // ad removed
         rewardFunc();
       });
     } catch(e) {
-      alert('You have seen an ad!');
+      // ad removed
       rewardFunc();
     }
   }

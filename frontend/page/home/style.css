@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 /* Core Resets */
 a {
   text-decoration: none;
@@ -42,7 +43,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   color: #f8fafc;
 }
@@ -1315,3 +1316,539 @@ body {
   box-shadow: 0 6px 18px rgba(250, 204, 21, 0.6);
 }
 
+
+
+/* ==========================================================================
+   SIMPLE TASKS / PREMIUM TASKS MODE SWITCHER & STYLING
+   ========================================================================== */
+.task-category-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.task-category-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: rgba(10, 23, 56, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.22);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  color: #94a3b8;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.task-category-tab:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(14, 30, 71, 0.95);
+  transform: translateY(-1px);
+}
+
+.task-category-tab:active {
+  transform: translateY(1px);
+}
+
+.task-category-tab.active {
+  background: linear-gradient(145deg, #1d4ed8 0%, #0f2b6b 50%, #0a1738 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+}
+
+.task-category-tab.tab-cat-premium {
+  border-color: rgba(250, 204, 21, 0.3);
+}
+
+.task-category-tab.tab-cat-premium.active {
+  background: linear-gradient(145deg, #7e22ce 0%, #9a3412 50%, #1e1338 100%);
+  border-color: #facc15;
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(250, 204, 21, 0.35), 0 0 16px rgba(168, 85, 247, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
+}
+
+.tab-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-cat-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.tab-cat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.tab-cat-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.tab-cat-sub {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.task-category-tab.active .tab-cat-sub {
+  color: #93c5fd;
+}
+
+.task-category-tab.tab-cat-premium.active .tab-cat-sub {
+  color: #fde047;
+}
+
+.tab-cat-count {
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.tab-cat-count.premium-count {
+  background: rgba(250, 204, 21, 0.2);
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.5);
+}
+
+/* Dynamic Mode Banner */
+.tasks-mode-banner {
+  background: linear-gradient(135deg, rgba(14, 30, 71, 0.8) 0%, rgba(7, 18, 51, 0.95) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.tasks-mode-banner.banner-premium {
+  background: linear-gradient(135deg, rgba(59, 7, 100, 0.75) 0%, rgba(120, 53, 15, 0.7) 50%, rgba(16, 10, 31, 0.95) 100%);
+  border-color: rgba(250, 204, 21, 0.5);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.2);
+}
+
+.mode-banner-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.3rem;
+}
+
+.tasks-mode-banner.banner-premium .mode-banner-badge {
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.18);
+  border-color: rgba(250, 204, 21, 0.5);
+}
+
+.tasks-mode-banner .tasks-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.tasks-mode-banner.banner-premium .tasks-title {
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
+}
+
+.tasks-mode-banner .tasks-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+  line-height: 1.35;
+}
+
+.tasks-mode-banner.banner-premium .tasks-subtitle {
+  color: #f1f5f9;
+}
+
+/* Premium Task Cards */
+.task-card.task-card-premium {
+  background: linear-gradient(145deg, #1b1233 0%, #0d1629 50%, #171129 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 14px rgba(250, 204, 21, 0.12);
+}
+
+.task-card.task-card-premium:hover {
+  border-color: #facc15;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.28);
+}
+
+.task-status-pill.vip-pill {
+  color: #fbbf24;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.45);
+  font-weight: 900;
+}
+
+
+/* ==========================================================================
+   VIP SUBSCRIPTION POPUP MODAL & 3 PLANS STYLING
+   ========================================================================== */
+.vip-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 8, 22, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.vip-modal-overlay.active {
+  opacity: 1;
+}
+
+.vip-modal-box {
+  background: linear-gradient(165deg, #0e172e 0%, #070e24 50%, #150f29 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 32px rgba(250, 204, 21, 0.2), inset 0 1px 1.5px rgba(255, 255, 255, 0.15);
+  border-radius: 22px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.25rem 1.25rem;
+  position: relative;
+  text-align: center;
+  transform: scale(0.94);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vip-modal-overlay.active .vip-modal-box {
+  transform: scale(1);
+}
+
+.vip-modal-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+.vip-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.vip-crown-badge {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  animation: crownPulse 2s ease-in-out infinite;
+}
+
+@keyframes crownPulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 16px rgba(250, 204, 21, 0.8)); }
+}
+
+.vip-modal-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 16px rgba(250, 204, 21, 0.4);
+}
+
+.vip-modal-subtitle {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin: 0.3rem auto 0.75rem;
+  line-height: 1.35;
+  max-width: 340px;
+}
+
+.vip-balance-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(10, 23, 56, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.vip-balance-pill {
+  color: #facc15;
+  font-weight: 800;
+}
+
+.vip-plans-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.vip-plan-card {
+  background: rgba(10, 23, 56, 0.75);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  position: relative;
+  padding-top: 1.25rem;
+  overflow: hidden;
+  transition: all 0.22s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.vip-plan-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.vip-plan-card.popular-plan {
+  background: linear-gradient(155deg, rgba(29, 78, 216, 0.2) 0%, rgba(10, 23, 56, 0.85) 100%);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.15);
+}
+
+.vip-plan-card.popular-plan:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 8px 24px rgba(56, 189, 248, 0.3);
+}
+
+.vip-plan-card.best-value-plan {
+  background: linear-gradient(155deg, rgba(217, 119, 6, 0.25) 0%, rgba(147, 51, 234, 0.2) 50%, rgba(10, 23, 56, 0.9) 100%);
+  border: 1.5px solid rgba(250, 204, 21, 0.6);
+  box-shadow: 0 6px 22px rgba(250, 204, 21, 0.2);
+}
+
+.vip-plan-card.best-value-plan:hover {
+  border-color: #facc15;
+  box-shadow: 0 10px 28px rgba(250, 204, 21, 0.35);
+}
+
+.plan-discount-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.plan-discount-badge.starter-badge {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.plan-discount-badge.popular-badge {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+.plan-discount-badge.best-badge {
+  background: linear-gradient(90deg, #d97706, #facc15, #ec4899);
+  color: #0f172a;
+  font-weight: 900;
+  box-shadow: 0 2px 10px rgba(250, 204, 21, 0.5);
+}
+
+.plan-card-body {
+  padding: 0.85rem 1rem 1rem;
+}
+
+.plan-duration-badge {
+  font-size: 0.74rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.plan-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0.2rem 0;
+}
+
+.plan-price-stars {
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #facc15;
+  letter-spacing: -0.02em;
+}
+
+.plan-price-unit {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fde047;
+}
+
+.plan-rate-sub {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-bottom: 0.55rem;
+}
+
+.plan-features-list {
+  list-style: none;
+  margin: 0 0 0.85rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plan-features-list li {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-buy-vip-plan {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-buy-vip-plan:hover {
+  background: #38bdf8;
+  color: #030816;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.5);
+}
+
+.btn-buy-vip-plan.popular-btn {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+.btn-buy-vip-plan.popular-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.5);
+}
+
+.btn-buy-vip-plan.best-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+  border-color: #fef08a;
+  color: #0b1329;
+  font-weight: 900;
+}
+
+.btn-buy-vip-plan.best-btn:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #fef08a 100%);
+  box-shadow: 0 4px 18px rgba(250, 204, 21, 0.6);
+  transform: translateY(-1px);
+}
+
+.vip-modal-footer-note {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+
+/* VIP Pass Daily Limit Pills & Status Bars */
+.plan-task-limit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.65rem;
+  border-radius: 8px;
+  margin-bottom: 0.55rem;
+  width: fit-content;
+}
+
+.plan-task-limit-pill.starter-pill {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.plan-task-limit-pill.popular-pill {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+}
+
+.plan-task-limit-pill.best-pill {
+  background: rgba(250, 204, 21, 0.18);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.45);
+}
+
+.vip-daily-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Global Fredoka Typography for All Text, Headings & Paragraphs */
+h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
+  font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}

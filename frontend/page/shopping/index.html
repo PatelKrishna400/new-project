@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Fredoka Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Frontend — Powerup Shop</title>
   <!-- Firebase SDK & Real-Time Cloud Connection -->
   <script type="module" src="../../firebase-config.js"></script>
   <link rel="stylesheet" href="style.css">
-  <script src="//alwingulla.com/88/tag.min.js" data-zone="10691428" data-sdk="show_10691428"></script>
 </head>
 <body>
 
@@ -63,35 +66,22 @@
 
       <div class="shop-list">
 
-        <!-- 1. Free Gift / Watch Ad for +10 Coins -->
+        <!-- 1. Free Gift / Watch Ad for +100 Coins -->
         <div class="star-shop-card shop-ad-card">
           <div class="shop-icon-wrap">🎁</div>
           <div class="shop-info">
             <div class="shop-name">
               <span>Free Gift</span>
-              <span class="star-pack-badge" style="background:#10b981; color:#ffffff;">+10 🪙</span>
+              <span class="star-pack-badge" style="background:#10b981; color:#ffffff;">+100 🪙</span>
             </div>
-            <div class="shop-desc">Watch ad &amp; win 10 free coins</div>
+            <div class="shop-desc">Watch ad &amp; win 100 free coins</div>
           </div>
           <button class="btn-buy" id="btnWatchAd" onclick="watchAdForCoins(this)">
             Watch Ad
           </button>
         </div>
 
-        <!-- 2. Buy 1 Star for 500 Coins -->
-        <div class="star-shop-card">
-          <div class="shop-icon-wrap">⭐</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>1 Star ⭐</span>
-              <span class="star-pack-badge">STARTER</span>
-            </div>
-            <div class="shop-desc">Starter Pack • Instant exchange</div>
-          </div>
-          <button class="btn-buy" onclick="buyStars(1, 500)">500 Coin 🪙</button>
-        </div>
-
-        <!-- 3. Buy 10 Stars for 4800 Coins -->
+        <!-- 2. Buy 10 Stars for 480 Coins (4% OFF) -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">✨</div>
           <div class="shop-info">
@@ -99,25 +89,25 @@
               <span>10 Stars ⭐</span>
               <span class="star-pack-badge">4%</span>
             </div>
-            <div class="shop-desc">Popular Pack • Save 200 🪙</div>
+            <div class="shop-desc">Starter Pack • Save 20 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(10, 4800)">4,800 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(10, 480)">480 Coin 🪙</button>
         </div>
 
-        <!-- 4. Buy 20 Stars for 9600 Coins -->
+        <!-- 3. Buy 20 Stars for 920 Coins (8% Discount per user request) -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">👑</div>
           <div class="shop-info">
             <div class="shop-name">
               <span>20 Stars ⭐</span>
-              <span class="star-pack-badge">4%</span>
+              <span class="star-pack-badge">8%</span>
             </div>
-            <div class="shop-desc">Pro Bundle • Save 400 🪙</div>
+            <div class="shop-desc">Pro Bundle • 8% OFF • Save 80 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(20, 9600)">9,600 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(20, 920)">920 Coin 🪙</button>
         </div>
 
-        <!-- 5. Buy 50 Stars for 20,000 Coins -->
+        <!-- 4. Buy 50 Stars for 2,000 Coins (20% OFF) -->
         <div class="star-shop-card">
           <div class="shop-icon-wrap">🌟</div>
           <div class="shop-info">
@@ -125,13 +115,38 @@
               <span>50 Stars ⭐</span>
               <span class="star-pack-badge">20%</span>
             </div>
-            <div class="shop-desc">Mega Vault • Save 5,000 🪙</div>
+            <div class="shop-desc">Mega Vault • Save 500 🪙</div>
           </div>
-          <button class="btn-buy" onclick="buyStars(50, 20000)">20,000 Coin 🪙</button>
+          <button class="btn-buy" onclick="buyStars(50, 2000)">2,000 Coin 🪙</button>
+        </div>
+
+        <!-- 5. Buy 100 Stars for 3,750 Coins (25% OFF) -->
+        <div class="star-shop-card">
+          <div class="shop-icon-wrap">💎</div>
+          <div class="shop-info">
+            <div class="shop-name">
+              <span>100 Stars ⭐</span>
+              <span class="star-pack-badge">25%</span>
+            </div>
+            <div class="shop-desc">Champion Hoard • 25% OFF • Save 1,250 🪙</div>
+          </div>
+          <button class="btn-buy" onclick="buyStars(100, 3750)">3,750 Coin 🪙</button>
+        </div>
+
+        <!-- 6. Buy 500 Stars for 15,000 Coins (40% OFF) -->
+        <div class="star-shop-card">
+          <div class="shop-icon-wrap">🏆</div>
+          <div class="shop-info">
+            <div class="shop-name">
+              <span>500 Stars ⭐</span>
+              <span class="star-pack-badge">40%</span>
+            </div>
+            <div class="shop-desc">Legendary Vault • 40% OFF • Save 10,000 🪙</div>
+          </div>
+          <button class="btn-buy" onclick="buyStars(500, 15000)">15,000 Coin 🪙</button>
         </div>
 
       </div>
-
 
     </main>
 

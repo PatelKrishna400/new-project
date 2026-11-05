@@ -75,9 +75,12 @@ function updateWalletDisplays() {
   // Update Buy Buttons on Gift Cards (Always unlocked)
   const buyBtns = document.querySelectorAll('.btn-buy-giftcard');
   buyBtns.forEach(btn => {
-    btn.classList.remove('locked-req');
-    btn.innerHTML = '<span>Buy ⭐</span>';
+    if (btn.id !== 'btnBuyOneTimeOffer') {
+      btn.classList.remove('locked-req');
+      btn.innerHTML = '<span>Buy Voucher</span>';
+    }
   });
+  checkOneTimeOfferClaimed();
 
 }
 
@@ -90,6 +93,60 @@ window.handleWalletWatchAd = handleWalletWatchAd;
 window.openEligibilityModal = openEligibilityModal;
 window.closeEligibilityModal = closeEligibilityModal;
 window.buyGiftCard = buyGiftCard;
+
+function switchWalletTab(tab) {
+  const stdTab = document.getElementById('tabWalletStandard');
+  const otoTab = document.getElementById('tabWalletOneTime');
+  const stdView = document.getElementById('walletViewStandard');
+  const otoView = document.getElementById('walletViewOneTime');
+
+  if (tab === 'onetime') {
+    if (stdTab) {
+      stdTab.classList.remove('active');
+      stdTab.style.background = 'rgba(15, 23, 42, 0.7)';
+      stdTab.style.borderColor = 'rgba(56, 189, 248, 0.2)';
+      stdTab.style.color = '#94a3b8';
+    }
+    if (otoTab) {
+      otoTab.classList.add('active');
+      otoTab.style.background = 'linear-gradient(135deg, #2a0b16 0%, #060e24 100%)';
+      otoTab.style.borderColor = '#f43f5e';
+      otoTab.style.color = '#ffffff';
+    }
+    if (stdView) stdView.style.display = 'none';
+    if (otoView) otoView.style.display = 'flex';
+  } else {
+    if (stdTab) {
+      stdTab.classList.add('active');
+      stdTab.style.background = 'linear-gradient(135deg, #0b1536 0%, #060e24 100%)';
+      stdTab.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+      stdTab.style.color = '#ffffff';
+    }
+    if (otoTab) {
+      otoTab.classList.remove('active');
+      otoTab.style.background = 'rgba(15, 23, 42, 0.7)';
+      otoTab.style.borderColor = 'rgba(244, 63, 94, 0.35)';
+      otoTab.style.color = '#f43f5e';
+    }
+    if (stdView) stdView.style.display = 'flex';
+    if (otoView) otoView.style.display = 'none';
+  }
+}
+window.switchWalletTab = switchWalletTab;
+
+function checkOneTimeOfferClaimed() {
+  const isClaimed = localStorage.getItem('wallet_one_time_offer_claimed') === 'true';
+  const btn = document.getElementById('btnBuyOneTimeOffer');
+  if (btn && isClaimed) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Claimed ✓ (1-Time Only)</span>';
+    btn.style.background = '#334155';
+    btn.style.borderColor = '#475569';
+    btn.style.color = '#94a3b8';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+window.checkOneTimeOfferClaimed = checkOneTimeOfferClaimed;
 
 
 function openEligibilityModal(tasksCount, adsCount) {
@@ -120,6 +177,11 @@ function buyGiftCard(rsAmount, starCost, title, imgPath) {
 }
 
 function openBuyModal(rsAmount, starCost, title, imgPath) {
+  const rsNum = parseInt(rsAmount, 10);
+  if (rsNum === 50 && localStorage.getItem('wallet_one_time_offer_claimed') === 'true') {
+    alert('This ₹50 Amazon Voucher is an exclusive One-Time Offer and has already been claimed by your account!');
+    return;
+  }
   const modal = document.getElementById('buyModalOverlay');
   const imgEl = document.getElementById('buyModalImg');
   const titleEl = document.getElementById('buyModalTitle');
@@ -147,7 +209,7 @@ function openBuyModal(rsAmount, starCost, title, imgPath) {
 
   // 1. Loading Bar 1: Web Tasks Completed
   const totalTasks = parseInt(localStorage.getItem('completed_tasks_count') || localStorage.getItem('task_game_total_tasks') || '0', 10);
-  const requiredTasks = rsAmount >= 100 ? rsAmount : 100;
+  const requiredTasks = (parseInt(rsAmount, 10) === 50) ? 10 : 100;
   const tasksPct = Math.min(100, Math.round((totalTasks / requiredTasks) * 100));
 
   const tasksValEl = document.getElementById('buyReqTasksVal');
@@ -233,10 +295,10 @@ function closeBuyModal() {
 function handleConfirmBuy(event) {
   event.preventDefault();
 
-  const rsAmount = parseInt(document.getElementById('buyParamRs').value, 10) || 100;
-  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 10000;
-  const title = document.getElementById('buyParamTitle').value || 'Amazon Gift Card';
-  const imgPath = document.getElementById('buyParamImg').value || 'assets/amazon_100.jpg';
+  const rsAmount = parseInt(document.getElementById('buyParamRs').value, 10) || 1000;
+  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 100000;
+  const title = document.getElementById('buyParamTitle').value || '₹1,000 Amazon Shopping Voucher';
+  const imgPath = document.getElementById('buyParamImg').value || 'assets/amazon_1000.jpg';
 
   const whatsapp = document.getElementById('buyUserWhatsapp')?.value.trim();
 
@@ -267,7 +329,7 @@ function handleConfirmBuy(event) {
 
   // Deduct stars
   if (window.firebaseSync && typeof window.firebaseSync.subtractStars === 'function') {
-    const res = window.firebaseSync.subtractStars(starCost, `Amazon Gift Card ₹${rsAmount}`);
+    const res = window.firebaseSync.subtractStars(starCost, `Amazon Shopping Voucher ₹${rsAmount}`);
     if (res !== false) userStars = res;
   } else {
     userStars -= starCost;
@@ -302,7 +364,7 @@ function handleConfirmBuy(event) {
       playerName: localStorage.getItem('player_username') || 'Player',
       playerAvatar: '🎁',
       amount: rsAmount,
-      method: `Amazon (₹${rsAmount})`,
+      method: `Amazon Voucher (₹${rsAmount})`,
       details: `Email: ${email} • WA: ${whatsapp} [${claimCode}]`,
       time: 'Just now',
       timestamp: Date.now(),
@@ -329,6 +391,11 @@ function handleConfirmBuy(event) {
     } catch (e) {}
   } catch (e) {
     console.error('Error recording wallet order:', e);
+  }
+
+  if (rsAmount === 50) {
+    localStorage.setItem('wallet_one_time_offer_claimed', 'true');
+    checkOneTimeOfferClaimed();
   }
 
   // Close Buy Form Modal

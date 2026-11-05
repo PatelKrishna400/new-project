@@ -117,10 +117,9 @@ function quickFillCredentials() {
 }
 
 function handleAdminLogout() {
-  if (confirm('Are you sure you want to log out of the admin console?')) {
+  if (confirm('Exit admin console and return to Profile tab?')) {
     sessionStorage.removeItem('admin_authenticated');
-    checkAuthStatus();
-    showToast('Admin logged out. Console locked.', 'info');
+    window.location.href = '../../../frontend/page/profile/index.html';
   }
 }
 
@@ -513,6 +512,63 @@ function formatDurationBadge(seconds) {
   return `${s}s Cooldown`;
 }
 
+
+let currentAdminHomeCategoryFilter = 'all';
+
+function filterAdminHomeTasksCategory(cat) {
+  currentAdminHomeCategoryFilter = cat;
+  ['btnAdminHomeFilterAll', 'btnAdminHomeFilterSimple', 'btnAdminHomeFilterPremium'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.remove('active');
+  });
+  if (cat === 'all') document.getElementById('btnAdminHomeFilterAll')?.classList.add('active');
+  if (cat === 'simple') document.getElementById('btnAdminHomeFilterSimple')?.classList.add('active');
+  if (cat === 'premium') document.getElementById('btnAdminHomeFilterPremium')?.classList.add('active');
+  renderAdminTasks();
+}
+window.filterAdminHomeTasksCategory = filterAdminHomeTasksCategory;
+
+function handleAdminHomeCategoryChange(val) {
+  const rewardInput = document.getElementById('taskRewardInput');
+  const badge = document.getElementById('adminHomeTaskRewardTypeBadge');
+  const shopGroup = document.getElementById('shopExtensionGroup');
+  const levelGroup = document.getElementById('taskLevelGroup');
+
+  if (val === 'shop_task') {
+    if (rewardInput && (rewardInput.value === '50' || rewardInput.value === '5' || !rewardInput.value)) {
+      rewardInput.value = '100';
+    }
+    if (badge) {
+      badge.textContent = '🛒 Shop Task (+Limit Extension)';
+      badge.style.color = '#34d399';
+    }
+    if (shopGroup) shopGroup.style.display = 'block';
+    if (levelGroup) levelGroup.style.display = 'block';
+  } else if (val === 'premium') {
+    if (rewardInput && (rewardInput.value === '50' || rewardInput.value === '5' || !rewardInput.value)) {
+      rewardInput.value = '200';
+    }
+    if (badge) {
+      badge.textContent = '💎 VIP Premium Coin Bounty (+200 🪙)';
+      badge.style.color = '#facc15';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
+  } else {
+    if (rewardInput && (rewardInput.value === '200' || rewardInput.value === '20' || rewardInput.value === '100' || !rewardInput.value)) {
+      rewardInput.value = '50';
+    }
+    if (badge) {
+      badge.textContent = '📋 Standard Coin Bounty (+50 🪙)';
+      badge.style.color = '#38bdf8';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
+  }
+  if (typeof updateModalPreview === 'function') updateModalPreview();
+}
+window.handleAdminHomeCategoryChange = handleAdminHomeCategoryChange;
+
 function renderAdminTasks() {
   const container = document.getElementById('adminTasksList');
   if (!container) return;
@@ -555,7 +611,9 @@ function renderAdminTasks() {
                 <span class="badge-tag badge-timer ${isCoolingDown ? 'cooling' : ''}" id="adminTimerBadge_${task.id}">${timerBadgeText}</span>
               </div>
               <div class="task-meta-sub">
-                <span class="task-bounty-val" style="color: #facc15; font-weight: 800;">+5 ⭐ (Fixed Reward)</span>
+                <span class="task-bounty-val" style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : '📋 Simple')})</span>
+                <span class="badge-tag" style="background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4); color: #facc15; font-weight: 800;">⭐ Lvl ${task.level || 1}</span>
+                ${(task.category === 'shop_task' || task.isShopTask) ? `<span class="badge-tag" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-weight: 800;">🛒 +${task.shopLimitExtension || 10} Shop Buys</span>` : ''}
                 ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-badge" title="Open task link">🔗 ${escapeHtml(task.link.length > 28 ? task.link.substring(0, 28) + '...' : task.link)} ↗</a>` : ''}
                 ${(task.verificationCode || task.code) ? `<span class="task-code-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 2px 7px; border-radius: 6px; font-weight: 800;" title="6-Digit Verification Code">🔑 6-Digit Code: <code style="color: #facc15; font-size: 0.95rem;">${escapeHtml(task.verificationCode || task.code)}</code></span>` : ''}
                 ${task.description ? `<span class="task-desc-sub">• ${escapeHtml(task.description)}</span>` : ''}
@@ -738,8 +796,15 @@ function openCreateModal() {
   const tabs = document.getElementById('adminModalModeTabs');
   if (tabs) tabs.style.display = 'flex';
 
+  const catSel = document.getElementById('taskCategorySelect');
+  if (catSel) catSel.value = 'simple';
   document.getElementById('taskIconInput').value = '⚡';
-  document.getElementById('taskRewardInput').value = '+5 ⭐ (Fixed Reward)';
+  document.getElementById('taskRewardInput').value = '50';
+  const badge = document.getElementById('adminHomeTaskRewardTypeBadge');
+  if (badge) {
+    badge.textContent = '📋 Standard Coin Bounty (+50 🪙)';
+    badge.style.color = '#38bdf8';
+  }
   document.getElementById('taskTimerPreset').value = '0';
   document.getElementById('customSecondsWrap').style.display = 'none';
   document.getElementById('customSecondsInput').value = '';
@@ -766,13 +831,23 @@ function openEditModal(taskId) {
 
   document.getElementById('editTaskId').value = task.id;
   document.getElementById('modalTitleText').textContent = `Edit Task: ${task.title}`;
+  const catSel = document.getElementById('taskCategorySelect');
+  if (catSel) {
+    catSel.value = task.category || 'simple';
+    handleAdminHomeCategoryChange(catSel.value);
+  }
+  const lvlSel = document.getElementById('taskLevelSelect');
+  if (lvlSel) lvlSel.value = (task.level || 1).toString();
+  const shopExtSel = document.getElementById('taskShopLimitExtension');
+  if (shopExtSel) shopExtSel.value = (task.shopLimitExtension || 10).toString();
   document.getElementById('taskTitleInput').value = task.title || '';
   const linkEl = document.getElementById('taskLinkInput');
   if (linkEl) linkEl.value = task.link || task.url || '';
   const codeEl = document.getElementById('taskCodeInput');
   if (codeEl) codeEl.value = task.verificationCode || task.code || task.secretCode || '';
   document.getElementById('taskIconInput').value = task.icon || '⚡';
-  document.getElementById('taskRewardInput').value = '+5 ⭐ (Fixed Reward)';
+  const rewVal = task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50);
+  document.getElementById('taskRewardInput').value = rewVal;
 
   const timerSec = task.timerSeconds !== undefined ? task.timerSeconds : (task.timer || 0);
   const presetEl = document.getElementById('taskTimerPreset');
@@ -843,9 +918,9 @@ function updateModalPreview() {
   if (pIcon) pIcon.textContent = icon;
   if (modalBadge) modalBadge.textContent = icon;
   if (pTitle) pTitle.textContent = title;
-  if (pReward) pReward.textContent = `+${Number(reward).toLocaleString()} 🪙`;
+  if (pReward) pReward.textContent = `+${Number(reward || 50).toLocaleString()} 🪙`;
   if (pDesc) pDesc.textContent = desc;
-  if (pBadge) pBadge.textContent = `⏱️ ${formatDurationBadge(timerSeconds)}`;
+  if (pBadge) pBadge.textContent = `🪙 ${Number(reward || 50).toLocaleString()} Coins`;
 }
 
 function handleSaveTask(event) {
@@ -898,9 +973,13 @@ function handleSaveTask(event) {
         code: verificationCode,
         secretCode: verificationCode,
         icon,
-        reward: 5,
-        rewardStars: 5,
-        stars: 5,
+        category: (document.getElementById('taskCategorySelect')?.value || 'simple'),
+        level: (parseInt(document.getElementById('taskLevelSelect')?.value || '1', 10) || 1),
+        shopLimitExtension: (parseInt(document.getElementById('taskShopLimitExtension')?.value || '10', 10) || 10),
+        isShopTask: ((document.getElementById('taskCategorySelect')?.value || '') === 'shop_task'),
+        reward: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        rewardCoins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        coins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
         description: desc,
         timerSeconds,
         timer: timerSeconds,
@@ -955,9 +1034,13 @@ function handleSaveTask(event) {
         code: code,
         secretCode: code,
         icon,
-        reward: 5,
-        rewardStars: 5,
-        stars: 5,
+        category: (document.getElementById('taskCategorySelect')?.value || 'simple'),
+        level: (parseInt(document.getElementById('taskLevelSelect')?.value || '1', 10) || 1),
+        shopLimitExtension: (parseInt(document.getElementById('taskShopLimitExtension')?.value || '10', 10) || 10),
+        isShopTask: ((document.getElementById('taskCategorySelect')?.value || '') === 'shop_task'),
+        reward: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        rewardCoins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        coins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
         description: desc || 'Open link & verify 6-digit code',
         timerSeconds,
         timer: timerSeconds,
@@ -997,9 +1080,10 @@ function handleSaveTask(event) {
     code: verificationCode,
     secretCode: verificationCode,
     icon,
-    reward: 5,
-    rewardStars: 5,
-    stars: 5,
+    category: (document.getElementById('taskCategorySelect')?.value || 'simple'),
+        reward: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        rewardCoins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
+        coins: (parseInt(document.getElementById('taskRewardInput')?.value, 10) || ((document.getElementById('taskCategorySelect')?.value === 'premium') ? 200 : 50)),
     description: desc,
     timerSeconds,
     timer: timerSeconds,
@@ -1377,7 +1461,7 @@ function renderUsersTable() {
           <div class="user-cell">
             <span class="user-avatar-sm">${u.avatar || '👤'}</span>
             <div>
-              <div class="user-name-bold">${escapeHtml(u.name)}</div>
+              <div class="user-name-bold"><span style="margin-right: 4px;">👤</span>${escapeHtml(u.name)}</div>
               <div style="font-size: 0.68rem; color: #64748b; font-family: 'JetBrains Mono', monospace;">ID: #${u.id}</div>
             </div>
           </div>
@@ -1393,6 +1477,7 @@ function renderUsersTable() {
         <td style="color: #94a3b8; font-size: 0.75rem;">${escapeHtml(u.joined || 'Oct 2026')}</td>
         <td>
           <div style="display: flex; gap: 0.4rem;">
+            <button class="btn-table-action" onclick="openDesktopUserDetailModal('${u.id}')" title="View Player Details" style="background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">🔍 Detail</button>
             <button class="btn-table-action" onclick="openUserEditModal('${u.id}')" title="Adjust Coins/Stars">✏️ Edit</button>
             <button class="btn-table-action ${isSusp ? 'btn-approve' : 'btn-reject'}" onclick="toggleUserStatus('${u.id}')" title="Ban/Unban player">
               ${isSusp ? '🟢 Unban' : '🚫 Ban'}
@@ -1817,14 +1902,14 @@ function getLeaderboardEventInfo() {
 }
 
 function formatEventCountdown(ms) {
-  if (ms <= 0) return '00d 00h 00m 00s';
+  if (ms <= 0) return '00:00:00:00';
   const totalSec = Math.floor(ms / 1000);
   const days = Math.floor(totalSec / 86400);
   const hours = Math.floor((totalSec % 86400) / 3600);
   const minutes = Math.floor((totalSec % 3600) / 60);
   const seconds = totalSec % 60;
 
-  return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
+  return `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 function startAdminEventsTimer() {
@@ -1991,7 +2076,7 @@ function renderSessionsArchiveView(filterSessionId = 'all', searchQuery = '') {
             <span style="font-size: 0.82rem; font-weight: 900; color: #ffffff;">${escapeHtml(topWinner.name)}</span>
             <span style="font-size: 0.75rem; color: #38bdf8; font-weight: 700;">(${topWinner.eventTasks || 0} Tasks)</span>
           </div>
-          <span style="font-size: 0.8rem; font-weight: 900; color: #facc15;">Awarded: +${Number(topWinner.starReward || 10000).toLocaleString()} ⭐</span>
+          <span style="font-size: 0.8rem; font-weight: 900; color: #facc15;">Awarded: +${Number(topWinner.starReward || 10000).toLocaleString()} 🪙</span>
         </div>` : ''}
 
         <!-- Session Standings Table -->
@@ -2003,7 +2088,7 @@ function renderSessionsArchiveView(filterSessionId = 'all', searchQuery = '') {
                 <th>Contender</th>
                 <th>Session Tasks</th>
                 <th>Total Career Tasks</th>
-                <th>Star Prize Awarded</th>
+                <th>Coin Prize Awarded</th>
                 <th>Contender ID</th>
               </tr>
             </thead>
@@ -2028,7 +2113,7 @@ function renderSessionsArchiveView(filterSessionId = 'all', searchQuery = '') {
                       </td>
                       <td style="font-weight: 800; color: #38bdf8;">${Number(st.eventTasks || 0).toLocaleString()}</td>
                       <td style="color: #94a3b8;">${Number(st.totalTasks || 0).toLocaleString()}</td>
-                      <td style="font-weight: 800; color: #facc15;">${st.starReward > 0 ? `+${st.starReward.toLocaleString()} ⭐` : '—'}</td>
+                      <td style="font-weight: 800; color: #facc15;">${st.starReward > 0 ? `+${st.starReward.toLocaleString()} 🪙` : '—'}</td>
                       <td style="font-family: monospace; font-size: 0.72rem; color: #64748b;">${escapeHtml(st.id || '')}</td>
                     </tr>`;
                 }).join('')}
@@ -2137,8 +2222,12 @@ function adminRestartEventSeason() {
   if (!confirm('Restart the 3-Month Championship Season with a fresh 90-day timer?')) return;
   const now = Date.now();
   const evt = getLeaderboardEventInfo();
+  const seasonNum = evt.seasonNumber || 1;
   const nextEvt = {
     ...evt,
+    id: evt.id || `global_season_${seasonNum}`,
+    seasonNumber: seasonNum, // Keep season number unchanged on restart
+    name: evt.name || `Season ${seasonNum}: 3-Month Championship`,
     startTime: now,
     endTime: now + THREE_MONTHS_MS,
     status: 'active',
@@ -2223,3 +2312,73 @@ window.adminRestartEventSeason = adminRestartEventSeason;
 window.adminExportSessionHistory = adminExportSessionHistory;
 window.deleteArchivedSession = deleteArchivedSession;
 window.exportSingleSessionJson = exportSingleSessionJson;
+
+
+function openDesktopUserDetailModal(userId) {
+  const user = usersData.find(u => u.id === userId);
+  if (!user) return;
+
+  const modal = document.getElementById('desktopUserDetailModalOverlay');
+  const body = document.getElementById('desktopUserDetailBody');
+  if (!modal || !body) return;
+
+  const isSusp = user.status === 'suspended';
+  const roleBadge = user.role === 'admin' ? '👑 Admin' : (user.role === 'vip' ? '🌟 VIP' : '👤 Player');
+  const handle = user.username ? (user.username.startsWith('@') ? user.username : '@' + user.username) : '@' + (user.name || 'player').toLowerCase().replace(/\s+/g, '');
+  const email = user.email || (user.id + '@novatasks.io');
+
+  body.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 0.85rem; background: #060e24; padding: 0.85rem; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.35); margin-bottom: 0.85rem;">
+      <div style="font-size: 2.4rem; line-height: 1;">${user.avatar || '⚡'}</div>
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span style="font-weight: 800; font-size: 1.05rem; color: #ffffff; display: inline-flex; align-items: center; gap: 4px;">
+            <span>👤</span> ${escapeHtml(user.name || 'Player')}
+          </span>
+          <span class="badge-tag" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;">${roleBadge}</span>
+          <span class="status-badge ${isSusp ? 'rejected' : 'approved'}">${isSusp ? 'SUSPENDED' : 'ACTIVE'}</span>
+        </div>
+        <div style="font-size: 0.75rem; color: #38bdf8; font-family: monospace; margin-top: 2px;">${escapeHtml(handle)}</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; margin-bottom: 0.85rem;">
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">USER ID (UID)</div>
+        <div style="font-size: 0.82rem; font-family: monospace; color: #38bdf8; font-weight: 700; margin-top: 2px;">${escapeHtml(user.id)}</div>
+      </div>
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">LEVEL TIER</div>
+        <div style="font-size: 0.82rem; color: #e2e8f0; font-weight: 800; margin-top: 2px;">${escapeHtml(user.level || 'LVL 1 • NOVICE')}</div>
+      </div>
+      <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.5rem 0.65rem; grid-column: span 2;">
+        <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">EMAIL ADDRESS</div>
+        <div style="font-size: 0.82rem; color: #e2e8f0; font-family: monospace; margin-top: 2px;">✉️ ${escapeHtml(email)}</div>
+      </div>
+    </div>
+
+    <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 0.85rem;">
+      <div style="font-size: 0.68rem; color: #94a3b8; font-weight: 700; margin-bottom: 0.4rem;">ECONOMY &amp; BALANCES</div>
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <span style="color: #fbbf24; font-weight: 800; font-size: 0.82rem; background: rgba(245, 158, 11, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.35);">🪙 ${Number(user.coins || 0).toLocaleString()} Coins</span>
+        <span style="color: #facc15; font-weight: 800; font-size: 0.82rem; background: rgba(250, 204, 21, 0.15); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(250, 204, 21, 0.35);">⭐ ${Number(user.stars || 0).toLocaleString()} Stars</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
+      <button type="button" class="btn-table-action" onclick="closeDesktopUserDetailModal()" style="padding: 0.5rem 0.85rem; font-weight: 700;">Close</button>
+      <button type="button" class="btn-table-action btn-reject" onclick="closeDesktopUserDetailModal(); deleteUser('${user.id}')" style="padding: 0.5rem 0.85rem; font-weight: 700;">🗑️ Delete</button>
+      <button type="button" class="btn-table-action btn-approve" onclick="closeDesktopUserDetailModal(); openUserEditModal('${user.id}')" style="padding: 0.5rem 0.85rem; font-weight: 700;">✏️ Edit</button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function closeDesktopUserDetailModal() {
+  const modal = document.getElementById('desktopUserDetailModalOverlay');
+  if (modal) modal.classList.remove('active');
+}
+
+window.openDesktopUserDetailModal = openDesktopUserDetailModal;
+window.closeDesktopUserDetailModal = closeDesktopUserDetailModal;
