@@ -16,7 +16,7 @@ const ACTIVITY_STORAGE_KEY = 'task_admin_activities';
 const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-// Default Seed Tasks (Managed completely from Admin Panel Form)
+// Default tasks: zero start (no demo tasks)
 const DEFAULT_TASKS = [];
 
 // Clean zero start - No mock withdrawals or users
@@ -211,13 +211,18 @@ function loadAllStoredData() {
     sessionsData = [];
   }
 
-  // Tasks
+  // Tasks (No demo tasks - only admin created tasks)
   try {
     const rawTasks = localStorage.getItem(TASKS_STORAGE_KEY);
     let parsed = rawTasks ? JSON.parse(rawTasks) : [];
     if (Array.isArray(parsed)) {
-      // Filter out legacy hardcoded seed tasks
-      parsed = parsed.filter(t => !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id));
+      // Filter out demo and legacy seed tasks
+      parsed = parsed.filter(t => t && t.id && 
+        !t.id.startsWith('task_article_') && 
+        !t.id.startsWith('task_sponsor_') && 
+        !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id) &&
+        !String(t.title || '').toLowerCase().includes('demo')
+      );
     } else {
       parsed = [];
     }
@@ -554,6 +559,24 @@ function handleAdminHomeCategoryChange(val) {
     }
     if (shopGroup) shopGroup.style.display = 'none';
     if (levelGroup) levelGroup.style.display = 'block';
+  } else if (val === 'article') {
+    if (rewardInput && (rewardInput.value === '200' || !rewardInput.value)) {
+      rewardInput.value = '75';
+    }
+    const iconInput = document.getElementById('taskIconInput');
+    if (iconInput && (iconInput.value === '⚡' || !iconInput.value)) {
+      iconInput.value = '📰';
+    }
+    const descInput = document.getElementById('taskDescInput');
+    if (descInput && (!descInput.value || descInput.value.includes('Open link'))) {
+      descInput.value = 'Read a few short paragraphs on the page to find the 6-digit code';
+    }
+    if (badge) {
+      badge.textContent = '📰 Article / Paragraph Reading Task (+75 🪙)';
+      badge.style.color = '#38bdf8';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
   } else {
     if (rewardInput && (rewardInput.value === '200' || rewardInput.value === '20' || rewardInput.value === '100' || !rewardInput.value)) {
       rewardInput.value = '50';
@@ -611,8 +634,10 @@ function renderAdminTasks() {
                 <span class="badge-tag badge-timer ${isCoolingDown ? 'cooling' : ''}" id="adminTimerBadge_${task.id}">${timerBadgeText}</span>
               </div>
               <div class="task-meta-sub">
-                <span class="task-bounty-val" style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : '📋 Simple')})</span>
+                <span class="task-bounty-val" style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : (task.category === 'article' ? 75 : 50)))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : (task.category === 'article' ? '📰 Article' : '📋 Simple'))})</span>
                 <span class="badge-tag" style="background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4); color: #facc15; font-weight: 800;">⭐ Lvl ${task.level || 1}</span>
+                ${(task.category === 'article') ? `<span class="badge-tag" style="background: rgba(14, 165, 233, 0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 800;">📰 Article / Paragraph</span>` : ''}
+                ${(Number(task.ticketCost || 0) > 0) ? `<span class="badge-tag" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; font-weight: 800;">🎟️ ${task.ticketCost} Tickets</span>` : '<span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-weight: 700;">🔓 Free</span>'}
                 ${(task.category === 'shop_task' || task.isShopTask) ? `<span class="badge-tag" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-weight: 800;">🛒 +${task.shopLimitExtension || 10} Shop Buys</span>` : ''}
                 ${task.link ? `<a href="${escapeHtml(task.link)}" target="_blank" class="task-link-badge" title="Open task link">🔗 ${escapeHtml(task.link.length > 28 ? task.link.substring(0, 28) + '...' : task.link)} ↗</a>` : ''}
                 ${(task.verificationCode || task.code) ? `<span class="task-code-badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 2px 7px; border-radius: 6px; font-weight: 800;" title="6-Digit Verification Code">🔑 6-Digit Code: <code style="color: #facc15; font-size: 0.95rem;">${escapeHtml(task.verificationCode || task.code)}</code></span>` : ''}

@@ -3176,7 +3176,7 @@ body {
 
 .tg-ptab-btn {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   color: #94a3b8;
   font-size: 0.72rem;
   font-weight: 800;
@@ -3187,17 +3187,20 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
 }
 
 .tg-ptab-btn:hover {
-  color: #ffffff;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.25);
 }
 
 .tg-ptab-btn.active {
   background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+  border-color: #38bdf8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5), inset 0 1px 1px rgba(147, 197, 253, 0.4);
 }
 
 .tg-ptab-icon {
@@ -4931,4 +4934,17 @@ body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, label, span, a
     transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+
+
+/* Admin User Tab Row - Strictly One Line */
+.admin-user-card {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  padding: 0.55rem 0.85rem !important;
+  gap: 0.5rem !important;
+  box-sizing: border-box !important;
 }

@@ -553,6 +553,7 @@
           <label class="form-label" for="taskCategorySelect">Task Category / Type *</label>
           <select id="taskCategorySelect" class="form-input" onchange="handleAdminHomeCategoryChange(this.value)" style="font-weight: 800;">
             <option value="simple">📋 Simple Task (Standard Coin Bounty)</option>
+            <option value="article">📰 Article / Paragraph Reading Task (Read short paragraphs to find 6-digit code)</option>
             <option value="premium">💎 Premium Task (VIP High Coin Bounty)</option>
             <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
           </select>
@@ -622,6 +623,14 @@
               <span id="adminHomeTaskRewardTypeBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">📋 Standard Coin Bounty (+50 🪙)</span>
             </div>
             <input type="number" id="taskRewardInput" class="form-input font-mono font-bold" min="1" max="1000000" value="50" required style="color: #fbbf24; font-weight: 900;" title="Coin reward for completing this task" oninput="updateModalPreview()">
+          </div>
+
+          <div class="form-group flex-1">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label" for="taskTicketCostInput" style="margin-bottom: 0;">Ticket Unlock Cost (🎟️)</label>
+              <span id="adminHomeTicketCostBadge" style="font-size: 0.72rem; color: #c084fc; font-weight: 800;">0 = Free</span>
+            </div>
+            <input type="number" id="taskTicketCostInput" class="form-input font-mono font-bold" min="0" max="1000" value="0" style="color: #c084fc; font-weight: 900;" title="Tickets required for player to unlock this task" oninput="updateModalPreview()">
           </div>
 
           <div class="form-group flex-1">

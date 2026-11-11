@@ -58,11 +58,74 @@
           <span>⭐</span>
           <span class="star-value" id="userStarsDisplay">0</span>
         </div>
+        <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
+          <span>🔥</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
+        </div>
+        <div class="diamond-pill" id="diamondPill" title="Diamond Balance • 10 tasks = 1 Diamond (20 💎 unlocks Level 2)" onclick="openDiamondInfoModal()">
+          <span>💎</span>
+          <span class="diamond-value" id="userDiamondsDisplay">0</span>
+        </div>
       </div>
     </header>
 
     <!-- Page Content (Tasks) -->
     <main class="page-content">
+
+      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
+      <div class="player-level-card" id="playerLevelCard">
+        <div class="level-card-header">
+          <div class="level-badge-wrap">
+            <span class="level-badge-icon" id="userLevelBadgeIcon">⭐</span>
+            <div class="level-badge-text-wrap">
+              <div class="level-title-row">
+                <span class="level-badge-num" id="userLevelNum">LEVEL 1</span>
+                <span class="level-badge-name" id="userLevelName">Novice</span>
+              </div>
+              <div class="level-subtitle" id="userLevelSub">💎 0/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)</div>
+            </div>
+          </div>
+        </div>
+        <div class="level-progress-track">
+          <div class="level-progress-fill" id="userLevelProgressFill" style="width: 0%;"></div>
+        </div>
+
+        <!-- 6 Level Tabs Bar Inside Unified Card -->
+        <div class="level-tabs-container">
+          <div class="level-tabs-scroll" id="levelTabsBar" role="tablist">
+            <button type="button" class="level-tab-btn active lvl-tab-1" id="levelTab1" onclick="switchLevelTab(1)">
+              <span class="lvl-tab-badge">LVL 1</span>
+              <span class="lvl-tab-name">Level 1</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-2" id="levelTab2" onclick="switchLevelTab(2)">
+              <span class="lvl-tab-badge">LVL 2</span>
+              <span class="lvl-tab-name">Level 2</span>
+              <span class="lvl-lock-icon" id="lvlLock2" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-3" id="levelTab3" onclick="switchLevelTab(3)">
+              <span class="lvl-tab-badge">LVL 3</span>
+              <span class="lvl-tab-name">Level 3</span>
+              <span class="lvl-lock-icon" id="lvlLock3" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-4" id="levelTab4" onclick="switchLevelTab(4)">
+              <span class="lvl-tab-badge">LVL 4</span>
+              <span class="lvl-tab-name">Level 4</span>
+              <span class="lvl-lock-icon" id="lvlLock4" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-5" id="levelTab5" onclick="switchLevelTab(5)">
+              <span class="lvl-tab-badge">LVL 5</span>
+              <span class="lvl-tab-name">Level 5</span>
+              <span class="lvl-lock-icon" id="lvlLock5" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-all lvl-tab-6" id="levelTab6" onclick="switchLevelTab(6)">
+              <span class="lvl-tab-badge">LVL 6</span>
+              <span class="lvl-tab-name">👑 All Tasks</span>
+              <span class="lvl-lock-icon" id="lvlLock6" style="display:none;">🔒</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
       <div class="task-category-tabs">
@@ -87,13 +150,6 @@
           </div>
           <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
         </button>
-      </div>
-
-      <!-- Dynamic Header Banner for Current Tab -->
-      <div class="tasks-mode-banner" id="tasksModeBanner">
-        <div class="mode-banner-badge" id="modeBannerBadge">STANDARD MISSIONS</div>
-        <h1 class="tasks-title" id="modeBannerTitle">Simple Tasks</h1>
-        <p class="tasks-subtitle" id="modeBannerDesc">Complete quick missions &amp; enter 6-digit code to win stars!</p>
       </div>
 
       <!-- Tasks List -->
@@ -320,8 +376,57 @@
     </div>
   </div>
 
+  <!-- Ticket Task Unlock Modal -->
+  <div class="task-verify-modal-overlay" id="taskUnlockModalOverlay" style="display: none;" onclick="handleUnlockModalBackdropClick(event)">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()" style="max-width: 410px; border-color: rgba(168, 85, 247, 0.45); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(168, 85, 247, 0.25);">
+      <button type="button" class="verify-modal-close-btn" onclick="closeTaskUnlockModal()" aria-label="Close modal">✕</button>
+      
+      <div class="verify-modal-header">
+        <div class="verify-modal-badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;">
+          <span class="verify-badge-dot" style="background: #c084fc; box-shadow: 0 0 8px #c084fc;"></span>
+          <span>MISSION ACCESS LOCKED</span>
+        </div>
+        <h2 class="verify-modal-title" style="margin-top: 0.4rem;">Unlock With Tickets</h2>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">
+          Spend your tickets to unlock this mission and start earning rewards!
+        </div>
+      </div>
+
+      <div class="verify-modal-task-card" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(168, 85, 247, 0.35);">
+        <div class="verify-card-icon" id="unlockModalTaskIcon" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); font-size: 1.4rem;">🔒</div>
+        <div class="verify-card-info">
+          <div class="verify-card-title" id="unlockModalTaskTitle" style="color: #ffffff; font-weight: 800; font-size: 0.95rem;">Webtask Mission</div>
+          <div class="verify-card-sub" id="unlockModalTaskReward" style="color: #fbbf24; font-weight: 800;">🪙 +50 Coins Bounty</div>
+        </div>
+      </div>
+
+      <!-- Ticket Cost & Current Balance Display -->
+      <div style="display: flex; gap: 10px; margin: 1rem 0 0.85rem; background: rgba(10, 23, 56, 0.65); padding: 0.85rem; border-radius: 14px; border: 1px solid rgba(168, 85, 247, 0.25);">
+        <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.1);">
+          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Unlock Cost</div>
+          <div id="unlockModalTicketCostText" style="font-size: 1.15rem; color: #c084fc; font-weight: 900; margin-top: 2px;">🎟️ 0 Tickets</div>
+        </div>
+        <div style="flex: 1; text-align: center;">
+          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Your Tickets</div>
+          <div id="unlockModalUserTicketsText" style="font-size: 1.15rem; color: #38bdf8; font-weight: 900; margin-top: 2px;">🎟️ 0</div>
+        </div>
+      </div>
+
+      <!-- Alert / Notice message -->
+      <div id="unlockModalAlertMsg" style="display: none; padding: 0.65rem; border-radius: 10px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1rem; text-align: center;"></div>
+
+      <div class="verify-modal-btn-row" id="unlockModalBtnRow">
+        <button type="button" class="btn-verify-cancel" onclick="closeTaskUnlockModal()">Cancel</button>
+        <button type="button" class="btn-verify-confirm" id="btnConfirmUnlockTask" onclick="confirmUnlockTask()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+          🎟️ Unlock Now
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Firebase Cloud Sync & Analytics Connection -->
   <script type="module" src="../../firebase-config.js"></script>
   <script src="script.js"></script>
+  <script src="../../daily-streak.js"></script>
 </body>
 </html>

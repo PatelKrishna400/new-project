@@ -35,6 +35,11 @@
           <span>⭐</span>
           <span class="star-value" id="profileStarsDisplay">0</span>
         </div>
+        <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
+          <span>🔥</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
+        </div>
       </div>
     </header>
 
@@ -173,12 +178,6 @@
             <button type="submit" class="btn-admin-submit" id="btnAdminLogin">
               <span>Authenticate &amp; Open Admin 🚀</span>
             </button>
-
-            <div style="text-align: center; margin-top: 0.75rem;">
-              <button type="button" class="btn-admin-hint" onclick="quickFillProfileAdmin()" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.72rem; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
-                ⚡ Quick Fill Credentials (Demo)
-              </button>
-            </div>
 
             <button type="button" onclick="switchProfileTab('profile')" style="background: transparent; border: none; color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer; margin-top: 1rem; text-decoration: underline; width: 100%;">
               &larr; Back to Player Profile
@@ -1549,6 +1548,7 @@
           <label class="admin-form-label" for="taskInputCategory">Task Category / Type *</label>
           <select id="taskInputCategory" class="admin-form-input" onchange="handleAdminTaskCategoryChange(this.value)" style="font-weight: 800;">
             <option value="simple">📋 Simple Task (Standard Bounty)</option>
+            <option value="article">📰 Article / Paragraph Reading Task (Read short paragraphs to find 6-digit code)</option>
             <option value="premium">💎 Premium Task (VIP High Bounty)</option>
             <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
           </select>
@@ -1610,6 +1610,15 @@
             <span id="taskRewardTypeBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">📋 Standard Coin Bounty (+50 🪙)</span>
           </div>
           <input type="number" id="taskInputCoins" class="admin-form-input font-bold" min="1" max="1000000" value="50" required style="background: rgba(10, 23, 56, 0.7); color: #fbbf24; font-weight: 900; font-size: 1rem;" />
+        </div>
+
+        <!-- 3b. Ticket Unlock Cost -->
+        <div class="admin-form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="admin-form-label" for="taskInputTicketCost" style="margin-bottom: 0;">Ticket Unlock Cost (🎟️)</label>
+            <span style="font-size: 0.72rem; color: #c084fc; font-weight: 800;">0 = Free / Unlocked</span>
+          </div>
+          <input type="number" id="taskInputTicketCost" class="admin-form-input font-bold" min="0" max="1000" value="0" placeholder="0 (Free) or Tickets required" style="background: rgba(10, 23, 56, 0.7); color: #c084fc; font-weight: 900; font-size: 1rem;" />
         </div>
 
         <!-- 4. Timer Wait (Sec) -->
@@ -2027,5 +2036,6 @@
     </div>
   </div>
 
+  <script src="../../daily-streak.js"></script>
 </body>
 </html>

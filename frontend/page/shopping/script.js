@@ -128,13 +128,42 @@ window.getItemPurchasedCount = getItemPurchasedCount;
 window.recordItemPurchase = recordItemPurchase;
 window.updateShopItemLimitsUI = updateShopItemLimitsUI;
 
-// Shop Logic with Star Exchange & Watch Ad Rewards
-if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
-  localStorage.setItem('task_game_coins', '0');
-}
-if (localStorage.getItem('task_game_stars') === '850' || !localStorage.getItem('task_game_stars')) {
-  localStorage.setItem('task_game_stars', '0');
-}
+// Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
+try {
+  if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
+    localStorage.setItem('task_game_coins', '0');
+    localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('user_stars', '0');
+    localStorage.setItem('task_game_total_tasks', '0');
+    localStorage.setItem('task_game_total_tasks_completed', '0');
+    localStorage.setItem('completed_tasks_count', '0');
+    localStorage.setItem('task_game_ads_watched_count', '0');
+    localStorage.setItem('ads_watched_count', '0');
+    localStorage.setItem('task_game_event_tasks', '0');
+    localStorage.setItem('task_game_event_tasks_count', '0');
+    localStorage.setItem('task_coins_won_today', '0');
+    localStorage.setItem('task_games_played_today', '0');
+    localStorage.setItem('task_win_streak', '0');
+    localStorage.setItem('task_game_users', '[]');
+    localStorage.setItem('task_game_withdrawals', '[]');
+    localStorage.setItem('task_game_referrals_list', '[]');
+    localStorage.setItem('task_game_stars_transactions', '[]');
+    localStorage.setItem('task_game_claims', '{}');
+    localStorage.removeItem('task_game_stars_rating');
+    localStorage.removeItem('task_game_cloud_referral_codes');
+    localStorage.removeItem('task_game_ad_timer_end');
+    localStorage.removeItem('task_game_tg_profile');
+    localStorage.removeItem('player_email');
+    localStorage.removeItem('player_whatsapp');
+    const existingName = localStorage.getItem('player_username');
+    if (!existingName || existingName.toLowerCase().includes('nova')) {
+      localStorage.setItem('player_username', 'Player');
+    }
+    localStorage.setItem('player_avatar', '⚡');
+    localStorage.setItem('task_game_zero_start_clean_v7', 'true');
+  }
+} catch (e) {}
 
 let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
@@ -194,12 +223,17 @@ const shopSfx = {
 const AD_COOLDOWN_MS = 5 * 60 * 60 * 1000;
 let adCooldownInterval = null;
 
-function getAdCooldownRemaining() {
-  const endTimestamp = parseInt(localStorage.getItem('task_game_shop_ad_cooldown') || '0', 10);
+function getAdCooldownRemaining(type = 'coins') {
+  const key = type === 'tickets' ? 'task_game_shop_ad_tickets_cooldown' : 'task_game_shop_ad_coins_cooldown';
+  let endTimestamp = parseInt(localStorage.getItem(key) || '0', 10);
+  if (!endTimestamp && type === 'coins') {
+    endTimestamp = parseInt(localStorage.getItem('task_game_shop_ad_cooldown') || '0', 10);
+  }
   if (!endTimestamp) return 0;
   const remaining = endTimestamp - Date.now();
   if (remaining > AD_COOLDOWN_MS) {
-    localStorage.removeItem('task_game_shop_ad_cooldown');
+    localStorage.removeItem(key);
+    if (type === 'coins') localStorage.removeItem('task_game_shop_ad_cooldown');
     return 0;
   }
   return remaining > 0 ? remaining : 0;
@@ -242,19 +276,29 @@ function autoLoginWithTelegram() {
 }
 
 function updateAdCooldownUI() {
-  const remaining = getAdCooldownRemaining();
-  const btn = document.getElementById('btnWatchAd') || document.querySelector('.shop-ad-card .btn-buy');
+  const coinsRemaining = getAdCooldownRemaining('coins');
+  const ticketsRemaining = getAdCooldownRemaining('tickets');
 
-  // Ensure any comment bubble from Image 1 is removed
-  const commentWrap = document.getElementById('adTimerCommentWrap') || document.querySelector('.ad-timer-comment-wrap');
-  if (commentWrap) commentWrap.remove();
+  const btnCoins = document.getElementById('btnWatchAdCoins') || document.getElementById('btnWatchAd');
+  const btnTickets = document.getElementById('btnWatchAdTickets');
 
-  if (remaining > 0) {
-    if (btn) {
+  const setBtnState = (btn, remaining) => {
+    if (!btn) return;
+    if (remaining > 0) {
       btn.disabled = true;
       btn.innerHTML = `<span class="cooldown-timer-tab" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #ffffff; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.74rem; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid #f87171; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); letter-spacing: 0.04em;">⏱️ ${formatCooldownTime(remaining)}</span>`;
       btn.classList.add('btn-disabled-cooldown');
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Watch Ad 📺';
+      btn.classList.remove('btn-disabled-cooldown');
     }
+  };
+
+  setBtnState(btnCoins, coinsRemaining);
+  setBtnState(btnTickets, ticketsRemaining);
+
+  if (coinsRemaining > 0 || ticketsRemaining > 0) {
     if (!adCooldownInterval) {
       adCooldownInterval = setInterval(updateAdCooldownUI, 1000);
     }
@@ -262,12 +306,6 @@ function updateAdCooldownUI() {
     if (adCooldownInterval) {
       clearInterval(adCooldownInterval);
       adCooldownInterval = null;
-    }
-    localStorage.removeItem('task_game_shop_ad_cooldown');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = 'Watch Ad';
-      btn.classList.remove('btn-disabled-cooldown');
     }
   }
 }
@@ -302,11 +340,14 @@ document.addEventListener('DOMContentLoaded', () => {
   checkAndResetShopCycle();
   updateShopItemLimitsUI();
   updateAdCooldownUI();
+  const savedTab = localStorage.getItem('task_game_shop_active_tab') || 'all';
+  switchShopTab(savedTab);
 });
 
 function updateDisplays() {
   userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
   userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  const userTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10);
 
   const displayCoins = document.getElementById('shopCoinsDisplay');
   if (displayCoins) displayCoins.textContent = userCoins.toLocaleString();
@@ -319,25 +360,35 @@ function updateDisplays() {
 
   const topStars = document.getElementById('shopStarsDisplayTop');
   if (topStars) topStars.textContent = userStars.toLocaleString();
+
+  const displayTickets = document.getElementById('shopTicketsDisplay');
+  if (displayTickets) displayTickets.textContent = userTickets.toLocaleString();
+
+  const avatarEl = document.querySelector('.user-avatar');
+  if (avatarEl) avatarEl.textContent = localStorage.getItem('player_avatar') || '🛍️';
+
+  const nameEl = document.querySelector('.user-name');
+  if (nameEl) nameEl.textContent = localStorage.getItem('player_username') || 'Player';
 }
 
-// Free Gift Reward (+100 Coins using Ads)
+// Free Coin Reward (+100 Coins using Ads)
 function watchAdForCoins(btn) {
-  const remaining = getAdCooldownRemaining();
+  const remaining = getAdCooldownRemaining('coins');
   if (remaining > 0) {
-    alert(`⏳ Free Gift on Cooldown!\n\nPlease wait ${formatCooldownTime(remaining)} before claiming again.`);
+    alert(`⏳ Free Coins on Cooldown!\n\nPlease wait ${formatCooldownTime(remaining)} before claiming again.`);
     return;
   }
 
   const onReward = () => {
     const rewardCoins = 100;
     if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
-      userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Gift');
+      userCoins = window.firebaseSync.addCoins(rewardCoins, 'Watch Ad Free Coins');
     } else {
       userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + rewardCoins;
       localStorage.setItem('task_game_coins', userCoins.toString());
       localStorage.setItem('user_coins', userCoins.toString());
     }
+
     if (typeof window.updateAllDomBalances === 'function') {
       window.updateAllDomBalances(userCoins, userStars);
     }
@@ -345,8 +396,9 @@ function watchAdForCoins(btn) {
       window.saveCurrentProfileToFirestore();
     }
 
-    // Set 5-hour cooldown
+    // Set 5-hour cooldown for coins
     const endTimestamp = Date.now() + AD_COOLDOWN_MS;
+    localStorage.setItem('task_game_shop_ad_coins_cooldown', endTimestamp.toString());
     localStorage.setItem('task_game_shop_ad_cooldown', endTimestamp.toString());
 
     // Track completed claim / ad count for tasks and leaderboard
@@ -359,20 +411,145 @@ function watchAdForCoins(btn) {
 
     try {
       const syncChannel = new BroadcastChannel('nova_task_sync');
-      syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+      syncChannel.postMessage({ type: 'BALANCES_UPDATED', newCoins: userCoins, timestamp: Date.now() });
     } catch (e) {}
 
     updateAdCooldownUI();
 
-    alert(`🎁 Free Gift Claimed!\n\nYou watched an ad and won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
+    alert(`🎁 Free Coins Claimed!\n\nYou won +${rewardCoins} 🪙 Coins!\nTotal Coins: ${userCoins.toLocaleString()} 🪙`);
   };
 
-  // Ad call removed
   onReward();
 }
 
+// Free Ticket Reward (+5 Tickets using Ads)
+function watchAdForTickets(btn) {
+  const remaining = getAdCooldownRemaining('tickets');
+  if (remaining > 0) {
+    alert(`⏳ Free Tickets on Cooldown!\n\nPlease wait ${formatCooldownTime(remaining)} before claiming again.`);
+    return;
+  }
+
+  const onReward = () => {
+    const rewardTickets = 5;
+    const currentTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10);
+    const newTickets = currentTickets + rewardTickets;
+    userTickets = newTickets;
+    localStorage.setItem('task_user_tickets', newTickets.toString());
+    localStorage.setItem('user_tickets', newTickets.toString());
+    if (typeof updateDailyStreakHeaderDisplays === 'function') {
+      updateDailyStreakHeaderDisplays();
+    }
+
+    if (typeof window.saveCurrentProfileToFirestore === 'function') {
+      window.saveCurrentProfileToFirestore();
+    }
+
+    // Set 5-hour cooldown for tickets
+    const endTimestamp = Date.now() + AD_COOLDOWN_MS;
+    localStorage.setItem('task_game_shop_ad_tickets_cooldown', endTimestamp.toString());
+
+    // Track completed claim / ad count for tasks and leaderboard
+    const adsCount = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1;
+    localStorage.setItem('task_game_ads_watched_count', adsCount.toString());
+    localStorage.setItem('ads_watched_count', adsCount.toString());
+
+    updateDisplays();
+    if (typeof shopSfx !== 'undefined' && shopSfx.playCoin) shopSfx.playCoin();
+
+    try {
+      const syncChannel = new BroadcastChannel('nova_task_sync');
+      syncChannel.postMessage({ type: 'BALANCES_UPDATED', newTickets, timestamp: Date.now() });
+    } catch (e) {}
+
+    updateAdCooldownUI();
+
+    alert(`🎟️ Free Tickets Claimed!\n\nYou won +${rewardTickets} 🎟️ Tickets!\nTotal Tickets: ${newTickets.toLocaleString()} 🎟️`);
+  };
+
+  onReward();
+}
+
+// Shop Category Tab Switcher (All, Tickets, Coins & Stars)
+function switchShopTab(tab) {
+  const tabs = document.querySelectorAll('.shop-cat-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+
+  const activeBtn = document.getElementById(
+    tab === 'tickets' ? 'shopTabTickets' : (tab === 'coins' ? 'shopTabCoins' : 'shopTabAll')
+  );
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const ticketItems = document.querySelectorAll('.shop-item-ticket, .ticket-shop-card');
+  const coinItems = document.querySelectorAll('.shop-item-coin');
+  const ticketSectionHeader = document.querySelector('.shop-section-header');
+
+  if (tab === 'all') {
+    ticketItems.forEach(el => el.style.display = '');
+    coinItems.forEach(el => el.style.display = '');
+    if (ticketSectionHeader) ticketSectionHeader.style.display = '';
+  } else if (tab === 'tickets') {
+    coinItems.forEach(el => el.style.display = 'none');
+    ticketItems.forEach(el => el.style.display = '');
+    if (ticketSectionHeader) ticketSectionHeader.style.display = '';
+  } else if (tab === 'coins') {
+    ticketItems.forEach(el => el.style.display = 'none');
+    coinItems.forEach(el => el.style.display = '');
+    if (ticketSectionHeader) ticketSectionHeader.style.display = 'none';
+  }
+
+  localStorage.setItem('task_game_shop_active_tab', tab);
+}
+
+window.switchShopTab = switchShopTab;
+window.watchAdForTickets = watchAdForTickets;
 window.watchAdForCoins = watchAdForCoins;
 window.buyStars = buyStars;
+
+// Buy Tickets with Telegram Stars (10 Stars -> 100 Tickets, 20 Stars -> 500 Tickets, 50 Stars -> 1,000 Tickets)
+function buyTicketsWithStars(ticketAmount, starCost) {
+  let stars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10) || 0;
+  if (stars < starCost) {
+    const diff = starCost - stars;
+    alert(`Insufficient Stars!\n\nYou have ${stars} ⭐ Stars but need ${starCost} ⭐ Stars (${diff} more).\n\nTop up your Telegram Stars or earn them in the Star Game to buy tickets!`);
+    return;
+  }
+
+  // Deduct stars
+  stars -= starCost;
+  userStars = stars;
+  localStorage.setItem('task_game_stars', stars.toString());
+  localStorage.setItem('user_stars', stars.toString());
+
+  // Add tickets
+  const currentTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10) || 0;
+  const newTickets = currentTickets + ticketAmount;
+  localStorage.setItem('task_user_tickets', newTickets.toString());
+  localStorage.setItem('user_tickets', newTickets.toString());
+
+  // Update UI & broadcast
+  updateDisplays();
+  if (typeof window.updateAllDomBalances === 'function') {
+    window.updateAllDomBalances(userCoins, userStars);
+  }
+  if (typeof updateDailyStreakHeaderDisplays === 'function') {
+    updateDailyStreakHeaderDisplays();
+  }
+  if (typeof shopSfx !== 'undefined' && shopSfx.playPurchase) {
+    shopSfx.playPurchase();
+  } else if (typeof shopSfx !== 'undefined' && shopSfx.playCoin) {
+    shopSfx.playCoin();
+  }
+
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'TICKETS_PURCHASED', starCost, ticketAmount, newTickets, stars, timestamp: Date.now() });
+  } catch (e) {}
+
+  alert(`🎉 Purchase Successful!\n\nYou exchanged ${starCost} ⭐ Stars for ${ticketAmount.toLocaleString()} 🎟️ Tickets!\n\nTotal Tickets: ${newTickets.toLocaleString()} 🎟️\nRemaining Stars: ${stars.toLocaleString()} ⭐`);
+}
+
+window.buyTicketsWithStars = buyTicketsWithStars;
 
 // Buy Stars for Coins (10 for 480, 20 for 920, 50 for 2,000, 100 for 3,750, 500 for 15,000)
 function buyStars(starAmount, coinCost, explicitItemId) {
@@ -418,6 +595,26 @@ function buyStars(starAmount, coinCost, explicitItemId) {
   updateShopItemLimitsUI();
   shopSfx.playStarChime();
 
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+  } catch (e) {}
+
+  if (window.TelegramStars && typeof window.TelegramStars.addTransaction === 'function') {
+    window.TelegramStars.addTransaction({
+      id: `XTR-${Math.floor(100000 + Math.random() * 900000)}`,
+      amount: starAmount,
+      currency: 'XTR',
+      date: Math.floor(Date.now() / 1000),
+      formattedDate: 'Today, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      peer: 'starsTransactionPeer',
+      title: `${starAmount} Stars Exchange`,
+      description: `Converted ${coinCost} Coins to Stars`,
+      status: 'completed',
+      paymentMethod: 'coins_exchange'
+    });
+  }
+
   alert(`⭐ Star Purchase Successful!\n\nYou converted ${coinCost.toLocaleString()} 🪙 Coins into +${starAmount} ⭐ Stars!\nTotal Stars: ${userStars.toLocaleString()} ⭐`);
 }
 
@@ -448,6 +645,11 @@ function buyItem(btn, price, itemName) {
   }
   updateDisplays();
   shopSfx.playCoin();
+
+  try {
+    const syncChannel = new BroadcastChannel('nova_task_sync');
+    syncChannel.postMessage({ type: 'BALANCES_UPDATED', timestamp: Date.now() });
+  } catch (e) {}
 
   btn.textContent = 'Owned ✓';
   btn.disabled = true;

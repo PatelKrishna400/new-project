@@ -71,6 +71,11 @@
           <span>⭐</span>
           <span class="star-value" id="leaderboardStarsTop">0</span>
         </div>
+        <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
+          <span>🔥</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
+        </div>
       </div>
     </header>
 
@@ -503,5 +508,6 @@
   <!-- Firebase Cloud Sync & Analytics Connection -->
   <script type="module" src="../../firebase-config.js"></script>
   <script src="script.js"></script>
+  <script src="../../daily-streak.js"></script>
 </body>
 </html>

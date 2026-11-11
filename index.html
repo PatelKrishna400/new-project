@@ -33,6 +33,7 @@
   </script>
   <!-- Firebase SDK & Analytics Connection -->
   <script type="module" src="frontend/firebase-config.js"></script>
+  <script src="frontend/daily-streak.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
 
@@ -265,7 +266,8 @@
     }
 
     .coin-pill,
-    .star-pill {
+    .star-pill,
+    .diamond-pill {
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
@@ -283,13 +285,15 @@
     }
 
     .coin-pill:hover,
-    .star-pill:hover {
+    .star-pill:hover,
+    .diamond-pill:hover {
       transform: translateY(-1.5px) scale(1.04);
       filter: brightness(1.15);
     }
 
     .coin-pill:active,
-    .star-pill:active {
+    .star-pill:active,
+    .diamond-pill:active {
       transform: scale(0.95);
     }
 
@@ -298,6 +302,18 @@
       color: #facc15;
       background: linear-gradient(135deg, #221803 0%, #0a1738 100%);
       box-shadow: 0 2px 10px rgba(250, 204, 21, 0.25);
+    }
+
+    .diamond-pill {
+      border-color: #38bdf8;
+      color: #38bdf8;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, #0a1738 100%);
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.25);
+    }
+
+    .diamond-pill .diamond-value {
+      color: #38bdf8;
+      font-weight: 900;
     }
 
     /* Tasks Main Content */
@@ -491,6 +507,38 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
       font-size: 0.75rem !important;
       min-width: 90px;
+    }
+
+    .task-card-locked {
+      border-color: rgba(168, 85, 247, 0.35) !important;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, #0a1738 100%) !important;
+      cursor: pointer;
+    }
+    .task-card-locked:hover {
+      border-color: rgba(168, 85, 247, 0.6) !important;
+      box-shadow: 0 4px 18px rgba(168, 85, 247, 0.25);
+    }
+    .btn-task-open {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+      border-color: #38bdf8 #0284c7 #075985 #0369a1 !important;
+      color: #ffffff !important;
+    }
+    .btn-task-verify {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      border-color: #34d399 #10b981 #047857 #059669 !important;
+      color: #ffffff !important;
+    }
+    .btn-task-unlock {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+      border-color: #c084fc #8b5cf6 #5b21b6 #6d28d9 !important;
+      color: #ffffff !important;
+    }
+    .task-website-logo {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      border-radius: 4px;
+      display: block;
     }
 
     /* Empty state */
@@ -834,7 +882,7 @@
     .top-nav-tabs {
       display: flex;
       background: rgba(10, 23, 56, 0.85);
-      border: 1.5px solid rgba(56, 189, 248, 0.2);
+      border: 1.5px solid rgba(56, 189, 248, 0.28);
       border-radius: 14px;
       padding: 0.3rem;
       gap: 0.35rem;
@@ -854,31 +902,34 @@
       font-weight: 800;
       color: #94a3b8;
       text-decoration: none;
-      transition: all 0.2s ease;
+      transition: all 0.22s ease;
       position: relative;
+      border: 1px solid transparent;
     }
 
     .top-tab-btn:hover {
       color: #38bdf8;
-      background: rgba(56, 189, 248, 0.08);
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.3);
     }
 
     .top-tab-btn.active {
-      background: linear-gradient(155deg, #1d4ed8 0%, #1e3a8a 50%, #0c1a3d 100%);
+      background: linear-gradient(155deg, #0284c7 0%, #1d4ed8 50%, #0c1a3d 100%);
       color: #ffffff;
-      border: 1px solid rgba(96, 165, 250, 0.6);
-      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.5), inset 0 1.5px 1px rgba(147, 197, 253, 0.5);
+      border-color: #38bdf8;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.55), inset 0 1.5px 1px rgba(147, 197, 253, 0.45);
     }
 
     .tab-hot-badge {
       font-size: 0.58rem;
       font-weight: 900;
       color: #facc15;
-      background: rgba(250, 204, 21, 0.15);
-      border: 1px solid rgba(250, 204, 21, 0.4);
+      background: rgba(250, 204, 21, 0.2);
+      border: 1px solid rgba(250, 204, 21, 0.5);
       padding: 0.15rem 0.45rem;
       border-radius: 999px;
       letter-spacing: 0.05em;
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.35);
     }
 
     /* Featured Games Tab Card */
@@ -1284,8 +1335,8 @@
    ========================================================================== */
 .task-category-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
 }
 
 .task-category-tab {
@@ -1294,44 +1345,133 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 0.85rem;
-  background: rgba(10, 23, 56, 0.85);
-  border: 1.5px solid rgba(56, 189, 248, 0.22);
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
-  color: #94a3b8;
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .task-category-tab:hover {
-  border-color: rgba(56, 189, 248, 0.5);
-  background: rgba(14, 30, 71, 0.95);
-  transform: translateY(-1px);
+  transform: translateY(-1.5px);
 }
 
 .task-category-tab:active {
   transform: translateY(1px);
 }
 
-.task-category-tab.active {
-  background: linear-gradient(145deg, #1d4ed8 0%, #0f2b6b 50%, #0a1738 100%);
+/* Simple Tasks Tab (#tabSimpleTasks) */
+#tabSimpleTasks, .task-category-tab:not(.tab-cat-premium) {
+  background: linear-gradient(145deg, rgba(10, 23, 56, 0.9) 0%, rgba(15, 33, 76, 0.75) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  color: #94a3b8;
+}
+
+#tabSimpleTasks:hover, .task-category-tab:not(.tab-cat-premium):hover {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: linear-gradient(145deg, rgba(14, 30, 71, 0.95) 0%, rgba(20, 45, 105, 0.85) 100%);
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
+}
+
+#tabSimpleTasks.active, .task-category-tab:not(.tab-cat-premium).active {
+  background: linear-gradient(145deg, #0284c7 0%, #0369a1 50%, #0c2d48 100%);
   border-color: #38bdf8;
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 18px rgba(14, 165, 233, 0.55), inset 0 1.5px 2px rgba(186, 230, 253, 0.4);
 }
 
-.task-category-tab.tab-cat-premium {
-  border-color: rgba(250, 204, 21, 0.3);
+#tabSimpleTasks .tab-cat-title, .task-category-tab:not(.tab-cat-premium) .tab-cat-title {
+  color: #f1f5f9;
 }
 
-.task-category-tab.tab-cat-premium.active {
-  background: linear-gradient(145deg, #7e22ce 0%, #9a3412 50%, #1e1338 100%);
+#tabSimpleTasks.active .tab-cat-title, .task-category-tab:not(.tab-cat-premium).active .tab-cat-title {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+#tabSimpleTasks .tab-cat-sub, .task-category-tab:not(.tab-cat-premium) .tab-cat-sub {
+  color: #7dd3fc;
+}
+
+#tabSimpleTasks.active .tab-cat-sub, .task-category-tab:not(.tab-cat-premium).active .tab-cat-sub {
+  color: #bae6fd;
+}
+
+#tabSimpleTasks .tab-cat-count, .task-category-tab:not(.tab-cat-premium) .tab-cat-count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.2);
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  letter-spacing: 0.02em;
+}
+
+#tabSimpleTasks.active .tab-cat-count, .task-category-tab:not(.tab-cat-premium).active .tab-cat-count {
+  background: #38bdf8;
+  color: #082f49;
+  border-color: #7dd3fc;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.45);
+}
+
+/* Premium Tasks Tab (#tabPremiumTasks) */
+#tabPremiumTasks, .task-category-tab.tab-cat-premium {
+  background: linear-gradient(145deg, rgba(46, 16, 101, 0.5) 0%, rgba(20, 10, 40, 0.8) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.4);
+  color: #cbd5e1;
+}
+
+#tabPremiumTasks:hover, .task-category-tab.tab-cat-premium:hover {
+  border-color: rgba(234, 179, 8, 0.65);
+  background: linear-gradient(145deg, rgba(59, 7, 100, 0.7) 0%, rgba(30, 15, 60, 0.9) 100%);
+  box-shadow: 0 4px 18px rgba(168, 85, 247, 0.35);
+}
+
+#tabPremiumTasks.active, .task-category-tab.tab-cat-premium.active {
+  background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 45%, #1e1035 100%);
   border-color: #facc15;
   color: #ffffff;
-  box-shadow: 0 4px 18px rgba(250, 204, 21, 0.35), 0 0 16px rgba(168, 85, 247, 0.3), inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.6), 0 0 14px rgba(250, 204, 21, 0.4), inset 0 1.5px 2px rgba(243, 232, 255, 0.4);
+}
+
+#tabPremiumTasks .tab-cat-title, .task-category-tab.tab-cat-premium .tab-cat-title {
+  color: #f3e8ff;
+}
+
+#tabPremiumTasks.active .tab-cat-title, .task-category-tab.tab-cat-premium.active .tab-cat-title {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+#tabPremiumTasks .tab-cat-sub, .task-category-tab.tab-cat-premium .tab-cat-sub {
+  color: #d8b4fe;
+}
+
+#tabPremiumTasks.active .tab-cat-sub, .task-category-tab.tab-cat-premium.active .tab-cat-sub {
+  color: #fef08a;
+}
+
+#tabPremiumTasks .tab-cat-count, .task-category-tab.tab-cat-premium .tab-cat-count {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.22);
+  border: 1px solid rgba(192, 132, 252, 0.55);
+  color: #d8b4fe;
+  letter-spacing: 0.02em;
+}
+
+#tabPremiumTasks.active .tab-cat-count, .task-category-tab.tab-cat-premium.active .tab-cat-count {
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  color: #422006;
+  border-color: #fef08a;
+  font-weight: 900;
+  box-shadow: 0 2px 10px rgba(250, 204, 21, 0.55);
 }
 
 .tab-btn-content {
@@ -1388,66 +1528,352 @@
   border-color: rgba(250, 204, 21, 0.5);
 }
 
-/* Dynamic Mode Banner */
-.tasks-mode-banner {
-  background: linear-gradient(135deg, rgba(14, 30, 71, 0.8) 0%, rgba(7, 18, 51, 0.95) 100%);
-  border: 1.5px solid rgba(56, 189, 248, 0.25);
+/* Player Level Progress Card */
+.player-level-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.28);
   border-radius: 16px;
-  padding: 0.85rem 1.1rem;
-  margin-bottom: 0.85rem;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  padding: 0.85rem 0.9rem 0.75rem 0.9rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
-.tasks-mode-banner.banner-premium {
-  background: linear-gradient(135deg, rgba(59, 7, 100, 0.75) 0%, rgba(120, 53, 15, 0.7) 50%, rgba(16, 10, 31, 0.95) 100%);
-  border-color: rgba(250, 204, 21, 0.5);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.2);
-}
-
-.mode-banner-badge {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 900;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 0.15rem 0.5rem;
+.player-level-card .level-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.3rem;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 0.75rem;
 }
 
-.tasks-mode-banner.banner-premium .mode-banner-badge {
+.player-level-card .level-tabs-container {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.level-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.55rem;
+}
+
+.level-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.level-badge-icon {
+  font-size: 1.45rem;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.35);
+  border-radius: 12px;
+  padding: 0.3rem 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level-badge-text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.level-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.level-badge-num {
+  font-size: 0.85rem;
+  font-weight: 900;
   color: #facc15;
-  background: rgba(250, 204, 21, 0.18);
-  border-color: rgba(250, 204, 21, 0.5);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.tasks-mode-banner .tasks-title {
-  font-size: 1.25rem;
+.level-badge-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+}
+
+.level-subtitle {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.level-stat-chip {
+  text-align: right;
+}
+
+.chip-count {
+  display: block;
+  font-size: 0.85rem;
   font-weight: 900;
   color: #ffffff;
-  margin: 0;
-  text-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
 }
 
-.tasks-mode-banner.banner-premium .tasks-title {
-  color: #ffffff;
-  text-shadow: 0 0 14px rgba(250, 204, 21, 0.55);
-}
-
-.tasks-mode-banner .tasks-subtitle {
-  font-size: 0.72rem;
+.chip-label {
+  font-size: 0.62rem;
   color: #94a3b8;
-  margin: 0.25rem 0 0 0;
-  line-height: 1.35;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.tasks-mode-banner.banner-premium .tasks-subtitle {
-  color: #f1f5f9;
+.level-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.level-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 50%, #facc15 100%);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+/* Level Tabs Bar - Vibrant Game Tier Color Progression */
+.level-tabs-container {
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.level-tabs-scroll {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.level-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.level-tab-btn {
+  flex: 1 0 auto;
+  min-width: 62px;
+  border-radius: 11px;
+  padding: 0.42rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.level-tab-btn:hover {
+  transform: translateY(-1.5px);
+}
+
+.level-tab-btn:active {
+  transform: translateY(1px);
+}
+
+.lvl-tab-badge {
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.lvl-tab-name {
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.lvl-lock-icon {
+  font-size: 0.65rem;
+  margin-top: 2px;
+}
+
+/* Level 1: Emerald Novice (Green) */
+#levelTab1, .lvl-tab-1 {
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+#levelTab1 .lvl-tab-badge, .lvl-tab-1 .lvl-tab-badge {
+  color: #34d399;
+}
+#levelTab1 .lvl-tab-name, .lvl-tab-1 .lvl-tab-name {
+  color: #d1fae5;
+}
+#levelTab1:hover, .lvl-tab-1:hover {
+  border-color: #10b981;
+  background: linear-gradient(145deg, rgba(6, 78, 59, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+#levelTab1.active, .lvl-tab-1.active {
+  background: linear-gradient(145deg, #059669 0%, #10b981 50%, #047857 100%);
+  border-color: #6ee7b7;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
+}
+#levelTab1.active .lvl-tab-badge, .lvl-tab-1.active .lvl-tab-badge,
+#levelTab1.active .lvl-tab-name, .lvl-tab-1.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Level 2: Sky Cyan Hunter (Cyan) */
+#levelTab2, .lvl-tab-2 {
+  background: linear-gradient(145deg, rgba(8, 51, 68, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+#levelTab2 .lvl-tab-badge, .lvl-tab-2 .lvl-tab-badge {
+  color: #38bdf8;
+}
+#levelTab2 .lvl-tab-name, .lvl-tab-2 .lvl-tab-name {
+  color: #e0f2fe;
+}
+#levelTab2:hover, .lvl-tab-2:hover {
+  border-color: #38bdf8;
+  background: linear-gradient(145deg, rgba(8, 51, 68, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+#levelTab2.active, .lvl-tab-2.active {
+  background: linear-gradient(145deg, #0284c7 0%, #0ea5e9 50%, #0369a1 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
+}
+#levelTab2.active .lvl-tab-badge, .lvl-tab-2.active .lvl-tab-badge,
+#levelTab2.active .lvl-tab-name, .lvl-tab-2.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Level 3: Royal Sapphire Specialist (Blue) */
+#levelTab3, .lvl-tab-3 {
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+#levelTab3 .lvl-tab-badge, .lvl-tab-3 .lvl-tab-badge {
+  color: #60a5fa;
+}
+#levelTab3 .lvl-tab-name, .lvl-tab-3 .lvl-tab-name {
+  color: #eff6ff;
+}
+#levelTab3:hover, .lvl-tab-3:hover {
+  border-color: #60a5fa;
+  background: linear-gradient(145deg, rgba(30, 58, 138, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+#levelTab3.active, .lvl-tab-3.active {
+  background: linear-gradient(145deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%);
+  border-color: #93c5fd;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
+}
+#levelTab3.active .lvl-tab-badge, .lvl-tab-3.active .lvl-tab-badge,
+#levelTab3.active .lvl-tab-name, .lvl-tab-3.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Level 4: Sunset Amber Pro (Orange) */
+#levelTab4, .lvl-tab-4 {
+  background: linear-gradient(145deg, rgba(124, 45, 18, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(249, 115, 22, 0.4);
+}
+#levelTab4 .lvl-tab-badge, .lvl-tab-4 .lvl-tab-badge {
+  color: #fb923c;
+}
+#levelTab4 .lvl-tab-name, .lvl-tab-4 .lvl-tab-name {
+  color: #ffedd5;
+}
+#levelTab4:hover, .lvl-tab-4:hover {
+  border-color: #fb923c;
+  background: linear-gradient(145deg, rgba(124, 45, 18, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+#levelTab4.active, .lvl-tab-4.active {
+  background: linear-gradient(145deg, #ea580c 0%, #f97316 50%, #c2410c 100%);
+  border-color: #fdba74;
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
+}
+#levelTab4.active .lvl-tab-badge, .lvl-tab-4.active .lvl-tab-badge,
+#levelTab4.active .lvl-tab-name, .lvl-tab-4.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Level 5: Ruby Crimson Elite (Red / Rose) */
+#levelTab5, .lvl-tab-5 {
+  background: linear-gradient(145deg, rgba(136, 19, 55, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(244, 63, 94, 0.4);
+}
+#levelTab5 .lvl-tab-badge, .lvl-tab-5 .lvl-tab-badge {
+  color: #fb7185;
+}
+#levelTab5 .lvl-tab-name, .lvl-tab-5 .lvl-tab-name {
+  color: #ffe4e6;
+}
+#levelTab5:hover, .lvl-tab-5:hover {
+  border-color: #fb7185;
+  background: linear-gradient(145deg, rgba(136, 19, 55, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+#levelTab5.active, .lvl-tab-5.active {
+  background: linear-gradient(145deg, #e11d48 0%, #f43f5e 50%, #be123c 100%);
+  border-color: #fda4af;
+  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
+}
+#levelTab5.active .lvl-tab-badge, .lvl-tab-5.active .lvl-tab-badge,
+#levelTab5.active .lvl-tab-name, .lvl-tab-5.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Level 6: Crown Gold Grandmaster (Gold / Amber) */
+#levelTab6, .lvl-tab-6, .lvl-tab-all {
+  background: linear-gradient(145deg, rgba(113, 63, 18, 0.5) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border-color: rgba(234, 179, 8, 0.5);
+}
+#levelTab6 .lvl-tab-badge, .lvl-tab-6 .lvl-tab-badge, .lvl-tab-all .lvl-tab-badge {
+  color: #facc15;
+}
+#levelTab6 .lvl-tab-name, .lvl-tab-6 .lvl-tab-name, .lvl-tab-all .lvl-tab-name {
+  color: #fef08a;
+}
+#levelTab6:hover, .lvl-tab-6:hover, .lvl-tab-all:hover {
+  border-color: #facc15;
+  background: linear-gradient(145deg, rgba(113, 63, 18, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
+}
+#levelTab6.active, .lvl-tab-6.active, .lvl-tab-all.active {
+  background: linear-gradient(145deg, #ca8a04 0%, #eab308 50%, #a16207 100%);
+  border-color: #fef08a;
+  box-shadow: 0 4px 18px rgba(234, 179, 8, 0.65), 0 0 14px rgba(250, 204, 21, 0.45), inset 0 1.5px 2px rgba(255, 255, 255, 0.4);
+}
+#levelTab6.active .lvl-tab-badge, .lvl-tab-6.active .lvl-tab-badge, .lvl-tab-all.active .lvl-tab-badge,
+#levelTab6.active .lvl-tab-name, .lvl-tab-6.active .lvl-tab-name, .lvl-tab-all.active .lvl-tab-name {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.level-tab-btn.locked {
+  opacity: 0.55;
+  filter: grayscale(0.2);
 }
 
 /* Premium Task Cards */
@@ -1836,11 +2262,74 @@
           <span>⭐</span>
           <span class="star-value" id="userStarsDisplay">0</span>
         </div>
+        <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
+          <span>🔥</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
+        </div>
+        <div class="diamond-pill" id="diamondPill" title="Diamond Balance • 10 tasks = 1 Diamond (20 💎 unlocks Level 2)" onclick="openDiamondInfoModal()">
+          <span>💎</span>
+          <span class="diamond-value" id="userDiamondsDisplay">0</span>
+        </div>
       </div>
     </header>
 
     <!-- Page Content (Tasks) -->
     <main class="page-content">
+
+      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
+      <div class="player-level-card" id="playerLevelCard">
+        <div class="level-card-header">
+          <div class="level-badge-wrap">
+            <span class="level-badge-icon" id="userLevelBadgeIcon">⭐</span>
+            <div class="level-badge-text-wrap">
+              <div class="level-title-row">
+                <span class="level-badge-num" id="userLevelNum">LEVEL 1</span>
+                <span class="level-badge-name" id="userLevelName">Novice</span>
+              </div>
+              <div class="level-subtitle" id="userLevelSub">💎 0/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)</div>
+            </div>
+          </div>
+        </div>
+        <div class="level-progress-track">
+          <div class="level-progress-fill" id="userLevelProgressFill" style="width: 0%;"></div>
+        </div>
+
+        <!-- 6 Level Tabs Bar Inside Unified Card -->
+        <div class="level-tabs-container">
+          <div class="level-tabs-scroll" id="levelTabsBar" role="tablist">
+            <button type="button" class="level-tab-btn active lvl-tab-1" id="levelTab1" onclick="switchLevelTab(1)">
+              <span class="lvl-tab-badge">LVL 1</span>
+              <span class="lvl-tab-name">Level 1</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-2" id="levelTab2" onclick="switchLevelTab(2)">
+              <span class="lvl-tab-badge">LVL 2</span>
+              <span class="lvl-tab-name">Level 2</span>
+              <span class="lvl-lock-icon" id="lvlLock2" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-3" id="levelTab3" onclick="switchLevelTab(3)">
+              <span class="lvl-tab-badge">LVL 3</span>
+              <span class="lvl-tab-name">Level 3</span>
+              <span class="lvl-lock-icon" id="lvlLock3" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-4" id="levelTab4" onclick="switchLevelTab(4)">
+              <span class="lvl-tab-badge">LVL 4</span>
+              <span class="lvl-tab-name">Level 4</span>
+              <span class="lvl-lock-icon" id="lvlLock4" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-5" id="levelTab5" onclick="switchLevelTab(5)">
+              <span class="lvl-tab-badge">LVL 5</span>
+              <span class="lvl-tab-name">Level 5</span>
+              <span class="lvl-lock-icon" id="lvlLock5" style="display:none;">🔒</span>
+            </button>
+            <button type="button" class="level-tab-btn lvl-tab-all lvl-tab-6" id="levelTab6" onclick="switchLevelTab(6)">
+              <span class="lvl-tab-badge">LVL 6</span>
+              <span class="lvl-tab-name">👑 All Tasks</span>
+              <span class="lvl-lock-icon" id="lvlLock6" style="display:none;">🔒</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
       <div class="task-category-tabs">
@@ -2088,6 +2577,54 @@
     </div>
   </div>
 
+  <!-- Ticket Task Unlock Modal -->
+  <div class="task-verify-modal-overlay" id="taskUnlockModalOverlay" style="display: none;" onclick="handleUnlockModalBackdropClick(event)">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()" style="max-width: 410px; border-color: rgba(168, 85, 247, 0.45); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(168, 85, 247, 0.25);">
+      <button type="button" class="verify-modal-close-btn" onclick="closeTaskUnlockModal()" aria-label="Close modal">✕</button>
+      
+      <div class="verify-modal-header">
+        <div class="verify-modal-badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc;">
+          <span class="verify-badge-dot" style="background: #c084fc; box-shadow: 0 0 8px #c084fc;"></span>
+          <span>MISSION ACCESS LOCKED</span>
+        </div>
+        <h2 class="verify-modal-title" style="margin-top: 0.4rem;">Unlock With Tickets</h2>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">
+          Spend your tickets to unlock this mission and start earning rewards!
+        </div>
+      </div>
+
+      <div class="verify-modal-task-card" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(168, 85, 247, 0.35);">
+        <div class="verify-card-icon" id="unlockModalTaskIcon" style="background: rgba(168, 85, 247, 0.2); border: 1px solid rgba(168, 85, 247, 0.4); font-size: 1.4rem;">🔒</div>
+        <div class="verify-card-info">
+          <div class="verify-card-title" id="unlockModalTaskTitle" style="color: #ffffff; font-weight: 800; font-size: 0.95rem;">Webtask Mission</div>
+          <div class="verify-card-sub" id="unlockModalTaskReward" style="color: #fbbf24; font-weight: 800;">🪙 +50 Coins Bounty</div>
+        </div>
+      </div>
+
+      <!-- Ticket Cost & Current Balance Display -->
+      <div style="display: flex; gap: 10px; margin: 1rem 0 0.85rem; background: rgba(10, 23, 56, 0.65); padding: 0.85rem; border-radius: 14px; border: 1px solid rgba(168, 85, 247, 0.25);">
+        <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.1);">
+          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Unlock Cost</div>
+          <div id="unlockModalTicketCostText" style="font-size: 1.15rem; color: #c084fc; font-weight: 900; margin-top: 2px;">🎟️ 0 Tickets</div>
+        </div>
+        <div style="flex: 1; text-align: center;">
+          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Your Tickets</div>
+          <div id="unlockModalUserTicketsText" style="font-size: 1.15rem; color: #38bdf8; font-weight: 900; margin-top: 2px;">🎟️ 0</div>
+        </div>
+      </div>
+
+      <!-- Alert / Notice message -->
+      <div id="unlockModalAlertMsg" style="display: none; padding: 0.65rem; border-radius: 10px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1rem; text-align: center;"></div>
+
+      <div class="verify-modal-btn-row" id="unlockModalBtnRow">
+        <button type="button" class="btn-verify-cancel" onclick="closeTaskUnlockModal()">Cancel</button>
+        <button type="button" class="btn-verify-confirm" id="btnConfirmUnlockTask" onclick="confirmUnlockTask()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+          🎟️ Unlock Now
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     if (localStorage.getItem('task_game_coins') === '2450' || !localStorage.getItem('task_game_coins')) {
       localStorage.setItem('task_game_coins', '0');
@@ -2105,7 +2642,7 @@
     const SYNC_FLAG_KEY = 'task_game_sync_flag';
     const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-    // Default tasks: empty by default; managed directly from Admin Panel
+    // Default tasks: zero start (no demo tasks)
     const DEFAULT_TASKS = [];
 
     function getStoredTasks() {
@@ -2114,8 +2651,14 @@
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
-            // Purge any legacy demo sponsor tasks
-            const cleaned = parsed.filter(t => t && t.id && !t.id.startsWith('task_sponsor_') && !String(t.title || '').toLowerCase().includes('sponsor'));
+            // Purge demo, seed, and sponsor tasks
+            const cleaned = parsed.filter(t => t && t.id && 
+              !t.id.startsWith('task_article_') && 
+              !t.id.startsWith('task_sponsor_') && 
+              !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id) &&
+              !String(t.title || '').toLowerCase().includes('demo') &&
+              !String(t.title || '').toLowerCase().includes('sponsor')
+            );
             if (cleaned.length !== parsed.length) {
               localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(cleaned));
             }
@@ -2287,6 +2830,12 @@
 
       const starDisplay = document.getElementById('userStarsDisplay');
       if (starDisplay) starDisplay.textContent = userStars.toLocaleString();
+
+      const diamondDisplay = document.getElementById('userDiamondsDisplay');
+      if (diamondDisplay) {
+        const userDiamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
+        diamondDisplay.textContent = userDiamonds.toLocaleString();
+      }
 
       const avatarEl = document.querySelector('.user-avatar');
       if (avatarEl) avatarEl.textContent = localStorage.getItem('player_avatar') || '⚡';
@@ -2547,56 +3096,251 @@ window.switchTaskTab = function(tab) {
 
   const tabSimple = document.getElementById('tabSimpleTasks');
   const tabPremium = document.getElementById('tabPremiumTasks');
-  const banner = document.getElementById('tasksModeBanner');
-  const badge = document.getElementById('modeBannerBadge');
-  const title = document.getElementById('modeBannerTitle');
-  const desc = document.getElementById('modeBannerDesc');
 
   if (tab === 'premium') {
     if (tabSimple) tabSimple.classList.remove('active');
     if (tabPremium) tabPremium.classList.add('active');
-    if (banner) banner.classList.add('banner-premium');
-    const daysLeft = getRemainingVipDays();
-    const dailyLimit = getVipDailyTaskLimit();
-    const completedToday = getTodayCompletedPremiumTasksCount();
-    const remainingToday = Math.max(0, dailyLimit - completedToday);
-    const planName = getVipPlanName();
-
-    if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
-    if (title) title.innerHTML = '💎 Premium VIP Tasks';
-    if (desc) {
-      if (completedToday >= dailyLimit) {
-        desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
-      } else {
-        desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
-      }
-    }
   } else {
     if (tabPremium) tabPremium.classList.remove('active');
     if (tabSimple) tabSimple.classList.add('active');
-    if (banner) banner.classList.remove('banner-premium');
-    if (badge) badge.textContent = 'STANDARD MISSIONS';
-    if (title) title.innerHTML = '📋 Simple Tasks';
-    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
   }
 
   renderTasks();
 };
 
-// Dynamic Task Rendering with Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
+// Player Level Progression & Gating System (200 tasks per tier; Level 6 is Master; Level 2 unlocks with 20 Diamonds)
+function isLevel2Unlocked() {
+  return localStorage.getItem('task_level_2_unlocked') === 'true';
+}
+window.isLevel2Unlocked = isLevel2Unlocked;
+
+function isLevelUnlocked(lvl) {
+  lvl = parseInt(lvl, 10);
+  if (lvl === 1) return true;
+  const pInfo = getPlayerLevelInfo();
+  if (lvl === 2) return pInfo.isLevel2Unlocked;
+  if (!pInfo.isLevel2Unlocked) return false;
+  return pInfo.totalCompleted >= (lvl - 1) * 200;
+}
+window.isLevelUnlocked = isLevelUnlocked;
+
+function unlockLevel2WithDiamonds() {
+  let diamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
+  if (diamonds < 20) {
+    alert(`🔒 Insufficient Diamonds!\n\nYou have ${diamonds}/20 Diamonds.\nComplete 10 tasks to win 1 Diamond.`);
+    return;
+  }
+  diamonds -= 20;
+  localStorage.setItem('task_user_diamonds', diamonds.toString());
+  localStorage.setItem('user_diamonds', diamonds.toString());
+  localStorage.setItem('task_level_2_unlocked', 'true');
+  localStorage.setItem('task_selected_level_tab', '2');
+
+  try {
+    if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
+  } catch(e) {}
+
+  alert('🎉 CONGRATULATIONS!\n\nTask Level 2 has been unlocked with 20 Diamonds!\nYou can now complete high-reward Level 2 missions!');
+
+  try {
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'LEVEL_2_UNLOCKED', newDiamonds: diamonds, timestamp: Date.now() });
+  } catch (e) {}
+
+  updateCoinDisplay();
+  renderTasks();
+}
+window.unlockLevel2WithDiamonds = unlockLevel2WithDiamonds;
+
+window.openDiamondInfoModal = function() {
+  const diamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
+  const lvl2Unlocked = isLevel2Unlocked();
+  const totalComp = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10);
+  const lastDiamondTaskCount = parseInt(localStorage.getItem('task_last_diamond_completed_count') || '0', 10);
+  const tasksInMilestone = (totalComp - lastDiamondTaskCount) % 10;
+  const nextIn = 10 - tasksInMilestone;
+
+  let msg = `💎 DIAMOND VAULT\n\n` +
+    `• Balance: ${diamonds} Diamonds 💎\n` +
+    `• Rule: 10 tasks completed = 1 Diamond win\n` +
+    `• Next Diamond in: ${nextIn} tasks\n\n`;
+
+  if (!lvl2Unlocked) {
+    msg += `🔓 Level 2 Status: LOCKED (Requires 20 Diamonds)\n` +
+      (diamonds >= 20 
+        ? `✨ You have ${diamonds} Diamonds! Would you like to unlock Level 2 now?` 
+        : `You need ${20 - diamonds} more diamonds to unlock Level 2.`);
+    if (diamonds >= 20) {
+      if (confirm(msg)) {
+        unlockLevel2WithDiamonds();
+      }
+      return;
+    }
+  } else {
+    msg += `✓ Level 2 Status: UNLOCKED!`;
+  }
+  alert(msg);
+};
+
+function getPlayerLevelInfo() {
+  const totalCompleted = Math.max(0, parseInt(
+    localStorage.getItem('task_game_total_tasks_completed') || 
+    localStorage.getItem('completed_tasks_count') || '0', 
+    10
+  ));
+  const userDiamonds = Math.max(0, parseInt(
+    localStorage.getItem('task_user_diamonds') || '0', 
+    10
+  ));
+
+  // Level 2 auto-unlocks loading-wise when 20 diamonds are collected or totalCompleted >= 200
+  let lvl2Unlocked = isLevel2Unlocked();
+  if (!lvl2Unlocked && (userDiamonds >= 20 || totalCompleted >= 200)) {
+    lvl2Unlocked = true;
+    localStorage.setItem('task_level_2_unlocked', 'true');
+  }
+
+  let level = 1;
+  let progressPercent = 0;
+  let levelSubText = '';
+
+  if (!lvl2Unlocked) {
+    level = 1;
+    // Level 1 progress towards unlocking Level 2 (20 diamonds / 200 tasks)
+    const diamondEquivalent = Math.max(userDiamonds, Math.floor(totalCompleted / 10));
+    progressPercent = Math.min(100, Math.floor((Math.min(20, diamondEquivalent) / 20) * 100));
+    levelSubText = `💎 ${Math.min(20, diamondEquivalent)}/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)`;
+  } else {
+    // Levels 2 to 6 unlocked loading-wise by completed tasks (200 tasks per tier)
+    if (totalCompleted >= 1000) {
+      level = 6;
+      progressPercent = 100;
+      levelSubText = `👑 Level 6 Crown Legend • All Tasks Mastered! (Total: ${userDiamonds} 💎)`;
+    } else if (totalCompleted >= 800) {
+      level = 5;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 800) / 200) * 100));
+      levelSubText = `🏆 Level 5 • ${1000 - totalCompleted} tasks to unlock Level 6 (10 tasks = 1 💎)`;
+    } else if (totalCompleted >= 600) {
+      level = 4;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 600) / 200) * 100));
+      levelSubText = `💎 Level 4 • ${800 - totalCompleted} tasks to unlock Level 5 (10 tasks = 1 💎)`;
+    } else if (totalCompleted >= 400) {
+      level = 3;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 400) / 200) * 100));
+      levelSubText = `🔥 Level 3 • ${600 - totalCompleted} tasks to unlock Level 4 (10 tasks = 1 💎)`;
+    } else {
+      level = 2;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 200) / 200) * 100));
+      levelSubText = `⚡ Level 2 • ${400 - totalCompleted} tasks to unlock Level 3 (10 tasks = 1 💎)`;
+    }
+  }
+
+  const levelTitles = {
+    1: 'Novice',
+    2: 'Hunter',
+    3: 'Specialist',
+    4: 'Pro',
+    5: 'Elite',
+    6: 'Crown Legend'
+  };
+
+  const levelIcons = {
+    1: '⭐',
+    2: '⚡',
+    3: '🔥',
+    4: '💎',
+    5: '🏆',
+    6: '👑'
+  };
+
+  return {
+    level,
+    totalCompleted,
+    userDiamonds,
+    isLevel2Unlocked: lvl2Unlocked,
+    progressPercent,
+    levelSubText,
+    title: levelTitles[level] || 'Novice',
+    icon: levelIcons[level] || '⭐'
+  };
+}
+window.getPlayerLevelInfo = getPlayerLevelInfo;
+
+function getSelectedLevelTab() {
+  const pInfo = getPlayerLevelInfo();
+  let stored = parseInt(localStorage.getItem('task_selected_level_tab') || '0', 10);
+  if (!stored || stored < 1 || stored > 6) {
+    stored = pInfo.level;
+    localStorage.setItem('task_selected_level_tab', stored.toString());
+  }
+  return stored;
+}
+
+function switchLevelTab(lvl) {
+  lvl = parseInt(lvl, 10);
+  if (isNaN(lvl) || lvl < 1 || lvl > 6) lvl = 1;
+  localStorage.setItem('task_selected_level_tab', lvl.toString());
+  renderTasks();
+}
+window.switchLevelTab = switchLevelTab;
+
+// Dynamic Task Rendering with Level Filtering & Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
 function renderTasks() {
   const container = document.getElementById('tasksList');
   if (!container) return;
 
   const activeTab = localStorage.getItem('task_active_tab') || 'simple';
+  const playerInfo = getPlayerLevelInfo();
+  const selectedLevel = getSelectedLevelTab();
 
-  // Ensure banner & tab buttons match activeTab
+  // Update Player Level Card UI
+  const lvlNumEl = document.getElementById('userLevelNum');
+  const lvlNameEl = document.getElementById('userLevelName');
+  const lvlIconEl = document.getElementById('userLevelBadgeIcon');
+  const lvlSubEl = document.getElementById('userLevelSub');
+  const lvlChipEl = document.getElementById('userTierTaskCount');
+  const lvlFillEl = document.getElementById('userLevelProgressFill');
+  const rankDisplay = document.getElementById('userRankDisplay');
+
+  if (lvlNumEl) lvlNumEl.textContent = `LEVEL ${playerInfo.level}`;
+  if (lvlNameEl) lvlNameEl.textContent = playerInfo.title;
+  if (lvlIconEl) lvlIconEl.textContent = playerInfo.icon;
+  if (lvlFillEl) lvlFillEl.style.width = `${playerInfo.progressPercent}%`;
+  if (lvlSubEl) lvlSubEl.textContent = playerInfo.levelSubText;
+  if (lvlChipEl) lvlChipEl.style.display = 'none';
+  if (rankDisplay) rankDisplay.textContent = `LVL ${playerInfo.level} • RANK #1`;
+
+  // Update Level Tabs Buttons (1 to 6)
+  for (let i = 1; i <= 6; i++) {
+    const tabBtn = document.getElementById(`levelTab${i}`);
+    const lockIcon = document.getElementById(`lvlLock${i}`);
+    if (tabBtn) {
+      if (i === selectedLevel) {
+        tabBtn.classList.add('active');
+      } else {
+        tabBtn.classList.remove('active');
+      }
+      const unlocked = isLevelUnlocked(i);
+      if (!unlocked) {
+        tabBtn.classList.add('locked');
+        if (lockIcon) lockIcon.style.display = 'inline';
+      } else {
+        tabBtn.classList.remove('locked');
+        if (lockIcon) lockIcon.style.display = 'none';
+      }
+    }
+  }
+
+  // Ensure tab buttons match activeTab
   const tabSimple = document.getElementById('tabSimpleTasks');
   const tabPremium = document.getElementById('tabPremiumTasks');
-  const banner = document.getElementById('tasksModeBanner');
-  const badge = document.getElementById('modeBannerBadge');
-  const title = document.getElementById('modeBannerTitle');
-  const desc = document.getElementById('modeBannerDesc');
+  if (activeTab === 'premium') {
+    if (tabSimple) tabSimple.classList.remove('active');
+    if (tabPremium) tabPremium.classList.add('active');
+  } else {
+    if (tabPremium) tabPremium.classList.remove('active');
+    if (tabSimple) tabSimple.classList.add('active');
+  }
 
   const isVipActive = hasActivePremiumSubscription();
   const daysLeft = getRemainingVipDays();
@@ -2605,40 +3349,11 @@ function renderTasks() {
   const remainingToday = Math.max(0, dailyLimit - completedToday);
   const limitReached = isVipActive && (completedToday >= dailyLimit);
 
-  if (activeTab === 'premium') {
-    if (tabSimple) tabSimple.classList.remove('active');
-    if (tabPremium) tabPremium.classList.add('active');
-    if (banner) banner.classList.add('banner-premium');
-    if (isVipActive) {
-      const planName = getVipPlanName();
-      if (badge) badge.innerHTML = `👑 VIP ACTIVE • ${daysLeft} ${daysLeft === 1 ? 'DAY' : 'DAYS'} LEFT • ${completedToday}/${dailyLimit} TASKS TODAY`;
-      if (title) title.innerHTML = '💎 Premium VIP Tasks';
-      if (desc) {
-        if (limitReached) {
-          desc.innerHTML = `🛑 <strong style="color:#ef4444;">Daily limit reached (${completedToday}/${dailyLimit} tasks)</strong> for ${planName}. Resets at midnight! <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Upgrade Pass ↗</button>`;
-        } else {
-          desc.innerHTML = `Plan: <strong style="color:#38bdf8;">${planName}</strong> • Today: <strong style="color:#facc15;">${completedToday}/${dailyLimit}</strong> completed (${remainingToday} left). <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Extend / Upgrade Pass ↗</button>`;
-        }
-      }
-    } else {
-      if (badge) badge.textContent = '🔒 VIP SUBSCRIPTION REQUIRED';
-      if (title) title.innerHTML = '💎 Premium VIP Tasks';
-      if (desc) desc.innerHTML = 'Subscription required for Premium Tasks. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; font-size:0.75rem; padding:0 4px;">Unlock VIP Now ↗</button>';
-    }
-  } else {
-    if (tabPremium) tabPremium.classList.remove('active');
-    if (tabSimple) tabSimple.classList.add('active');
-    if (banner) banner.classList.remove('banner-premium');
-    if (badge) badge.textContent = 'STANDARD MISSIONS';
-    if (title) title.innerHTML = '📋 Simple Tasks';
-    if (desc) desc.textContent = 'Complete quick missions & enter 6-digit code to claim rewards.';
-  }
-
   const tasks = getStoredTasks();
   const completedTasks = getStoredCompletedTasks();
   const claims = getStoredClaims();
 
-  // Active uncompleted tasks
+  // Active uncompleted tasks only (completed tasks are removed/hidden)
   const activeTasks = tasks.filter(t => {
     if (!t || t.active === false) return false;
     if (completedTasks && completedTasks[t.id]) return false;
@@ -2647,12 +3362,13 @@ function renderTasks() {
   });
 
   const isTaskShop = (t) => t.category === 'shop_task' || t.isShopTask || (t.title && t.title.toLowerCase().includes('shop task'));
+  const isTaskArticle = (t) => t.category === 'article' || t.isArticleTask || (t.title && (t.title.toLowerCase().includes('article') || t.title.toLowerCase().includes('paragraph') || t.title.toLowerCase().includes('read')));
 
   // Calculate and update category count badges
-  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || (!t.category && !isTaskShop(t)));
+  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || t.category === 'article' || (!t.category && !isTaskShop(t)));
   const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || isTaskShop(t));
 
-  // Level Gating:
+  // Level Gating for VIP plans:
   // 15 days plan: only show Level 1 & Level 2 tasks
   // 30 days plan: show Level 1, 2, 3, 4 tasks
   // 3 months (90 days) plan: show Level 1, 2, 3, 4, 5 tasks (all)
@@ -2664,12 +3380,109 @@ function renderTasks() {
       })
     : allPremiumTasks;
 
+  // Filter tasks by selected level:
+  // Level 6: "level 6 in all level task show but not complete ony show" -> shows all incomplete tasks across all levels!
+  // Level 1-5: shows only incomplete tasks for that specific level!
+  const filterByLevel = (taskList) => {
+    if (selectedLevel === 6) {
+      return taskList;
+    }
+    return taskList.filter(t => {
+      const lvl = parseInt(t.level || 1, 10);
+      return lvl === selectedLevel;
+    });
+  };
+
+  const currentLevelSimple = filterByLevel(simpleTasks);
+  const currentLevelPremium = filterByLevel(premiumTasks);
+
   const simpleBadge = document.getElementById('simpleTasksCount');
   const premiumBadge = document.getElementById('premiumTasksCount');
-  if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
-  if (premiumBadge) premiumBadge.textContent = premiumTasks.length;
+  if (simpleBadge) simpleBadge.textContent = currentLevelSimple.length;
+  if (premiumBadge) premiumBadge.textContent = currentLevelPremium.length;
 
-  const currentList = (activeTab === 'premium') ? premiumTasks : simpleTasks;
+  const currentList = (activeTab === 'premium') ? currentLevelPremium : currentLevelSimple;
+
+  // 1. If player is viewing Level 2 and Level 2 is not unlocked yet with 20 Diamonds
+  if (selectedLevel === 2 && !isLevel2Unlocked()) {
+    const userDiamonds = Math.max(0, parseInt(localStorage.getItem('task_user_diamonds') || '0', 10));
+    const diamondPercent = Math.min(100, Math.floor((userDiamonds / 20) * 100));
+    const canUnlock = userDiamonds >= 20;
+
+    container.innerHTML = `
+      <div class="empty-tasks-box" style="border: 2px solid rgba(56, 189, 248, 0.45); background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%); padding: 2.2rem 1.4rem; text-align: center; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);">
+        <div style="font-size: 3.5rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.6));">💎</div>
+        <div style="font-size: 1.35rem; font-weight: 900; color: #ffffff; margin-bottom: 0.35rem;">Unlock Task Level 2</div>
+        <div style="font-size: 0.82rem; color: #94a3b8; max-width: 330px; margin: 0 auto 1.25rem; line-height: 1.45;">
+          Use <b style="color: #38bdf8;">20 Diamonds</b> to unlock Level 2 missions! Win <b>1 Diamond</b> for every 10 tasks you complete.
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.9rem 1.2rem; max-width: 320px; margin: 0 auto 1.35rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Diamond Balance</span>
+            <span style="font-size: 0.95rem; font-weight: 900; color: #38bdf8;">${userDiamonds} / 20 💎</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
+            <div style="height: 100%; width: ${diamondPercent}%; background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%); border-radius: 999px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);"></div>
+          </div>
+          <div style="font-size: 0.68rem; color: #64748b; margin-top: 0.45rem; text-align: left;">
+            ${canUnlock ? '✨ You have enough diamonds to unlock Level 2!' : `Complete ${(20 - userDiamonds) * 10} more tasks to earn ${(20 - userDiamonds)} more diamonds.`}
+          </div>
+        </div>
+
+        ${canUnlock ? `
+          <button type="button" class="btn-claim" onclick="unlockLevel2WithDiamonds()" style="background: linear-gradient(135deg, #0284c7 0%, #3b82f6 50%, #8b5cf6 100%); color: #ffffff; font-weight: 900; font-size: 0.95rem; padding: 0.8rem 1.8rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: scale(1.02); transition: all 0.2s ease;">
+            🔓 Unlock Level 2 (Use 20 💎)
+          </button>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: 0.65rem; align-items: center;">
+            <button type="button" class="btn-claim" disabled style="background: #334155; color: #64748b; font-weight: 800; font-size: 0.85rem; padding: 0.75rem 1.5rem; border-radius: 12px; border: 1px solid #475569; cursor: not-allowed; opacity: 0.85;">
+              🔒 20 Diamonds Required (${userDiamonds}/20 💎)
+            </button>
+            <button type="button" onclick="switchLevelTab(1)" style="background: transparent; border: none; color: #38bdf8; font-size: 0.78rem; font-weight: 800; text-decoration: underline; cursor: pointer;">
+              ← Complete Level 1 Tasks to Earn Diamonds
+            </button>
+          </div>
+        `}
+      </div>
+    `;
+    return;
+  }
+
+  // 2. If player selects a level beyond Level 1 when Level 2 is not unlocked
+  if (selectedLevel > 1 && !isLevel2Unlocked()) {
+    container.innerHTML = `
+      <div class="empty-tasks-box" style="border-color: rgba(56, 189, 248, 0.45); padding: 2.2rem 1.25rem;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
+        <div style="color: #38bdf8; font-size: 1.18rem; font-weight: 900;">Unlock Level 2 First</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
+          You must unlock Level 2 using 20 Diamonds before accessing Level ${selectedLevel} missions!
+        </div>
+        <button type="button" class="btn-claim" onclick="switchLevelTab(2)" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+          View Level 2 Unlock (💎 20 Diamonds)
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  // 3. If player selects a higher level that is locked
+  if (selectedLevel > playerInfo.level) {
+    const tasksNeeded = (selectedLevel - 1) * 200 - playerInfo.totalCompleted;
+    container.innerHTML = `
+      <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.45); padding: 2.2rem 1.25rem;">
+        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
+        <div style="color: #facc15; font-size: 1.18rem; font-weight: 900;">Level ${selectedLevel} Locked</div>
+        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
+          Complete <b>${tasksNeeded}</b> more tasks to reach Level ${selectedLevel} and unlock these high-tier missions! Currently at Level ${playerInfo.level} (${playerInfo.totalCompleted} tasks completed).
+        </div>
+        <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+          Back to Level ${playerInfo.level}
+        </button>
+      </div>
+    `;
+    return;
+  }
 
   if (activeTab === 'premium' && !isVipActive) {
     container.innerHTML = `
@@ -2688,23 +3501,42 @@ function renderTasks() {
   }
 
   if (currentList.length === 0) {
+    const isLevelCompleted = selectedLevel < playerInfo.level;
     if (activeTab === 'premium') {
       const lockedHigher = allPremiumTasks.length - premiumTasks.length;
       container.innerHTML = `
-        <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.35);">
+        <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.35); padding: 2rem 1.25rem;">
           <div class="empty-tasks-icon">💎</div>
-          <div class="empty-tasks-text" style="color: #facc15;">No Premium VIP Tasks Available</div>
-          <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.35rem;">
-            ${lockedHigher > 0 ? `${lockedHigher} higher-level tasks locked on your current plan. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer;">Upgrade Pass ↗</button>` : 'New VIP missions created by admin will appear here immediately!'}
+          <div class="empty-tasks-text" style="color: #facc15;">No Level ${selectedLevel === 6 ? 'All' : selectedLevel} Premium VIP Tasks Available</div>
+          <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 0.35rem; line-height: 1.4;">
+            ${isLevelCompleted 
+              ? `All Level ${selectedLevel} VIP tasks cleared! Proceed to Level ${playerInfo.level} for new missions.`
+              : (lockedHigher > 0 ? `${lockedHigher} higher-level tasks locked on your current plan. <button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer;">Upgrade Pass ↗</button>` : 'New VIP missions created by admin will appear here immediately!')}
           </div>
+          ${isLevelCompleted ? `
+            <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="margin-top: 1rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; padding: 0.55rem 1.3rem; border-radius: 10px; cursor: pointer; border: none;">
+              Go to Current Level (${playerInfo.level}) ↗
+            </button>
+          ` : ''}
         </div>
       `;
     } else {
       container.innerHTML = `
-        <div class="empty-tasks-box">
-          <div class="empty-tasks-icon">🎯</div>
-          <div class="empty-tasks-text">All simple webtasks completed! Great job!</div>
-          <div style="font-size: 0.72rem; color: #64748b; margin-top: 0.35rem;">New tasks added by admin will appear automatically.</div>
+        <div class="empty-tasks-box" style="border-color: rgba(56, 189, 248, 0.35); padding: 2rem 1.25rem;">
+          <div class="empty-tasks-icon" style="font-size: 2.6rem;">🎉</div>
+          <div class="empty-tasks-text" style="color: #38bdf8; font-size: 1.08rem; font-weight: 900;">
+            All Level ${selectedLevel === 6 ? 'All' : selectedLevel} Tasks Completed!
+          </div>
+          <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 0.35rem; line-height: 1.4;">
+            ${isLevelCompleted 
+              ? `You have cleared all missions in Level ${selectedLevel}. Proceed to Level ${playerInfo.level} to continue earning!`
+              : `All missions for this level are currently finished. New tasks added by admin will appear automatically.`}
+          </div>
+          ${isLevelCompleted ? `
+            <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="margin-top: 1rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; font-weight: 800; padding: 0.55rem 1.3rem; border-radius: 10px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
+              Go to Current Level (${playerInfo.level}) ↗
+            </button>
+          ` : ''}
         </div>
       `;
     }
@@ -2745,33 +3577,65 @@ function renderTasks() {
   container.innerHTML = statusBarHtml + currentList.map(task => {
     const opened = isTaskOpened(task.id);
     const taskShop = isTaskShop(task);
+    const taskArticle = isTaskArticle(task);
     const isPremium = task.category === 'premium' || taskShop;
     const taskLevel = parseInt(task.level || 1, 10);
-    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : 50));
+    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : (taskArticle ? 75 : 50)));
     const shopExtension = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
+    const ticketCost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+    const isUnlocked = (ticketCost <= 0) || isTaskUnlocked(task.id);
+    const faviconUrl = getWebsiteFaviconUrl(task.link || task.url);
 
     let btnHtml = '';
     if (isPremium && limitReached) {
       btnHtml = `<button type="button" class="btn-claim btn-task-limit" onclick="handleDailyLimitReachedClick()" style="background: #334155; color: #94a3b8; border: 1px solid #475569; cursor: pointer;">Limit Reached (${completedToday}/${dailyLimit})</button>`;
-    } else if (opened) {
-      btnHtml = `<button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')">Verify</button>`;
+    } else if (!isUnlocked) {
+      btnHtml = `<button type="button" class="btn-claim btn-task-unlock" onclick="openTaskUnlockModal('${task.id}')" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45); cursor: pointer; white-space: nowrap;">🔒 Unlock (🎟️ ${ticketCost})</button>`;
     } else {
-      btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')">Open</button>`;
+      const openBtnText = taskArticle ? '↗ Read' : '↗ Open';
+      btnHtml = `
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')" style="padding: 0.48rem 0.8rem; font-size: 0.78rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">${openBtnText}</button>
+          <button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')" style="padding: 0.48rem 0.8rem; font-size: 0.78rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">✓ Verify</button>
+        </div>
+      `;
     }
 
-    const cardClass = isPremium ? 'task-card task-card-premium' : 'task-card';
+    let cardClass = isPremium ? 'task-card task-card-premium' : 'task-card';
+    if (!isUnlocked) cardClass += ' task-card-locked';
+
     let statusPill = '';
-    if (taskShop) {
+    if (!isUnlocked) {
+      statusPill = `<span class="task-status-pill" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; font-weight: 800;">🔒 🎟️ ${ticketCost} Tickets</span>`;
+    } else if (taskShop) {
       statusPill = `<span class="task-status-pill vip-pill" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-color: #34d399; color: #ffffff;">🛒 +${shopExtension} Shop Limit • Lvl ${taskLevel}</span>`;
+    } else if (taskArticle) {
+      statusPill = `<span class="task-status-pill ready" style="background: rgba(14, 165, 233, 0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 800;">📰 Read Article • Lvl ${taskLevel}</span>`;
     } else if (isPremium) {
       statusPill = `<span class="task-status-pill vip-pill">💎 Lvl ${taskLevel} • +${rewardCoins} 🪙</span>`;
     } else {
       statusPill = `<span class="task-status-pill ready">🪙 ${rewardCoins} Coins</span>`;
     }
 
+    let iconWrapHtml = '';
+    if (!isUnlocked) {
+      iconWrapHtml = `<div class="task-icon-wrap" style="background: rgba(168, 85, 247, 0.18); border: 1.5px solid rgba(168, 85, 247, 0.45); font-size: 1.3rem;">🔒</div>`;
+    } else if (faviconUrl) {
+      iconWrapHtml = `
+        <div class="task-icon-wrap" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(56, 189, 248, 0.35);">
+          <img src="${faviconUrl}" alt="${escapeHtml(task.title || 'Logo')}" class="task-website-logo" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
+          <span class="task-fallback-icon" style="display: none; font-size: 1.25rem;">${task.icon || '🌐'}</span>
+        </div>
+      `;
+    } else {
+      iconWrapHtml = `<div class="task-icon-wrap">${task.icon || (taskShop ? '🛒' : (isPremium ? '💎' : '⚡'))}</div>`;
+    }
+
+    const cardOnClick = (!isUnlocked) ? `onclick="if (!event.target.closest('button')) openTaskUnlockModal('${task.id}')"` : '';
+
     return `
-      <div class="${cardClass}" id="taskCard_${task.id}">
-        <div class="task-icon-wrap">${task.icon || (taskShop ? '🛒' : (isPremium ? '💎' : '⚡'))}</div>
+      <div class="${cardClass}" id="taskCard_${task.id}" ${cardOnClick}>
+        ${iconWrapHtml}
         <div class="task-details">
           <div class="task-header-row">
             <span class="task-title-text">${escapeHtml(task.title || 'Webtask Mission')}</span>
@@ -2780,7 +3644,7 @@ function renderTasks() {
           <div class="task-reward-row">
             <span class="task-reward" style="color: #fbbf24; font-weight: 900;">+${rewardCoins} 🪙</span>
             ${taskShop ? `<span style="font-size: 0.72rem; color: #34d399; font-weight: 800; margin-left: 6px;">🛒 +${shopExtension} Shop Buy Limit</span>` : ''}
-            ${task.description ? `<span style="font-size: 0.68rem; color: #94a3b8; margin-left: 6px;">• ${escapeHtml(task.description)}</span>` : ''}
+            <span style="font-size: 0.68rem; color: #94a3b8; margin-left: 6px;">• ${escapeHtml(task.description || (taskArticle ? 'Read a few short paragraphs on the page to find the 6-digit code' : 'Visit link & verify code'))}</span>
           </div>
         </div>
         <div class="task-action-wrap" id="action_${task.id}">
@@ -2791,11 +3655,207 @@ function renderTasks() {
   }).join('');
 }
 
+    function getWebsiteFaviconUrl(url) {
+      try {
+        if (!url) return null;
+        let fullUrl = url.trim();
+        if (!/^https?:\/\//i.test(fullUrl)) fullUrl = 'https://' + fullUrl;
+        const domain = new URL(fullUrl).hostname;
+        if (!domain) return null;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getUnlockedTasks() {
+      try {
+        return JSON.parse(localStorage.getItem('task_unlocked_tasks') || '{}');
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function isTaskUnlocked(taskId) {
+      if (!taskId) return true;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return true;
+      const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+      if (cost <= 0) return true;
+      const unlocked = getUnlockedTasks();
+      return !!unlocked[taskId];
+    }
+
+    let currentUnlockTaskId = null;
+
+    window.openTaskUnlockModal = function(taskId) {
+      currentUnlockTaskId = taskId;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+      const userTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10) || 0;
+
+      const modal = document.getElementById('taskUnlockModalOverlay');
+      const titleEl = document.getElementById('unlockModalTaskTitle');
+      const rewardEl = document.getElementById('unlockModalTaskReward');
+      const costEl = document.getElementById('unlockModalTicketCostText');
+      const balanceEl = document.getElementById('unlockModalUserTicketsText');
+      const alertEl = document.getElementById('unlockModalAlertMsg');
+      const confirmBtn = document.getElementById('btnConfirmUnlockTask');
+
+      if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
+      if (rewardEl) {
+        const rew = task.rewardCoins || task.reward || task.coins || 50;
+        rewardEl.textContent = `🪙 +${rew} Coins Bounty`;
+      }
+      if (costEl) costEl.textContent = `🎟️ ${cost} Tickets`;
+      if (balanceEl) balanceEl.textContent = `🎟️ ${userTickets.toLocaleString()}`;
+
+      if (userTickets >= cost) {
+        if (alertEl) {
+          alertEl.style.display = 'block';
+          alertEl.style.background = 'rgba(52, 211, 153, 0.12)';
+          alertEl.style.color = '#34d399';
+          alertEl.style.border = '1px solid rgba(52, 211, 153, 0.3)';
+          alertEl.textContent = `✓ You have enough tickets to unlock this mission!`;
+        }
+        if (confirmBtn) {
+          confirmBtn.style.display = 'inline-block';
+          confirmBtn.innerHTML = `🎟️ Unlock with ${cost} Tickets`;
+          confirmBtn.onclick = function() { confirmUnlockTask(); };
+          confirmBtn.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)';
+          confirmBtn.style.color = '#ffffff';
+        }
+      } else {
+        const diff = cost - userTickets;
+        if (alertEl) {
+          alertEl.style.display = 'block';
+          alertEl.style.background = 'rgba(239, 68, 68, 0.12)';
+          alertEl.style.color = '#f87171';
+          alertEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+          alertEl.textContent = `⚠️ You need ${diff} more ticket${diff === 1 ? '' : 's'}! Claim free tickets daily from Daily Streak.`;
+        }
+        if (confirmBtn) {
+          confirmBtn.style.display = 'inline-block';
+          confirmBtn.innerHTML = `🔥 Claim in Daily Streak`;
+          confirmBtn.onclick = function() {
+            closeTaskUnlockModal();
+            if (typeof openDailyStreakModal === 'function') openDailyStreakModal();
+          };
+          confirmBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+          confirmBtn.style.color = '#000000';
+        }
+      }
+
+      if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+      }
+    };
+
+    window.closeTaskUnlockModal = function() {
+      const modal = document.getElementById('taskUnlockModalOverlay');
+      if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => { modal.style.display = 'none'; }, 200);
+      }
+    };
+
+    window.handleUnlockModalBackdropClick = function(e) {
+      if (e.target && e.target.id === 'taskUnlockModalOverlay') {
+        closeTaskUnlockModal();
+      }
+    };
+
+    window.confirmUnlockTask = function() {
+      if (!currentUnlockTaskId) return;
+      const taskId = currentUnlockTaskId;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+      const currentTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10) || 0;
+
+      if (currentTickets < cost) {
+        if (typeof showToast === 'function') showToast(`Need ${cost} tickets to unlock!`, 'warning');
+        else alert(`Need ${cost} tickets to unlock!`);
+        return;
+      }
+
+      // Deduct tickets
+      const newTickets = currentTickets - cost;
+      localStorage.setItem('task_user_tickets', newTickets.toString());
+      localStorage.setItem('user_tickets', newTickets.toString());
+
+      // Save unlocked state
+      let unlockedMap = getUnlockedTasks();
+      unlockedMap[taskId] = true;
+      localStorage.setItem('task_unlocked_tasks', JSON.stringify(unlockedMap));
+
+      closeTaskUnlockModal();
+
+      if (typeof showToast === 'function') {
+        showToast(`🎉 Mission unlocked with ${cost} tickets!`, 'success');
+      }
+
+      if (typeof updateDailyStreakHeaderDisplays === 'function') {
+        updateDailyStreakHeaderDisplays();
+      }
+
+      // Sync across tabs
+      try {
+        const bc = new BroadcastChannel('nova_task_sync');
+        bc.postMessage({ type: 'TASK_UNLOCKED', taskId, cost, newTickets });
+      } catch (e) {}
+
+      renderTasks();
+    };
+
+    window.isTaskUnlocked = isTaskUnlocked;
+    window.getWebsiteFaviconUrl = getWebsiteFaviconUrl;
+
     let currentVerifyTaskId = null;
 
     // Open Verify Modal directly
     window.openVerifyModal = function(taskId) {
       currentVerifyTaskId = taskId;
+      const tasks = getStoredTasks();
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+        if (cost > 0 && !isTaskUnlocked(taskId)) {
+          openTaskUnlockModal(taskId);
+          return;
+        }
+
+        const titleEl = document.getElementById('verifyModalTaskTitle');
+        const descEl = document.getElementById('verifyModalTaskDesc');
+        const iconEl = document.getElementById('verifyModalTaskIcon');
+        const rewardEl = document.getElementById('verifyModalRewardHighlight');
+        const linkBtn = document.getElementById('verifyModalLinkBtn');
+        const badgeText = document.getElementById('verifyModalHeaderBadgeText');
+        const taskShop = isTaskShop(task);
+        const taskArticle = isTaskArticle(task);
+        const isPremium = task.category === 'premium' || taskShop;
+        const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPremium ? 200 : (taskArticle ? 75 : 50)));
+
+        if (titleEl) titleEl.textContent = task.title || 'Webtask Mission';
+        if (descEl) descEl.textContent = task.description || (taskArticle ? 'Read a few short paragraphs on the page to find the 6-digit code' : 'Visit link & get code from admin');
+        if (iconEl) iconEl.textContent = task.icon || (taskArticle ? '📰' : (isPremium ? '💎' : '⚡'));
+        if (rewardEl) rewardEl.textContent = `+${rewardCoins} 🪙`;
+        if (linkBtn) {
+          linkBtn.href = task.link || task.url || '#';
+          linkBtn.textContent = taskArticle ? 'Read Article ↗' : 'Open ↗';
+        }
+        if (badgeText) {
+          badgeText.textContent = taskArticle ? 'ARTICLE READING VERIFICATION' : 'WEBTASK VERIFICATION';
+        }
+      }
+
       const modal = document.getElementById('taskVerifyModalOverlay');
       const codeInput = document.getElementById('verifyCodeInput');
       const errorMsg = document.getElementById('verifyErrorMsg');
@@ -2822,6 +3882,12 @@ function renderTasks() {
       const tasks = getStoredTasks();
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
+
+      const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+      if (cost > 0 && !isTaskUnlocked(taskId)) {
+        openTaskUnlockModal(taskId);
+        return;
+      }
 
       const isTaskShop = task.category === 'shop_task' || task.isShopTask || (task.title && task.title.toLowerCase().includes('shop task'));
       const isPremium = task.category === 'premium' || isTaskShop;
@@ -2933,6 +3999,27 @@ function renderTasks() {
       localStorage.setItem('completed_tasks_count', completedCount.toString());
       recordLeaderboardEventTask(completedCount);
 
+      // Check Diamond Milestone: 10 tasks completed = 1 Diamond (💎) win
+      let lastDiamondTaskCount = parseInt(localStorage.getItem('task_last_diamond_completed_count') || '0', 10);
+      let diamondWonMsg = '';
+      if (completedCount - lastDiamondTaskCount >= 10) {
+        const diamondsWon = Math.floor((completedCount - lastDiamondTaskCount) / 10);
+        lastDiamondTaskCount += diamondsWon * 10;
+        localStorage.setItem('task_last_diamond_completed_count', lastDiamondTaskCount.toString());
+
+        let curDiamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
+        curDiamonds += diamondsWon;
+        localStorage.setItem('task_user_diamonds', curDiamonds.toString());
+        localStorage.setItem('user_diamonds', curDiamonds.toString());
+
+        diamondWonMsg = `\n💎 +${diamondsWon} Diamond Won! (Total: ${curDiamonds} 💎 • 20 💎 unlocks Level 2)`;
+
+        try {
+          const bc = new BroadcastChannel('nova_task_sync');
+          bc.postMessage({ type: 'DIAMOND_WON', diamondsWon, totalDiamonds: curDiamonds, timestamp: Date.now() });
+        } catch (e) {}
+      }
+
       markTaskCompleted(task.id);
       updateCoinDisplay();
 
@@ -2942,7 +4029,11 @@ function renderTasks() {
 
       closeVerifyModal();
 
-      if (shopBonusMsg) {
+      if (diamondWonMsg) {
+        setTimeout(() => {
+          alert(`🎉 10 Tasks Milestone Reached!\n\n${diamondWonMsg.trim()}\n\nCollect 20 Diamonds to unlock Task Level 2!`);
+        }, 400);
+      } else if (shopBonusMsg) {
         alert(`🎉 Mission Verified!\n\nYou earned +${rewardAmount} 🪙 Coins!${shopBonusMsg}\nYou can now purchase more items in the Shop!`);
       }
 
@@ -3158,6 +4249,10 @@ function renderTasks() {
     window.getStoredTasks = getStoredTasks;
     window.handleOpenTask = handleOpenTask;
     window.openVerifyModal = openVerifyModal;
+    window.openTaskUnlockModal = openTaskUnlockModal;
+    window.closeTaskUnlockModal = closeTaskUnlockModal;
+    window.confirmUnlockTask = confirmUnlockTask;
+    window.isTaskUnlocked = isTaskUnlocked;
     window.submitTaskVerification = submitTaskVerification;
   </script>
 </body>

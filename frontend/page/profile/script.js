@@ -224,22 +224,12 @@ function handleAdminLogin(event) {
       passField.value = '';
       passField.focus();
     }
-    showToast('⚠️ Invalid credentials. Demo: 400 @123 / 0911');
+    showToast('⚠️ Invalid administrator credentials. Access denied!');
   }
 }
 window.handleAdminLogin = handleAdminLogin;
 
-/**
- * Fast Auto-Fill for Credentials
- */
-function quickFillProfileAdmin() {
-  const userField = document.getElementById('adminUsername');
-  const passField = document.getElementById('adminPassword');
-  if (userField) userField.value = '400 @123';
-  if (passField) passField.value = '0911';
-  showToast('Admin credentials filled: 400 @123 / 0911');
-}
-window.quickFillProfileAdmin = quickFillProfileAdmin;
+
 
 /**
  * Exit Admin Control Panel cleanly and return to Player Profile view
@@ -464,6 +454,24 @@ function handleAdminTaskCategoryChange(val) {
     }
     if (shopGroup) shopGroup.style.display = 'none';
     if (levelGroup) levelGroup.style.display = 'block';
+  } else if (val === 'article') {
+    if (coinsInput && (coinsInput.value === '200' || !coinsInput.value)) {
+      coinsInput.value = '75';
+    }
+    const iconInput = document.getElementById('taskInputIcon');
+    if (iconInput && (iconInput.value === '⚡' || !iconInput.value)) {
+      iconInput.value = '📰';
+    }
+    const descInput = document.getElementById('taskInputDesc');
+    if (descInput && (!descInput.value || descInput.value.includes('Open link'))) {
+      descInput.value = 'Read a few short paragraphs on the page to find the 6-digit code';
+    }
+    if (badge) {
+      badge.textContent = '📰 Article Reading Task (+75 🪙)';
+      badge.style.color = '#38bdf8';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
   } else {
     if (coinsInput && (coinsInput.value === '200' || coinsInput.value === '20' || coinsInput.value === '100' || !coinsInput.value)) {
       coinsInput.value = '50';
@@ -523,6 +531,7 @@ function renderAdminTasksList() {
             <span style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : '📋 Simple')})</span>
             <span class="count-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; font-size: 0.68rem; padding: 2px 6px;">⭐ Lvl ${task.level || 1}</span>
             ${(task.category === 'shop_task' || task.isShopTask) ? `<span class="count-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.68rem; padding: 2px 6px;">🛒 +${task.shopLimitExtension || 10} Buys</span>` : ''}
+            ${(Number(task.ticketCost || 0) > 0) ? `<span class="count-badge" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; font-weight: 800; font-size: 0.68rem; padding: 2px 6px;">🎟️ ${task.ticketCost} Tickets</span>` : ''}
             ${taskCode ? `<span style="color: #38bdf8; font-family: monospace; font-size: 0.72rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 6px; border-radius: 5px;">🔑 6-Digit Code: <b>${escapeHtml(taskCode)}</b></span>` : ''}
           </div>
 
@@ -680,6 +689,8 @@ function openCreateTaskModal() {
   if (catField) catField.value = 'simple';
   const coinsField = document.getElementById('taskInputCoins') || document.getElementById('taskInputStars');
   if (coinsField) coinsField.value = '50';
+  const ticketCostField = document.getElementById('taskInputTicketCost');
+  if (ticketCostField) ticketCostField.value = '0';
   handleAdminTaskCategoryChange('simple');
   switchAdminTaskMode('single');
   if (modal) modal.style.display = 'flex';
@@ -716,6 +727,8 @@ function openEditTaskModal(taskId) {
   if (timerField) timerField.value = task.timer || task.timerSeconds || 10;
   const secretField = document.getElementById('taskInputSecret');
   if (secretField) secretField.value = task.verificationCode || task.code || task.secretCode || '';
+  const editTicketCostField = document.getElementById('taskInputTicketCost');
+  if (editTicketCostField) editTicketCostField.value = (task.ticketCost || 0).toString();
 
   if (modal) modal.style.display = 'flex';
 }
@@ -744,6 +757,7 @@ function handleSaveAdminTaskForm(e) {
   const shopLimitExtension = parseInt(document.getElementById('taskInputShopLimitExtension')?.value || '10', 10) || 10;
   const isShopTask = (category === 'shop_task');
   const rewardCoins = parseInt(document.getElementById('taskInputCoins')?.value || document.getElementById('taskInputStars')?.value, 10) || (category === 'premium' ? 200 : (isShopTask ? 100 : 50));
+  const ticketCost = Math.max(0, parseInt(document.getElementById('taskInputTicketCost')?.value || '0', 10) || 0);
   const baseTitle = document.getElementById('taskInputTitle')?.value.trim();
   const timer = parseInt(document.getElementById('taskInputTimer')?.value || '10', 10);
 
@@ -774,6 +788,7 @@ function handleSaveAdminTaskForm(e) {
         rewardCoins: rewardCoins,
         reward: rewardCoins,
         coins: rewardCoins,
+        ticketCost,
         timer,
         timerSeconds: timer,
         secretCode,
@@ -822,6 +837,7 @@ function handleSaveAdminTaskForm(e) {
         rewardCoins: rewardCoins,
         reward: rewardCoins,
         coins: rewardCoins,
+        ticketCost,
         timer: timer,
         timerSeconds: timer,
         secretCode: code,
@@ -866,6 +882,7 @@ function handleSaveAdminTaskForm(e) {
         rewardCoins: rewardCoins,
         reward: rewardCoins,
         coins: rewardCoins,
+    ticketCost,
     timer,
     timerSeconds: timer,
     secretCode,
@@ -961,80 +978,26 @@ function renderAdminUsersList() {
   }
 
   container.innerHTML = list.map(user => {
-    const isInactive = user.status === 'suspended' || user.status === 'inactive';
-    const isActive = !isInactive;
-    const statusLabel = user.status === 'suspended' ? 'Suspended' : (user.status === 'inactive' ? 'Inactive' : 'Active');
-    const roleBadge = user.role === 'admin' ? '👑 Admin' : (user.role === 'vip' ? '🌟 VIP' : '👤 Player');
-    const handle = user.username ? (user.username.startsWith('@') ? user.username : '@' + user.username) : '@' + (user.name || 'player').toLowerCase().replace(/\s+/g, '');
-    const email = user.email || (user.id + '@novatasks.io');
-
     return `
-      <div class="admin-user-card" style="display: flex; justify-content: space-between; align-items: center; background: #0a1738; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}; border-left: 4px solid ${isActive ? '#10b981' : '#ef4444'}; border-radius: 12px; padding: 0.75rem 0.95rem; margin-bottom: 0.55rem; transition: all 0.2s ease;">
-        <div style="display: flex; align-items: center; gap: 0.85rem;">
-          <!-- Avatar with Side Active / Inactive Dot -->
-          <div style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
-            <span style="font-size: 1.6rem;">${user.avatar || '⚡'}</span>
-            <span class="user-status-dot ${isActive ? 'active-dot' : 'inactive-dot'}" 
-                  style="position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'}; border: 2px solid #0a1738; box-shadow: 0 0 6px ${isActive ? '#10b981' : '#ef4444'};" 
-                  title="${isActive ? 'Active User (Green Dot)' : 'Inactive User (Red Dot)'}"></span>
-          </div>
-
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;">
-              <!-- User Name with Icon -->
-              <span style="font-size: 0.9rem; font-weight: 800; color: #ffffff; display: inline-flex; align-items: center; gap: 5px;">
-                <span>👤</span> ${escapeHtml(user.name || 'Player')}
-              </span>
-              <span style="font-size: 0.72rem; color: #38bdf8; font-family: monospace;">${escapeHtml(handle)}</span>
-              
-              <!-- Role Badge -->
-              <span style="font-size: 0.62rem; font-weight: 800; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); padding: 1px 6px; border-radius: 4px;">${roleBadge}</span>
-
-              <!-- Status Badge -->
-              <div class="user-status-badge-side" style="display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 999px; font-size: 0.62rem; font-weight: 800; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'};">
-                <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'};"></span>
-                <span>${statusLabel}</span>
-              </div>
-            </div>
-
-            <!-- Email, UID & Level Tier -->
-            <div style="font-size: 0.68rem; color: #94a3b8; display: flex; gap: 6px; align-items: center; margin-top: 2px;">
-              <span>✉️ ${escapeHtml(email)}</span>
-              <span>&bull;</span>
-              <span style="color: #cbd5e1; font-weight: 700;">${escapeHtml(user.level || 'LVL 1 • CADET')}</span>
-              <span>&bull;</span>
-              <span style="color: #64748b; font-family: monospace;">UID: ${escapeHtml(user.id)}</span>
-            </div>
-
-            <!-- Balances Row -->
-            <div style="font-size: 0.72rem; color: #94a3b8; display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 4px;">
-              <span style="color: #fbbf24; font-weight: 800; background: rgba(245, 158, 11, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(245, 158, 11, 0.3);">🪙 ${Number(user.coins || 0).toLocaleString()} Coins</span>
-              <span style="color: #facc15; font-weight: 800; background: rgba(250, 204, 21, 0.12); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(250, 204, 21, 0.3);">⭐ ${user.stars || 0} Stars</span>
-              ${user.sfCoins ? `<span style="color: #fde047; font-weight: 700;">🌻 ${Number(user.sfCoins).toLocaleString()}</span>` : ''}
-              ${user.sfBuckets ? `<span style="color: #38bdf8; font-weight: 700;">💧 ${user.sfBuckets}</span>` : ''}
-            </div>
-          </div>
+      <div class="admin-user-card" style="display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important; background: #0a1738; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 0.55rem 0.85rem; margin-bottom: 0.45rem; gap: 0.5rem; width: 100%; box-sizing: border-box;">
+        <!-- 1. Icon & 2. Name (Strictly 1 Line) -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap;">
+          <span style="font-size: 1.35rem; line-height: 1; flex-shrink: 0;">${user.avatar || '⚡'}</span>
+          <span style="font-size: 0.9rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: 4px; min-width: 0;">
+            <span style="flex-shrink: 0;">👤</span>
+            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.name || 'Player')}</span>
+          </span>
         </div>
 
-        <div style="display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
-          <!-- Quick Status Toggle -->
-          <button type="button" class="btn-card-action" onclick="toggleUserActiveStatus('${user.id}')" title="Click to toggle Active / Inactive" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: 0.68rem; font-weight: 700; background: ${isActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 1px solid ${isActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}; color: ${isActive ? '#34d399' : '#f87171'}; border-radius: 6px; cursor: pointer;">
-            <span style="display: inline-block; width: 6.5px; height: 6.5px; border-radius: 50%; background: ${isActive ? '#10b981' : '#ef4444'};"></span>
-            <span>${isActive ? 'Active' : 'Inactive'}</span>
-          </button>
-
+        <!-- 3. Detail Button & 4. Delete Button (Strictly 1 Line) -->
+        <div style="display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; white-space: nowrap;">
           <!-- Detail Button -->
-          <button type="button" class="btn-card-action" onclick="openUserDetailModal('${user.id}')" title="View player full details" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; border-radius: 6px; cursor: pointer;">
+          <button type="button" class="btn-card-action" onclick="openUserDetailModal('${user.id}')" title="View & edit player full details" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.72rem; font-weight: 800; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
             <span>🔍 Detail</span>
-          </button>
-          
-          <!-- Full Edit & Firebase Button -->
-          <button type="button" class="btn-card-action" onclick="openEditUserModal('${user.id}')" title="Edit player details & sync with Firebase" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 6px; cursor: pointer;">
-            <span>✏️ Edit</span>
           </button>
 
           <!-- Direct Delete Button -->
-          <button type="button" class="btn-card-action" onclick="directDeleteUser('${user.id}')" title="Permanently delete player" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; font-size: 0.68rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; cursor: pointer;">
+          <button type="button" class="btn-card-action" onclick="directDeleteUser('${user.id}')" title="Permanently delete player" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.72rem; font-weight: 800; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
             <span>🗑️ Delete</span>
           </button>
         </div>
@@ -1934,7 +1897,6 @@ function escapeHtml(str) {
 window.switchProfileTab = switchProfileTab;
 window.handleAdminLogin = handleAdminLogin;
 window.exitAdminToProfile = exitAdminToProfile;
-window.quickFillProfileAdmin = quickFillProfileAdmin;
 window.adminLogout = adminLogout;
 window.switchAdminSubView = switchAdminSubView;
 window.openCreateTaskModal = openCreateTaskModal;
@@ -5158,6 +5120,9 @@ function openUserDetailModal(userId) {
     <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.75rem;">
       <button type="button" class="btn-card-action" onclick="closeUserDetailModal()" style="padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
         Close
+      </button>
+      <button type="button" class="btn-card-action" onclick="toggleUserActiveStatus('${user.id}'); openUserDetailModal('${user.id}')" style="background: ${isActive ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}; border: 1px solid ${isActive ? 'rgba(239, 68, 68, 0.4)' : 'rgba(16, 185, 129, 0.4)'}; color: ${isActive ? '#f87171' : '#34d399'}; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
+        ${isActive ? '🔴 Deactivate' : '🟢 Activate'}
       </button>
       <button type="button" class="btn-card-action" onclick="closeUserDetailModal(); directDeleteUser('${user.id}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; padding: 0.5rem 0.85rem; font-weight: 700; border-radius: 8px;">
         🗑️ Delete

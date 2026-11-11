@@ -148,43 +148,116 @@ body {
 
 .page-content {
   flex: 1;
-  padding: 1.2rem 1rem;
+  padding: 0.7rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 0.55rem;
 }
 
-.tasks-banner {
-  margin-bottom: 0.2rem;
-}
-
-.tasks-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #ffffff;
+/* Compact 3-Pill Balance Strip */
+.shop-balance-strip {
+  display: flex;
+  gap: 0.4rem;
   margin-bottom: 0.25rem;
 }
 
-.tasks-subtitle {
-  font-size: 0.8rem;
-  color: #94a3b8;
+.shop-balance-pill {
+  flex: 1;
+  background: rgba(10, 23, 56, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 10px;
+  padding: 0.42rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.shop-list {
+.shop-balance-pill.star-box {
+  border-color: rgba(250, 204, 21, 0.35);
+  background: linear-gradient(135deg, rgba(250, 204, 21, 0.08) 0%, rgba(10, 23, 56, 0.85) 100%);
+}
+
+.shop-balance-pill.ticket-box {
+  border-color: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(10, 23, 56, 0.85) 100%);
+}
+
+.shop-balance-pill .pill-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.shop-balance-pill .pill-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  min-width: 0;
+}
+
+.shop-balance-pill .pill-label {
+  font-size: 0.56rem;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.shop-balance-pill .pill-val {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-balance-pill.star-box .pill-val {
+  color: #facc15;
+}
+
+.shop-balance-pill.ticket-box .pill-val {
+  color: #c084fc;
+}
+
+/* Tasks Banner */
+.tasks-banner {
+  margin-bottom: 0.1rem;
+}
+
+.tasks-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.15rem;
+}
+
+.tasks-subtitle {
+  font-size: 0.74rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Card Lists */
+.shop-list,
+.shop-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .shop-card {
   background: #0a1738;
   border: 1px solid rgba(56, 189, 248, 0.14);
-  border-radius: 14px;
-  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.85rem;
+  gap: 0.65rem;
   transition: all 0.2s ease;
 }
 
@@ -195,15 +268,15 @@ body {
 }
 
 .shop-icon-wrap {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   background: #1e293b;
   border: 1px solid #334155;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   flex-shrink: 0;
 }
 
@@ -211,18 +284,22 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.12rem;
+  min-width: 0;
 }
 
 .shop-name {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .shop-desc {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .shop-price {
@@ -231,42 +308,345 @@ body {
   color: #fbbf24;
 }
 
-/* Proper 3D Gray Action Button with #848683 palette */
-.btn-buy {
-  background: linear-gradient(155deg, #9ca09b 0%, #848683 45%, #696b68 100%);
-  color: #ffffff;
-  border: 1.5px solid;
-  border-color: #b3b7b2 #848683 #535552 #717370;
-  border-radius: 8px;
-  padding: 0.45rem 1rem;
-  font-size: 0.8rem;
-  font-weight: 700;
+/* Unified Star Pack Cards - Thin, Sleek, Proper Padding */
+.star-shop-card {
+  background: linear-gradient(155deg, #131210 0%, #0a1532 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  border-radius: 11px !important;
+  padding: 0.5rem 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.65rem !important;
+  min-height: 52px !important;
+  transition: all 0.18s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.star-shop-card:hover {
+  background: linear-gradient(155deg, #1c1810 0%, #0d1c44 100%) !important;
+  border-color: #fbbf24 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22) !important;
+}
+
+.star-shop-card .shop-icon-wrap {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 10px !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  border: 1px solid rgba(251, 191, 36, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.15rem !important;
+  flex-shrink: 0 !important;
+}
+
+.star-shop-card .shop-name {
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  line-height: 1.2 !important;
+}
+
+.star-pack-badge {
+  font-size: 0.55rem !important;
+  font-weight: 900 !important;
+  color: #000000 !important;
+  background: #f59e0b !important;
+  padding: 0.1rem 0.38rem !important;
+  border-radius: 999px !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.ad-badge {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   SHOP CATEGORY NAVIGATION TABS (ALL, TICKETS, COINS & STARS)
+   ========================================================================== */
+.shop-category-tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin: 0.25rem 0 0.85rem 0;
+  width: 100%;
+}
+
+.shop-cat-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.5rem;
+  background: rgba(10, 23, 56, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5);
+  transition: all 0.22s ease;
+  color: #94a3b8;
   font-family: inherit;
-  min-width: 65px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
-.btn-buy:hover {
-  background: linear-gradient(155deg, #a8aca7 0%, #8f928e 45%, #727471 100%);
-  border-color: #c4c8c3 #9ca09b #5e605d #848683;
+.shop-cat-tab:hover {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(14, 30, 71, 0.95);
   transform: translateY(-1px);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5);
 }
 
-.btn-buy:active {
-  transform: translateY(1px);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 -1px 1px rgba(255, 255, 255, 0.15);
+.shop-cat-tab.active {
+  background: linear-gradient(145deg, #0284c7 0%, #1d4ed8 50%, #0c1a3d 100%);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5), inset 0 1.5px 1px rgba(147, 197, 253, 0.45);
 }
 
-.btn-buy:disabled {
-  background: #1e293b;
-  color: #64748b;
-  border-color: #334155;
-  cursor: not-allowed;
+.shop-cat-tab#shopTabTickets.active {
+  background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 50%, #1e1035 100%);
+  border-color: #c084fc;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.5), inset 0 1.5px 1px rgba(233, 213, 255, 0.45);
+}
+
+.shop-cat-tab#shopTabCoins.active {
+  background: linear-gradient(145deg, #d97706 0%, #b45309 50%, #451a03 100%);
+  border-color: #fbbf24;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5), inset 0 1.5px 1px rgba(254, 240, 138, 0.45);
+}
+
+.shop-tab-icon {
+  font-size: 0.95rem;
+}
+
+.shop-tab-title {
+  white-space: nowrap;
+}
+
+/* Ticket Ad Card Specific Variant */
+.shop-ad-card-ticket {
+  background: linear-gradient(155deg, #1c0e2e 0%, #0a1532 100%) !important;
+  border: 1px solid rgba(168, 85, 247, 0.45) !important;
+}
+
+.shop-ad-card-ticket:hover {
+  background: linear-gradient(155deg, #26133d 0%, #0e1e48 100%) !important;
+  border-color: #c084fc !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25) !important;
+}
+
+.shop-ad-card-ticket .shop-icon-wrap {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border: 1px solid rgba(192, 132, 252, 0.6) !important;
+}
+
+/* Free Gift Ad Card Variant */
+.shop-ad-card {
+  background: linear-gradient(155deg, #091a13 0%, #0a1532 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.shop-ad-card:hover {
+  background: linear-gradient(155deg, #0d281e 0%, #0e1e48 100%) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25) !important;
+}
+
+.shop-ad-card .shop-icon-wrap {
+  background: rgba(16, 185, 129, 0.18) !important;
+  border: 1px solid rgba(52, 211, 153, 0.6) !important;
+}
+
+/* Ticket Store Section Header */
+.shop-section-header {
+  margin-top: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.shop-section-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.shop-section-badge {
+  font-size: 0.65rem;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid #a855f7;
+  color: #c084fc;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.shop-section-desc {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Ticket Store Cards */
+.ticket-shop-card {
+  border: 1px solid rgba(168, 85, 247, 0.38) !important;
+  background: linear-gradient(155deg, #150f24 0%, #0a1532 100%) !important;
+}
+
+.ticket-shop-card:hover {
+  border-color: #c084fc !important;
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25) !important;
+}
+
+.ticket-shop-card .shop-icon-wrap {
+  background: rgba(168, 85, 247, 0.18) !important;
+  border: 1px solid rgba(192, 132, 252, 0.55) !important;
+}
+
+.ticket-badge {
+  background: rgba(168, 85, 247, 0.25) !important;
+  color: #c084fc !important;
+  border: 1px solid #a855f7 !important;
+}
+
+.ticket-card-popular {
+  border-color: rgba(168, 85, 247, 0.55) !important;
+  background: linear-gradient(155deg, #1c0e30 0%, #0a1532 100%) !important;
+}
+
+.ticket-badge-popular {
+  background: #a855f7 !important;
+  color: #ffffff !important;
+}
+
+.ticket-card-best {
+  border-color: rgba(250, 204, 21, 0.55) !important;
+  background: linear-gradient(155deg, #1f1807 0%, #0a1532 100%) !important;
+}
+
+.ticket-card-best .shop-icon-wrap {
+  background: rgba(250, 204, 21, 0.18) !important;
+  border: 1px solid rgba(250, 204, 21, 0.55) !important;
+}
+
+.ticket-badge-best {
+  background: #facc15 !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+/* ==========================================================================
+   BUTTON COLORS - ALL BUTTONS USE SIGNATURE 3D GRAY COLOR ONLY (#848683)
+   ========================================================================== */
+.btn-buy,
+.btn-buy-gift,
+#btnWatchAd,
+.btn-tier-1,
+.btn-tier-2,
+.btn-tier-3,
+.btn-tier-4,
+.btn-tier-5,
+.btn-ticket-1,
+.btn-ticket-2,
+.btn-ticket-3,
+.shop-ad-card .btn-buy {
+  background: linear-gradient(155deg, #9ca09b 0%, #848683 45%, #696b68 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid !important;
+  border-color: #b3b7b2 #848683 #535552 #717370 !important;
+  border-radius: 8px !important;
+  padding: 0.42rem 0.85rem !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+  font-family: inherit !important;
+  min-width: 72px !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.2 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.btn-buy:hover,
+.btn-buy-gift:hover,
+#btnWatchAd:hover,
+#btnWatchAdTickets:hover,
+#btnWatchAdCoins:hover,
+.btn-tier-1:hover,
+.btn-tier-2:hover,
+.btn-tier-3:hover,
+.btn-tier-4:hover,
+.btn-tier-5:hover,
+.btn-ticket-1:hover,
+.btn-ticket-2:hover,
+.btn-ticket-3:hover,
+.shop-ad-card .btn-buy:hover {
+  background: linear-gradient(155deg, #a8aca7 0%, #8f928e 45%, #727471 100%) !important;
+  border-color: #c4c8c3 #9ca09b #5e605d #848683 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.45), inset 0 -1.5px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.btn-buy:active,
+.btn-buy-gift:active,
+#btnWatchAd:active,
+#btnWatchAdTickets:active,
+#btnWatchAdCoins:active,
+.btn-tier-1:active,
+.btn-tier-2:active,
+.btn-tier-3:active,
+.btn-tier-4:active,
+.btn-tier-5:active,
+.btn-ticket-1:active,
+.btn-ticket-2:active,
+.btn-ticket-3:active,
+.shop-ad-card .btn-buy:active {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7), inset 0 -1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+.btn-buy:disabled,
+.btn-buy-gift:disabled,
+#btnWatchAd:disabled,
+#btnWatchAdTickets:disabled,
+#btnWatchAdCoins:disabled,
+.btn-tier-1:disabled,
+.btn-tier-2:disabled,
+.btn-tier-3:disabled,
+.btn-tier-4:disabled,
+.btn-tier-5:disabled,
+.btn-ticket-1:disabled,
+.btn-ticket-2:disabled,
+.btn-ticket-3:disabled,
+.shop-ad-card .btn-buy:disabled {
+  background: #1e293b !important;
+  color: #64748b !important;
+  border-color: #334155 !important;
+  cursor: not-allowed !important;
   transform: none !important;
   box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 /* ==========================================================================
@@ -572,52 +952,6 @@ body {
   animation: activeSvgFilterPulse 2.8s ease-in-out infinite;
 }
 
-.shop-ad-card {
-  background: linear-gradient(155deg, #06241a 0%, #0a1738 100%) !important;
-  border: 1.5px solid rgba(16, 185, 129, 0.6) !important;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 14px !important;
-  padding: 0.85rem 1rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.85rem !important;
-  transition: all 0.2s ease !important;
-}
-
-.shop-ad-card:hover {
-  background: linear-gradient(155deg, #093325 0%, #0f1f4a 100%) !important;
-  border-color: #34d399 !important;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3) !important;
-  transform: translateY(-2px) !important;
-}
-
-.shop-ad-card .shop-icon-wrap {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  background: rgba(16, 185, 129, 0.2) !important;
-  border: 1.5px solid rgba(52, 211, 153, 0.65) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1.35rem !important;
-  flex-shrink: 0 !important;
-}
-
-.shop-ad-card .btn-buy {
-  background: linear-gradient(155deg, #10b981 0%, #059669 50%, #047857 100%);
-  border-color: #6ee7b7 #10b981 #064e3b #059669;
-  color: #ffffff;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.shop-ad-card .btn-buy:hover {
-  background: linear-gradient(155deg, #34d399 0%, #10b981 50%, #059669 100%);
-  border-color: #a7f3d0 #34d399 #047857 #10b981;
-}
-
 /* Star Perks Info Card */
 .shop-perks-card {
   background: linear-gradient(155deg, #0a1738 0%, #060e24 100%);
@@ -825,66 +1159,6 @@ body {
   font-weight: 600;
   color: #cbd5e1;
 }
-
-/* Unified Star Pack Cards (Same Colour & Same Style Across All Cards) */
-.star-shop-card {
-  background: linear-gradient(155deg, #181408 0%, #0a1738 100%) !important;
-  border: 1.5px solid rgba(245, 158, 11, 0.55) !important;
-  border-radius: 14px !important;
-  padding: 0.85rem 1rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 0.85rem !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5) !important;
-}
-
-.star-shop-card:hover {
-  background: linear-gradient(155deg, #221a0a 0%, #0f1f4a 100%) !important;
-  border-color: #fbbf24 !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.25) !important;
-}
-
-.star-shop-card .shop-icon-wrap {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  background: rgba(245, 158, 11, 0.18) !important;
-  border: 1.5px solid rgba(251, 191, 36, 0.6) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 1.35rem !important;
-  flex-shrink: 0 !important;
-}
-
-.star-shop-card .shop-name {
-  font-size: 0.95rem !important;
-  font-weight: 800 !important;
-  color: #ffffff !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.45rem !important;
-}
-
-.star-pack-badge {
-  font-size: 0.58rem !important;
-  font-weight: 900 !important;
-  color: #000000 !important;
-  background: #f59e0b !important;
-  padding: 0.12rem 0.45rem !important;
-  border-radius: 999px !important;
-  letter-spacing: 0.03em !important;
-  text-transform: uppercase !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25) !important;
-  display: inline-block !important;
-  line-height: 1.2 !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
-}
-
 
 /* Global Fredoka Typography for All Text, Headings & Paragraphs */
 h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
