@@ -470,35 +470,15 @@ function watchAdForTickets(btn) {
   onReward();
 }
 
-// Shop Category Tab Switcher (All, Tickets, Coins & Stars)
+// All Shop Items Visible (Category Tabs Removed)
 function switchShopTab(tab) {
-  const tabs = document.querySelectorAll('.shop-cat-tab');
-  tabs.forEach(t => t.classList.remove('active'));
-
-  const activeBtn = document.getElementById(
-    tab === 'tickets' ? 'shopTabTickets' : (tab === 'coins' ? 'shopTabCoins' : 'shopTabAll')
-  );
-  if (activeBtn) activeBtn.classList.add('active');
-
   const ticketItems = document.querySelectorAll('.shop-item-ticket, .ticket-shop-card');
   const coinItems = document.querySelectorAll('.shop-item-coin');
   const ticketSectionHeader = document.querySelector('.shop-section-header');
-
-  if (tab === 'all') {
-    ticketItems.forEach(el => el.style.display = '');
-    coinItems.forEach(el => el.style.display = '');
-    if (ticketSectionHeader) ticketSectionHeader.style.display = '';
-  } else if (tab === 'tickets') {
-    coinItems.forEach(el => el.style.display = 'none');
-    ticketItems.forEach(el => el.style.display = '');
-    if (ticketSectionHeader) ticketSectionHeader.style.display = '';
-  } else if (tab === 'coins') {
-    ticketItems.forEach(el => el.style.display = 'none');
-    coinItems.forEach(el => el.style.display = '');
-    if (ticketSectionHeader) ticketSectionHeader.style.display = 'none';
-  }
-
-  localStorage.setItem('task_game_shop_active_tab', tab);
+  ticketItems.forEach(el => el.style.display = '');
+  coinItems.forEach(el => el.style.display = '');
+  if (ticketSectionHeader) ticketSectionHeader.style.display = '';
+  localStorage.setItem('task_game_shop_active_tab', 'all');
 }
 
 window.switchShopTab = switchShopTab;

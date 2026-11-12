@@ -522,46 +522,47 @@ window.switchTaskTab = function(tab) {
 
 // Player Level Progression & Gating System (200 tasks per tier; Level 6 is Master; Level 2 unlocks with 20 Diamonds)
 function isLevel2Unlocked() {
-  return localStorage.getItem('task_level_2_unlocked') === 'true';
+  if (localStorage.getItem('task_level_2_unlocked') === 'true') return true;
+  const userDiamonds = Math.max(0, parseInt(
+    localStorage.getItem('task_user_diamonds') || '0', 
+    10
+  ));
+  const totalCompleted = Math.max(0, parseInt(
+    localStorage.getItem('task_game_total_tasks_completed') || 
+    localStorage.getItem('completed_tasks_count') || '0', 
+    10
+  ));
+  if (userDiamonds >= 20 || totalCompleted >= 200) {
+    localStorage.setItem('task_level_2_unlocked', 'true');
+    return true;
+  }
+  return false;
 }
 window.isLevel2Unlocked = isLevel2Unlocked;
 
 function isLevelUnlocked(lvl) {
   lvl = parseInt(lvl, 10);
   if (lvl === 1) return true;
-  if (lvl === 2) return isLevel2Unlocked();
-  if (!isLevel2Unlocked()) return false;
-
-  const totalCompleted = Math.max(0, parseInt(
-    localStorage.getItem('task_game_total_tasks_completed') || 
-    localStorage.getItem('completed_tasks_count') || '0', 
-    10
-  ));
-  if (lvl === 3) return totalCompleted >= 400;
-  if (lvl === 4) return totalCompleted >= 600;
-  if (lvl === 5) return totalCompleted >= 800;
-  if (lvl === 6) return totalCompleted >= 1000;
-  return false;
+  const pInfo = getPlayerLevelInfo();
+  if (lvl === 2) return pInfo.isLevel2Unlocked;
+  if (!pInfo.isLevel2Unlocked) return false;
+  return pInfo.totalCompleted >= (lvl - 1) * 200;
 }
 window.isLevelUnlocked = isLevelUnlocked;
 
 function unlockLevel2WithDiamonds() {
   let diamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
-  if (diamonds < 20) {
-    alert(`🔒 Insufficient Diamonds!\n\nYou have ${diamonds}/20 Diamonds.\nComplete 10 tasks to win 1 Diamond.`);
-    return;
+  const totalComp = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10);
+  if (diamonds >= 20 || totalComp >= 200) {
+    localStorage.setItem('task_level_2_unlocked', 'true');
+    localStorage.setItem('task_selected_level_tab', '2');
+    try {
+      if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
+    } catch(e) {}
+    alert('🎉 Task Level 2 Unlocked!\n\nYou can now complete high-reward Level 2 missions!');
+  } else {
+    alert(`🔒 Level 2 requires 20 Diamonds (10 tasks = 1 💎).\n\nCurrent: ${diamonds}/20 Diamonds.`);
   }
-  diamonds -= 20;
-  localStorage.setItem('task_user_diamonds', diamonds.toString());
-  localStorage.setItem('user_diamonds', diamonds.toString());
-  localStorage.setItem('task_level_2_unlocked', 'true');
-  localStorage.setItem('task_selected_level_tab', '2');
-
-  try {
-    if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
-  } catch(e) {}
-
-  alert('🎉 CONGRATULATIONS!\n\nTask Level 2 has been unlocked with 20 Diamonds!\nYou can now complete high-reward Level 2 missions!');
 
   try {
     const bc = new BroadcastChannel('nova_task_sync');
@@ -583,20 +584,11 @@ window.openDiamondInfoModal = function() {
 
   let msg = `💎 DIAMOND VAULT\n\n` +
     `• Balance: ${diamonds} Diamonds 💎\n` +
-    `• Rule: 10 tasks completed = 1 Diamond win\n` +
+    `• Rule: 10 tasks completed = 1 Diamond auto added\n` +
     `• Next Diamond in: ${nextIn} tasks\n\n`;
 
   if (!lvl2Unlocked) {
-    msg += `🔓 Level 2 Status: LOCKED (Requires 20 Diamonds)\n` +
-      (diamonds >= 20 
-        ? `✨ You have ${diamonds} Diamonds! Would you like to unlock Level 2 now?` 
-        : `You need ${20 - diamonds} more diamonds to unlock Level 2.`);
-    if (diamonds >= 20) {
-      if (confirm(msg)) {
-        unlockLevel2WithDiamonds();
-      }
-      return;
-    }
+    msg += `🔓 Level 2 Status: ${diamonds}/20 Diamonds to auto-unlock Level 2 (or reach 200 tasks)`;
   } else {
     msg += `✓ Level 2 Status: UNLOCKED!`;
   }
@@ -613,22 +605,48 @@ function getPlayerLevelInfo() {
     localStorage.getItem('task_user_diamonds') || '0', 
     10
   ));
-  const lvl2Unlocked = isLevel2Unlocked();
 
-  let level = 1;
-  if (lvl2Unlocked) {
-    if (totalCompleted >= 1000) level = 6;
-    else if (totalCompleted >= 800) level = 5;
-    else if (totalCompleted >= 600) level = 4;
-    else if (totalCompleted >= 400) level = 3;
-    else level = 2;
-  } else {
-    level = 1;
+  // Level 2 auto-unlocks loading-wise when 20 diamonds are collected or totalCompleted >= 200
+  let lvl2Unlocked = isLevel2Unlocked();
+  if (!lvl2Unlocked && (userDiamonds >= 20 || totalCompleted >= 200)) {
+    lvl2Unlocked = true;
+    localStorage.setItem('task_level_2_unlocked', 'true');
   }
 
-  // 10 tasks completed = 1 Diamond win
-  let diamondProgress = totalCompleted % 10;
-  let diamondPercent = Math.min(100, Math.floor((diamondProgress / 10) * 100));
+  let level = 1;
+  let progressPercent = 0;
+  let levelSubText = '';
+
+  if (!lvl2Unlocked) {
+    level = 1;
+    // Level 1 progress towards unlocking Level 2 (20 diamonds / 200 tasks)
+    const diamondEquivalent = Math.max(userDiamonds, Math.floor(totalCompleted / 10));
+    progressPercent = Math.min(100, Math.floor((Math.min(20, diamondEquivalent) / 20) * 100));
+    levelSubText = `💎 ${Math.min(20, diamondEquivalent)}/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)`;
+  } else {
+    // Levels 2 to 6 unlocked loading-wise by completed tasks (200 tasks per tier)
+    if (totalCompleted >= 1000) {
+      level = 6;
+      progressPercent = 100;
+      levelSubText = `👑 Level 6 Crown Legend • All Tasks Mastered! (Total: ${userDiamonds} 💎)`;
+    } else if (totalCompleted >= 800) {
+      level = 5;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 800) / 200) * 100));
+      levelSubText = `🏆 Level 5 • ${1000 - totalCompleted} tasks to unlock Level 6 (10 tasks = 1 💎)`;
+    } else if (totalCompleted >= 600) {
+      level = 4;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 600) / 200) * 100));
+      levelSubText = `💎 Level 4 • ${800 - totalCompleted} tasks to unlock Level 5 (10 tasks = 1 💎)`;
+    } else if (totalCompleted >= 400) {
+      level = 3;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 400) / 200) * 100));
+      levelSubText = `🔥 Level 3 • ${600 - totalCompleted} tasks to unlock Level 4 (10 tasks = 1 💎)`;
+    } else {
+      level = 2;
+      progressPercent = Math.min(100, Math.floor(((totalCompleted - 200) / 200) * 100));
+      levelSubText = `⚡ Level 2 • ${400 - totalCompleted} tasks to unlock Level 3 (10 tasks = 1 💎)`;
+    }
+  }
 
   const levelTitles = {
     1: 'Novice',
@@ -653,8 +671,8 @@ function getPlayerLevelInfo() {
     totalCompleted,
     userDiamonds,
     isLevel2Unlocked: lvl2Unlocked,
-    diamondProgress,
-    diamondPercent,
+    progressPercent,
+    levelSubText,
     title: levelTitles[level] || 'Novice',
     icon: levelIcons[level] || '⭐'
   };
@@ -700,24 +718,13 @@ function renderTasks() {
   if (lvlNumEl) lvlNumEl.textContent = `LEVEL ${playerInfo.level}`;
   if (lvlNameEl) lvlNameEl.textContent = playerInfo.title;
   if (lvlIconEl) lvlIconEl.textContent = playerInfo.icon;
-  if (lvlChipEl) {
-    lvlChipEl.textContent = `${playerInfo.diamondProgress} / 10`;
-  }
-  if (lvlFillEl) lvlFillEl.style.width = `${playerInfo.diamondPercent}%`;
-  if (lvlSubEl) {
-    if (!playerInfo.isLevel2Unlocked) {
-      if (playerInfo.userDiamonds >= 20) {
-        lvlSubEl.innerHTML = `💎 <b>${playerInfo.userDiamonds}/20 Diamonds</b> • <button type="button" onclick="unlockLevel2WithDiamonds()" style="background:none; border:none; color:#38bdf8; font-weight:800; text-decoration:underline; cursor:pointer; padding:0 2px;">Unlock Level 2 Now (Use 20 💎) ↗</button>`;
-      } else {
-        lvlSubEl.textContent = `💎 ${playerInfo.userDiamonds}/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)`;
-      }
-    } else {
-      lvlSubEl.textContent = `💎 ${playerInfo.userDiamonds} Diamonds (Level 2 Unlocked) • 10 tasks = 1 💎`;
-    }
-  }
+  if (lvlFillEl) lvlFillEl.style.width = `${playerInfo.progressPercent}%`;
+  if (lvlSubEl) lvlSubEl.textContent = playerInfo.levelSubText;
+  if (lvlChipEl) lvlChipEl.style.display = 'none';
   if (rankDisplay) rankDisplay.textContent = `LVL ${playerInfo.level} • RANK #1`;
 
   // Update Level Tabs Buttons (1 to 6)
+  
   for (let i = 1; i <= 6; i++) {
     const tabBtn = document.getElementById(`levelTab${i}`);
     const lockIcon = document.getElementById(`lvlLock${i}`);

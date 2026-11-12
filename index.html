@@ -3110,7 +3110,21 @@ window.switchTaskTab = function(tab) {
 
 // Player Level Progression & Gating System (200 tasks per tier; Level 6 is Master; Level 2 unlocks with 20 Diamonds)
 function isLevel2Unlocked() {
-  return localStorage.getItem('task_level_2_unlocked') === 'true';
+  if (localStorage.getItem('task_level_2_unlocked') === 'true') return true;
+  const userDiamonds = Math.max(0, parseInt(
+    localStorage.getItem('task_user_diamonds') || '0', 
+    10
+  ));
+  const totalCompleted = Math.max(0, parseInt(
+    localStorage.getItem('task_game_total_tasks_completed') || 
+    localStorage.getItem('completed_tasks_count') || '0', 
+    10
+  ));
+  if (userDiamonds >= 20 || totalCompleted >= 200) {
+    localStorage.setItem('task_level_2_unlocked', 'true');
+    return true;
+  }
+  return false;
 }
 window.isLevel2Unlocked = isLevel2Unlocked;
 
@@ -3126,21 +3140,17 @@ window.isLevelUnlocked = isLevelUnlocked;
 
 function unlockLevel2WithDiamonds() {
   let diamonds = parseInt(localStorage.getItem('task_user_diamonds') || '0', 10);
-  if (diamonds < 20) {
-    alert(`🔒 Insufficient Diamonds!\n\nYou have ${diamonds}/20 Diamonds.\nComplete 10 tasks to win 1 Diamond.`);
-    return;
+  const totalComp = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10);
+  if (diamonds >= 20 || totalComp >= 200) {
+    localStorage.setItem('task_level_2_unlocked', 'true');
+    localStorage.setItem('task_selected_level_tab', '2');
+    try {
+      if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
+    } catch(e) {}
+    alert('🎉 Task Level 2 Unlocked!\n\nYou can now complete high-reward Level 2 missions!');
+  } else {
+    alert(`🔒 Level 2 requires 20 Diamonds (10 tasks = 1 💎).\n\nCurrent: ${diamonds}/20 Diamonds.`);
   }
-  diamonds -= 20;
-  localStorage.setItem('task_user_diamonds', diamonds.toString());
-  localStorage.setItem('user_diamonds', diamonds.toString());
-  localStorage.setItem('task_level_2_unlocked', 'true');
-  localStorage.setItem('task_selected_level_tab', '2');
-
-  try {
-    if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
-  } catch(e) {}
-
-  alert('🎉 CONGRATULATIONS!\n\nTask Level 2 has been unlocked with 20 Diamonds!\nYou can now complete high-reward Level 2 missions!');
 
   try {
     const bc = new BroadcastChannel('nova_task_sync');
@@ -3162,20 +3172,11 @@ window.openDiamondInfoModal = function() {
 
   let msg = `💎 DIAMOND VAULT\n\n` +
     `• Balance: ${diamonds} Diamonds 💎\n` +
-    `• Rule: 10 tasks completed = 1 Diamond win\n` +
+    `• Rule: 10 tasks completed = 1 Diamond auto added\n` +
     `• Next Diamond in: ${nextIn} tasks\n\n`;
 
   if (!lvl2Unlocked) {
-    msg += `🔓 Level 2 Status: LOCKED (Requires 20 Diamonds)\n` +
-      (diamonds >= 20 
-        ? `✨ You have ${diamonds} Diamonds! Would you like to unlock Level 2 now?` 
-        : `You need ${20 - diamonds} more diamonds to unlock Level 2.`);
-    if (diamonds >= 20) {
-      if (confirm(msg)) {
-        unlockLevel2WithDiamonds();
-      }
-      return;
-    }
+    msg += `🔓 Level 2 Status: ${diamonds}/20 Diamonds to auto-unlock Level 2 (or reach 200 tasks)`;
   } else {
     msg += `✓ Level 2 Status: UNLOCKED!`;
   }
@@ -3311,6 +3312,7 @@ function renderTasks() {
   if (rankDisplay) rankDisplay.textContent = `LVL ${playerInfo.level} • RANK #1`;
 
   // Update Level Tabs Buttons (1 to 6)
+  
   for (let i = 1; i <= 6; i++) {
     const tabBtn = document.getElementById(`levelTab${i}`);
     const lockIcon = document.getElementById(`lvlLock${i}`);

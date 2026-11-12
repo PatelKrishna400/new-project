@@ -372,69 +372,6 @@ body {
   color: #ffffff !important;
 }
 
-/* ==========================================================================
-   SHOP CATEGORY NAVIGATION TABS (ALL, TICKETS, COINS & STARS)
-   ========================================================================== */
-.shop-category-tabs {
-  display: flex;
-  gap: 0.45rem;
-  margin: 0.25rem 0 0.85rem 0;
-  width: 100%;
-}
-
-.shop-cat-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 0.55rem 0.5rem;
-  background: rgba(10, 23, 56, 0.85);
-  border: 1.5px solid rgba(56, 189, 248, 0.25);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.22s ease;
-  color: #94a3b8;
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 800;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
-}
-
-.shop-cat-tab:hover {
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.5);
-  background: rgba(14, 30, 71, 0.95);
-  transform: translateY(-1px);
-}
-
-.shop-cat-tab.active {
-  background: linear-gradient(145deg, #0284c7 0%, #1d4ed8 50%, #0c1a3d 100%);
-  color: #ffffff;
-  border-color: #38bdf8;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.5), inset 0 1.5px 1px rgba(147, 197, 253, 0.45);
-}
-
-.shop-cat-tab#shopTabTickets.active {
-  background: linear-gradient(145deg, #7c3aed 0%, #6d28d9 50%, #1e1035 100%);
-  border-color: #c084fc;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.5), inset 0 1.5px 1px rgba(233, 213, 255, 0.45);
-}
-
-.shop-cat-tab#shopTabCoins.active {
-  background: linear-gradient(145deg, #d97706 0%, #b45309 50%, #451a03 100%);
-  border-color: #fbbf24;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.5), inset 0 1.5px 1px rgba(254, 240, 138, 0.45);
-}
-
-.shop-tab-icon {
-  font-size: 0.95rem;
-}
-
-.shop-tab-title {
-  white-space: nowrap;
-}
-
 /* Ticket Ad Card Specific Variant */
 .shop-ad-card-ticket {
   background: linear-gradient(155deg, #1c0e2e 0%, #0a1532 100%) !important;
