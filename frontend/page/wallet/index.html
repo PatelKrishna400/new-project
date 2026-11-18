@@ -38,8 +38,8 @@
           <span class="star-value" id="walletStarsTop">0</span>
         </div>
         <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
-          <span>🔥</span>
-          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-logo">🔥</span>
+          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
           <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
         </div>
       </div>
@@ -61,11 +61,11 @@
       </div>
 
       <!-- Wallet Vouchers Mode Switcher Tabs (Standard Vouchers / One-Time Offer) -->
-      <div class="wallet-nav-switcher" style="display: flex; gap: 8px; margin-bottom: 1rem;">
-        <button type="button" class="wallet-switcher-tab active" id="tabWalletStandard" onclick="switchWalletTab('standard')" style="flex: 1; padding: 0.65rem 0.9rem; border-radius: 12px; font-size: 0.82rem; font-weight: 800; border: 1.5px solid rgba(56, 189, 248, 0.35); background: linear-gradient(135deg, #0b1536 0%, #060e24 100%); color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+      <div class="wallet-nav-switcher" style="display: flex; gap: 6px; margin-bottom: 0.45rem;">
+        <button type="button" class="wallet-switcher-tab active" id="tabWalletStandard" onclick="switchWalletTab('standard')" style="flex: 1; padding: 0.48rem 0.75rem; border-radius: 10px; font-size: 0.78rem; font-weight: 800; border: 1.5px solid rgba(56, 189, 248, 0.35); background: linear-gradient(135deg, #0b1536 0%, #060e24 100%); color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
           <span>🎁 Standard Vouchers</span>
         </button>
-        <button type="button" class="wallet-switcher-tab" id="tabWalletOneTime" onclick="switchWalletTab('onetime')" style="flex: 1; padding: 0.65rem 0.9rem; border-radius: 12px; font-size: 0.82rem; font-weight: 800; border: 1.5px solid rgba(244, 63, 94, 0.35); background: rgba(15, 23, 42, 0.7); color: #f43f5e; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+        <button type="button" class="wallet-switcher-tab" id="tabWalletOneTime" onclick="switchWalletTab('onetime')" style="flex: 1; padding: 0.48rem 0.75rem; border-radius: 10px; font-size: 0.78rem; font-weight: 800; border: 1.5px solid rgba(244, 63, 94, 0.35); background: rgba(15, 23, 42, 0.7); color: #f43f5e; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
           <span>🔥 One Time Offer</span>
           <span style="background: #f43f5e; color: #fff; font-size: 0.65rem; padding: 2px 6px; border-radius: 6px; font-weight: 900;">₹50</span>
         </button>
@@ -155,7 +155,6 @@
             <div class="giftcard-meta">
               <span class="giftcard-brand" style="color: #f43f5e;">EXCLUSIVE ONE-TIME OFFER</span>
               <h3 class="giftcard-name">₹50 Amazon Shopping Voucher</h3>
-              <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Special discounted introductory voucher. Claimable once per player account.</p>
             </div>
             <div class="giftcard-actions-bar">
               <div class="giftcard-price">
@@ -163,7 +162,7 @@
                 <span class="price-val" style="color: #f43f5e;">1,500</span>
                 <span class="price-unit">Stars</span>
               </div>
-              <button class="btn-buy-giftcard" id="btnBuyOneTimeOffer" onclick="buyGiftCard(50, 1500, '₹50 Amazon Shopping Voucher', 'assets/amazon_50.jpg', true)" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); border-color: #fb7185;">
+              <button class="btn-buy-giftcard" id="btnBuyOneTimeOffer" onclick="buyGiftCard(50, 1500, '₹50 Amazon Shopping Voucher', 'assets/amazon_50.jpg', true)">
                 <span>Claim Offer</span>
               </button>
             </div>

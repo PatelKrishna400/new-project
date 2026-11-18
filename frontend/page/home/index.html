@@ -34,6 +34,7 @@
   <!-- Firebase SDK & Analytics Connection -->
   <script type="module" src="../../firebase-config.js"></script>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -59,73 +60,15 @@
           <span class="star-value" id="userStarsDisplay">0</span>
         </div>
         <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
-          <span>🔥</span>
-          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-logo">🔥</span>
+          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
           <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
-        </div>
-        <div class="diamond-pill" id="diamondPill" title="Diamond Balance • 10 tasks = 1 Diamond (20 💎 unlocks Level 2)" onclick="openDiamondInfoModal()">
-          <span>💎</span>
-          <span class="diamond-value" id="userDiamondsDisplay">0</span>
         </div>
       </div>
     </header>
 
     <!-- Page Content (Tasks) -->
     <main class="page-content">
-
-      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
-      <div class="player-level-card" id="playerLevelCard">
-        <div class="level-card-header">
-          <div class="level-badge-wrap">
-            <span class="level-badge-icon" id="userLevelBadgeIcon">⭐</span>
-            <div class="level-badge-text-wrap">
-              <div class="level-title-row">
-                <span class="level-badge-num" id="userLevelNum">LEVEL 1</span>
-                <span class="level-badge-name" id="userLevelName">Novice</span>
-              </div>
-              <div class="level-subtitle" id="userLevelSub">💎 0/20 Diamonds to unlock Level 2 (10 tasks = 1 💎)</div>
-            </div>
-          </div>
-        </div>
-        <div class="level-progress-track">
-          <div class="level-progress-fill" id="userLevelProgressFill" style="width: 0%;"></div>
-        </div>
-
-        <!-- 6 Level Tabs Bar Inside Unified Card -->
-        <div class="level-tabs-container">
-          <div class="level-tabs-scroll" id="levelTabsBar" role="tablist">
-            <button type="button" class="level-tab-btn active lvl-tab-1" id="levelTab1" onclick="switchLevelTab(1)">
-              <span class="lvl-tab-badge">LVL 1</span>
-              <span class="lvl-tab-name">Level 1</span>
-            </button>
-            <button type="button" class="level-tab-btn lvl-tab-2" id="levelTab2" onclick="switchLevelTab(2)">
-              <span class="lvl-tab-badge">LVL 2</span>
-              <span class="lvl-tab-name">Level 2</span>
-              <span class="lvl-lock-icon" id="lvlLock2" style="display:none;">🔒</span>
-            </button>
-            <button type="button" class="level-tab-btn lvl-tab-3" id="levelTab3" onclick="switchLevelTab(3)">
-              <span class="lvl-tab-badge">LVL 3</span>
-              <span class="lvl-tab-name">Level 3</span>
-              <span class="lvl-lock-icon" id="lvlLock3" style="display:none;">🔒</span>
-            </button>
-            <button type="button" class="level-tab-btn lvl-tab-4" id="levelTab4" onclick="switchLevelTab(4)">
-              <span class="lvl-tab-badge">LVL 4</span>
-              <span class="lvl-tab-name">Level 4</span>
-              <span class="lvl-lock-icon" id="lvlLock4" style="display:none;">🔒</span>
-            </button>
-            <button type="button" class="level-tab-btn lvl-tab-5" id="levelTab5" onclick="switchLevelTab(5)">
-              <span class="lvl-tab-badge">LVL 5</span>
-              <span class="lvl-tab-name">Level 5</span>
-              <span class="lvl-lock-icon" id="lvlLock5" style="display:none;">🔒</span>
-            </button>
-            <button type="button" class="level-tab-btn lvl-tab-all lvl-tab-6" id="levelTab6" onclick="switchLevelTab(6)">
-              <span class="lvl-tab-badge">LVL 6</span>
-              <span class="lvl-tab-name">👑 All Tasks</span>
-              <span class="lvl-lock-icon" id="lvlLock6" style="display:none;">🔒</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
       <div class="task-category-tabs">
@@ -150,6 +93,48 @@
           </div>
           <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
         </button>
+      </div>
+
+      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
+      <!-- GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000) -->
+      <div class="task-pass-widget-wrap">
+        <div id="forgeCard" class="forge-card">
+
+          <!-- Top-Left Floating Yellow Pill (Tasks Completed in Current 10-Level Cycle) -->
+          <div class="top-pill">
+            <span id="cycleTaskTag" class="game-outline-sm">0/10</span>
+          </div>
+
+          <!-- Top Row: TASK PASS Title & Next Milestone Preview -->
+          <div class="task-pass-header-row">
+            <span class="task-pass-title game-outline">TASK PASS</span>
+            <span id="nextMilestoneLabel" class="task-pass-milestone game-outline-sm">Lvl. 10: 100 ⭐</span>
+          </div>
+
+          <!-- Level Row: Yellow Level Box + Blue 0/1 Bar + Prize Bag Icon -->
+          <div class="task-pass-track-row">
+
+            <!-- Left Yellow Level Square Badge -->
+            <div id="levelBadge" class="level-badge">
+              <span id="levelNumText" class="game-outline">1</span>
+            </div>
+
+            <!-- Center Blue Progress Bar (Dynamic Target Tasks) -->
+            <div class="game-progress-track">
+              <div id="taskProgressBar" class="game-progress-fill" style="width: 0%;"></div>
+              <span id="taskCountText" class="game-outline">0/1</span>
+            </div>
+
+            <!-- Right Reward Bag / Ticket / Star Icon + Amount -->
+            <div id="rewardPreviewBox" class="reward-preview-box">
+              <div id="rewardBagSvg" class="reward-bag-svg">
+                <!-- Dynamic SVG injected by JS (Coin Sack / Ticket Stack / Star) -->
+              </div>
+              <span id="rewardAmountText" class="game-outline">100</span>
+            </div>
+
+          </div>
+        </div>
       </div>
 
       <!-- Tasks List -->

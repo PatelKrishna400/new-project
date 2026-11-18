@@ -18,502 +18,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ========================================================================
-       1. ADMIN LOGIN VIEW (Shown when not authenticated)
-       ======================================================================== -->
-  <div class="login-screen-overlay" id="adminLoginScreen">
-    <div class="login-card">
-      <div class="login-brand-header">
-        <div class="login-brand-logo">
-          <div class="logo-spinner-ring"></div>
-          <span class="logo-core-icon">⚡</span>
-        </div>
-        <h1 class="login-title">NOVA MISSION CONTROL</h1>
-        <p class="login-subtitle">Restricted Administrator Console &amp; Real-Time Synchronizer</p>
-      </div>
-
-      <div class="login-alert-error" id="loginErrorMessage" style="display: none;">
-        <span>⚠️</span>
-        <span id="loginErrorText">Invalid administrator credentials. Access denied!</span>
-      </div>
-
-      <form class="login-form" id="adminLoginForm" onsubmit="handleAdminLogin(event)" autocomplete="off">
-        <div class="form-group">
-          <label class="form-label" for="adminUsernameInput">Administrator ID / Username</label>
-          <div class="input-icon-wrap">
-            <span class="input-icon">👤</span>
-            <input type="text" id="adminUsernameInput" class="form-input with-icon" placeholder="Enter Administrator ID" required autocomplete="off">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="adminPasswordInput">Security Key / Password</label>
-          <div class="input-icon-wrap">
-            <span class="input-icon">🔒</span>
-            <input type="password" id="adminPasswordInput" class="form-input with-icon" placeholder="Enter password" required autocomplete="new-password">
-          </div>
-        </div>
-
-        <button type="submit" class="btn-login-submit" id="btnLoginSubmit" style="margin-top: 1rem;">
-          <span>Authenticate &amp; Launch Console 🚀</span>
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ========================================================================
-       2. FULL ADMIN DASHBOARD VIEW (Shown when authenticated)
-       ======================================================================== -->
-  <div class="admin-app-layout" id="adminDashboardView" style="display: none;">
-    
-    <!-- Sidebar Navigation Menu -->
-    <aside class="admin-sidebar" id="adminSidebar">
-      <div class="sidebar-brand">
-        <div class="brand-logo-small">⚡</div>
-        <div class="brand-info">
-          <div class="brand-name">NOVA CONTROL</div>
-          <div class="brand-role">ROOT ADMIN</div>
-        </div>
-      </div>
-
-      <!-- Navigation Menu Items (3 Clean Tabs) -->
-      <nav class="sidebar-menu" aria-label="Admin Navigation">
-        <div class="menu-category-label">CORE MANAGEMENT</div>
-
-        <!-- 1. Tasks Tab (First & Default Active) -->
-        <button class="nav-item active" id="navItemTasks" onclick="switchAdminPage('tasks')">
-          <span class="nav-icon">📋</span>
-          <span class="nav-text">Tasks</span>
-          <span class="nav-counter" id="navTasksCounter">0</span>
-        </button>
-
-        <!-- 2. All Users Tab (Second) -->
-        <button class="nav-item" id="navItemUsers" onclick="switchAdminPage('users')">
-          <span class="nav-icon">👥</span>
-          <span class="nav-text">All Users</span>
-          <span class="nav-counter" id="navUsersCounter">0</span>
-        </button>
-
-        <!-- 3. Wallet Requests Tab (Third) -->
-        <button class="nav-item" id="navItemWithdraw" onclick="switchAdminPage('withdraw')">
-          <span class="nav-icon">💸</span>
-          <span class="nav-text">Wallet Requests</span>
-          <span class="nav-counter badge-amber" id="navPendingWithdrawCounter">0</span>
-        </button>
-
-        <!-- 4. Ads Configuration Tab (Fourth) -->
-        <button class="nav-item" id="navItemAds" onclick="switchAdminPage('ads')">
-          <span class="nav-icon">📢</span>
-          <span class="nav-text">Ads Manager</span>
-          <span class="nav-counter" id="navAdsCounter" style="background:#f59e0b; color:#000;">Active</span>
-        </button>
-
-        <!-- 5. Events & Leaderboard Sessions Tab (Fifth) -->
-        <button class="nav-item" id="navItemEvents" onclick="switchAdminPage('events')">
-          <span class="nav-icon">🏆</span>
-          <span class="nav-text">Events &amp; Sessions</span>
-          <span class="nav-counter" id="navEventsCounter" style="background:#0284c7; color:#fff;">Live</span>
-        </button>
-      </nav>
-
-      <!-- Sidebar Footer / Live Sync & Logout -->
-      <div class="sidebar-footer">
-        <div class="sync-indicator-box">
-          <span class="pulse-dot"></span>
-          <div class="sync-text-wrap">
-            <span class="sync-title">REAL-TIME SYNC</span>
-            <span class="sync-sub">Instant Player Push</span>
-          </div>
-        </div>
-
-        <a href="../../../frontend/index.html" target="_blank" class="sidebar-btn-link" title="Open player frontend in new tab">
-          <span>👁️ Open Player View ↗</span>
-        </a>
-
-        <a href="../../../frontend/page/profile/index.html" class="sidebar-btn-link" style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Exit to Player Profile">
-          <span>👤 Exit to Profile ➔</span>
-        </a>
-
-        <button class="sidebar-btn-logout" onclick="handleAdminLogout()">
-          <span>🔒 Logout</span>
-        </button>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
-    <div class="admin-main-viewport">
-      
-      <!-- Top Bar -->
-      <header class="admin-topbar">
-        <div class="topbar-left">
-          <button class="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Toggle Menu">☰</button>
-          <div class="current-page-breadcrumb">
-            <span class="crumb-root">Admin</span>
-            <span class="crumb-sep">/</span>
-            <span class="crumb-current" id="breadcrumbPageName">Tasks</span>
-          </div>
-        </div>
-
-        <div class="topbar-right">
-          <div class="live-pill-tag">
-            <span class="pulse-dot"></span>
-            <span>LIVE SYNC ACTIVE</span>
-          </div>
-          <div class="admin-user-pill">
-            <span class="admin-avatar">⚡</span>
-            <span class="admin-username" id="displayAdminName">Root Administrator</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- Page Content Views Container -->
-      <div class="admin-page-scroll">
-
-        <!-- ==================================================================
-             TAB 1: TASKS (Shown First / Active By Default)
-             ================================================================== -->
-        <section class="admin-page-section active" id="pageSectionTasks">
-          
-          <!-- Tasks Toolbar -->
-          <div class="section-toolbar">
-            <div class="toolbar-left">
-              <button class="btn-primary-action" onclick="openCreateModal()">
-                <span class="btn-icon">＋</span>
-                <span>Add New Mission / Task</span>
-              </button>
-              <button class="btn-secondary-action" onclick="resetUserClaims()" title="Clear all claim cooldown timers">
-                <span>🧪 Reset Player Cooldowns</span>
-              </button>
-              <button class="btn-secondary-action" onclick="clearAllTasks()" title="Clear all missions">
-                <span>🗑️ Clear All Missions</span>
-              </button>
-            </div>
-
-            <div class="toolbar-right">
-              <div class="search-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="taskSearchInput" placeholder="Filter tasks..." oninput="handleSearchFilter(this.value)">
-              </div>
-            </div>
-          </div>
-
-          <!-- Task Category Filter (All / Simple / Premium) -->
-          <div class="admin-mode-tabs" style="display: flex; gap: 6px; margin-bottom: 0.85rem;" id="adminHomeTaskFilterTabs">
-            <button type="button" class="admin-mode-tab-btn active" id="btnAdminHomeFilterAll" onclick="filterAdminHomeTasksCategory('all')">
-              <span>All Missions (<span id="countAdminHomeFilterAll">0</span>)</span>
-            </button>
-            <button type="button" class="admin-mode-tab-btn" id="btnAdminHomeFilterSimple" onclick="filterAdminHomeTasksCategory('simple')">
-              <span>📋 Simple (<span id="countAdminHomeFilterSimple">0</span>)</span>
-            </button>
-            <button type="button" class="admin-mode-tab-btn" id="btnAdminHomeFilterPremium" onclick="filterAdminHomeTasksCategory('premium')">
-              <span>💎 Premium (<span id="countAdminHomeFilterPremium">0</span>)</span>
-            </button>
-          </div>
-
-          <!-- Tasks Section Header -->
-          <div class="tasks-section-header">
-            <div class="section-title-wrap">
-              <h2 class="section-title">Tasks &amp; Missions Manager</h2>
-              <span class="tasks-counter-pill" id="tasksCounterPill">0 Missions</span>
-            </div>
-            <div class="realtime-status-pill">
-              <span class="dot-online"></span>
-              <span>Tasks &amp; Verification Codes Sync to Players in Real-Time</span>
-            </div>
-          </div>
-
-          <!-- Tasks List Container -->
-          <div class="admin-tasks-list" id="adminTasksList">
-            <!-- Dynamically populated -->
-          </div>
-
-        </section>
-
-        <!-- ==================================================================
-             TAB 2: ALL USERS (Player Manager)
-             ================================================================== -->
-        <section class="admin-page-section" id="pageSectionUsers">
-          
-          <!-- Users Toolbar -->
-          <div class="section-toolbar">
-            <div class="toolbar-left">
-              <button class="btn-primary-action" onclick="openCreateUserModal()">
-                <span class="btn-icon">＋</span>
-                <span>Add Player Profile</span>
-              </button>
-            </div>
-
-            <div class="toolbar-right">
-              <div class="search-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="userSearchInput" placeholder="Search player name..." oninput="handleUserSearch(this.value)">
-              </div>
-            </div>
-          </div>
-
-          <!-- Users Overview Stats -->
-          <div class="metrics-grid mb-4">
-            <div class="metric-card">
-              <div class="metric-icon">👥</div>
-              <div class="metric-content">
-                <div class="metric-label">TOTAL REGISTERED</div>
-                <div class="metric-value text-cyan" id="userStatTotal">0</div>
-                <div class="metric-subtext">Player Accounts</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">🟢</div>
-              <div class="metric-content">
-                <div class="metric-label">ACTIVE STATUS</div>
-                <div class="metric-value text-emerald" id="userStatActive">0</div>
-                <div class="metric-subtext">Ready to Play</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">🚫</div>
-              <div class="metric-content">
-                <div class="metric-label">SUSPENDED</div>
-                <div class="metric-value text-red" id="userStatSuspended">0</div>
-                <div class="metric-subtext">Restricted Access</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">🪙</div>
-              <div class="metric-content">
-                <div class="metric-label">TOTAL PLAYER COINS</div>
-                <div class="metric-value text-gold" id="userStatCoinsSum">0 🪙</div>
-                <div class="metric-subtext">All Users Combined</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Users Table -->
-          <div class="panel-box">
-            <div class="panel-header">
-              <h3 class="panel-title">Registered Players</h3>
-              <span class="badge-tag badge-active" id="usersTableCounter">0 Players</span>
-            </div>
-
-            <div class="table-responsive">
-              <table class="admin-data-table">
-                <thead>
-                  <tr>
-                    <th>USER</th>
-                    <th>LEVEL</th>
-                    <th>COINS</th>
-                    <th>STARS</th>
-                    <th>STATUS</th>
-                    <th>JOINED</th>
-                    <th>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                  <!-- Dynamically populated -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- ==================================================================
-             TAB 3: WALLET REQUESTS (Withdraw Requests)
-             ================================================================== -->
-        <section class="admin-page-section" id="pageSectionWithdraw">
-          
-          <!-- Withdrawals Toolbar -->
-          <div class="section-toolbar">
-            <div class="toolbar-left">
-              <div class="filter-pills-row">
-                <button class="filter-pill active" onclick="filterWithdrawals('all', this)">All (<span id="countWdAll">0</span>)</button>
-                <button class="filter-pill" onclick="filterWithdrawals('pending', this)">⏳ Pending (<span id="countWdPending">0</span>)</button>
-                <button class="filter-pill" onclick="filterWithdrawals('approved', this)">✅ Approved (<span id="countWdApproved">0</span>)</button>
-                <button class="filter-pill" onclick="filterWithdrawals('rejected', this)">❌ Rejected (<span id="countWdRejected">0</span>)</button>
-              </div>
-            </div>
-
-            <div class="toolbar-right">
-              <button class="btn-secondary-action" onclick="openCreateWithdrawModal()">
-                <span>＋ Create Test Request</span>
-              </button>
-              <div class="search-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="withdrawSearchInput" placeholder="Search user or UPI..." oninput="handleWithdrawSearch(this.value)">
-              </div>
-            </div>
-          </div>
-
-          <!-- Withdrawals Overview Stats Bar -->
-          <div class="metrics-grid mb-4">
-            <div class="metric-card">
-              <div class="metric-icon">⏳</div>
-              <div class="metric-content">
-                <div class="metric-label">PENDING APPROVAL</div>
-                <div class="metric-value text-amber" id="wdStatPending">0</div>
-                <div class="metric-subtext">Needs 1109 Code Review</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">✅</div>
-              <div class="metric-content">
-                <div class="metric-label">APPROVED PAYOUTS</div>
-                <div class="metric-value text-emerald" id="wdStatApproved">0</div>
-                <div class="metric-subtext">Successfully Settled</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">❌</div>
-              <div class="metric-content">
-                <div class="metric-label">REJECTED REQUESTS</div>
-                <div class="metric-value text-red" id="wdStatRejected">0</div>
-                <div class="metric-subtext">Refunded to User</div>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon">💰</div>
-              <div class="metric-content">
-                <div class="metric-label">TOTAL PAYOUT SUM</div>
-                <div class="metric-value text-gold" id="wdStatTotalSum">₹0</div>
-                <div class="metric-subtext">Cumulative Volume</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Withdraw Requests Table -->
-          <div class="panel-box">
-            <div class="panel-header">
-              <h3 class="panel-title">Cashout Requests List</h3>
-              <span class="badge-tag badge-active" id="wdTableCounter">0 Requests</span>
-            </div>
-
-            <div class="table-responsive">
-              <table class="admin-data-table">
-                <thead>
-                  <tr>
-                    <th>REQ ID</th>
-                    <th>PLAYER</th>
-                    <th>AMOUNT</th>
-                    <th>METHOD &amp; DETAILS</th>
-                    <th>DATE &amp; TIME</th>
-                    <th>STATUS</th>
-                    <th>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody id="withdrawalsTableBody">
-                  <!-- Dynamically populated -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- ====================================================================
-             PAGE SECTION 4: ADS CONFIGURATION & METRICS
-             ==================================================================== -->
-        <section class="admin-page-section" id="pageSectionAds">
-          
-          <div class="content-header-row">
-            <div>
-              <h2 class="section-title">📢 Ads Configuration &amp; Metrics</h2>
-              <p class="section-subtitle">Configure ad smartlinks, monetization scripts, view click metrics, and test live ad clicks.</p>
-            </div>
-            <div class="header-actions">
-              <button class="btn-primary" onclick="testAdLink()">
-                <span>🚀 Test Open Ad</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Ad Metrics Stat Cards -->
-          <div class="stats-overview-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 1.5rem;">
-            <div class="stat-card">
-              <div class="stat-head">
-                <span class="stat-label">TOTAL AD CLICKS</span>
-                <span class="stat-icon-wrap" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">👆</span>
-              </div>
-              <div class="stat-value" id="adminTotalAdClicks">0</div>
-              <div class="stat-sub">Real-time tracked player clicks</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-head">
-                <span class="stat-label">PLAYER AD REWARDS</span>
-                <span class="stat-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🎁</span>
-              </div>
-              <div class="stat-value" id="adminTotalAdRewards">0</div>
-              <div class="stat-sub">+5 game plays &amp; coins granted</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-head">
-                <span class="stat-label">AD ENGINE STATUS</span>
-                <span class="stat-icon-wrap" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">⚡</span>
-              </div>
-              <div class="stat-value" id="adminAdStatusDisplay" style="color: #34d399; font-size: 1.25rem;">ONLINE</div>
-              <div class="stat-sub">Direct link / Interstitial ready</div>
-            </div>
-          </div>
-
-          <!-- Ad Settings Form Card -->
-          <div class="data-table-card" style="padding: 1.5rem;">
-            <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff; margin-bottom: 0.4rem;">Backend Ad Provider &amp; URL Settings</h3>
-            <p style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 1.2rem;">All "Watch Ad" buttons across games (Lucky Dice, Scratch, Spin, Plinko, Coin, Mines, Under Over) and Shop will automatically use these settings.</p>
-
-            <form id="adminAdConfigForm" onsubmit="handleSaveAdConfig(event)">
-              <div class="form-row">
-                <div class="form-group flex-2">
-                  <label class="form-label" for="adminAdUrlInput" style="color: #f59e0b;">Ad Smartlink / Target URL *</label>
-                  <input type="url" id="adminAdUrlInput" class="form-input font-mono" placeholder="https://monetag.com or direct smartlink URL" required style="font-size: 0.9rem;">
-                </div>
-
-                <div class="form-group flex-1">
-                  <label class="form-label" for="adminAdProviderSelect">Ad Network / Engine</label>
-                  <select id="adminAdProviderSelect" class="form-input">
-                    <option value="direct_link">Direct Smartlink (Monetag / Propeller)</option>
-                    <option value="interstitial">Rewarded Interstitial</option>
-                    <option value="custom">Custom Ad Network</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-group flex-1">
-                  <label class="form-label" for="adminAdOpenMethodSelect">Open Method</label>
-                  <select id="adminAdOpenMethodSelect" class="form-input">
-                    <option value="new_tab">Open in New Tab / Window</option>
-                    <option value="same_window">Open in Current Window</option>
-                  </select>
-                </div>
-
-                <div class="form-group flex-1">
-                  <label class="form-label" for="adminAdCountdownInput">Watch Time Required (Seconds)</label>
-                  <input type="number" id="adminAdCountdownInput" class="form-input font-mono" min="0" max="60" value="5">
-                </div>
-
-                <div class="form-group flex-1" style="display: flex; align-items: flex-end; padding-bottom: 5px;">
-                  <label class="switch-wrap" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <input type="checkbox" id="adminAdEnabledToggle" checked>
-                    <span class="switch-slider"></span>
-                    <span style="font-size: 0.82rem; font-weight: 700; color: #e2e8f0;">Ads Enabled</span>
-                  </label>
-                </div>
-              </div>
-
-              <div style="margin-top: 1rem; display: flex; justify-content: flex-end;">
-                <button type="submit" class="btn-primary">
-                  <span>💾 Save Ad Settings</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </section>
+  
 
       </div>
     </div>
@@ -550,24 +55,23 @@
         <input type="hidden" id="adminTaskCreationMode" value="single">
 
         <div class="form-group">
-          <label class="form-label" for="taskCategorySelect">Task Category / Type *</label>
+          <label class="form-label" for="taskCategorySelect">Task Category *</label>
           <select id="taskCategorySelect" class="form-input" onchange="handleAdminHomeCategoryChange(this.value)" style="font-weight: 800;">
-            <option value="simple">📋 Simple Task (Standard Coin Bounty)</option>
-            <option value="article">📰 Article / Paragraph Reading Task (Read short paragraphs to find 6-digit code)</option>
-            <option value="premium">💎 Premium Task (VIP High Coin Bounty)</option>
-            <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
+            <option value="simple">📋 Simple Task</option>
+            <option value="premium">💎 Premium Task</option>
           </select>
         </div>
 
-        <!-- Task Level Selector (Levels 1 - 5) -->
+        <!-- Task Level Selector (Levels 1 - 6) -->
         <div class="form-group" id="taskLevelGroup">
-          <label class="form-label" for="taskLevelSelect">Task Level (VIP Plan Access Gating) *</label>
+          <label class="form-label" for="taskLevelSelect">Task Level (Level 1 - 6) *</label>
           <select id="taskLevelSelect" class="form-input" style="font-weight: 800;" onchange="updateModalPreview()">
-            <option value="1">⭐ Level 1 (Starter Pass - 15 Days)</option>
-            <option value="2">⭐ Level 2 (Starter Pass - 15 Days)</option>
-            <option value="3">⭐ Level 3 (Popular Pass - 30 Days)</option>
-            <option value="4">⭐ Level 4 (Popular Pass - 30 Days)</option>
-            <option value="5">👑 Level 5 (Best Value Pass - 3 Months / 90 Days)</option>
+            <option value="1">⭐ Level 1 (Novice)</option>
+            <option value="2">⭐ Level 2 (Hunter - 20 💎 Unlock)</option>
+            <option value="3">🔥 Level 3 (Specialist)</option>
+            <option value="4">💎 Level 4 (Pro)</option>
+            <option value="5">🏆 Level 5 (Elite)</option>
+            <option value="6">👑 Level 6 (Crown Legend / All Tasks)</option>
           </select>
         </div>
 
@@ -584,7 +88,7 @@
 
         <div class="form-group">
           <label class="form-label" for="taskTitleInput">Task Title *</label>
-          <input type="text" id="taskTitleInput" class="form-input" placeholder="e.g. Subscribe to Official Channel" required oninput="updateModalPreview()">
+          <input type="text" id="taskTitleInput" class="form-input" placeholder="e.g. Subscribe to Official Channel" required oninput="updateModalPreview(); updateAdminModalBulkCounter();">
         </div>
 
         <!-- Single Target URL -->
@@ -595,8 +99,11 @@
 
         <!-- Bulk Target URLs -->
         <div class="form-group" id="adminBulkUrlsGroup" style="display: none;">
-          <label class="form-label" for="adminBulkUrlsInput">Multiple Target URLs (1 per line) *</label>
-          <textarea id="adminBulkUrlsInput" class="form-input font-mono" rows="4" placeholder="https://youtube.com/1&#10;https://youtube.com/2" style="font-size: 0.8rem;"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="adminBulkUrlsInput" style="margin-bottom: 0;">Multiple Target URLs (1 per line) *</label>
+            <span id="adminBulkLinksCountBadge" style="font-size: 0.72rem; color: #38bdf8; font-weight: 800;">0 URLs</span>
+          </div>
+          <textarea id="adminBulkUrlsInput" class="form-input font-mono" rows="4" placeholder="https://youtube.com/1&#10;https://youtube.com/2" style="font-size: 0.8rem;" oninput="updateAdminModalBulkCounter()"></textarea>
         </div>
 
         <!-- Single 6-digit Code -->
@@ -607,8 +114,24 @@
 
         <!-- Bulk 6-digit Codes -->
         <div class="form-group" id="adminBulkCodesGroup" style="display: none;">
-          <label class="form-label" for="adminBulkCodesInput">6-Digit Verification Codes (1 per line) *</label>
-          <textarea id="adminBulkCodesInput" class="form-input font-mono font-bold" rows="4" placeholder="583921&#10;492015" style="font-size: 0.8rem; color: #facc15;"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label class="form-label" for="adminBulkCodesInput" style="margin-bottom: 0;">6-Digit Verification Codes (1 per line)</label>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span id="adminBulkCodesCountBadge" style="font-size: 0.72rem; color: #facc15; font-weight: 800;">0 Codes</span>
+              <button type="button" class="btn-ctrl" onclick="autoGenerateAdminBulkCodes()" style="padding: 2px 8px; font-size: 0.7rem; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 4px; cursor: pointer; font-weight: 800;">🎲 Auto-Generate</button>
+            </div>
+          </div>
+          <textarea id="adminBulkCodesInput" class="form-input font-mono font-bold" rows="4" placeholder="583921&#10;492015" style="font-size: 0.8rem; color: #facc15;" oninput="updateAdminModalBulkCounter()"></textarea>
+        </div>
+
+        <!-- Bulk Creation Info Card (Identical Titles Note) -->
+        <div id="adminBulkSummaryBox" style="display: none; background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 10px; padding: 0.65rem 0.85rem; margin-bottom: 0.75rem;">
+          <div style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px;" id="adminBulkSummaryTitle">
+            ⚡ Bulk Multiple Missions Mode
+          </div>
+          <div style="font-size: 0.74rem; color: #cbd5e1; margin-top: 4px; line-height: 1.4;" id="adminBulkSummaryDetails">
+            ✓ <b>Identical Titles:</b> All created missions will share the exact same title without any numbering (#1, #2, etc.).
+          </div>
         </div>
 
         <div class="form-row">

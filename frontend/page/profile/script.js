@@ -1535,29 +1535,21 @@ function adminResetLeaderboardSeason() {
 
 
 // ============================================================================
-// HELP & SUPPORT MODAL CONTROLLER
+// HELP & SUPPORT PAGE NAVIGATION
 // ============================================================================
 function openHelpModal() {
-  const modal = document.getElementById('helpModalOverlay');
-  if (!modal) return;
-  modal.classList.add('active');
-  modal.style.display = 'flex';
   if (typeof ProfileAudio !== 'undefined' && ProfileAudio && typeof ProfileAudio.playTabSwitch === 'function') {
-    ProfileAudio.playTabSwitch();
+    try { ProfileAudio.playTabSwitch(); } catch (e) {}
   }
+  window.location.href = '../help/index.html';
 }
 
 function closeHelpModal() {
-  const modal = document.getElementById('helpModalOverlay');
-  if (!modal) return;
-  modal.classList.remove('active');
-  modal.style.display = 'none';
+  // Maintained for backward compatibility
 }
 
 function handleHelpModalBackdropClick(event) {
-  if (event && (event.target.id === 'helpModalOverlay' || event.target.classList.contains('profile-modal-overlay'))) {
-    closeHelpModal();
-  }
+  // Maintained for backward compatibility
 }
 
 function submitHelpSupportTicket() {

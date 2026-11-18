@@ -37,8 +37,8 @@
           <span class="star-value" id="shopStarsDisplayTop">0</span>
         </div>
         <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
-          <span>🔥</span>
-          <span class="streak-value" id="userStreakDisplay">Day 1</span>
+          <span class="streak-logo">🔥</span>
+          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
           <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
         </div>
       </div>
@@ -78,33 +78,7 @@
 
       <div class="shop-list">
 
-        <!-- 1. Free Tickets / Watch Ad for +5 Tickets -->
-        <div class="star-shop-card shop-ad-card shop-ad-card-ticket shop-item-ticket">
-          <div class="shop-icon-wrap">🎟️</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>Free Tickets</span>
-              <span class="star-pack-badge ticket-badge">+5 🎟️</span>
-            </div>
-          </div>
-          <button class="btn-buy" id="btnWatchAdTickets" onclick="watchAdForTickets(this)">
-            Watch Ad 📺
-          </button>
-        </div>
-
-        <!-- 2. Free Coins / Watch Ad for +100 Coins -->
-        <div class="star-shop-card shop-ad-card shop-ad-card-coin shop-item-coin">
-          <div class="shop-icon-wrap">🎁</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>Free Coins</span>
-              <span class="star-pack-badge ad-badge">+100 🪙</span>
-            </div>
-          </div>
-          <button class="btn-buy" id="btnWatchAdCoins" onclick="watchAdForCoins(this)">
-            Watch Ad 📺
-          </button>
-        </div>
+        
 
         <!-- 2. Buy 10 Stars for 480 Coins (4% OFF) -->
         <div class="star-shop-card shop-item-coin">
@@ -178,6 +152,9 @@
       </div>
 
       <div class="shop-grid shop-item-ticket">
+
+        
+
         <!-- 1. 100 Tickets for 10 Stars -->
         <div class="star-shop-card ticket-shop-card shop-item-ticket">
           <div class="shop-icon-wrap">🎟️</div>
@@ -286,7 +263,6 @@
 
   </div>
 
-  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
   <script src="../../daily-streak.js"></script>
 </body>

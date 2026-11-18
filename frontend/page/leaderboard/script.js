@@ -1177,62 +1177,7 @@ function updateSeasonModalData() {
       btnClaim.className = 'btn-claim-season-reward locked';
       if (btnClaimText) btnClaimText.textContent = '🔒 Complete 100 Tasks to Qualify';
     }
-  } else if (adsWatched < 30) {
-    if (claimWarning) {
-      claimWarning.className = 'claim-req-warning';
-      claimWarning.innerHTML = `<span>🔒</span><span>Watch 30 Ads to qualify for Season Rank Rewards (${adsWatched} / 30 Ads watched).</span>`;
-    }
-    if (btnClaim) {
-      btnClaim.disabled = true;
-      btnClaim.className = 'btn-claim-season-reward locked';
-      if (btnClaimText) btnClaimText.textContent = `🔒 Complete 30 Ads to Qualify (${adsWatched}/30)`;
-    }
-  } else if (isFinished) {
-    if (claimWarning) {
-      claimWarning.className = 'claim-req-warning satisfied';
-      claimWarning.innerHTML = `<span>✅</span><span>Eligible to claim rank reward upon season finish.</span>`;
-    }
-    if (btnClaim) {
-      btnClaim.disabled = false;
-      btnClaim.className = 'btn-claim-season-reward active';
-      if (btnClaimText) btnClaimText.textContent = '🏆 Claim Season Reward';
-    }
-  } else {
-    // Still in active season
-    if (claimWarning) {
-      claimWarning.className = 'claim-req-warning satisfied';
-      claimWarning.innerHTML = `<span>⏳</span><span>Season 1 is currently active. Claim unlocks upon season end.</span>`;
-    }
-    if (btnClaim) {
-      btnClaim.disabled = true;
-      btnClaim.className = 'btn-claim-season-reward locked';
-      if (btnClaimText) btnClaimText.textContent = `⏳ Claim Unlocks When Season Finishes (${rankPrize.toLocaleString()} 🪙)`;
-    }
-  }
-}
-
-/**
- * Handle 6-Hour Cooldown Timer Tick (Live Renewal) - Deprecated / Optional helper
- */
-function updateSeasonAdCooldownClock() {
-  const cooldownClock = document.getElementById('seasonAdCooldownClock');
-  if (cooldownClock) cooldownClock.textContent = 'Ready to Watch ✓';
-}
-
-/**
- * Watch Ad button clicked inside Season popup:
- * 1. Opens ad immediately
- * 2. Increments 30-ads quota
- * 3. Awards +50 coins
- */
-window.handleSeasonWatchAd = function () {
-  LeaderboardAudio.init();
-
-  let adsWatched = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10);
-  if (adsWatched >= 30) {
-    showToastNotification('✅ Maximum 30 Ads Quota already completed for Season Rewards!');
-    return;
-  }
+  } else 
 
   const onAdReward = () => {
     // Increment ads watched count (up to 30)
@@ -1325,19 +1270,7 @@ window.simulateSeasonTasks = function (count = 100) {
   showToastNotification(`🧪 Simulated: Added +${count} tasks! Total tasks: ${tasks}`);
 };
 
-window.simulateSeasonAds = function (count = 5) {
-  let ads = parseInt(localStorage.getItem(SEASON_ADS_KEY) || '0', 10) + count;
-  ads = Math.min(30, ads);
-  localStorage.setItem(SEASON_ADS_KEY, ads.toString());
-  updateSeasonModalData();
-  showToastNotification(`🧪 Simulated: Added +${count} ads! Season Ads: ${ads}/30`);
-};
 
-window.simulateResetAdCooldown = function () {
-  localStorage.removeItem(SEASON_COOLDOWN_KEY);
-  updateSeasonModalData();
-  showToastNotification(`🧪 Simulated: 6-Hour ad cooldown reset! Ready to watch.`);
-};
 
 window.simulateConcludeSeason = function () {
   const evt = getOrCreateLeaderboardEvent();

@@ -93,19 +93,23 @@
       .streak-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
+        justify-content: center;
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(249, 115, 22, 0.18) 100%);
         border: 1px solid rgba(249, 115, 22, 0.45);
-        padding: 0.32rem 0.65rem;
+        padding: 0.28rem 0.55rem;
         border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 800;
-        color: #fdba74;
+        font-size: 0.95rem;
         cursor: pointer;
         transition: all 0.2s ease;
         position: relative;
         user-select: none;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        line-height: 1;
+      }
+      .streak-pill .streak-value,
+      .streak-pill #userStreakDisplay,
+      .streak-pill .user-streak-display {
+        display: none !important;
       }
       .streak-pill:hover {
         border-color: #f97316;
@@ -495,19 +499,16 @@
     if (brokenWrap) {
       if (state.isStreakBroken && !state.hasClaimedToday) {
         brokenWrap.innerHTML = `
-          <div class="streak-broken-banner" style="background: rgba(239, 68, 68, 0.14); border: 1.5px solid rgba(239, 68, 68, 0.45); border-radius: 14px; padding: 0.75rem 0.9rem; margin-bottom: 0.85rem; text-align: center;">
-            <div style="font-weight: 800; color: #f87171; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+          <div class="streak-broken-banner" style="background: rgba(239, 68, 68, 0.14); border: 1.5px solid rgba(239, 68, 68, 0.45); border-radius: 14px; padding: 0.6rem 0.85rem; margin-bottom: 0.75rem; text-align: center;">
+            <div style="font-weight: 800; color: #f87171; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; margin-bottom: 0.45rem;">
               <span>⚠️</span> Missed Yesterday's Streak (Was Day ${state.brokenStreakCount})!
             </div>
-            <div style="font-size: 0.73rem; color: #cbd5e1; margin: 0.3rem auto 0.65rem; max-width: 330px; line-height: 1.35;">
-              Streak break resets to Day 1 and penalizes <b>-10 Tasks</b> from your level progress. Save your streak using tickets!
-            </div>
             <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-              <button type="button" onclick="restoreStreakWithTickets()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; font-weight: 800; padding: 0.45rem 0.9rem; border-radius: 10px; border: none; cursor: pointer; font-size: 0.78rem; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);">
-                🛡️ Save Streak (🎟️ 200 Tickets)
+              <button type="button" onclick="restoreStreakWithTickets()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; font-weight: 800; padding: 0.45rem 0.85rem; border-radius: 10px; border: none; cursor: pointer; font-size: 0.78rem; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);">
+                🛡️ Save Streak (200 🎟️)
               </button>
               <button type="button" onclick="acceptStreakResetWithPenalty()" style="background: rgba(255, 255, 255, 0.08); color: #94a3b8; font-weight: 700; padding: 0.45rem 0.75rem; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); cursor: pointer; font-size: 0.75rem;">
-                Reset (-10 Tasks Penalty)
+                Reset (-10 🎯)
               </button>
             </div>
           </div>
@@ -521,14 +522,9 @@
       if (state.canClaimToday) {
         const activeReward = STREAK_REWARDS.find(r => r.day === state.activeDay) || STREAK_REWARDS[0];
         actionWrap.innerHTML = `
-          <div style="display: flex; gap: 8px; width: 100%;">
-            <button type="button" class="btn-claim-streak" style="flex: 1; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);" onclick="claimDailyStreakReward(false)">
-              🎁 Collect (🎟️ ${activeReward.tickets})
-            </button>
-            <button type="button" class="btn-claim-streak" style="flex: 1.25; background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);" onclick="claimDailyStreakReward(true)">
-              📺 2X Double (🎟️ ${activeReward.tickets * 2})
-            </button>
-          </div>
+          <button type="button" class="btn-claim-streak" style="width: 100%; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);" onclick="claimDailyStreakReward(false)">
+            🎁 Claim Day ${state.activeDay} Reward (${activeReward.label})
+          </button>
         `;
         if (countdownNote) countdownNote.style.display = 'none';
       } else {
@@ -557,40 +553,6 @@
         }
       }
     }
-  }
-
-  function showQuickAdSimulation(onComplete) {
-    if (typeof document === 'undefined') {
-      if (typeof onComplete === 'function') onComplete();
-      return;
-    }
-    const adBox = document.createElement('div');
-    adBox.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; text-align:center; padding:1.5rem;';
-    adBox.innerHTML = `
-      <div style="font-size:3rem; margin-bottom:1rem; animation: pulse 1s infinite;">📺</div>
-      <div style="font-size:1.2rem; font-weight:900; color:#38bdf8;">Watching Sponsored Ad for 2X Rewards</div>
-      <div style="font-size:0.85rem; color:#94a3b8; margin:0.5rem 0 1.25rem;">Ad will complete in <span id="adCountdownVal" style="color:#facc15; font-weight:800; font-size:1.1rem;">2</span> seconds...</div>
-      <div style="width:200px; height:6px; background:#1e293b; border-radius:999px; overflow:hidden;">
-        <div id="adProgressBar" style="width:0%; height:100%; background:linear-gradient(90deg, #38bdf8, #ec4899); transition:width 2s linear;"></div>
-      </div>
-    `;
-    document.body.appendChild(adBox);
-    setTimeout(() => {
-      const bar = document.getElementById('adProgressBar');
-      if (bar) bar.style.width = '100%';
-    }, 50);
-
-    let sec = 2;
-    const interval = setInterval(() => {
-      sec--;
-      const el = document.getElementById('adCountdownVal');
-      if (el) el.textContent = sec.toString();
-      if (sec <= 0) {
-        clearInterval(interval);
-        if (adBox && adBox.parentNode) adBox.parentNode.removeChild(adBox);
-        if (typeof onComplete === 'function') onComplete();
-      }
-    }, 1000);
   }
 
   function restoreStreakWithTickets() {
@@ -623,6 +585,7 @@
     updateDailyStreakHeaderDisplays();
     renderDailyStreakModalContent();
     if (typeof updateDisplays === 'function') updateDisplays();
+    if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
 
     try {
       const bc = new BroadcastChannel('nova_task_sync');
@@ -641,6 +604,9 @@
       totalComp = Math.max(0, totalComp - 10);
       localStorage.setItem('task_game_total_tasks_completed', totalComp.toString());
       localStorage.setItem('completed_tasks_count', totalComp.toString());
+      let curPassTasks = parseInt(localStorage.getItem('task_pass_current_tasks') || '0', 10);
+      curPassTasks = Math.max(0, curPassTasks - 10);
+      localStorage.setItem('task_pass_current_tasks', curPassTasks.toString());
       localStorage.setItem(penaltyDateKey, today);
     }
 
@@ -657,6 +623,7 @@
     renderDailyStreakModalContent();
     if (typeof renderTasks === 'function') renderTasks();
     if (typeof updateDisplays === 'function') updateDisplays();
+    if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
 
     try {
       const bc = new BroadcastChannel('nova_task_sync');
@@ -743,6 +710,7 @@
       renderDailyStreakModalContent();
       if (typeof renderTasks === 'function') renderTasks();
       if (typeof updateDisplays === 'function') updateDisplays();
+    if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
 
       // 7. Toast / Celebration
       let msg = isDouble 
@@ -762,11 +730,7 @@
       }
     };
 
-    if (isDouble) {
-      showQuickAdSimulation(executeClaim);
-    } else {
-      executeClaim();
-    }
+    executeClaim();
   }
 
   function openDailyStreakModal() {
@@ -801,6 +765,7 @@
         updateDailyStreakHeaderDisplays();
         renderDailyStreakModalContent();
         if (typeof updateDisplays === 'function') updateDisplays();
+    if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
       }
     };
   } catch(e) {}

@@ -586,6 +586,42 @@ body {
   text-shadow: none !important;
 }
 
+/* Match-Value / Affordable State: Vibrant 3D Glossy Green Button */
+.btn-buy.btn-affordable,
+.btn-buy-gift.btn-affordable,
+#btnWatchAd.btn-affordable,
+#btnWatchAdCoins.btn-affordable,
+#btnWatchAdTickets.btn-affordable,
+.shop-ad-card .btn-buy.btn-affordable {
+  background: linear-gradient(155deg, #22c55e 0%, #16a34a 45%, #15803d 100%) !important;
+  color: #ffffff !important;
+  border-color: #86efac #22c55e #14532d #166534 !important;
+  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.45), inset 0 1.2px 1px rgba(255, 255, 255, 0.55), inset 0 -1.5px 2px rgba(0, 0, 0, 0.35) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+}
+
+.btn-buy.btn-affordable:hover,
+.btn-buy-gift.btn-affordable:hover,
+#btnWatchAd.btn-affordable:hover,
+#btnWatchAdCoins.btn-affordable:hover,
+#btnWatchAdTickets.btn-affordable:hover,
+.shop-ad-card .btn-buy.btn-affordable:hover {
+  background: linear-gradient(155deg, #4ade80 0%, #22c55e 45%, #16a34a 100%) !important;
+  border-color: #bbf7d0 #4ade80 #166534 #15803d !important;
+  box-shadow: 0 5px 12px rgba(34, 197, 94, 0.6), inset 0 1.5px 1px rgba(255, 255, 255, 0.65), inset 0 -1.5px 2px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-buy.btn-affordable:active,
+.btn-buy-gift.btn-affordable:active,
+#btnWatchAd.btn-affordable:active,
+#btnWatchAdCoins.btn-affordable:active,
+#btnWatchAdTickets.btn-affordable:active,
+.shop-ad-card .btn-buy.btn-affordable:active {
+  transform: translateY(1px) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), inset 0 -1px 1px rgba(255, 255, 255, 0.2) !important;
+}
+
 /* ==========================================================================
    PROPER ANIMATED 3D BLUE MENU BAR (DYNAMIC MULTI-COLOR & LIGHT ANIMATIONS)
    ========================================================================== */

@@ -22,7 +22,6 @@ try {
     localStorage.setItem('task_game_claims', '{}');
     localStorage.removeItem('task_game_stars_rating');
     localStorage.removeItem('task_game_cloud_referral_codes');
-    localStorage.removeItem('task_game_ad_timer_end');
     localStorage.removeItem('task_game_tg_profile');
     localStorage.removeItem('player_email');
     localStorage.removeItem('player_whatsapp');
@@ -39,11 +38,7 @@ let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 
 // Remove any active 7-hour ad cooldown timer
-localStorage.removeItem('task_game_ad_timer_end');
-
 const REQUIRED_TASKS = 100;
-const REQUIRED_ADS = 0;
-
 function getWalletStats() {
   const tasksCount = Math.max(
     parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10),
@@ -85,11 +80,8 @@ function updateWalletDisplays() {
 }
 
 // Watch Ad Handler (Instant / No Cooldown - Increment ad count towards 30)
-function handleWalletWatchAd() { /* Ad removed */ }
-
 window.getWalletStats = getWalletStats;
 window.updateWalletDisplays = updateWalletDisplays;
-window.handleWalletWatchAd = handleWalletWatchAd;
 window.openEligibilityModal = openEligibilityModal;
 window.closeEligibilityModal = closeEligibilityModal;
 window.buyGiftCard = buyGiftCard;
