@@ -24,38 +24,91 @@ function getTargetForLevel(level) {
 
 // Custom Game SVG Icons matching the reference Coin Sack / Ticket / Star style
 const TASK_PASS_SVGS = {
-  coinBag: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Gold Coin Sack -->
-      <path d="M22 14 C20 8, 44 8, 42 14 L38 20 L26 20 Z" fill="#d9822b" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
-      <path d="M18 22 C10 30, 8 48, 18 54 C26 58, 38 58, 46 54 C56 48, 54 30, 46 22 Z" fill="#e59435" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
-      <rect x="23" y="18" width="18" height="5" rx="2.5" fill="#9c4a1a" stroke="#111318" stroke-width="3"/>
-      <!-- Gold Coins peeking & in front -->
-      <circle cx="32" cy="12" r="6" fill="#ffd93b" stroke="#111318" stroke-width="3"/>
-      <circle cx="28" cy="39" r="9.5" fill="#ffd93b" stroke="#111318" stroke-width="3.2"/>
-      <circle cx="28" cy="39" r="5.5" fill="#f2a900"/>
-      <circle cx="42" cy="45" r="8" fill="#ffd93b" stroke="#111318" stroke-width="3.2"/>
-    </svg>
-  `,
-  ticket: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Chunky Red/Gold Game Ticket -->
-      <g transform="rotate(-10 32 32)">
-        <path d="M10 20 H54 V28 A5 5 0 0 0 54 38 V46 H10 V38 A5 5 0 0 0 10 28 Z" fill="#ff2a37" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
-        <rect x="17" y="25" width="30" height="16" rx="3" fill="#ffe14d" stroke="#111318" stroke-width="2.8"/>
-        <polygon points="32,27 34,31 38,31 35,34 36,38 32,35.5 28,38 29,34 26,31 30,31" fill="#ff2a37"/>
-      </g>
-    </svg>
-  `,
-  star: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Chunky Golden Game Star -->
-      <polygon points="32,6 40,21 57,23.5 44.5,35.5 47.5,52.5 32,44.5 16.5,52.5 19.5,35.5 7,23.5 24,21"
-        fill="#ffe033" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
-      <polygon points="32,12 37.5,23 49,24.5 40.5,33 42.5,44.5 32,39 21.5,44.5 23.5,33 15,24.5 26.5,23"
-        fill="#fff380"/>
-    </svg>
-  `
+  coin: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>`,
+  coinBag: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>`,
+  ticket: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <linearGradient id="ticketGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff4d4d"/>
+      <stop offset="45%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="ticketInnerGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-8 32 32)">
+    <path d="M10 18 H54 V27 A5 5 0 0 0 54 37 V46 H10 V37 A5 5 0 0 0 10 27 Z" fill="url(#ticketGrad)" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
+    <rect x="18" y="24" width="28" height="16" rx="4" fill="url(#ticketInnerGrad)" stroke="#111318" stroke-width="2.5"/>
+    <polygon points="32,26 34,30.5 38.5,31 35,34 36,38.5 32,36 28,38.5 29,34 25.5,31 30,30.5" fill="#dc2626"/>
+    <path d="M14 21 H50" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
+  </g>
+</svg>`,
+  star: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="starGlow" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+    <linearGradient id="starShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <polygon points="32,6 40,22 57,24 44.5,36 47.5,53 32,44.5 16.5,53 19.5,36 7,24 24,22"
+    fill="url(#starGlow)" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="32,13 37.5,23.5 48.5,25 40,33 42,44.5 32,39 22,44.5 24,33 15.5,25 26.5,23.5"
+    fill="#fef08a" stroke="#ca8a04" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="32,18 35,25 42,26 36.5,31 38,38 32,34.5 26,38 27.5,31 22,26 29,25"
+    fill="#ffffff" opacity="0.9"/>
+</svg>`
 };
 
 // Determine exact reward for a given level:
@@ -90,7 +143,7 @@ function getLevelReward(level) {
     return {
       type: 'coins',
       amount: 100,
-      iconSvg: TASK_PASS_SVGS.coinBag,
+      iconSvg: TASK_PASS_SVGS.coin,
       tag: `Level ${level} (Odd) • Target: ${target} ${taskWord}`,
       title: `Complete ${target} ${taskWord} to Win 100 Coins 🪙`,
       popText: '+100 COINS 🪙'
@@ -143,10 +196,22 @@ function updateTaskPassUI() {
   if (taskCountText) taskCountText.textContent = `${currentLevelTasks}/${targetTasks}`;
 
   // Right Reward Bag Icon & Number
+  // Right Reward Bag Icon & Number
   if (rewardBagSvg) rewardBagSvg.innerHTML = reward.iconSvg;
   if (rewardAmountText) rewardAmountText.textContent = reward.amount;
+
+
 }
 window.updateTaskPassUI = updateTaskPassUI;
+
+// Initialize Task Pass UI immediately on load and DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { if (typeof updateTaskPassUI === 'function') updateTaskPassUI(); });
+} else {
+  if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
+}
+window.addEventListener('load', () => { if (typeof updateTaskPassUI === 'function') updateTaskPassUI(); });
+
 
 // Advance Task Pass Progress upon verifying/claiming a task
 function advanceTaskPassProgress(clickX, clickY) {
@@ -232,6 +297,9 @@ function advanceTaskPassProgress(clickX, clickY) {
   } catch (e) {}
 }
 window.advanceTaskPassProgress = advanceTaskPassProgress;
+
+
+
 
 
     // Initialize local defaults only if not already set, preserving real balances
@@ -1753,370 +1821,6 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   border-color: rgba(250, 204, 21, 0.5);
 }
 
-/* Player Level Progress Card */
-.player-level-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
-  border: 1.5px solid rgba(56, 189, 248, 0.28);
-  border-radius: 16px;
-  padding: 0.85rem 0.9rem 0.75rem 0.9rem;
-  margin-bottom: 0.75rem;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-}
-
-.player-level-card .level-progress-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-  margin-bottom: 0.75rem;
-}
-
-.player-level-card .level-tabs-container {
-  margin-bottom: 0;
-  width: 100%;
-}
-
-.level-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.55rem;
-}
-
-.level-badge-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.level-badge-icon {
-  font-size: 1.45rem;
-  background: rgba(250, 204, 21, 0.15);
-  border: 1px solid rgba(250, 204, 21, 0.35);
-  border-radius: 12px;
-  padding: 0.3rem 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.level-badge-text-wrap {
-  display: flex;
-  flex-direction: column;
-}
-
-.level-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.level-badge-num {
-  font-size: 0.85rem;
-  font-weight: 900;
-  color: #facc15;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.level-badge-name {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
-  padding: 0.1rem 0.45rem;
-  border-radius: 6px;
-}
-
-.level-subtitle {
-  font-size: 0.68rem;
-  color: #94a3b8;
-  margin-top: 2px;
-}
-
-.level-stat-chip {
-  text-align: right;
-}
-
-.chip-count {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 900;
-  color: #ffffff;
-}
-
-.chip-label {
-  font-size: 0.62rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.level-progress-track {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-}
-
-.level-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #06b6d4 0%, #3b82f6 50%, #facc15 100%);
-  border-radius: 999px;
-  transition: width 0.4s ease;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-}
-
-/* Level Tabs Bar - Vibrant Game Tier Color Progression (6 Tabs Fixed Grid - No Horizontal Scroll) */
-.level-tabs-container {
-  margin-bottom: 0.75rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.level-tabs-scroll {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.25rem;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-
-.level-tabs-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.level-tab-btn {
-  min-width: 0;
-  width: 100%;
-  border-radius: 9px;
-  padding: 0.4rem 0.15rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  text-decoration: none;
-  border: 1.5px solid transparent;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  box-sizing: border-box;
-}
-
-.level-tab-btn:hover {
-  transform: translateY(-1.5px);
-}
-
-.level-tab-btn:active {
-  transform: translateY(1px);
-}
-
-.lvl-tab-badge {
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.lvl-tab-name {
-  font-size: 0.58rem;
-  font-weight: 800;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.lvl-tab-all .lvl-tab-name,
-#levelTab6 .lvl-tab-name {
-  font-size: 0.52rem;
-  letter-spacing: -0.3px;
-}
-
-.lvl-lock-icon {
-  font-size: 0.58rem;
-  margin-top: 1px;
-  line-height: 1;
-}
-
-/* Level 1: Emerald Novice (Green) */
-#levelTab1, .lvl-tab-1 {
-  background: linear-gradient(145deg, rgba(6, 78, 59, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(16, 185, 129, 0.4);
-}
-#levelTab1 .lvl-tab-badge, .lvl-tab-1 .lvl-tab-badge {
-  color: #34d399;
-}
-#levelTab1 .lvl-tab-name, .lvl-tab-1 .lvl-tab-name {
-  color: #d1fae5;
-}
-#levelTab1:hover, .lvl-tab-1:hover {
-  border-color: #10b981;
-  background: linear-gradient(145deg, rgba(6, 78, 59, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-#levelTab1.active, .lvl-tab-1.active {
-  background: linear-gradient(145deg, #059669 0%, #10b981 50%, #047857 100%);
-  border-color: #6ee7b7;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
-}
-#levelTab1.active .lvl-tab-badge, .lvl-tab-1.active .lvl-tab-badge,
-#levelTab1.active .lvl-tab-name, .lvl-tab-1.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* Level 2: Sky Cyan Hunter (Cyan) */
-#levelTab2, .lvl-tab-2 {
-  background: linear-gradient(145deg, rgba(8, 51, 68, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(14, 165, 233, 0.4);
-}
-#levelTab2 .lvl-tab-badge, .lvl-tab-2 .lvl-tab-badge {
-  color: #38bdf8;
-}
-#levelTab2 .lvl-tab-name, .lvl-tab-2 .lvl-tab-name {
-  color: #e0f2fe;
-}
-#levelTab2:hover, .lvl-tab-2:hover {
-  border-color: #38bdf8;
-  background: linear-gradient(145deg, rgba(8, 51, 68, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
-}
-#levelTab2.active, .lvl-tab-2.active {
-  background: linear-gradient(145deg, #0284c7 0%, #0ea5e9 50%, #0369a1 100%);
-  border-color: #7dd3fc;
-  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
-}
-#levelTab2.active .lvl-tab-badge, .lvl-tab-2.active .lvl-tab-badge,
-#levelTab2.active .lvl-tab-name, .lvl-tab-2.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* Level 3: Royal Sapphire Specialist (Blue) */
-#levelTab3, .lvl-tab-3 {
-  background: linear-gradient(145deg, rgba(30, 58, 138, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(59, 130, 246, 0.4);
-}
-#levelTab3 .lvl-tab-badge, .lvl-tab-3 .lvl-tab-badge {
-  color: #60a5fa;
-}
-#levelTab3 .lvl-tab-name, .lvl-tab-3 .lvl-tab-name {
-  color: #eff6ff;
-}
-#levelTab3:hover, .lvl-tab-3:hover {
-  border-color: #60a5fa;
-  background: linear-gradient(145deg, rgba(30, 58, 138, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-#levelTab3.active, .lvl-tab-3.active {
-  background: linear-gradient(145deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%);
-  border-color: #93c5fd;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
-}
-#levelTab3.active .lvl-tab-badge, .lvl-tab-3.active .lvl-tab-badge,
-#levelTab3.active .lvl-tab-name, .lvl-tab-3.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* Level 4: Sunset Amber Pro (Orange) */
-#levelTab4, .lvl-tab-4 {
-  background: linear-gradient(145deg, rgba(124, 45, 18, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(249, 115, 22, 0.4);
-}
-#levelTab4 .lvl-tab-badge, .lvl-tab-4 .lvl-tab-badge {
-  color: #fb923c;
-}
-#levelTab4 .lvl-tab-name, .lvl-tab-4 .lvl-tab-name {
-  color: #ffedd5;
-}
-#levelTab4:hover, .lvl-tab-4:hover {
-  border-color: #fb923c;
-  background: linear-gradient(145deg, rgba(124, 45, 18, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-}
-#levelTab4.active, .lvl-tab-4.active {
-  background: linear-gradient(145deg, #ea580c 0%, #f97316 50%, #c2410c 100%);
-  border-color: #fdba74;
-  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
-}
-#levelTab4.active .lvl-tab-badge, .lvl-tab-4.active .lvl-tab-badge,
-#levelTab4.active .lvl-tab-name, .lvl-tab-4.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* Level 5: Ruby Crimson Elite (Red / Rose) */
-#levelTab5, .lvl-tab-5 {
-  background: linear-gradient(145deg, rgba(136, 19, 55, 0.45) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(244, 63, 94, 0.4);
-}
-#levelTab5 .lvl-tab-badge, .lvl-tab-5 .lvl-tab-badge {
-  color: #fb7185;
-}
-#levelTab5 .lvl-tab-name, .lvl-tab-5 .lvl-tab-name {
-  color: #ffe4e6;
-}
-#levelTab5:hover, .lvl-tab-5:hover {
-  border-color: #fb7185;
-  background: linear-gradient(145deg, rgba(136, 19, 55, 0.65) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
-}
-#levelTab5.active, .lvl-tab-5.active {
-  background: linear-gradient(145deg, #e11d48 0%, #f43f5e 50%, #be123c 100%);
-  border-color: #fda4af;
-  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.35);
-}
-#levelTab5.active .lvl-tab-badge, .lvl-tab-5.active .lvl-tab-badge,
-#levelTab5.active .lvl-tab-name, .lvl-tab-5.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* Level 6: Crown Gold Grandmaster (Gold / Amber) */
-#levelTab6, .lvl-tab-6, .lvl-tab-all {
-  background: linear-gradient(145deg, rgba(113, 63, 18, 0.5) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(234, 179, 8, 0.5);
-}
-#levelTab6 .lvl-tab-badge, .lvl-tab-6 .lvl-tab-badge, .lvl-tab-all .lvl-tab-badge {
-  color: #facc15;
-}
-#levelTab6 .lvl-tab-name, .lvl-tab-6 .lvl-tab-name, .lvl-tab-all .lvl-tab-name {
-  color: #fef08a;
-}
-#levelTab6:hover, .lvl-tab-6:hover, .lvl-tab-all:hover {
-  border-color: #facc15;
-  background: linear-gradient(145deg, rgba(113, 63, 18, 0.7) 0%, rgba(15, 23, 42, 0.95) 100%);
-  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
-}
-#levelTab6.active, .lvl-tab-6.active, .lvl-tab-all.active {
-  background: linear-gradient(145deg, #ca8a04 0%, #eab308 50%, #a16207 100%);
-  border-color: #fef08a;
-  box-shadow: 0 4px 18px rgba(234, 179, 8, 0.65), 0 0 14px rgba(250, 204, 21, 0.45), inset 0 1.5px 2px rgba(255, 255, 255, 0.4);
-}
-#levelTab6.active .lvl-tab-badge, .lvl-tab-6.active .lvl-tab-badge, .lvl-tab-all.active .lvl-tab-badge,
-#levelTab6.active .lvl-tab-name, .lvl-tab-6.active .lvl-tab-name, .lvl-tab-all.active .lvl-tab-name {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-.level-tab-btn.locked {
-  opacity: 0.55;
-  filter: grayscale(0.2);
-}
-
 /* Premium Task Cards */
 .task-card.task-card-premium {
   background: linear-gradient(145deg, #1b1233 0%, #0d1629 50%, #171129 100%);
@@ -2479,19 +2183,21 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
 
 
 /* ==========================================================================
-   GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000)
+   GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000) - NOVA Cyber Theme
    ========================================================================== */
+
+
 .task-pass-widget-wrap {
   width: 100%;
-  padding: 0.25rem 0 0.5rem 0;
+  padding: 0.25rem 0 0.65rem 0;
   box-sizing: border-box;
 }
 
 .forge-card {
-  background: linear-gradient(180deg, #2d323e 0%, #20242d 100%);
-  border: 3.5px solid #111318;
+  background: linear-gradient(145deg, #0a1938 0%, #060f24 100%);
+  border: 2px solid rgba(56, 189, 248, 0.45);
   border-radius: 18px;
-  box-shadow: 0 8px 0 #111318, inset 0 2px 0 rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.18), inset 0 1.5px 0 rgba(255, 255, 255, 0.12), inset 0 0 20px rgba(56, 189, 248, 0.05);
   position: relative;
   padding: 1.15rem 1rem 0.95rem 1rem;
   box-sizing: border-box;
@@ -2499,15 +2205,25 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
 
 .top-pill {
   position: absolute;
-  top: -14px;
+  top: -13px;
   left: 16px;
-  padding: 2px 10px;
-  background: linear-gradient(180deg, #ffe433 0%, #ffb700 100%);
-  border: 3px solid #111318;
-  border-radius: 10px;
-  box-shadow: 0 3px 0 #111318, inset 0 2px 0 rgba(255, 255, 255, 0.6);
+  padding: 2.5px 12px;
+  background: linear-gradient(135deg, #facc15 0%, #f59e0b 55%, #d97706 100%);
+  border: 1.5px solid #fef08a;
+  border-radius: 999px;
+  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.45), 0 0 10px rgba(250, 204, 21, 0.35), inset 0 1.5px 0 rgba(255, 255, 255, 0.6);
   transform: rotate(-3deg);
   z-index: 25;
+}
+
+.top-pill .game-outline-sm {
+  font-family: 'Titan One', 'Fredoka', cursive, sans-serif;
+  color: #422006;
+  -webkit-text-stroke: 0px transparent;
+  paint-order: normal;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  font-weight: 900;
+  letter-spacing: 0.5px;
 }
 
 .task-pass-header-row {
@@ -2521,12 +2237,24 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
 
 .task-pass-title {
   font-size: 1.25rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  color: #ffffff;
+  -webkit-text-stroke: 1.5px #051126;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 12px rgba(56, 189, 248, 0.5);
 }
 
 .task-pass-milestone {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
+  font-weight: 800;
   color: #fde047;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.18) 0%, rgba(202, 138, 4, 0.28) 100%);
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  border-radius: 999px;
+  padding: 3px 10px;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .task-pass-track-row {
@@ -2545,10 +2273,10 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #ffe94d 0%, #ffc800 55%, #f09c00 100%);
-  border: 3.5px solid #111318;
+  background: linear-gradient(160deg, #0284c7 0%, #0369a1 55%, #075985 100%);
+  border: 2.5px solid #38bdf8;
   border-radius: 14px;
-  box-shadow: 0 4px 0 #111318, inset 0 3px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.55), inset 0 2px 0 rgba(255, 255, 255, 0.45);
   z-index: 20;
   flex-shrink: 0;
   margin-right: -8px;
@@ -2562,10 +2290,10 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   align-items: center;
   justify-content: center;
   position: relative;
-  background: #14171f;
-  border: 3.5px solid #0e1015;
+  background: rgba(3, 8, 22, 0.9);
+  border: 2px solid rgba(56, 189, 248, 0.35);
   border-radius: 12px;
-  box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.65);
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.85), 0 0 12px rgba(56, 189, 248, 0.12);
   overflow: hidden;
   z-index: 10;
   box-sizing: border-box;
@@ -2576,9 +2304,9 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   left: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(180deg, #38b6ff 0%, #1982ff 55%, #005ce6 100%);
-  background-size: 28px 28px;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.45);
+  background: linear-gradient(90deg, #06b6d4 0%, #0ea5e9 45%, #3b82f6 100%);
+  background-size: 24px 24px;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.7), inset 0 2px 0 rgba(255, 255, 255, 0.45);
   transition: width 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -2588,15 +2316,15 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   inset: 0;
   background-image: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.14) 25%,
+    rgba(255, 255, 255, 0.2) 25%,
     transparent 25%,
     transparent 50%,
-    rgba(255, 255, 255, 0.14) 50%,
-    rgba(255, 255, 255, 0.14) 75%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.2) 75%,
     transparent 75%,
     transparent
   );
-  background-size: 28px 28px;
+  background-size: 24px 24px;
 }
 
 .reward-preview-box {
@@ -2616,7 +2344,7 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 3px 0 #111318);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 8px rgba(56, 189, 248, 0.4));
 }
 
 .reward-bag-svg svg {
@@ -2628,34 +2356,43 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
 #rewardAmountText {
   margin-top: -14px;
   font-size: 1.15rem;
+  color: #fde047;
+  -webkit-text-stroke: 1.5px #04142d;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(250, 204, 21, 0.4);
 }
 
 #levelNumText {
   font-size: 1.5rem;
+  color: #fef08a;
+  -webkit-text-stroke: 1.5px #04142d;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(250, 204, 21, 0.4);
 }
 
 #taskCountText {
   font-size: 1.25rem;
   position: relative;
   z-index: 20;
+  color: #ffffff;
+  -webkit-text-stroke: 1.5px #030c1d;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(56, 189, 248, 0.6);
 }
 
 .game-outline {
-  font-family: 'Titan One', cursive, sans-serif;
+  font-family: 'Titan One', 'Fredoka', cursive, sans-serif;
   color: #ffffff;
-  -webkit-text-stroke: 3.5px #111318;
+  -webkit-text-stroke: 1.5px #051126;
   paint-order: stroke fill;
-  text-shadow: 0 3px 0 #111318;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(56, 189, 248, 0.4);
   letter-spacing: 0.5px;
   line-height: 1;
 }
 
 .game-outline-sm {
-  font-family: 'Titan One', cursive, sans-serif;
+  font-family: 'Titan One', 'Fredoka', cursive, sans-serif;
   color: #ffffff;
-  -webkit-text-stroke: 2.5px #111318;
+  -webkit-text-stroke: 1.2px #051126;
   paint-order: stroke fill;
-  text-shadow: 0 2px 0 #111318;
+  text-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(56, 189, 248, 0.35);
   line-height: 1;
 }
 
@@ -2678,6 +2415,9 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
   position: fixed;
   pointer-events: none;
   z-index: 9999;
+  color: #fde047;
+  -webkit-text-stroke: 1.5px #040d1e;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.6);
   animation: floatUpFade 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -2721,7 +2461,7 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
         </div>
         <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
           <span class="streak-logo">🔥</span>
-          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
           <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
         </div>
       </div>
@@ -2730,56 +2470,30 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
     <!-- Page Content (Tasks) -->
     <main class="page-content">
 
-      <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
-      <div class="task-category-tabs">
-        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')">
-          <div class="tab-btn-content">
-            <span class="tab-cat-icon">📋</span>
-            <div class="tab-cat-info">
-              <span class="tab-cat-title">Simple Tasks</span>
-              <span class="tab-cat-sub">Standard missions</span>
-            </div>
-          </div>
-          <span class="tab-cat-count" id="simpleTasksCount">0</span>
-        </button>
-
-        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')">
-          <div class="tab-btn-content">
-            <span class="tab-cat-icon">💎</span>
-            <div class="tab-cat-info">
-              <span class="tab-cat-title">Premium Tasks</span>
-              <span class="tab-cat-sub">VIP High Bounty</span>
-            </div>
-          </div>
-          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
-        </button>
-      </div>
-
-      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
       <!-- GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000) -->
       <div class="task-pass-widget-wrap">
         <div id="forgeCard" class="forge-card">
 
-          <!-- Top-Left Floating Yellow Pill (Tasks Completed in Current 10-Level Cycle) -->
+          <!-- Top-Left Floating Cyber Gold Pill (Tasks Completed in Current 10-Level Cycle) -->
           <div class="top-pill">
             <span id="cycleTaskTag" class="game-outline-sm">0/10</span>
           </div>
 
-          <!-- Top Row: TASK PASS Title & Next Milestone Preview -->
+          <!-- Top Row: Title & Next Milestone Preview -->
           <div class="task-pass-header-row">
-            <span class="task-pass-title game-outline">TASK PASS</span>
-            <span id="nextMilestoneLabel" class="task-pass-milestone game-outline-sm">Lvl. 10: 100 ⭐</span>
+            <span class="game-outline task-pass-title">TASK PASS</span>
+            <span id="nextMilestoneLabel" class="task-pass-milestone">Lvl. 10: 100 ⭐</span>
           </div>
 
-          <!-- Level Row: Yellow Level Box + Blue 0/1 Bar + Prize Bag Icon -->
+          <!-- Bottom Row: Cyber Level Shield + Cyber Progress Bar + Prize Bag Icon -->
           <div class="task-pass-track-row">
 
-            <!-- Left Yellow Level Square Badge -->
+            <!-- Left Cyber Level Shield Badge -->
             <div id="levelBadge" class="level-badge">
               <span id="levelNumText" class="game-outline">1</span>
             </div>
 
-            <!-- Center Blue Progress Bar (Dynamic Target Tasks) -->
+            <!-- Center Neon Cyber Progress Bar (Dynamic Target Tasks) -->
             <div class="game-progress-track">
               <div id="taskProgressBar" class="game-progress-fill" style="width: 0%;"></div>
               <span id="taskCountText" class="game-outline">0/1</span>
@@ -2788,7 +2502,29 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
             <!-- Right Reward Bag / Ticket / Star Icon + Amount -->
             <div id="rewardPreviewBox" class="reward-preview-box">
               <div id="rewardBagSvg" class="reward-bag-svg">
-                <!-- Dynamic SVG injected by JS (Coin Sack / Ticket Stack / Star) -->
+                <svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>
               </div>
               <span id="rewardAmountText" class="game-outline">100</span>
             </div>
@@ -2796,6 +2532,35 @@ window.advanceTaskPassProgress = advanceTaskPassProgress;
           </div>
         </div>
       </div>
+
+
+      <!-- Task Mode Switcher Tabs (Coin Tasks / Star Tasks) -->
+      <div class="task-category-tabs">
+        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')" title="Coin Tasks (Standard missions)">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">🪙</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Coin Tasks</span>
+              <span class="tab-cat-sub">Standard missions</span>
+            </div>
+          </div>
+          <span class="tab-cat-count" id="simpleTasksCount">0</span>
+        </button>
+
+        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')" title="Star Tasks (VIP High Bounty)">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">⭐</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Star Tasks</span>
+              <span class="tab-cat-sub">VIP High Bounty</span>
+            </div>
+          </div>
+          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
+        </button>
+      </div>
+
+
+
 
       <div class="tasks-list" id="tasksList">
         <!-- Dynamically loaded & synchronized with Admin in real time -->
@@ -3535,6 +3300,9 @@ window.switchTaskTab = function(tab) {
   if (tab === 'premium') {
     if (tabSimple) tabSimple.classList.remove('active');
     if (tabPremium) tabPremium.classList.add('active');
+  } else if (tab === 'all') {
+    if (tabSimple) tabSimple.classList.add('active');
+    if (tabPremium) tabPremium.classList.add('active');
   } else {
     if (tabPremium) tabPremium.classList.remove('active');
     if (tabSimple) tabSimple.classList.add('active');
@@ -3703,6 +3471,8 @@ function getPlayerLevelInfo() {
 window.getPlayerLevelInfo = getPlayerLevelInfo;
 
 function getSelectedLevelTab() {
+  const levelCard = document.getElementById('playerLevelCard');
+  if (!levelCard) return 6; // Level tab removed: default to All tasks (level 6)
   const pInfo = getPlayerLevelInfo();
   let stored = parseInt(localStorage.getItem('task_selected_level_tab') || '0', 10);
   if (!stored || stored < 1 || stored > 6) {
@@ -3722,6 +3492,7 @@ window.switchLevelTab = switchLevelTab;
 
 // Dynamic Task Rendering with Level Filtering & Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
 function renderTasks() {
+  if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
   const container = document.getElementById('tasksList');
   if (!container) return;
 
@@ -3729,22 +3500,7 @@ function renderTasks() {
   const playerInfo = getPlayerLevelInfo();
   const selectedLevel = getSelectedLevelTab();
 
-  // Update Player Level Card UI
-  const lvlNumEl = document.getElementById('userLevelNum');
-  const lvlNameEl = document.getElementById('userLevelName');
-  const lvlIconEl = document.getElementById('userLevelBadgeIcon');
-  const lvlSubEl = document.getElementById('userLevelSub');
-  const lvlChipEl = document.getElementById('userTierTaskCount');
-  const lvlFillEl = document.getElementById('userLevelProgressFill');
-  const rankDisplay = document.getElementById('userRankDisplay');
-
-  if (lvlNumEl) lvlNumEl.textContent = `LEVEL ${playerInfo.level}`;
-  if (lvlNameEl) lvlNameEl.textContent = playerInfo.title;
-  if (lvlIconEl) lvlIconEl.textContent = playerInfo.icon;
-  if (lvlFillEl) lvlFillEl.style.width = `${playerInfo.progressPercent}%`;
-  if (lvlSubEl) lvlSubEl.textContent = playerInfo.levelSubText;
-  if (lvlChipEl) lvlChipEl.style.display = 'none';
-  if (rankDisplay) rankDisplay.textContent = `LVL ${playerInfo.level} • RANK #1`;
+  // Player level progression is powered by Task Pass
 
   // Ensure tab buttons match activeTab
   const tabSimple = document.getElementById('tabSimpleTasks');
@@ -3779,142 +3535,33 @@ function renderTasks() {
   const isTaskShop = (t) => t.category === 'shop_task' || t.isShopTask || (t.title && t.title.toLowerCase().includes('shop task'));
   const isTaskArticle = (t) => t.category === 'article' || t.isArticleTask || (t.title && (t.title.toLowerCase().includes('article') || t.title.toLowerCase().includes('paragraph') || t.title.toLowerCase().includes('read')));
 
-  // Separate Simple Tasks vs Premium Tasks
-  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || t.category === 'article' || (!t.category && !isTaskShop(t)));
-  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || isTaskShop(t));
+  // Separate Coin Tasks vs Star Tasks
+  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || t.category === 'coin' || t.category === 'article' || (!t.category && !isTaskShop(t)));
+  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || t.category === 'star' || isTaskShop(t));
 
   // Category switcher tab badges: Show total available tasks for each category
   const simpleBadge = document.getElementById('simpleTasksCount');
   const premiumBadge = document.getElementById('premiumTasksCount');
+  const totalBadge = document.getElementById('totalTasksCountBadge');
   if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
   if (premiumBadge) premiumBadge.textContent = allPremiumTasks.length;
+  if (totalBadge) totalBadge.textContent = activeTasks.length;
 
-  // Active mode tasks collection (Simple vs Premium)
-  const currentModeTasks = (activeTab === 'premium') ? allPremiumTasks : simpleTasks;
-
-  // Update Level Tabs Buttons (1 to 6) with level-specific task count for current mode
-  for (let i = 1; i <= 6; i++) {
-    const tabBtn = document.getElementById(`levelTab${i}`);
-    const lockIcon = document.getElementById(`lvlLock${i}`);
-    const nameEl = tabBtn ? tabBtn.querySelector('.lvl-tab-name') : null;
-
-    if (tabBtn) {
-      if (i === selectedLevel) {
-        tabBtn.classList.add('active');
-      } else {
-        tabBtn.classList.remove('active');
-      }
-      const unlocked = isLevelUnlocked(i);
-      if (!unlocked) {
-        tabBtn.classList.add('locked');
-        if (lockIcon) lockIcon.style.display = 'inline';
-      } else {
-        tabBtn.classList.remove('locked');
-        if (lockIcon) lockIcon.style.display = 'none';
-      }
-
-      // Dynamic task count per level for the active mode (Simple vs Premium)
-      if (nameEl) {
-        if (i === 6) {
-          nameEl.textContent = `All (${currentModeTasks.length})`;
-        } else {
-          const count = currentModeTasks.filter(t => parseInt(t.level || 1, 10) === i).length;
-          nameEl.textContent = `${count} ${count === 1 ? 'Task' : 'Tasks'}`;
-        }
-      }
-    }
+  // Active mode tasks collection (Coin vs Star vs Both)
+  let currentModeTasks = simpleTasks;
+  if (activeTab === 'premium') {
+    currentModeTasks = allPremiumTasks;
+  } else if (activeTab === 'all') {
+    currentModeTasks = activeTasks;
   }
 
-  // Filter tasks by selected level for active mode:
-  // Level 6: shows all tasks for current mode sorted level-wise!
-  // Level 1-5: shows only tasks for that specific level!
+  // Active tasks sorted by level then recency
   const currentList = [...currentModeTasks].sort((a, b) => {
     const lvlA = parseInt(a.level || 1, 10);
     const lvlB = parseInt(b.level || 1, 10);
     if (lvlA !== lvlB) return lvlA - lvlB;
     return (b.createdAt || 0) - (a.createdAt || 0);
   });
-
-  // 1. If player is viewing Level 2 and Level 2 is not unlocked yet with 20 Diamonds
-  if (selectedLevel === 2 && !isLevel2Unlocked()) {
-    const userDiamonds = Math.max(0, parseInt(localStorage.getItem('task_user_diamonds') || '0', 10));
-    const diamondPercent = Math.min(100, Math.floor((userDiamonds / 20) * 100));
-    const canUnlock = userDiamonds >= 20;
-
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border: 2px solid rgba(56, 189, 248, 0.45); background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%); padding: 2.2rem 1.4rem; text-align: center; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);">
-        <div style="font-size: 3.5rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.6));">💎</div>
-        <div style="font-size: 1.35rem; font-weight: 900; color: #ffffff; margin-bottom: 0.35rem;">Unlock Task Level 2</div>
-        <div style="font-size: 0.82rem; color: #94a3b8; max-width: 330px; margin: 0 auto 1.25rem; line-height: 1.45;">
-          Use <b style="color: #38bdf8;">20 Diamonds</b> to unlock Level 2 missions! Win <b>1 Diamond</b> for every 10 tasks you complete.
-        </div>
-
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.9rem 1.2rem; max-width: 320px; margin: 0 auto 1.35rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Diamond Balance</span>
-            <span style="font-size: 0.95rem; font-weight: 900; color: #38bdf8;">${userDiamonds} / 20 💎</span>
-          </div>
-          <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
-            <div style="height: 100%; width: ${diamondPercent}%; background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%); border-radius: 999px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);"></div>
-          </div>
-          <div style="font-size: 0.68rem; color: #64748b; margin-top: 0.45rem; text-align: left;">
-            ${canUnlock ? '✨ You have enough diamonds to unlock Level 2!' : `Complete ${(20 - userDiamonds) * 10} more tasks to earn ${(20 - userDiamonds)} more diamonds.`}
-          </div>
-        </div>
-
-        ${canUnlock ? `
-          <button type="button" class="btn-claim" onclick="unlockLevel2WithDiamonds()" style="background: linear-gradient(135deg, #0284c7 0%, #3b82f6 50%, #8b5cf6 100%); color: #ffffff; font-weight: 900; font-size: 0.95rem; padding: 0.8rem 1.8rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: scale(1.02); transition: all 0.2s ease;">
-            🔓 Unlock Level 2 (Use 20 💎)
-          </button>
-        ` : `
-          <div style="display: flex; flex-direction: column; gap: 0.65rem; align-items: center;">
-            <button type="button" class="btn-claim" disabled style="background: #334155; color: #64748b; font-weight: 800; font-size: 0.85rem; padding: 0.75rem 1.5rem; border-radius: 12px; border: 1px solid #475569; cursor: not-allowed; opacity: 0.85;">
-              🔒 20 Diamonds Required (${userDiamonds}/20 💎)
-            </button>
-            <button type="button" onclick="switchLevelTab(1)" style="background: transparent; border: none; color: #38bdf8; font-size: 0.78rem; font-weight: 800; text-decoration: underline; cursor: pointer;">
-              ← Complete Level 1 Tasks to Earn Diamonds
-            </button>
-          </div>
-        `}
-      </div>
-    `;
-    return;
-  }
-
-  // 2. If player selects a level beyond Level 1 when Level 2 is not unlocked
-  if (selectedLevel > 1 && !isLevel2Unlocked()) {
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border-color: rgba(56, 189, 248, 0.45); padding: 2.2rem 1.25rem;">
-        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
-        <div style="color: #38bdf8; font-size: 1.18rem; font-weight: 900;">Unlock Level 2 First</div>
-        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
-          You must unlock Level 2 using 20 Diamonds before accessing Level ${selectedLevel} missions!
-        </div>
-        <button type="button" class="btn-claim" onclick="switchLevelTab(2)" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-          View Level 2 Unlock (💎 20 Diamonds)
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  // 3. If player selects a higher level that is locked
-  if (selectedLevel > playerInfo.level) {
-    const tasksNeeded = (selectedLevel - 1) * 200 - playerInfo.totalCompleted;
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.45); padding: 2.2rem 1.25rem;">
-        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
-        <div style="color: #facc15; font-size: 1.18rem; font-weight: 900;">Level ${selectedLevel} Locked</div>
-        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
-          Complete <b>${tasksNeeded}</b> more tasks to reach Level ${selectedLevel} and unlock these high-tier missions! Currently at Level ${playerInfo.level} (${playerInfo.totalCompleted} tasks completed).
-        </div>
-        <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-          Back to Level ${playerInfo.level}
-        </button>
-      </div>
-    `;
-    return;
-  }
 
   let statusBarHtml = '';
   if (activeTab === 'premium') {
@@ -4427,7 +4074,7 @@ function renderTasks() {
         localStorage.setItem('task_user_diamonds', curDiamonds.toString());
         localStorage.setItem('user_diamonds', curDiamonds.toString());
 
-        diamondWonMsg = `\n💎 +${diamondsWon} Diamond Won! (Total: ${curDiamonds} 💎 • 20 💎 unlocks Level 2)`;
+        diamondWonMsg = `\n💎 +${diamondsWon} Diamond Won! (Total: ${curDiamonds} 💎)`;
 
         try {
           const bc = new BroadcastChannel('nova_task_sync');
@@ -4447,7 +4094,7 @@ function renderTasks() {
 
       if (diamondWonMsg) {
         setTimeout(() => {
-          alert(`🎉 10 Tasks Milestone Reached!\n\n${diamondWonMsg.trim()}\n\nCollect 20 Diamonds to unlock Task Level 2!`);
+          alert(`🎉 10 Tasks Milestone Reached!\n\n${diamondWonMsg.trim()}`);
         }, 400);
       } else if (shopBonusMsg) {
         alert(`🎉 Mission Verified!\n\nYou earned +${rewardAmount} 🪙 Coins!${shopBonusMsg}\nYou can now purchase more items in the Shop!`);

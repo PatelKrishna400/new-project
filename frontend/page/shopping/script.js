@@ -63,14 +63,11 @@ function updateDisplays() {
 
 // Match-Value Button Affordability: changes button from gray to green if user balance >= item cost
 function updateShopButtonAffordability() {
-  const currentCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
-  const currentStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
+  const currentCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10) || 0;
+  const currentStars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10) || 0;
 
-  // 1. Star store cards (Paying with Coins)
-  document.querySelectorAll('.star-shop-card').forEach((card) => {
-    if (card.classList.contains('shop-ad-card')) return;
-    const buyBtn = card.querySelector('.btn-buy');
-    if (!buyBtn) return;
+  // 1. Star shop cards (Paying with Coins)
+  document.querySelectorAll('.btn-buy').forEach((buyBtn) => {
     const onclickStr = buyBtn.getAttribute('onclick') || '';
     const match = onclickStr.match(/buyStars\((\d+),\s*(\d+)\)/);
     if (match) {
@@ -97,9 +94,129 @@ function updateShopButtonAffordability() {
     }
   });
 
-  window.updateShopButtonAffordability = updateShopButtonAffordability;
+  // 3. Ad Watch Buttons (Always affordable/available)
+  const btnCoinsAd = document.getElementById('btnWatchAdCoins');
+  if (btnCoinsAd) btnCoinsAd.classList.add('btn-affordable');
+  const btnTicketsAd = document.getElementById('btnWatchAdTickets');
+  if (btnTicketsAd) btnTicketsAd.classList.add('btn-affordable');
+}
+window.updateShopButtonAffordability = updateShopButtonAffordability;
 
-// Free Coin Reward (+100 Coins using Ads)
+// ============================================================================
+// WATCH ADS REWARDS: +100 COINS (Star Store) & +1 TICKET (Ticket Store)
+// ============================================================================
+
+// Fallback in case Monetag SDK is loading, blocked, or unavailable
+if (typeof window.show_11677609 !== 'function') {
+  window.show_11677609 = function() {
+    return new Promise((resolve) => {
+      console.log('[Ad] show_11677609 fallback invoked');
+      resolve();
+    });
+  };
+}
+
+function watchAdForCoins(btn) {
+  if (btn && btn.disabled) return;
+  const originalText = btn ? btn.innerHTML : 'Watch Ad 📺';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Loading 📺...';
+  }
+
+  // Rewarded interstitial
+  show_11677609().then(() => {
+    // You need to add your user reward function here, which will be executed after the user watches the ad.
+    // For more details, please refer to the detailed instructions.
+    alert('You have seen an ad!');
+
+    let coins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10) || 0;
+    coins += 100;
+    userCoins = coins;
+    localStorage.setItem('task_game_coins', coins.toString());
+    localStorage.setItem('user_coins', coins.toString());
+
+    if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
+      window.firebaseSync.addCoins(100);
+    }
+
+    updateDisplays();
+    if (typeof window.updateAllDomBalances === 'function') {
+      window.updateAllDomBalances(userCoins, userStars);
+    }
+    if (typeof updateDailyStreakHeaderDisplays === 'function') {
+      updateDailyStreakHeaderDisplays();
+    }
+
+    if (typeof shopSfx !== 'undefined' && shopSfx.playCoin) {
+      shopSfx.playCoin();
+    }
+
+    try {
+      const bc = new BroadcastChannel('nova_task_sync');
+      bc.postMessage({ type: 'AD_REWARD_COINS', amount: 100, newCoins: coins, timestamp: Date.now() });
+    } catch (e) {}
+  }).catch((err) => {
+    console.warn('Ad error:', err);
+  }).finally(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      btn.classList.add('btn-affordable');
+    }
+  });
+}
+window.watchAdForCoins = watchAdForCoins;
+
+function watchAdForTickets(btn) {
+  if (btn && btn.disabled) return;
+  const originalText = btn ? btn.innerHTML : 'Watch Ad 📺';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Loading 📺...';
+  }
+
+  // Rewarded interstitial
+  show_11677609().then(() => {
+    // You need to add your user reward function here, which will be executed after the user watches the ad.
+    // For more details, please refer to the detailed instructions.
+    alert('You have seen an ad!');
+
+    let tickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10) || 0;
+    tickets += 1;
+    localStorage.setItem('task_user_tickets', tickets.toString());
+    localStorage.setItem('user_tickets', tickets.toString());
+
+    updateDisplays();
+    if (typeof window.updateAllDomBalances === 'function') {
+      window.updateAllDomBalances(userCoins, userStars);
+    }
+    if (typeof updateDailyStreakHeaderDisplays === 'function') {
+      updateDailyStreakHeaderDisplays();
+    }
+
+    if (typeof shopSfx !== 'undefined' && shopSfx.playPurchase) {
+      shopSfx.playPurchase();
+    } else if (typeof shopSfx !== 'undefined' && shopSfx.playCoin) {
+      shopSfx.playCoin();
+    }
+
+    try {
+      const bc = new BroadcastChannel('nova_task_sync');
+      bc.postMessage({ type: 'AD_REWARD_TICKETS', amount: 1, newTickets: tickets, timestamp: Date.now() });
+    } catch (e) {}
+  }).catch((err) => {
+    console.warn('Ad error:', err);
+  }).finally(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      btn.classList.add('btn-affordable');
+    }
+  });
+}
+window.watchAdForTickets = watchAdForTickets;
+
 function buyTicketsWithStars(ticketAmount, starCost) {
   let stars = parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10) || 0;
   if (stars < starCost) {
@@ -144,7 +261,7 @@ function buyTicketsWithStars(ticketAmount, starCost) {
 
 window.buyTicketsWithStars = buyTicketsWithStars;
 
-// Buy Stars for Coins (10 for 480, 20 for 920, 50 for 2,000, 100 for 3,750, 500 for 15,000)
+// Buy Stars for Coins (50 for 2,000, 100 for 3,750, 500 for 15,000)
 function buyStars(starAmount, coinCost, explicitItemId) {
   checkAndResetShopCycle();
   const itemId = explicitItemId || ('star_' + starAmount);

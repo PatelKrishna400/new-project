@@ -12,6 +12,7 @@
   <script type="module" src="../../firebase-config.js"></script>
   <link rel="stylesheet" href="style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="//alwingulla.com/88/tag.min.js" data-zone="11677609" data-sdk="show_11677609"></script>
 </head>
 <body>
 
@@ -78,31 +79,20 @@
 
       <div class="shop-list">
 
+        <!-- 1. Free Coins / Watch Ad for +100 Coins -->
+        <div class="star-shop-card shop-item-coin shop-ad-card" id="adCoinsCard">
+          <div class="shop-icon-wrap" style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">🪙</div>
+          <div class="shop-info">
+            <div class="shop-name">
+              <span>Free Coins</span>
+              <span class="star-pack-badge ad-badge" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: #fff;">+100 🪙</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Watch 1 Ad to win 100 Coins!</div>
+          </div>
+          <button class="btn-buy btn-affordable" id="btnWatchAdCoins" onclick="watchAdForCoins(this)">Watch Ad 📺</button>
+        </div>
+
         
-
-        <!-- 2. Buy 10 Stars for 480 Coins (4% OFF) -->
-        <div class="star-shop-card shop-item-coin">
-          <div class="shop-icon-wrap">✨</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>10 Stars ⭐</span>
-              <span class="star-pack-badge">4%</span>
-            </div>
-          </div>
-          <button class="btn-buy" onclick="buyStars(10, 480)">480 🪙</button>
-        </div>
-
-        <!-- 3. Buy 20 Stars for 920 Coins (8% Discount per user request) -->
-        <div class="star-shop-card shop-item-coin">
-          <div class="shop-icon-wrap">👑</div>
-          <div class="shop-info">
-            <div class="shop-name">
-              <span>20 Stars ⭐</span>
-              <span class="star-pack-badge">8%</span>
-            </div>
-          </div>
-          <button class="btn-buy" onclick="buyStars(20, 920)">920 🪙</button>
-        </div>
 
         <!-- 4. Buy 50 Stars for 2,000 Coins (20% OFF) -->
         <div class="star-shop-card shop-item-coin">
@@ -152,6 +142,19 @@
       </div>
 
       <div class="shop-grid shop-item-ticket">
+
+        <!-- Free Tickets / Watch Ad for +1 Ticket -->
+        <div class="star-shop-card ticket-shop-card shop-item-ticket shop-ad-card" id="adTicketsCard">
+          <div class="shop-icon-wrap" style="background: rgba(34, 197, 94, 0.2); border-color: #22c55e;">🎟️</div>
+          <div class="shop-info">
+            <div class="shop-name">
+              <span>Free Tickets</span>
+              <span class="star-pack-badge ticket-badge ad-badge" style="background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: #fff;">+1 🎟️</span>
+            </div>
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Watch 1 Ad to win 1 Free Ticket!</div>
+          </div>
+          <button class="btn-buy btn-affordable" id="btnWatchAdTickets" onclick="watchAdForTickets(this)">Watch Ad 📺</button>
+        </div>
 
         
 
@@ -263,6 +266,7 @@
 
   </div>
 
+  <script src="../../ad-service.js"></script>
   <script src="script.js"></script>
   <script src="../../daily-streak.js"></script>
 </body>

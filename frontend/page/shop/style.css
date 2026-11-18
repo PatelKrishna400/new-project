@@ -439,36 +439,37 @@ body {
   margin: 0;
 }
 
-/* Ticket Store Cards */
+/* Ticket Store Cards - Styled in Golden Cyber Theme matching last tab */
 .ticket-shop-card {
-  border: 1px solid rgba(168, 85, 247, 0.38) !important;
-  background: linear-gradient(155deg, #150f24 0%, #0a1532 100%) !important;
+  border: 1px solid rgba(250, 204, 21, 0.55) !important;
+  background: linear-gradient(155deg, #1f1807 0%, #0a1532 100%) !important;
 }
 
 .ticket-shop-card:hover {
-  border-color: #c084fc !important;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25) !important;
+  border-color: #facc15 !important;
+  box-shadow: 0 4px 14px rgba(250, 204, 21, 0.3) !important;
 }
 
 .ticket-shop-card .shop-icon-wrap {
-  background: rgba(168, 85, 247, 0.18) !important;
-  border: 1px solid rgba(192, 132, 252, 0.55) !important;
+  background: rgba(250, 204, 21, 0.18) !important;
+  border: 1px solid rgba(250, 204, 21, 0.55) !important;
 }
 
 .ticket-badge {
-  background: rgba(168, 85, 247, 0.25) !important;
-  color: #c084fc !important;
-  border: 1px solid #a855f7 !important;
+  background: rgba(250, 204, 21, 0.25) !important;
+  color: #fde047 !important;
+  border: 1px solid #facc15 !important;
 }
 
 .ticket-card-popular {
-  border-color: rgba(168, 85, 247, 0.55) !important;
-  background: linear-gradient(155deg, #1c0e30 0%, #0a1532 100%) !important;
+  border-color: rgba(250, 204, 21, 0.55) !important;
+  background: linear-gradient(155deg, #1f1807 0%, #0a1532 100%) !important;
 }
 
 .ticket-badge-popular {
-  background: #a855f7 !important;
-  color: #ffffff !important;
+  background: #facc15 !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
 }
 
 .ticket-card-best {

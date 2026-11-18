@@ -11,7 +11,22 @@ const SYNC_CHANNEL_NAME = 'nova_task_sync';
 const TOTAL_TASKS_KEY = 'task_game_total_tasks';
 const EVENT_TASKS_KEY = 'task_game_event_tasks';
 
-// Clean zero start - No mock users or fake withdrawals
+// Canonical default contenders shared between Admin & Leaderboard (real player only; demo users removed)
+const CANONICAL_TASK_USERS = [
+  { id: 'usr_1', name: 'Player', avatar: '⚡', level: 'LVL 1 • NOVICE', coins: 0, stars: 0, totalTasks: 0, eventTasks: 0, status: 'active', role: 'player', email: 'player@novatasks.io', username: '@player', joined: 'Today' }
+];
+
+const DEMO_USER_IDS = ['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6'];
+const DEMO_USER_NAMES = ['User 2', 'CyberHunter', 'NeonBlaze', 'ShadowNova', 'PixelMaster'];
+
+function isDemoUser(u) {
+  if (!u) return true;
+  if (DEMO_USER_IDS.includes(u.id)) return true;
+  if (DEMO_USER_NAMES.includes(u.name)) return true;
+  if (typeof u.id === 'string' && u.id.startsWith('mock_')) return true;
+  return false;
+}
+
 const DEFAULT_USERS = [];
 const DEFAULT_WITHDRAWALS = [];
 
@@ -53,11 +68,12 @@ try {
   }
 } catch (e) {}
 
-// Clear legacy demo users and dummy pools if present
+// Ensure users storage is valid array
 try {
   const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  if (rawUsers && (rawUsers.includes('VortexTyper') || rawUsers.includes('CyberKey') || rawUsers.includes('42850') || rawUsers.includes('usr_2') || rawUsers.includes('ShadowTyper') || rawUsers.includes('Alex_Gamer'))) {
-    localStorage.setItem(USERS_STORAGE_KEY, '[]');
+  if (rawUsers) {
+    const parsed = JSON.parse(rawUsers);
+    if (!Array.isArray(parsed)) localStorage.setItem(USERS_STORAGE_KEY, '[]');
   }
   const rawWd = localStorage.getItem(WITHDRAW_STORAGE_KEY);
   if (rawWd && (rawWd.includes('WD-8491') || rawWd.includes('WD-8490') || rawWd.includes('AMZN-7492'))) {
@@ -330,14 +346,25 @@ function loadAllAdminData() {
     tasksData = [];
   }
 
-  // 2. Users (Clean zero start, no mock pool)
+  // 2. Users (Canonical Contenders & Shared Leaderboard Sync)
   try {
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
     let parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) parsed = [];
+    if (Array.isArray(parsed)) {
+      parsed = parsed.filter(u => !isDemoUser(u));
+    }
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      parsed = JSON.parse(JSON.stringify(CANONICAL_TASK_USERS));
+    } else {
+      CANONICAL_TASK_USERS.forEach(d => {
+        if (!parsed.some(u => u.id === d.id)) {
+          parsed.push({ ...d });
+        }
+      });
+    }
 
-    // Filter out any mock users
-    parsed = parsed.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey');
+    // Retain all registered users
+    parsed = parsed.filter(u => u && typeof u === 'object');
 
     // Sync live player values into usr_1
     const pCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
@@ -363,12 +390,12 @@ function loadAllAdminData() {
       };
       parsed.unshift(usr1);
     } else {
-      usr1.name = pName;
-      usr1.avatar = pAvatar;
-      usr1.coins = pCoins;
-      usr1.stars = pStars;
-      usr1.totalTasks = pTotalTasks;
-      usr1.eventTasks = pEventTasks;
+      if (pName && pName !== 'Player') usr1.name = pName;
+      if (pAvatar && pAvatar !== '⚡') usr1.avatar = pAvatar;
+      if (pCoins > 0 && pCoins !== usr1.coins) usr1.coins = pCoins;
+      if (pStars > 0 && pStars !== usr1.stars) usr1.stars = pStars;
+      if (pTotalTasks > 0 && pTotalTasks !== usr1.totalTasks) usr1.totalTasks = pTotalTasks;
+      if (pEventTasks > 0 && pEventTasks !== usr1.eventTasks) usr1.eventTasks = pEventTasks;
     }
     usersData = parsed;
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
@@ -406,6 +433,17 @@ function updateAdminCounters() {
     wdCount.textContent = pendingWd.length.toString();
     wdCount.style.display = pendingWd.length > 0 ? 'inline-block' : 'none';
   }
+
+  const cntAll = document.getElementById('countAdminFilterAll');
+  const cntSimple = document.getElementById('countAdminFilterSimple');
+  const cntPremium = document.getElementById('countAdminFilterPremium');
+
+  const simpleList = tasksData.filter(t => t.category === 'simple' || t.category === 'coin' || (!t.category && !t.isShopTask));
+  const premiumList = tasksData.filter(t => t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task');
+
+  if (cntAll) cntAll.textContent = tasksData.length.toString();
+  if (cntSimple) cntSimple.textContent = simpleList.length.toString();
+  if (cntPremium) cntPremium.textContent = premiumList.length.toString();
 }
 
 // -----------------------------------------------------------------------------
@@ -492,6 +530,11 @@ function renderAdminTasksList() {
 
   const searchVal = (document.getElementById('adminTaskSearch')?.value || '').toLowerCase().trim();
   let list = [...tasksData];
+  if (currentAdminTaskCategoryFilter === 'simple') {
+    list = list.filter(t => t.category === 'simple' || t.category === 'coin' || (!t.category && !t.isShopTask));
+  } else if (currentAdminTaskCategoryFilter === 'premium') {
+    list = list.filter(t => t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task');
+  }
   if (searchVal) {
     list = list.filter(t => t.title && t.title.toLowerCase().includes(searchVal));
   }
@@ -978,27 +1021,43 @@ function renderAdminUsersList() {
   }
 
   container.innerHTML = list.map(user => {
+    const isSusp = user.status === 'suspended';
     return `
       <div class="admin-user-card" style="display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; flex-wrap: nowrap !important; background: #0a1738; border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 0.55rem 0.85rem; margin-bottom: 0.45rem; gap: 0.5rem; width: 100%; box-sizing: border-box;">
-        <!-- 1. Icon & 2. Name (Strictly 1 Line) -->
+        <!-- 1. Icon & 2. Name & Stats -->
         <div style="display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1; overflow: hidden; white-space: nowrap;">
           <span style="font-size: 1.35rem; line-height: 1; flex-shrink: 0;">${user.avatar || '⚡'}</span>
-          <span style="font-size: 0.9rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: 4px; min-width: 0;">
-            <span style="flex-shrink: 0;">👤</span>
-            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.name || 'Player')}</span>
-          </span>
+          <div style="display: flex; flex-direction: column; min-width: 0; overflow: hidden;">
+            <div style="display: flex; align-items: center; gap: 4px; overflow: hidden;">
+              <span style="font-size: 0.9rem; font-weight: 800; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(user.name || 'Player')}</span>
+              ${user.id === 'usr_1' ? '<span style="font-size: 0.62rem; background: #0284c7; color: #fff; font-weight: 800; padding: 1px 4px; border-radius: 4px;">YOU</span>' : ''}
+              ${isSusp ? '<span style="font-size: 0.62rem; background: #ef4444; color: #fff; font-weight: 800; padding: 1px 4px; border-radius: 4px;">SUSPENDED</span>' : ''}
+            </div>
+            <div style="display: flex; gap: 6px; font-size: 0.72rem; margin-top: 2px;">
+              <span style="color: #38bdf8; font-weight: 800;">🎯 ${Number(user.eventTasks || 0)} Tasks</span>
+              <span style="color: #64748b;">•</span>
+              <span style="color: #fbbf24; font-weight: 800;">🪙 ${Number(user.coins || 0).toLocaleString()}</span>
+              <span style="color: #64748b;">•</span>
+              <span style="color: #facc15; font-weight: 800;">⭐ ${Number(user.stars || 0).toLocaleString()}</span>
+            </div>
+          </div>
         </div>
 
-        <!-- 3. Detail Button & 4. Delete Button (Strictly 1 Line) -->
-        <div style="display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; white-space: nowrap;">
+        <!-- 3. Edit Button & 4. Detail Button & 5. Delete Button -->
+        <div style="display: flex; gap: 0.35rem; align-items: center; flex-shrink: 0; white-space: nowrap;">
+          <!-- Direct Edit Button -->
+          <button type="button" class="btn-card-action" onclick="openEditUserModal('${user.id}')" title="Edit player name, tasks, coins, stars" style="display: inline-flex; align-items: center; gap: 3px; padding: 5px 8px; font-size: 0.72rem; font-weight: 800; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
+            <span>✏️ Edit</span>
+          </button>
+
           <!-- Detail Button -->
-          <button type="button" class="btn-card-action" onclick="openUserDetailModal('${user.id}')" title="View & edit player full details" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.72rem; font-weight: 800; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
+          <button type="button" class="btn-card-action" onclick="openUserDetailModal('${user.id}')" title="View player full details" style="display: inline-flex; align-items: center; gap: 3px; padding: 5px 8px; font-size: 0.72rem; font-weight: 800; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
             <span>🔍 Detail</span>
           </button>
 
           <!-- Direct Delete Button -->
-          <button type="button" class="btn-card-action" onclick="directDeleteUser('${user.id}')" title="Permanently delete player" style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.72rem; font-weight: 800; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
-            <span>🗑️ Delete</span>
+          <button type="button" class="btn-card-action" onclick="directDeleteUser('${user.id}')" title="Permanently delete player" style="display: inline-flex; align-items: center; gap: 3px; padding: 5px 7px; font-size: 0.72rem; font-weight: 800; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 7px; cursor: pointer; white-space: nowrap; flex-shrink: 0;">
+            <span>🗑️</span>
           </button>
         </div>
       </div>
@@ -1037,6 +1096,13 @@ function handleAdminUserSearch(val) {
   renderAdminUsersList();
 }
 
+function setEditUserAvatar(emoji) {
+  const input = document.getElementById('userEditAvatarInput');
+  const preview = document.getElementById('userEditAvatar');
+  if (input) input.value = emoji;
+  if (preview) preview.textContent = emoji;
+}
+
 function openEditUserModal(userId) {
   const user = usersData.find(u => u.id === userId);
   if (!user) return;
@@ -1044,6 +1110,7 @@ function openEditUserModal(userId) {
   const modal = document.getElementById('adminUserModalOverlay');
   if (document.getElementById('userEditId')) document.getElementById('userEditId').value = user.id;
   if (document.getElementById('userEditAvatar')) document.getElementById('userEditAvatar').textContent = user.avatar || '⚡';
+  if (document.getElementById('userEditAvatarInput')) document.getElementById('userEditAvatarInput').value = user.avatar || '⚡';
   if (document.getElementById('userEditNameDisplay')) document.getElementById('userEditNameDisplay').textContent = user.name || 'Player';
   if (document.getElementById('userEditNameInput')) document.getElementById('userEditNameInput').value = user.name || 'Player';
   if (document.getElementById('userEditHandleInput')) document.getElementById('userEditHandleInput').value = user.username || ('@' + (user.name || 'player').toLowerCase().replace(/\s+/g, ''));
@@ -1052,6 +1119,8 @@ function openEditUserModal(userId) {
   if (document.getElementById('userEditLevelSelect')) document.getElementById('userEditLevelSelect').value = user.level || 'LVL 1 • NOVICE';
   if (document.getElementById('userEditCoins')) document.getElementById('userEditCoins').value = user.coins || 0;
   if (document.getElementById('userEditStars')) document.getElementById('userEditStars').value = user.stars || 0;
+  if (document.getElementById('userEditEventTasks')) document.getElementById('userEditEventTasks').value = user.eventTasks || 0;
+  if (document.getElementById('userEditTotalTasks')) document.getElementById('userEditTotalTasks').value = user.totalTasks || 0;
   if (document.getElementById('userEditStatus')) document.getElementById('userEditStatus').value = user.status || 'active';
   if (document.getElementById('userEditIdDisplay')) document.getElementById('userEditIdDisplay').textContent = 'UID: ' + user.id;
 
@@ -1069,6 +1138,56 @@ function handleUserModalBackdropClick(e) {
   }
 }
 
+function openCreateUserModal() {
+  const modal = document.getElementById('adminAddUserModalOverlay');
+  if (document.getElementById('userAddNameInput')) document.getElementById('userAddNameInput').value = '';
+  if (document.getElementById('userAddAvatarInput')) document.getElementById('userAddAvatarInput').value = '🚀';
+  if (document.getElementById('userAddEventTasks')) document.getElementById('userAddEventTasks').value = '10';
+  if (document.getElementById('userAddTotalTasks')) document.getElementById('userAddTotalTasks').value = '20';
+  if (document.getElementById('userAddCoins')) document.getElementById('userAddCoins').value = '1000';
+  if (document.getElementById('userAddStars')) document.getElementById('userAddStars').value = '20';
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeCreateUserModal() {
+  const modal = document.getElementById('adminAddUserModalOverlay');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleSaveCreateUser(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const name = document.getElementById('userAddNameInput')?.value?.trim() || 'New Player';
+  const avatar = document.getElementById('userAddAvatarInput')?.value?.trim() || '🚀';
+  const eventTasks = parseInt(document.getElementById('userAddEventTasks')?.value || '0', 10);
+  const totalTasks = parseInt(document.getElementById('userAddTotalTasks')?.value || '0', 10);
+  const coins = parseInt(document.getElementById('userAddCoins')?.value || '0', 10);
+  const stars = parseInt(document.getElementById('userAddStars')?.value || '0', 10);
+  const level = document.getElementById('userAddLevelSelect')?.value || 'LVL 1 • NOVICE';
+  const role = document.getElementById('userAddRoleSelect')?.value || 'player';
+
+  const newId = 'usr_' + Date.now();
+  const newUser = {
+    id: newId,
+    name,
+    avatar,
+    username: '@' + name.toLowerCase().replace(/\s+/g, ''),
+    email: newId + '@novatasks.io',
+    level,
+    role,
+    coins,
+    stars,
+    eventTasks,
+    totalTasks,
+    status: 'active',
+    joined: 'Today'
+  };
+
+  usersData.push(newUser);
+  saveUsersAndSync();
+  closeCreateUserModal();
+  showToast(`🚀 New contender "${name}" added to Leaderboard & Admin!`);
+}
+
 function handleSaveAdminUserForm(e) {
   if (e && e.preventDefault) e.preventDefault();
   const userId = document.getElementById('userEditId')?.value;
@@ -1079,6 +1198,9 @@ function handleSaveAdminUserForm(e) {
   const level = document.getElementById('userEditLevelSelect')?.value || 'LVL 1 • NOVICE';
   const coins = parseInt(document.getElementById('userEditCoins')?.value || '0', 10);
   const stars = parseInt(document.getElementById('userEditStars')?.value || '0', 10);
+  const eventTasks = parseInt(document.getElementById('userEditEventTasks')?.value || '0', 10);
+  const totalTasks = parseInt(document.getElementById('userEditTotalTasks')?.value || '0', 10);
+  const avatar = document.getElementById('userEditAvatarInput')?.value || document.getElementById('userEditAvatar')?.textContent || '⚡';
   const status = document.getElementById('userEditStatus')?.value || 'active';
 
   const user = usersData.find(u => u.id === userId);
@@ -1090,6 +1212,9 @@ function handleSaveAdminUserForm(e) {
     user.level = level;
     user.coins = coins;
     user.stars = stars;
+    user.eventTasks = eventTasks;
+    user.totalTasks = totalTasks;
+    user.avatar = avatar;
     user.status = status;
 
     // Save directly to Firebase Cloud Firestore
@@ -1100,12 +1225,15 @@ function handleSaveAdminUserForm(e) {
         uid: user.id,
         displayName: user.name,
         name: user.name,
+        avatar: user.avatar,
         username: user.username,
         email: user.email,
         role: user.role,
         level: user.level,
         coins: user.coins,
         stars: user.stars,
+        eventTasks: user.eventTasks,
+        totalTasks: user.totalTasks,
         status: user.status
       }).catch(err => {
         console.warn('Firebase sync warning:', err);
@@ -1116,10 +1244,16 @@ function handleSaveAdminUserForm(e) {
     const currentName = localStorage.getItem('player_username') || 'Player';
     if (user.id === 'usr_1' || user.id === currentUid || user.name === currentName) {
       localStorage.setItem('player_username', name);
+      localStorage.setItem('player_avatar', avatar);
       localStorage.setItem('task_game_coins', coins.toString());
       localStorage.setItem('user_coins', coins.toString());
       localStorage.setItem('task_game_stars', stars.toString());
       localStorage.setItem('user_stars', stars.toString());
+      localStorage.setItem('task_game_event_tasks', eventTasks.toString());
+      localStorage.setItem('task_game_event_tasks_count', eventTasks.toString());
+      localStorage.setItem('task_game_total_tasks', totalTasks.toString());
+      localStorage.setItem('task_game_total_tasks_completed', totalTasks.toString());
+      localStorage.setItem('completed_tasks_count', totalTasks.toString());
       if (typeof window.updateAllDomBalances === 'function') {
         window.updateAllDomBalances(coins, stars);
       }
@@ -1127,9 +1261,11 @@ function handleSaveAdminUserForm(e) {
       updateProfileDisplays();
     }
 
+
+
     saveUsersAndSync();
     closeAdminUserModal();
-    showToast(`Player "${user.name}" updated & synced with Firebase Cloud! ✓`, 3500);
+    showToast(`Player "${user.name}" updated & synced with Leaderboard! ✓`, 3500);
   }
 }
 
@@ -1207,6 +1343,13 @@ function quickAwardAllPlayers(amount) {
 function saveUsersAndSync() {
   localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersData));
   localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+  try {
+    if (syncChannel) {
+      syncChannel.postMessage({ type: 'USERS_UPDATED', users: usersData, timestamp: Date.now() });
+    }
+  } catch (e) { }
+  window.dispatchEvent(new CustomEvent('task_game_users:updated', { detail: usersData }));
+  window.dispatchEvent(new Event('balance:changed'));
   renderAdminUsersList();
 }
 
@@ -1456,6 +1599,12 @@ function startAdminEventTimer() {
     if (elBadge && evt.name) {
       elBadge.textContent = `🏆 ${evt.name.toUpperCase()}`;
     }
+    const elDates = document.getElementById('adminEventDatesInfo');
+    if (elDates && evt.startTime && evt.endTime) {
+      const startStr = new Date(evt.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endStr = new Date(evt.endTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      elDates.textContent = `Active Season: ${startStr} – ${endStr} (90 Days Global Championship)`;
+    }
   }
 
   tick();
@@ -1466,22 +1615,23 @@ function renderAdminEventContenders() {
   const container = document.getElementById('adminEventPlayersList');
   if (!container) return;
 
-  const qualified = usersData.filter(u => Number(u.totalTasks || 0) >= 100).sort((a, b) => (b.eventTasks || 0) - (a.eventTasks || 0));
+  const contenders = [...usersData].sort((a, b) => (Number(b.eventTasks || 0)) - (Number(a.eventTasks || 0)));
 
-  if (qualified.length === 0) {
-    container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.8rem;">No players have reached the 100 tasks gate yet.</div>`;
+  if (contenders.length === 0) {
+    container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.8rem;">No contenders registered yet.</div>`;
     return;
   }
 
-  container.innerHTML = qualified.slice(0, 10).map((u, i) => `
+  container.innerHTML = contenders.map((u, i) => `
     <div style="display: flex; align-items: center; justify-content: space-between; background: #060e24; border: 1px solid rgba(250, 204, 21, 0.2); border-radius: 10px; padding: 0.5rem 0.75rem; margin-bottom: 0.4rem;">
       <div style="display: flex; align-items: center; gap: 0.5rem;">
         <span style="font-weight: 900; color: ${i === 0 ? '#facc15' : i === 1 ? '#94a3b8' : i === 2 ? '#d97706' : '#64748b'}; width: 20px;">#${i + 1}</span>
         <span>${u.avatar || '⚡'}</span>
-        <span style="font-size: 0.82rem; font-weight: 800; color: #ffffff;">${escapeHtml(u.name)}</span>
+        <span style="font-size: 0.82rem; font-weight: 800; color: #ffffff;">${escapeHtml(u.name || 'User ' + (i + 1))}</span>
       </div>
-      <div style="font-size: 0.75rem; font-weight: 800; color: #facc15;">
-        ${u.eventTasks || 0} Event Tasks
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+        <span style="font-size: 0.75rem; font-weight: 800; color: #facc15;">${Number(u.eventTasks || 0)} Event Tasks</span>
+        <span style="font-size: 0.68rem; color: #94a3b8;">${Number(u.totalTasks || 0)} Total Tasks</span>
       </div>
     </div>
   `).join('');
@@ -1901,6 +2051,10 @@ window.toggleTaskActive = toggleTaskActive;
 window.deleteAdminTask = deleteAdminTask;
 window.resetPlayerCooldowns = resetPlayerCooldowns;
 window.handleAdminTaskSearch = handleAdminTaskSearch;
+window.setEditUserAvatar = setEditUserAvatar;
+window.openCreateUserModal = openCreateUserModal;
+window.closeCreateUserModal = closeCreateUserModal;
+window.handleSaveCreateUser = handleSaveCreateUser;
 window.openEditUserModal = openEditUserModal;
 window.closeAdminUserModal = closeAdminUserModal;
 window.handleUserModalBackdropClick = handleUserModalBackdropClick;
@@ -1951,8 +2105,13 @@ function updateAdminLiveDisplays() {
   const userAvatar = document.querySelector('.user-avatar');
   if (userAvatar) userAvatar.textContent = localStorage.getItem('player_avatar') || '👤';
 
+  const currentProfileUsername = localStorage.getItem('player_username') || localStorage.getItem('user_profile_name') || 'Player';
   const userName = document.querySelector('.user-name');
-  if (userName) userName.textContent = localStorage.getItem('player_username') || 'NovaEarner';
+  if (userName) userName.textContent = currentProfileUsername;
+  const headerUserName = document.getElementById('headerUserName');
+  if (headerUserName) headerUserName.textContent = currentProfileUsername;
+  const headerUserAvatar = document.getElementById('headerUserAvatar');
+  if (headerUserAvatar) headerUserAvatar.textContent = localStorage.getItem('player_avatar') || '👤';
 
   const adminCoins = document.getElementById('adminLiveCoins');
   if (adminCoins) adminCoins.textContent = `${currentCoins.toLocaleString()} 🪙`;
@@ -5193,3 +5352,8 @@ window.openUserDetailModal = openUserDetailModal;
 window.closeUserDetailModal = closeUserDetailModal;
 window.handleUserDetailModalBackdropClick = handleUserDetailModalBackdropClick;
 window.directDeleteUser = directDeleteUser;
+
+// Start admin event timer on init
+if (typeof startAdminEventTimer === 'function') {
+  startAdminEventTimer();
+}

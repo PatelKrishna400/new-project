@@ -37,15 +37,13 @@ try {
 let userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
 let userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
 
-// Remove any active 7-hour ad cooldown timer
 const REQUIRED_TASKS = 100;
 function getWalletStats() {
   const tasksCount = Math.max(
     parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10),
     parseInt(localStorage.getItem('task_game_total_tasks') || '0', 10)
   );
-  const adsCount = parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10);
-  return { tasksCount, adsCount };
+  return { tasksCount };
 }
 
 function updateWalletDisplays() {
@@ -79,7 +77,6 @@ function updateWalletDisplays() {
 
 }
 
-// Watch Ad Handler (Instant / No Cooldown - Increment ad count towards 30)
 window.getWalletStats = getWalletStats;
 window.updateWalletDisplays = updateWalletDisplays;
 window.openEligibilityModal = openEligibilityModal;
@@ -288,7 +285,7 @@ function handleConfirmBuy(event) {
   event.preventDefault();
 
   const rsAmount = parseInt(document.getElementById('buyParamRs').value, 10) || 1000;
-  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 100000;
+  const starCost = parseInt(document.getElementById('buyParamStars').value, 10) || 10000;
   const title = document.getElementById('buyParamTitle').value || '₹1,000 Amazon Shopping Voucher';
   const imgPath = document.getElementById('buyParamImg').value || 'assets/amazon_1000.jpg';
 
@@ -552,8 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateWalletDisplays();
   renderWalletOrders();
   window.renderTgTransactionsLedger();
-  // Live 1-second countdown for the 7-hour ad timer
-  setInterval(updateWalletDisplays, 1000);
+    setInterval(updateWalletDisplays, 1000);
 });
 
 // Real-Time Cross-Tab / Cross-Window Sync
@@ -562,9 +558,7 @@ window.addEventListener('storage', (e) => {
     e.key === 'task_game_coins' ||
     e.key === 'task_game_stars' ||
     e.key === 'task_game_total_tasks_completed' ||
-    e.key === 'task_game_ads_watched_count' ||
-    e.key === 'task_game_ad_timer_end' ||
-    e.key === 'task_game_withdrawals' ||
+            e.key === 'task_game_withdrawals' ||
     e.key === 'player_username' ||
     e.key === 'player_avatar'
   ) {

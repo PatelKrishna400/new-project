@@ -2628,3 +2628,49 @@ body {
 h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
   font-family: 'Fredoka', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+
+/* ==========================================================================
+   LEADERBOARD SORTING FILTER BAR
+   ========================================================================== */
+.leaderboard-sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0.85rem 0 0.6rem 0;
+  padding: 0 4px;
+}
+
+.leaderboard-sort-btn {
+  flex: 1;
+  max-width: 125px;
+  padding: 7px 10px;
+  background: rgba(10, 25, 49, 0.7);
+  border: 1.5px solid rgba(56, 189, 248, 0.28);
+  border-radius: 999px;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leaderboard-sort-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.leaderboard-sort-btn.active {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  font-weight: 800;
+}

@@ -16,6 +16,22 @@ const ACTIVITY_STORAGE_KEY = 'task_admin_activities';
 const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
+// Canonical default contenders shared between Admin & Leaderboard (real player only; demo users removed)
+const CANONICAL_TASK_USERS = [
+  { id: 'usr_1', name: 'Player', avatar: '⚡', level: 'LVL 1 • NOVICE', coins: 0, stars: 0, totalTasks: 0, eventTasks: 0, status: 'active', role: 'player', email: 'player@novatasks.io', username: '@player', joined: 'Today' }
+];
+
+const DEMO_USER_IDS = ['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6'];
+const DEMO_USER_NAMES = ['User 2', 'CyberHunter', 'NeonBlaze', 'ShadowNova', 'PixelMaster'];
+
+function isDemoUser(u) {
+  if (!u) return true;
+  if (DEMO_USER_IDS.includes(u.id)) return true;
+  if (DEMO_USER_NAMES.includes(u.name)) return true;
+  if (typeof u.id === 'string' && u.id.startsWith('mock_')) return true;
+  return false;
+}
+
 // Default tasks: zero start (no demo tasks)
 const DEFAULT_TASKS = [];
 
@@ -38,6 +54,28 @@ let withdrawSearchFilter = '';
 let userSearchFilter = '';
 let syncChannel = null;
 
+function loadAllStoredData() {
+  try {
+    const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    let parsedUsers = rawUsers ? JSON.parse(rawUsers) : [];
+    if (Array.isArray(parsedUsers)) {
+      parsedUsers = parsedUsers.filter(u => !isDemoUser(u));
+    }
+    if (!Array.isArray(parsedUsers) || parsedUsers.length === 0) {
+      parsedUsers = JSON.parse(JSON.stringify(CANONICAL_TASK_USERS));
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(parsedUsers));
+    }
+    usersData = parsedUsers;
+  } catch(e) {
+    usersData = JSON.parse(JSON.stringify(CANONICAL_TASK_USERS));
+  }
+
+  try {
+    const rawSessions = localStorage.getItem(LEADERBOARD_SESSIONS_KEY);
+    sessionsData = rawSessions ? JSON.parse(rawSessions) : [];
+  } catch(e) { sessionsData = []; }
+}
+
 // Initialize BroadcastChannel
 try {
   syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
@@ -48,17 +86,6 @@ try {
 } catch (e) {
   console.warn('BroadcastChannel not supported');
 }
-
-// Ads configuration removed);
-    bc.close();
-  } catch (err) {}
-
-  // Open Ad URL
-  window.open(url, '_blank', 'noopener,noreferrer');
-  showAdminNotification('Ad Opened in New Tab', 'Opening ad in new tab...', 'info');
-  renderAdsConfigPage();
-}
-
 
 // ============================================================================
 // 10. EVENTS & LEADERBOARD SESSIONS MANAGEMENT (SESSION-WISE DATA STORE)
@@ -171,7 +198,7 @@ function renderEventsAndSessionsPage() {
 
   // 2. Qualified Contenders (Gate >= 100 tasks)
   const qualifiedContenders = usersData
-    .filter(u => Number(u.totalTasks || 0) >= 100)
+    .filter(u => u && u.status !== 'suspended')
     .sort((a, b) => (Number(b.eventTasks || 0)) - (Number(a.eventTasks || 0)));
 
   const elQualCount = document.getElementById('adminEventQualifiedCount');
@@ -367,7 +394,7 @@ function filterAdminSessionContenders(query) {
 function adminArchiveCurrentSession() {
   const evt = getLeaderboardEventInfo();
   const qualified = usersData
-    .filter(u => Number(u.totalTasks || 0) >= 100)
+    .filter(u => u && u.status !== 'suspended')
     .sort((a, b) => (Number(b.eventTasks || 0)) - (Number(a.eventTasks || 0)));
 
   const sessionNum = evt.seasonNumber || (sessionsData.length + 1);
@@ -610,3 +637,56 @@ function closeDesktopUserDetailModal() {
 
 window.openDesktopUserDetailModal = openDesktopUserDetailModal;
 window.closeDesktopUserDetailModal = closeDesktopUserDetailModal;
+
+function openUserEditModal(userId) {
+  const user = usersData.find(u => u.id === userId);
+  if (!user) return;
+  const modal = document.getElementById('userEditModalOverlay');
+  if (document.getElementById('editUserId')) document.getElementById('editUserId').value = user.id;
+  if (document.getElementById('editUserCoinsInput')) document.getElementById('editUserCoinsInput').value = user.coins || 0;
+  if (document.getElementById('editUserStarsInput')) document.getElementById('editUserStarsInput').value = user.stars || 0;
+  if (document.getElementById('editUserStatusSelect')) document.getElementById('editUserStatusSelect').value = user.status || 'active';
+  if (modal) modal.classList.add('active');
+}
+
+function closeUserEditModal() {
+  const modal = document.getElementById('userEditModalOverlay');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleSaveUserBalance(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const userId = document.getElementById('editUserId')?.value;
+  const coins = parseInt(document.getElementById('editUserCoinsInput')?.value || '0', 10);
+  const stars = parseInt(document.getElementById('editUserStarsInput')?.value || '0', 10);
+  const status = document.getElementById('editUserStatusSelect')?.value || 'active';
+
+  const user = usersData.find(u => u.id === userId);
+  if (user) {
+    user.coins = coins;
+    user.stars = stars;
+    user.status = status;
+    saveUsersAndSync();
+    closeUserEditModal();
+    renderEventsAndSessionsPage();
+    if (typeof showToast === 'function') showToast(`Player "${user.name}" updated!`, 'success');
+  }
+}
+
+function deleteUser(userId) {
+  if (!confirm('Are you sure you want to delete this player?')) return;
+  usersData = usersData.filter(u => u.id !== userId);
+  saveUsersAndSync();
+  renderEventsAndSessionsPage();
+  if (typeof showToast === 'function') showToast('Player removed.', 'info');
+}
+
+window.openUserEditModal = openUserEditModal;
+window.closeUserEditModal = closeUserEditModal;
+window.handleSaveUserBalance = handleSaveUserBalance;
+window.deleteUser = deleteUser;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllStoredData();
+  renderEventsAndSessionsPage();
+});

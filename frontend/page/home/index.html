@@ -61,7 +61,7 @@
         </div>
         <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
           <span class="streak-logo">🔥</span>
-          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
+          <span class="streak-value" id="userStreakDisplay">Day 1</span>
           <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
         </div>
       </div>
@@ -70,56 +70,30 @@
     <!-- Page Content (Tasks) -->
     <main class="page-content">
 
-      <!-- Task Mode Switcher Tabs (Simple Tasks / Premium Tasks) -->
-      <div class="task-category-tabs">
-        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')">
-          <div class="tab-btn-content">
-            <span class="tab-cat-icon">📋</span>
-            <div class="tab-cat-info">
-              <span class="tab-cat-title">Simple Tasks</span>
-              <span class="tab-cat-sub">Standard missions</span>
-            </div>
-          </div>
-          <span class="tab-cat-count" id="simpleTasksCount">0</span>
-        </button>
-
-        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')">
-          <div class="tab-btn-content">
-            <span class="tab-cat-icon">💎</span>
-            <div class="tab-cat-info">
-              <span class="tab-cat-title">Premium Tasks</span>
-              <span class="tab-cat-sub">VIP High Bounty</span>
-            </div>
-          </div>
-          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
-        </button>
-      </div>
-
-      <!-- Player Level & Progression Card (Unified Level Card & 6 Level Tabs) -->
       <!-- GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000) -->
       <div class="task-pass-widget-wrap">
         <div id="forgeCard" class="forge-card">
 
-          <!-- Top-Left Floating Yellow Pill (Tasks Completed in Current 10-Level Cycle) -->
+          <!-- Top-Left Floating Cyber Gold Pill (Tasks Completed in Current 10-Level Cycle) -->
           <div class="top-pill">
             <span id="cycleTaskTag" class="game-outline-sm">0/10</span>
           </div>
 
-          <!-- Top Row: TASK PASS Title & Next Milestone Preview -->
+          <!-- Top Row: Title & Next Milestone Preview -->
           <div class="task-pass-header-row">
-            <span class="task-pass-title game-outline">TASK PASS</span>
-            <span id="nextMilestoneLabel" class="task-pass-milestone game-outline-sm">Lvl. 10: 100 ⭐</span>
+            <span class="game-outline task-pass-title">TASK PASS</span>
+            <span id="nextMilestoneLabel" class="task-pass-milestone">Lvl. 10: 100 ⭐</span>
           </div>
 
-          <!-- Level Row: Yellow Level Box + Blue 0/1 Bar + Prize Bag Icon -->
+          <!-- Bottom Row: Cyber Level Shield + Cyber Progress Bar + Prize Bag Icon -->
           <div class="task-pass-track-row">
 
-            <!-- Left Yellow Level Square Badge -->
+            <!-- Left Cyber Level Shield Badge -->
             <div id="levelBadge" class="level-badge">
               <span id="levelNumText" class="game-outline">1</span>
             </div>
 
-            <!-- Center Blue Progress Bar (Dynamic Target Tasks) -->
+            <!-- Center Neon Cyber Progress Bar (Dynamic Target Tasks) -->
             <div class="game-progress-track">
               <div id="taskProgressBar" class="game-progress-fill" style="width: 0%;"></div>
               <span id="taskCountText" class="game-outline">0/1</span>
@@ -128,7 +102,29 @@
             <!-- Right Reward Bag / Ticket / Star Icon + Amount -->
             <div id="rewardPreviewBox" class="reward-preview-box">
               <div id="rewardBagSvg" class="reward-bag-svg">
-                <!-- Dynamic SVG injected by JS (Coin Sack / Ticket Stack / Star) -->
+                <svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>
               </div>
               <span id="rewardAmountText" class="game-outline">100</span>
             </div>
@@ -136,6 +132,35 @@
           </div>
         </div>
       </div>
+
+
+      <!-- Task Mode Switcher Tabs (Coin Tasks / Star Tasks) -->
+      <div class="task-category-tabs">
+        <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')" title="Coin Tasks (Standard missions)">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">🪙</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Coin Tasks</span>
+              <span class="tab-cat-sub">Standard missions</span>
+            </div>
+          </div>
+          <span class="tab-cat-count" id="simpleTasksCount">0</span>
+        </button>
+
+        <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')" title="Star Tasks (VIP High Bounty)">
+          <div class="tab-btn-content">
+            <span class="tab-cat-icon">⭐</span>
+            <div class="tab-cat-info">
+              <span class="tab-cat-title">Star Tasks</span>
+              <span class="tab-cat-sub">VIP High Bounty</span>
+            </div>
+          </div>
+          <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
+        </button>
+      </div>
+
+
+
 
       <!-- Tasks List -->
       <div class="tasks-list" id="tasksList">

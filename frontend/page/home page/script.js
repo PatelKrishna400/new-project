@@ -13,38 +13,91 @@ function getTargetForLevel(level) {
 
 // Custom Game SVG Icons matching the reference Coin Sack / Ticket / Star style
 const TASK_PASS_SVGS = {
-  coinBag: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Gold Coin Sack -->
-      <path d="M22 14 C20 8, 44 8, 42 14 L38 20 L26 20 Z" fill="#d9822b" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
-      <path d="M18 22 C10 30, 8 48, 18 54 C26 58, 38 58, 46 54 C56 48, 54 30, 46 22 Z" fill="#e59435" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
-      <rect x="23" y="18" width="18" height="5" rx="2.5" fill="#9c4a1a" stroke="#111318" stroke-width="3"/>
-      <!-- Gold Coins peeking & in front -->
-      <circle cx="32" cy="12" r="6" fill="#ffd93b" stroke="#111318" stroke-width="3"/>
-      <circle cx="28" cy="39" r="9.5" fill="#ffd93b" stroke="#111318" stroke-width="3.2"/>
-      <circle cx="28" cy="39" r="5.5" fill="#f2a900"/>
-      <circle cx="42" cy="45" r="8" fill="#ffd93b" stroke="#111318" stroke-width="3.2"/>
-    </svg>
-  `,
-  ticket: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Chunky Red/Gold Game Ticket -->
-      <g transform="rotate(-10 32 32)">
-        <path d="M10 20 H54 V28 A5 5 0 0 0 54 38 V46 H10 V38 A5 5 0 0 0 10 28 Z" fill="#ff2a37" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
-        <rect x="17" y="25" width="30" height="16" rx="3" fill="#ffe14d" stroke="#111318" stroke-width="2.8"/>
-        <polygon points="32,27 34,31 38,31 35,34 36,38 32,35.5 28,38 29,34 26,31 30,31" fill="#ff2a37"/>
-      </g>
-    </svg>
-  `,
-  star: `
-    <svg viewBox="0 0 64 64" class="w-14 h-14" style="width: 52px; height: 52px;">
-      <!-- Chunky Golden Game Star -->
-      <polygon points="32,6 40,21 57,23.5 44.5,35.5 47.5,52.5 32,44.5 16.5,52.5 19.5,35.5 7,23.5 24,21"
-        fill="#ffe033" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
-      <polygon points="32,12 37.5,23 49,24.5 40.5,33 42.5,44.5 32,39 21.5,44.5 23.5,33 15,24.5 26.5,23"
-        fill="#fff380"/>
-    </svg>
-  `
+  coin: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>`,
+  coinBag: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff59d"/>
+      <stop offset="35%" stop-color="#facc15"/>
+      <stop offset="70%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </radialGradient>
+    <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#854d0e"/>
+    </linearGradient>
+    <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fef9c3"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
+  <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+  <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+</svg>`,
+  ticket: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <linearGradient id="ticketGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff4d4d"/>
+      <stop offset="45%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="ticketInnerGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-8 32 32)">
+    <path d="M10 18 H54 V27 A5 5 0 0 0 54 37 V46 H10 V37 A5 5 0 0 0 10 27 Z" fill="url(#ticketGrad)" stroke="#111318" stroke-width="3.5" stroke-linejoin="round"/>
+    <rect x="18" y="24" width="28" height="16" rx="4" fill="url(#ticketInnerGrad)" stroke="#111318" stroke-width="2.5"/>
+    <polygon points="32,26 34,30.5 38.5,31 35,34 36,38.5 32,36 28,38.5 29,34 25.5,31 30,30.5" fill="#dc2626"/>
+    <path d="M14 21 H50" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.65"/>
+  </g>
+</svg>`,
+  star: `<svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
+  <defs>
+    <radialGradient id="starGlow" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="25%" stop-color="#fef08a"/>
+      <stop offset="60%" stop-color="#facc15"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+    <linearGradient id="starShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+  </defs>
+  <polygon points="32,6 40,22 57,24 44.5,36 47.5,53 32,44.5 16.5,53 19.5,36 7,24 24,22"
+    fill="url(#starGlow)" stroke="#111318" stroke-width="3.8" stroke-linejoin="round"/>
+  <polygon points="32,13 37.5,23.5 48.5,25 40,33 42,44.5 32,39 22,44.5 24,33 15.5,25 26.5,23.5"
+    fill="#fef08a" stroke="#ca8a04" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="32,18 35,25 42,26 36.5,31 38,38 32,34.5 26,38 27.5,31 22,26 29,25"
+    fill="#ffffff" opacity="0.9"/>
+</svg>`
 };
 
 // Determine exact reward for a given level:
@@ -79,7 +132,7 @@ function getLevelReward(level) {
     return {
       type: 'coins',
       amount: 100,
-      iconSvg: TASK_PASS_SVGS.coinBag,
+      iconSvg: TASK_PASS_SVGS.coin,
       tag: `Level ${level} (Odd) • Target: ${target} ${taskWord}`,
       title: `Complete ${target} ${taskWord} to Win 100 Coins 🪙`,
       popText: '+100 COINS 🪙'
@@ -132,10 +185,22 @@ function updateTaskPassUI() {
   if (taskCountText) taskCountText.textContent = `${currentLevelTasks}/${targetTasks}`;
 
   // Right Reward Bag Icon & Number
+  // Right Reward Bag Icon & Number
   if (rewardBagSvg) rewardBagSvg.innerHTML = reward.iconSvg;
   if (rewardAmountText) rewardAmountText.textContent = reward.amount;
+
+
 }
 window.updateTaskPassUI = updateTaskPassUI;
+
+// Initialize Task Pass UI immediately on load and DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => { if (typeof updateTaskPassUI === 'function') updateTaskPassUI(); });
+} else {
+  if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
+}
+window.addEventListener('load', () => { if (typeof updateTaskPassUI === 'function') updateTaskPassUI(); });
+
 
 // Advance Task Pass Progress upon verifying/claiming a task
 function advanceTaskPassProgress(clickX, clickY) {
@@ -221,6 +286,9 @@ function advanceTaskPassProgress(clickX, clickY) {
   } catch (e) {}
 }
 window.advanceTaskPassProgress = advanceTaskPassProgress;
+
+
+
 
 
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
@@ -731,6 +799,9 @@ window.switchTaskTab = function(tab) {
   if (tab === 'premium') {
     if (tabSimple) tabSimple.classList.remove('active');
     if (tabPremium) tabPremium.classList.add('active');
+  } else if (tab === 'all') {
+    if (tabSimple) tabSimple.classList.add('active');
+    if (tabPremium) tabPremium.classList.add('active');
   } else {
     if (tabPremium) tabPremium.classList.remove('active');
     if (tabSimple) tabSimple.classList.add('active');
@@ -899,6 +970,8 @@ function getPlayerLevelInfo() {
 window.getPlayerLevelInfo = getPlayerLevelInfo;
 
 function getSelectedLevelTab() {
+  const levelCard = document.getElementById('playerLevelCard');
+  if (!levelCard) return 6; // Level tab removed: default to All tasks (level 6)
   const pInfo = getPlayerLevelInfo();
   let stored = parseInt(localStorage.getItem('task_selected_level_tab') || '0', 10);
   if (!stored || stored < 1 || stored > 6) {
@@ -918,6 +991,7 @@ window.switchLevelTab = switchLevelTab;
 
 // Dynamic Task Rendering with Level Filtering & Open / Verify & Simple/Premium Filtering & Daily VIP Task Limits
 function renderTasks() {
+  if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
   const container = document.getElementById('tasksList');
   if (!container) return;
 
@@ -925,22 +999,7 @@ function renderTasks() {
   const playerInfo = getPlayerLevelInfo();
   const selectedLevel = getSelectedLevelTab();
 
-  // Update Player Level Card UI
-  const lvlNumEl = document.getElementById('userLevelNum');
-  const lvlNameEl = document.getElementById('userLevelName');
-  const lvlIconEl = document.getElementById('userLevelBadgeIcon');
-  const lvlSubEl = document.getElementById('userLevelSub');
-  const lvlChipEl = document.getElementById('userTierTaskCount');
-  const lvlFillEl = document.getElementById('userLevelProgressFill');
-  const rankDisplay = document.getElementById('userRankDisplay');
-
-  if (lvlNumEl) lvlNumEl.textContent = `LEVEL ${playerInfo.level}`;
-  if (lvlNameEl) lvlNameEl.textContent = playerInfo.title;
-  if (lvlIconEl) lvlIconEl.textContent = playerInfo.icon;
-  if (lvlFillEl) lvlFillEl.style.width = `${playerInfo.progressPercent}%`;
-  if (lvlSubEl) lvlSubEl.textContent = playerInfo.levelSubText;
-  if (lvlChipEl) lvlChipEl.style.display = 'none';
-  if (rankDisplay) rankDisplay.textContent = `LVL ${playerInfo.level} • RANK #1`;
+  // Player level progression is powered by Task Pass
 
   // Ensure tab buttons match activeTab
   const tabSimple = document.getElementById('tabSimpleTasks');
@@ -975,142 +1034,33 @@ function renderTasks() {
   const isTaskShop = (t) => t.category === 'shop_task' || t.isShopTask || (t.title && t.title.toLowerCase().includes('shop task'));
   const isTaskArticle = (t) => t.category === 'article' || t.isArticleTask || (t.title && (t.title.toLowerCase().includes('article') || t.title.toLowerCase().includes('paragraph') || t.title.toLowerCase().includes('read')));
 
-  // Separate Simple Tasks vs Premium Tasks
-  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || t.category === 'article' || (!t.category && !isTaskShop(t)));
-  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || isTaskShop(t));
+  // Separate Coin Tasks vs Star Tasks
+  const simpleTasks = activeTasks.filter(t => t.category === 'simple' || t.category === 'coin' || t.category === 'article' || (!t.category && !isTaskShop(t)));
+  const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || t.category === 'star' || isTaskShop(t));
 
   // Category switcher tab badges: Show total available tasks for each category
   const simpleBadge = document.getElementById('simpleTasksCount');
   const premiumBadge = document.getElementById('premiumTasksCount');
+  const totalBadge = document.getElementById('totalTasksCountBadge');
   if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
   if (premiumBadge) premiumBadge.textContent = allPremiumTasks.length;
+  if (totalBadge) totalBadge.textContent = activeTasks.length;
 
-  // Active mode tasks collection (Simple vs Premium)
-  const currentModeTasks = (activeTab === 'premium') ? allPremiumTasks : simpleTasks;
-
-  // Update Level Tabs Buttons (1 to 6) with level-specific task count for current mode
-  for (let i = 1; i <= 6; i++) {
-    const tabBtn = document.getElementById(`levelTab${i}`);
-    const lockIcon = document.getElementById(`lvlLock${i}`);
-    const nameEl = tabBtn ? tabBtn.querySelector('.lvl-tab-name') : null;
-
-    if (tabBtn) {
-      if (i === selectedLevel) {
-        tabBtn.classList.add('active');
-      } else {
-        tabBtn.classList.remove('active');
-      }
-      const unlocked = isLevelUnlocked(i);
-      if (!unlocked) {
-        tabBtn.classList.add('locked');
-        if (lockIcon) lockIcon.style.display = 'inline';
-      } else {
-        tabBtn.classList.remove('locked');
-        if (lockIcon) lockIcon.style.display = 'none';
-      }
-
-      // Dynamic task count per level for the active mode (Simple vs Premium)
-      if (nameEl) {
-        if (i === 6) {
-          nameEl.textContent = `All (${currentModeTasks.length})`;
-        } else {
-          const count = currentModeTasks.filter(t => parseInt(t.level || 1, 10) === i).length;
-          nameEl.textContent = `${count} ${count === 1 ? 'Task' : 'Tasks'}`;
-        }
-      }
-    }
+  // Active mode tasks collection (Coin vs Star vs Both)
+  let currentModeTasks = simpleTasks;
+  if (activeTab === 'premium') {
+    currentModeTasks = allPremiumTasks;
+  } else if (activeTab === 'all') {
+    currentModeTasks = activeTasks;
   }
 
-  // Filter tasks by selected level for active mode:
-  // Level 6: shows all tasks for current mode sorted level-wise!
-  // Level 1-5: shows only tasks for that specific level!
+  // Active tasks sorted by level then recency
   const currentList = [...currentModeTasks].sort((a, b) => {
     const lvlA = parseInt(a.level || 1, 10);
     const lvlB = parseInt(b.level || 1, 10);
     if (lvlA !== lvlB) return lvlA - lvlB;
     return (b.createdAt || 0) - (a.createdAt || 0);
   });
-
-  // 1. If player is viewing Level 2 and Level 2 is not unlocked yet with 20 Diamonds
-  if (selectedLevel === 2 && !isLevel2Unlocked()) {
-    const userDiamonds = Math.max(0, parseInt(localStorage.getItem('task_user_diamonds') || '0', 10));
-    const diamondPercent = Math.min(100, Math.floor((userDiamonds / 20) * 100));
-    const canUnlock = userDiamonds >= 20;
-
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border: 2px solid rgba(56, 189, 248, 0.45); background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%); padding: 2.2rem 1.4rem; text-align: center; border-radius: 20px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);">
-        <div style="font-size: 3.5rem; margin-bottom: 0.5rem; filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.6));">💎</div>
-        <div style="font-size: 1.35rem; font-weight: 900; color: #ffffff; margin-bottom: 0.35rem;">Unlock Task Level 2</div>
-        <div style="font-size: 0.82rem; color: #94a3b8; max-width: 330px; margin: 0 auto 1.25rem; line-height: 1.45;">
-          Use <b style="color: #38bdf8;">20 Diamonds</b> to unlock Level 2 missions! Win <b>1 Diamond</b> for every 10 tasks you complete.
-        </div>
-
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.9rem 1.2rem; max-width: 320px; margin: 0 auto 1.35rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
-            <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 700;">Diamond Balance</span>
-            <span style="font-size: 0.95rem; font-weight: 900; color: #38bdf8;">${userDiamonds} / 20 💎</span>
-          </div>
-          <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; overflow: hidden;">
-            <div style="height: 100%; width: ${diamondPercent}%; background: linear-gradient(90deg, #38bdf8 0%, #818cf8 100%); border-radius: 999px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);"></div>
-          </div>
-          <div style="font-size: 0.68rem; color: #64748b; margin-top: 0.45rem; text-align: left;">
-            ${canUnlock ? '✨ You have enough diamonds to unlock Level 2!' : `Complete ${(20 - userDiamonds) * 10} more tasks to earn ${(20 - userDiamonds)} more diamonds.`}
-          </div>
-        </div>
-
-        ${canUnlock ? `
-          <button type="button" class="btn-claim" onclick="unlockLevel2WithDiamonds()" style="background: linear-gradient(135deg, #0284c7 0%, #3b82f6 50%, #8b5cf6 100%); color: #ffffff; font-weight: 900; font-size: 0.95rem; padding: 0.8rem 1.8rem; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: scale(1.02); transition: all 0.2s ease;">
-            🔓 Unlock Level 2 (Use 20 💎)
-          </button>
-        ` : `
-          <div style="display: flex; flex-direction: column; gap: 0.65rem; align-items: center;">
-            <button type="button" class="btn-claim" disabled style="background: #334155; color: #64748b; font-weight: 800; font-size: 0.85rem; padding: 0.75rem 1.5rem; border-radius: 12px; border: 1px solid #475569; cursor: not-allowed; opacity: 0.85;">
-              🔒 20 Diamonds Required (${userDiamonds}/20 💎)
-            </button>
-            <button type="button" onclick="switchLevelTab(1)" style="background: transparent; border: none; color: #38bdf8; font-size: 0.78rem; font-weight: 800; text-decoration: underline; cursor: pointer;">
-              ← Complete Level 1 Tasks to Earn Diamonds
-            </button>
-          </div>
-        `}
-      </div>
-    `;
-    return;
-  }
-
-  // 2. If player selects a level beyond Level 1 when Level 2 is not unlocked
-  if (selectedLevel > 1 && !isLevel2Unlocked()) {
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border-color: rgba(56, 189, 248, 0.45); padding: 2.2rem 1.25rem;">
-        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
-        <div style="color: #38bdf8; font-size: 1.18rem; font-weight: 900;">Unlock Level 2 First</div>
-        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
-          You must unlock Level 2 using 20 Diamonds before accessing Level ${selectedLevel} missions!
-        </div>
-        <button type="button" class="btn-claim" onclick="switchLevelTab(2)" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-          View Level 2 Unlock (💎 20 Diamonds)
-        </button>
-      </div>
-    `;
-    return;
-  }
-
-  // 3. If player selects a higher level that is locked
-  if (selectedLevel > playerInfo.level) {
-    const tasksNeeded = (selectedLevel - 1) * 200 - playerInfo.totalCompleted;
-    container.innerHTML = `
-      <div class="empty-tasks-box" style="border-color: rgba(250, 204, 21, 0.45); padding: 2.2rem 1.25rem;">
-        <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">🔒</div>
-        <div style="color: #facc15; font-size: 1.18rem; font-weight: 900;">Level ${selectedLevel} Locked</div>
-        <div style="font-size: 0.78rem; color: #94a3b8; margin: 0.6rem auto 1.3rem; max-width: 320px; line-height: 1.45;">
-          Complete <b>${tasksNeeded}</b> more tasks to reach Level ${selectedLevel} and unlock these high-tier missions! Currently at Level ${playerInfo.level} (${playerInfo.totalCompleted} tasks completed).
-        </div>
-        <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; font-weight: 800; padding: 0.6rem 1.5rem; border-radius: 12px; cursor: pointer; border: none; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
-          Back to Level ${playerInfo.level}
-        </button>
-      </div>
-    `;
-    return;
-  }
 
   let statusBarHtml = '';
   if (activeTab === 'premium') {
@@ -1623,7 +1573,7 @@ window.submitTaskVerification = function(event) {
     localStorage.setItem('task_user_diamonds', curDiamonds.toString());
     localStorage.setItem('user_diamonds', curDiamonds.toString());
 
-    diamondWonMsg = `\n💎 +${diamondsWon} Diamond Won! (Total: ${curDiamonds} 💎 • 20 💎 unlocks Level 2)`;
+    diamondWonMsg = `\n💎 +${diamondsWon} Diamond Won! (Total: ${curDiamonds} 💎)`;
 
     try {
       const bc = new BroadcastChannel('nova_task_sync');
@@ -1643,7 +1593,7 @@ window.submitTaskVerification = function(event) {
 
   if (diamondWonMsg) {
     setTimeout(() => {
-      alert(`🎉 10 Tasks Milestone Reached!\n\n${diamondWonMsg.trim()}\n\nCollect 20 Diamonds to unlock Task Level 2!`);
+      alert(`🎉 10 Tasks Milestone Reached!\n\n${diamondWonMsg.trim()}`);
     }, 400);
   } else if (shopBonusMsg) {
     alert(`🎉 Mission Verified!\n\nYou earned +${rewardAmount} 🪙 Coins!${shopBonusMsg}\nYou can now purchase more items in the Shop!`);

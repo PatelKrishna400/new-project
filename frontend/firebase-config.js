@@ -2365,10 +2365,7 @@ try {
     }
   });
 
-  // 4. Start ad config real-time listener
-  listenToCloudAdConfig();
-
-  // 5. Update DOM with initial balances
+    // 5. Update DOM with initial balances
   updateAllDomBalances();
 
   // 6. Cross-tab and real-time balance cloud sync listener

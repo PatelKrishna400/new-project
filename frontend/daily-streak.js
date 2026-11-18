@@ -93,23 +93,28 @@
       .streak-pill {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(249, 115, 22, 0.18) 100%);
-        border: 1px solid rgba(249, 115, 22, 0.45);
-        padding: 0.28rem 0.55rem;
+        gap: 0.35rem;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(249, 115, 22, 0.22) 100%);
+        border: 1.5px solid #f97316;
         border-radius: 999px;
+        padding: 0.28rem 0.65rem;
         font-size: 0.95rem;
         cursor: pointer;
         transition: all 0.2s ease;
         position: relative;
         user-select: none;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.28);
         line-height: 1;
       }
       .streak-pill .streak-value,
       .streak-pill #userStreakDisplay,
       .streak-pill .user-streak-display {
-        display: none !important;
+        display: inline-block !important;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #fed7aa;
+        letter-spacing: 0.02em;
+        line-height: 1;
       }
       .streak-pill:hover {
         border-color: #f97316;

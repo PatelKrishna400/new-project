@@ -12,11 +12,42 @@ const EVENT_TASKS_KEY = 'task_game_event_tasks_count';
 const TOTAL_TASKS_KEY = 'task_game_total_tasks_completed';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-// Clean zero start - No mock users in leaderboard
-const DEFAULT_USERS_POOL = [];
+// Canonical default user (real player only; all demo users removed)
+const CANONICAL_TASK_USERS = [
+  { id: 'usr_1', name: 'Player', avatar: '⚡', level: 'LVL 1 • NOVICE', coins: 0, stars: 0, totalTasks: 0, eventTasks: 0, status: 'active', role: 'player', email: 'player@novatasks.io', username: '@player', joined: 'Today' }
+];
+
+const DEFAULT_USERS_POOL = CANONICAL_TASK_USERS;
+
+// Demo users blacklist to purge mock contenders
+const DEMO_USER_IDS = ['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6'];
+const DEMO_USER_NAMES = ['User 2', 'CyberHunter', 'NeonBlaze', 'ShadowNova', 'PixelMaster'];
+
+function isDemoUser(u) {
+  if (!u) return true;
+  if (DEMO_USER_IDS.includes(u.id)) return true;
+  if (DEMO_USER_NAMES.includes(u.name)) return true;
+  if (typeof u.id === 'string' && u.id.startsWith('mock_')) return true;
+  return false;
+}
 
 // Zero-start sanitizer: Purge all mock demo users, artificial balances, and start from 0
 try {
+  // Purge any stored demo users immediately
+  const rawUsersInit = localStorage.getItem(USERS_STORAGE_KEY);
+  if (rawUsersInit) {
+    const parsedInit = JSON.parse(rawUsersInit);
+    if (Array.isArray(parsedInit)) {
+      const cleaned = parsedInit.filter(u => !isDemoUser(u));
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(cleaned));
+    }
+  }
+  localStorage.removeItem('user_2_name');
+  localStorage.removeItem('user_2_coins');
+  localStorage.removeItem('user_2_stars');
+  localStorage.removeItem('user_2_event_tasks');
+  localStorage.removeItem('user_2_total_tasks');
+
   if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
     if (!localStorage.getItem('task_game_coins')) localStorage.setItem('task_game_coins', '0');
     if (!localStorage.getItem('task_game_stars')) localStorage.setItem('task_game_stars', '0');
@@ -52,11 +83,12 @@ try {
   }
 } catch (e) {}
 
-// Clear legacy demo users and dummy pools if present
+// Ensure users storage is valid array
 try {
   const rawUsers = localStorage.getItem(USERS_STORAGE_KEY);
-  if (rawUsers && (rawUsers.includes('Vortex') || rawUsers.includes('Cyber') || rawUsers.includes('42850') || rawUsers.includes('38120') || rawUsers.includes('usr_2') || rawUsers.includes('ShadowTyper') || rawUsers.includes('Alex_Gamer') || rawUsers.includes('NeonBlaze'))) {
-    localStorage.setItem(USERS_STORAGE_KEY, '[]');
+  if (rawUsers) {
+    const parsed = JSON.parse(rawUsers);
+    if (!Array.isArray(parsed)) localStorage.setItem(USERS_STORAGE_KEY, '[]');
   }
 } catch (e) { }
 
@@ -562,7 +594,29 @@ function showToastNotification(msg) {
  *   in the active leaderboard ranks until they reach 100 tasks.
  * - During active events, ranking is sorted by eventTasks (descending), then coins.
  */
-function getActiveUsersList() {
+let currentSortMode = 'tasks'; // 'tasks' | 'name' | 'coins'
+window.currentSortMode = currentSortMode;
+
+function setLeaderboardSort(mode) {
+  currentSortMode = mode;
+  window.currentSortMode = mode;
+  if (typeof LeaderboardAudio !== 'undefined' && LeaderboardAudio.playTabSwitch) {
+    LeaderboardAudio.playTabSwitch();
+  }
+
+  const btnTasks = document.getElementById('sortBtnTasks');
+  const btnName = document.getElementById('sortBtnName');
+  const btnCoins = document.getElementById('sortBtnCoins');
+
+  if (btnTasks) btnTasks.classList.toggle('active', mode === 'tasks');
+  if (btnName) btnName.classList.toggle('active', mode === 'name');
+  if (btnCoins) btnCoins.classList.toggle('active', mode === 'coins');
+
+  renderRealLeaderboard();
+}
+window.setLeaderboardSort = setLeaderboardSort;
+
+function getActiveUsersList(sortMode = currentSortMode) {
   userCoins = parseInt(localStorage.getItem('task_game_coins') || '0', 10);
   userStars = parseInt(localStorage.getItem('task_game_stars') || '0', 10);
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
@@ -577,19 +631,24 @@ function getActiveUsersList() {
   } catch (e) {
     rawUsers = null;
   }
-
   let users = [];
   if (Array.isArray(rawUsers) && rawUsers.length > 0) {
-    // Purge any mock/demo users from storage
-    users = rawUsers.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6', 'usr_7', 'usr_8', 'usr_9', 'usr_10', 'usr_11', 'usr_12', 'usr_13', 'usr_14', 'usr_15', 'usr_16', 'usr_17', 'usr_18', 'usr_19', 'usr_20', 'usr_21'].includes(u.id) && u.name !== 'VortexTyper' && u.name !== 'CyberKey' && u.name !== 'ShadowTyper' && u.name !== 'Alex_Gamer' && u.name !== 'NeonBlaze' && u.name !== 'Phoenix99' && u.name !== 'QuantumCoder' && u.name !== 'StarHunter' && u.name !== 'HyperStrike' && u.name !== 'VortexPilot' && u.name !== 'LunaBlade');
+    users = rawUsers.filter(u => !isDemoUser(u));
   } else {
-    users = [];
+    users = JSON.parse(JSON.stringify(CANONICAL_TASK_USERS));
   }
+
+  // Ensure canonical primary user exists (demo users excluded)
+  CANONICAL_TASK_USERS.forEach(d => {
+    if (!users.some(u => u.id === d.id)) {
+      users.push({ ...d });
+    }
+  });
 
   const myName = localStorage.getItem('player_username') || 'Player';
   const myAvatar = localStorage.getItem('player_avatar') || '⚡';
 
-  // Find or manage current player entry
+  // 1. Ensure User 1 (Current Active Player)
   let primaryUser = users.find(u => u.id === 'usr_1' || u.name === myName);
   if (!primaryUser) {
     primaryUser = {
@@ -606,26 +665,46 @@ function getActiveUsersList() {
     };
     users.unshift(primaryUser);
   } else {
-    primaryUser.name = myName;
-    primaryUser.avatar = myAvatar;
-    primaryUser.coins = userCoins;
-    primaryUser.stars = userStars;
-    primaryUser.totalTasks = userTotalTasks;
-    primaryUser.eventTasks = userEventTasks;
+    if (myName && myName !== 'Player') primaryUser.name = myName;
+    if (myAvatar && myAvatar !== '⚡') primaryUser.avatar = myAvatar;
+    if (userCoins > 0 && userCoins !== primaryUser.coins) primaryUser.coins = userCoins;
+    if (userStars > 0 && userStars !== primaryUser.stars) primaryUser.stars = userStars;
+    if (userTotalTasks > 0 && userTotalTasks !== primaryUser.totalTasks) primaryUser.totalTasks = userTotalTasks;
+    if (userEventTasks > 0 && userEventTasks !== primaryUser.eventTasks) primaryUser.eventTasks = userEventTasks;
   }
 
-  // Active players start directly from 0 tasks
-  let activeOnly = users.filter(u => u.status !== 'suspended');
+  // Persist combined users back to storage
+  try {
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  } catch (e) {}
+
+  let activeOnly = users.filter(u => u && u.status !== 'suspended');
 
   // SORTING:
-  // Rank by event tasks completed (primary), then coins (secondary), then stars (tertiary)
-  activeOnly.sort((a, b) => {
-    const tasksDiff = Number(b.eventTasks || 0) - Number(a.eventTasks || 0);
-    if (tasksDiff !== 0) return tasksDiff;
-    const coinsDiff = Number(b.coins || 0) - Number(a.coins || 0);
-    if (coinsDiff !== 0) return coinsDiff;
-    return Number(b.stars || 0) - Number(a.stars || 0);
-  });
+  if (sortMode === 'name') {
+    // Alphabetical sort by user name (A-Z)
+    activeOnly.sort((a, b) => {
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  } else if (sortMode === 'coins') {
+    // Sort by coins descending
+    activeOnly.sort((a, b) => {
+      const coinsDiff = Number(b.coins || 0) - Number(a.coins || 0);
+      if (coinsDiff !== 0) return coinsDiff;
+      return Number(b.eventTasks || 0) - Number(a.eventTasks || 0);
+    });
+  } else {
+    // Task-wise sort (default): Rank by event tasks completed (primary), then total tasks, then coins
+    activeOnly.sort((a, b) => {
+      const eventDiff = Number(b.eventTasks || 0) - Number(a.eventTasks || 0);
+      if (eventDiff !== 0) return eventDiff;
+      const totalDiff = Number(b.totalTasks || 0) - Number(a.totalTasks || 0);
+      if (totalDiff !== 0) return totalDiff;
+      return Number(b.coins || 0) - Number(a.coins || 0);
+    });
+  }
 
   return activeOnly;
 }
@@ -639,9 +718,19 @@ function getActiveUsersList() {
  */
 function renderRealLeaderboard() {
   updateSeasonTabButton();
+  const ranksCountTag = document.getElementById('ranksCountTag');
+  if (ranksCountTag) {
+    if (currentSortMode === 'name') {
+      ranksCountTag.textContent = 'Alphabetical (Name Wise A-Z)';
+    } else if (currentSortMode === 'coins') {
+      ranksCountTag.textContent = 'Ranks #4 – #20 (Coins Wise)';
+    } else {
+      ranksCountTag.textContent = 'Ranks #4 – #20 (Task Wise)';
+    }
+  }
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
   const userEventTasks = parseInt(localStorage.getItem(EVENT_TASKS_KEY) || '0', 10);
-  isUserQualified = userTotalTasks >= 100;
+  isUserQualified = true;
 
   // Header coin & star display
   const topCoins = document.getElementById('leaderboardCoinsTop');
@@ -674,7 +763,7 @@ function renderRealLeaderboard() {
   currentRanksList = users;
 
   const myPlayerName = localStorage.getItem('player_username') || 'Player';
-  const myIndex = isUserQualified ? users.findIndex(u => u.id === 'usr_1' || u.name === myPlayerName) : -1;
+  const myIndex = users.findIndex(u => u.id === 'usr_1' || u.name === myPlayerName);
   myCurrentRank = myIndex >= 0 ? myIndex + 1 : 0;
 
   // 4. RENDER TOP 3 PODIUM
@@ -708,8 +797,10 @@ function renderRealLeaderboard() {
         const youBadge = isMe ? `<span class="row-you-pill">YOU</span>` : '';
         const rowId = isMe ? 'id="myLeaderboardRow"' : '';
 
-        const statsInfo = `${Number(u.totalTasks || 0)} Total Web Tasks`;
-        const taskBadge = `<span class="row-task-pill">${Number(u.eventTasks || 0)} 🎯 Season</span>`;
+        const taskCount = Number(u.eventTasks || 0);
+        const totalCount = Number(u.totalTasks || 0);
+        const statsInfo = `${taskCount} Season Tasks • ${totalCount} Total Web Tasks`;
+        const taskBadge = `<span class="row-task-pill" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; border-radius: 999px; padding: 2px 8px; font-size: 0.72rem; font-weight: 800;">🎯 ${taskCount} Tasks</span>`;
         const coinPrize = getRankCoinPrize(rank);
         const starBadge = coinPrize > 0 ? `<span class="row-star-prize">+${coinPrize.toLocaleString()} 🪙</span>` : '';
 
@@ -728,6 +819,7 @@ function renderRealLeaderboard() {
               <div style="display: flex; align-items: center; gap: 4px;">
                 ${starBadge}
                 ${taskBadge}
+                <button type="button" class="btn-leader-edit-contender" onclick="openLeaderboardUserEditModal('${u.id}', event)" title="Admin: Edit Contender Data" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; border-radius: 6px; padding: 2px 6px; font-size: 0.7rem; font-weight: 800; cursor: pointer; margin-left: 2px;">✏️</button>
               </div>
               <span class="row-coins" style="font-weight: 800; color: #fbbf24; font-size: 0.78rem;">${Number(u.coins || 0).toLocaleString()} 🪙</span>
             </div>
@@ -772,11 +864,14 @@ function updatePodiumSlot(rankNum, user, isMe) {
     if (isAwaiting) {
       nameEl.innerHTML = `<span style="color: #64748b; font-style: italic;">Awaiting #${rankNum}</span>`;
     } else {
-      nameEl.innerHTML = escapeHtml(user.name) + (isMe ? ' <span style="font-size: 0.62rem; color: #fde047; font-weight: 900;">(YOU)</span>' : '');
+      const uName = escapeHtml(user.name);
+      nameEl.innerHTML = `<span class="podium-user-name" style="font-weight: 800;">${uName}</span>` + 
+        (isMe ? ' <span style="font-size: 0.62rem; color: #fde047; font-weight: 900;">(YOU)</span>' : '') +
+        ` <button type="button" class="btn-podium-edit" onclick="openLeaderboardUserEditModal('${user.id}', event)" title="Admin: Edit Champion Data" style="background: rgba(56, 189, 248, 0.25); border: 1px solid rgba(56, 189, 248, 0.5); color: #38bdf8; border-radius: 6px; padding: 1px 4px; font-size: 0.65rem; cursor: pointer; margin-left: 3px;">✏️</button>`;
     }
   }
   if (tasksEl) {
-    tasksEl.textContent = isAwaiting ? '0 🎯' : `${Number(user.eventTasks || 0)} 🎯`;
+    tasksEl.textContent = isAwaiting ? '0 🎯' : `${Number(user.eventTasks || 0)} 🎯 Tasks`;
   }
   if (coinsEl) {
     coinsEl.textContent = isAwaiting ? '0 🪙' : `${Number(user.coins || 0).toLocaleString()} 🪙`;
@@ -891,6 +986,136 @@ function setupStickyBarClickListener() {
 // 4. REAL-TIME SYNC LISTENERS (BROADCASTCHANNEL, STORAGE, FIREBASE)
 // ============================================================================
 
+// Leaderboard Admin Quick Contender Edit Controller
+window.handleLeaderboardAdminClick = function() {
+  const isAdmin = localStorage.getItem('admin_authenticated') === 'true' || sessionStorage.getItem('admin_authenticated') === 'true';
+  if (isAdmin) {
+    showToastNotification('👑 Admin Mode is active! Click ✏️ on any contender or podium champion to edit their data.');
+  } else {
+    const pin = prompt('🔐 Enter Admin Password or PIN to enable direct Leaderboard Editing (Code: 0911):');
+    if (pin === '0911' || pin === '400 @123') {
+      localStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_authenticated', 'true');
+      showToastNotification('🔓 Admin Verified! Click ✏️ on any contender to edit tasks, coins, stars & ranks.');
+      renderRealLeaderboard();
+    } else if (pin !== null) {
+      alert('❌ Invalid admin credentials. Use PIN: 0911');
+    }
+  }
+};
+
+window.openLeaderboardUserEditModal = function(userId, e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  let raw = [];
+  try {
+    raw = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
+  } catch(err) { raw = []; }
+  const user = raw.find(u => u.id === userId);
+  if (!user) return;
+
+  const modal = document.getElementById('leaderboardUserEditModalOverlay');
+  if (!modal) return;
+
+  if (document.getElementById('lbEditUserId')) document.getElementById('lbEditUserId').value = user.id;
+  if (document.getElementById('lbEditAvatarInput')) document.getElementById('lbEditAvatarInput').value = user.avatar || '⚡';
+  if (document.getElementById('lbEditAvatarPreview')) document.getElementById('lbEditAvatarPreview').textContent = user.avatar || '⚡';
+  if (document.getElementById('lbEditNameInput')) document.getElementById('lbEditNameInput').value = user.name || 'Player';
+  if (document.getElementById('lbEditNameDisplay')) document.getElementById('lbEditNameDisplay').textContent = user.name || 'Player';
+  if (document.getElementById('lbEditIdDisplay')) document.getElementById('lbEditIdDisplay').textContent = 'UID: ' + user.id;
+  if (document.getElementById('lbEditEventTasks')) document.getElementById('lbEditEventTasks').value = user.eventTasks || 0;
+  if (document.getElementById('lbEditTotalTasks')) document.getElementById('lbEditTotalTasks').value = user.totalTasks || 0;
+  if (document.getElementById('lbEditCoins')) document.getElementById('lbEditCoins').value = user.coins || 0;
+  if (document.getElementById('lbEditStars')) document.getElementById('lbEditStars').value = user.stars || 0;
+  if (document.getElementById('lbEditLevelSelect')) document.getElementById('lbEditLevelSelect').value = user.level || 'LVL 1 • NOVICE';
+  if (document.getElementById('lbEditStatusSelect')) document.getElementById('lbEditStatusSelect').value = user.status || 'active';
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeLeaderboardUserEditModal = function() {
+  const modal = document.getElementById('leaderboardUserEditModalOverlay');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+};
+
+window.handleLeaderboardEditBackdrop = function(e) {
+  if (e.target && e.target.id === 'leaderboardUserEditModalOverlay') {
+    window.closeLeaderboardUserEditModal();
+  }
+};
+
+window.setLeaderboardEditAvatar = function(emoji) {
+  const input = document.getElementById('lbEditAvatarInput');
+  const preview = document.getElementById('lbEditAvatarPreview');
+  if (input) input.value = emoji;
+  if (preview) preview.textContent = emoji;
+};
+
+window.handleSaveLeaderboardUser = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const userId = document.getElementById('lbEditUserId')?.value;
+  const name = document.getElementById('lbEditNameInput')?.value?.trim() || 'Player';
+  const avatar = document.getElementById('lbEditAvatarInput')?.value?.trim() || '⚡';
+  const eventTasks = parseInt(document.getElementById('lbEditEventTasks')?.value || '0', 10);
+  const totalTasks = parseInt(document.getElementById('lbEditTotalTasks')?.value || '0', 10);
+  const coins = parseInt(document.getElementById('lbEditCoins')?.value || '0', 10);
+  const stars = parseInt(document.getElementById('lbEditStars')?.value || '0', 10);
+  const level = document.getElementById('lbEditLevelSelect')?.value || 'LVL 1 • NOVICE';
+  const status = document.getElementById('lbEditStatusSelect')?.value || 'active';
+
+  let raw = [];
+  try {
+    raw = JSON.parse(localStorage.getItem(USERS_STORAGE_KEY) || '[]');
+  } catch(err) { raw = []; }
+
+  const user = raw.find(u => u.id === userId);
+  if (user) {
+    user.name = name;
+    user.avatar = avatar;
+    user.eventTasks = eventTasks;
+    user.totalTasks = totalTasks;
+    user.coins = coins;
+    user.stars = stars;
+    user.level = level;
+    user.status = status;
+
+    // If local player, sync local player storage keys
+    const currentName = localStorage.getItem('player_username') || 'Player';
+    if (user.id === 'usr_1' || user.name === currentName) {
+      localStorage.setItem('player_username', name);
+      localStorage.setItem('player_avatar', avatar);
+      localStorage.setItem('task_game_coins', coins.toString());
+      localStorage.setItem('user_coins', coins.toString());
+      localStorage.setItem('task_game_stars', stars.toString());
+      localStorage.setItem('user_stars', stars.toString());
+      localStorage.setItem('task_game_event_tasks', eventTasks.toString());
+      localStorage.setItem('task_game_event_tasks_count', eventTasks.toString());
+      localStorage.setItem('task_game_total_tasks', totalTasks.toString());
+      localStorage.setItem('task_game_total_tasks_completed', totalTasks.toString());
+      localStorage.setItem('completed_tasks_count', totalTasks.toString());
+      updateHeaderBalances();
+    }
+
+
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(raw));
+    localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+
+    // Broadcast across tabs
+    try {
+      const syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+      syncChannel.postMessage({ type: 'USERS_UPDATED', users: raw, timestamp: Date.now() });
+      syncChannel.close();
+    } catch(err) {}
+
+    window.closeLeaderboardUserEditModal();
+    renderRealLeaderboard();
+    showToastNotification(`🏆 Contender "${name}" updated! Standings recalculated.`);
+  }
+};
+
 try {
   const syncChannel = new BroadcastChannel(SYNC_CHANNEL_NAME);
   syncChannel.onmessage = (event) => {
@@ -900,6 +1125,10 @@ try {
     renderRealLeaderboard();
   };
 } catch (e) { }
+
+window.addEventListener('task_game_users:updated', () => {
+  renderRealLeaderboard();
+});
 
 window.addEventListener('balance:changed', () => {
   renderRealLeaderboard();
@@ -972,8 +1201,6 @@ window.renderRealLeaderboard = renderRealLeaderboard;
 // 4. LEADERBOARD SEASON & REWARDS MODAL CONTROLLER
 // Manages:
 // 1. 100 Tasks Participation Gate
-// 2. Watch Ads (+50 Coins) with 6-Hour Cooldown Renewal Timer (100 Ads Quota)
-// 3. Season Finish -> Rank-Wise Star Prize Claim (Enforcing 100 Ads to Claim)
 // ============================================================================
 
 const SEASON_ADS_KEY = 'task_game_leaderboard_season_ads_watched';
@@ -1107,28 +1334,6 @@ function updateSeasonModalData() {
     if (participationActionRow) participationActionRow.style.display = 'inline-flex';
   }
 
-  // 2. Season Ads Quota (30 Ads Quota)
-  const adsCountBadge = document.getElementById('seasonAdsCountBadge');
-  const adsProgressText = document.getElementById('modalAdsProgressText');
-  const adsProgressBar = document.getElementById('modalAdsProgressBar');
-  const btnWatchAd = document.getElementById('btnSeasonWatchAd');
-  const btnWatchAdText = document.getElementById('btnSeasonWatchAdText');
-
-  const adPct = Math.min(100, Math.round((adsWatched / 30) * 100));
-  if (adsCountBadge) adsCountBadge.textContent = `${adsWatched} / 30 ADS`;
-  if (adsProgressText) adsProgressText.textContent = `${adsWatched} / 30 (${adPct}%)`;
-  if (adsProgressBar) adsProgressBar.style.width = `${adPct}%`;
-
-  if (btnWatchAd) {
-    if (adsWatched >= 30) {
-      btnWatchAd.disabled = true;
-      if (btnWatchAdText) btnWatchAdText.textContent = '✅ Completed (30/30)';
-    } else {
-      btnWatchAd.disabled = false;
-      if (btnWatchAdText) btnWatchAdText.textContent = '📺 Watch Ad';
-    }
-  }
-
   // 3. Leaderboard Rank Standing & Claim Gate (Requires 30 Ads)
   const userRankBadge = document.getElementById('modalUserRankBadge');
   const userRankText = document.getElementById('modalUserRankText');
@@ -1177,36 +1382,27 @@ function updateSeasonModalData() {
       btnClaim.className = 'btn-claim-season-reward locked';
       if (btnClaimText) btnClaimText.textContent = '🔒 Complete 100 Tasks to Qualify';
     }
-  } else 
-
-  const onAdReward = () => {
-    // Increment ads watched count (up to 30)
-    adsWatched = Math.min(30, adsWatched + 1);
-    localStorage.setItem(SEASON_ADS_KEY, adsWatched.toString());
-    localStorage.setItem('task_game_ads_watched_count', (parseInt(localStorage.getItem('task_game_ads_watched_count') || '0', 10) + 1).toString());
-
-    // Award +50 Coins to user balance
-    let coins = parseInt(localStorage.getItem('task_game_coins') || '0', 10) + 50;
-    userCoins = coins;
-    localStorage.setItem('task_game_coins', coins.toString());
-    localStorage.setItem('user_coins', coins.toString());
-
-    if (window.firebaseSync && typeof window.firebaseSync.addCoins === 'function') {
-      window.firebaseSync.addCoins(50);
+  } else if (!isFinished) {
+    if (claimWarning) {
+      claimWarning.className = 'claim-req-warning';
+      claimWarning.innerHTML = `<span>⏳</span><span>Season is actively in progress. Rewards can be claimed when countdown finishes.</span>`;
     }
-
-    // Sound feedback
-    LeaderboardAudio.playTabSwitch();
-
-    // Toast / notification
-    showToastNotification(`📺 Ad Watched! +50 Coins awarded (${adsWatched}/30 Ads).`);
-
-    updateHeaderBalances();
-    updateSeasonModalData();
-  };
-
-  // Ad call removed
-  onAdReward();
+    if (btnClaim) {
+      btnClaim.disabled = true;
+      btnClaim.className = 'btn-claim-season-reward locked';
+      if (btnClaimText) btnClaimText.textContent = '⏳ Active Season In Progress';
+    }
+  } else {
+    if (claimWarning) {
+      claimWarning.className = 'claim-req-warning satisfied';
+      claimWarning.innerHTML = `<span>🎉</span><span>Season Finished! Claim your Rank Reward (+${rankPrize.toLocaleString()} 🪙).</span>`;
+    }
+    if (btnClaim) {
+      btnClaim.disabled = false;
+      btnClaim.className = 'btn-claim-season-reward active';
+      if (btnClaimText) btnClaimText.textContent = `Claim +${rankPrize.toLocaleString()} 🪙`;
+    }
+  }
 };
 
 
@@ -1219,11 +1415,6 @@ window.handleClaimSeasonRankReward = function () {
 
   if (userTotalTasks < 100) {
     alert('🔒 Complete 100 Web Tasks first to qualify for Season 1 Participation.');
-    return;
-  }
-
-  if (adsWatched < 30) {
-    alert(`🔒 You must watch 30 Ads to qualify for Season Rank Rewards!\nCurrent: ${adsWatched} / 30 Ads.`);
     return;
   }
 
@@ -1252,7 +1443,7 @@ window.handleClaimSeasonRankReward = function () {
 
   LeaderboardAudio.playEventRestart();
 
-  alert(`🎉 CONGRATULATIONS!\n\nYou completed 30 Ads and achieved Rank #${myRank} in Season 1!\n\nClaimed: +${coinReward.toLocaleString()} Coins (🪙)!\nYour new balance: ${currentCoins.toLocaleString()} 🪙`);
+  alert(`🎉 CONGRATULATIONS!\n\nYou achieved Rank #${myRank} in Season 1!\n\nClaimed: +${coinReward.toLocaleString()} Coins (🪙)!\nYour new balance: ${currentCoins.toLocaleString()} 🪙`);
 
   updateHeaderBalances();
   updateSeasonModalData();
