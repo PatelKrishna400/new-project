@@ -342,6 +342,19 @@ function loadAllAdminData() {
     const raw = localStorage.getItem(TASKS_STORAGE_KEY);
     tasksData = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(tasksData)) tasksData = [];
+    let modified = false;
+    tasksData.forEach(t => {
+      if (!t.verificationCode && !t.code && !t.secretCode) {
+        const gen = Math.floor(100000 + Math.random() * 900000).toString();
+        t.verificationCode = gen;
+        t.code = gen;
+        t.secretCode = gen;
+        modified = true;
+      }
+    });
+    if (modified) {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+    }
   } catch (e) {
     tasksData = [];
   }
@@ -437,13 +450,16 @@ function updateAdminCounters() {
   const cntAll = document.getElementById('countAdminFilterAll');
   const cntSimple = document.getElementById('countAdminFilterSimple');
   const cntPremium = document.getElementById('countAdminFilterPremium');
+  const cntPro = document.getElementById('countAdminFilterPro');
 
-  const simpleList = tasksData.filter(t => t.category === 'simple' || t.category === 'coin' || (!t.category && !t.isShopTask));
-  const premiumList = tasksData.filter(t => t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task');
+  const proList = tasksData.filter(t => t.category === 'pro' || t.category === 'elite');
+  const simpleList = tasksData.filter(t => (t.category === 'simple' || t.category === 'coin' || t.category === 'article' || (!t.category && !t.isShopTask)) && t.category !== 'pro' && t.category !== 'elite');
+  const premiumList = tasksData.filter(t => (t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task') && t.category !== 'pro' && t.category !== 'elite');
 
   if (cntAll) cntAll.textContent = tasksData.length.toString();
   if (cntSimple) cntSimple.textContent = simpleList.length.toString();
   if (cntPremium) cntPremium.textContent = premiumList.length.toString();
+  if (cntPro) cntPro.textContent = proList.length.toString();
 }
 
 // -----------------------------------------------------------------------------
@@ -455,13 +471,14 @@ let currentAdminTaskCategoryFilter = 'all';
 
 function filterAdminTasksCategory(cat) {
   currentAdminTaskCategoryFilter = cat;
-  ['btnFilterCatAll', 'btnFilterCatSimple', 'btnFilterCatPremium'].forEach(id => {
+  ['btnFilterCatAll', 'btnFilterCatSimple', 'btnFilterCatPremium', 'btnFilterCatPro'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.classList.remove('active');
   });
   if (cat === 'all') document.getElementById('btnFilterCatAll')?.classList.add('active');
   if (cat === 'simple') document.getElementById('btnFilterCatSimple')?.classList.add('active');
   if (cat === 'premium') document.getElementById('btnFilterCatPremium')?.classList.add('active');
+  if (cat === 'pro') document.getElementById('btnFilterCatPro')?.classList.add('active');
   renderAdminTasksList();
 }
 window.filterAdminTasksCategory = filterAdminTasksCategory;
@@ -481,6 +498,20 @@ function handleAdminTaskCategoryChange(val) {
       badge.style.color = '#34d399';
     }
     if (shopGroup) shopGroup.style.display = 'block';
+    if (levelGroup) levelGroup.style.display = 'block';
+  } else if (val === 'pro') {
+    if (coinsInput && (coinsInput.value === '50' || coinsInput.value === '200' || !coinsInput.value)) {
+      coinsInput.value = '300';
+    }
+    const iconInput = document.getElementById('taskInputIcon');
+    if (iconInput && (iconInput.value === '⚡' || iconInput.value === '📰' || iconInput.value === '⭐')) {
+      iconInput.value = '💎';
+    }
+    if (badge) {
+      badge.textContent = '💎 Pro Elite Mission Bounty (+300 🪙)';
+      badge.style.color = '#34d399';
+    }
+    if (shopGroup) shopGroup.style.display = 'none';
     if (levelGroup) levelGroup.style.display = 'block';
   } else if (val === 'premium') {
     if (coinsInput && (coinsInput.value === '50' || coinsInput.value === '5' || !coinsInput.value)) {
@@ -531,9 +562,11 @@ function renderAdminTasksList() {
   const searchVal = (document.getElementById('adminTaskSearch')?.value || '').toLowerCase().trim();
   let list = [...tasksData];
   if (currentAdminTaskCategoryFilter === 'simple') {
-    list = list.filter(t => t.category === 'simple' || t.category === 'coin' || (!t.category && !t.isShopTask));
+    list = list.filter(t => (t.category === 'simple' || t.category === 'coin' || (!t.category && !t.isShopTask)) && t.category !== 'pro' && t.category !== 'elite');
   } else if (currentAdminTaskCategoryFilter === 'premium') {
-    list = list.filter(t => t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task');
+    list = list.filter(t => (t.category === 'premium' || t.category === 'star' || t.isShopTask || t.category === 'shop_task') && t.category !== 'pro' && t.category !== 'elite');
+  } else if (currentAdminTaskCategoryFilter === 'pro') {
+    list = list.filter(t => t.category === 'pro' || t.category === 'elite');
   }
   if (searchVal) {
     list = list.filter(t => t.title && t.title.toLowerCase().includes(searchVal));
@@ -570,16 +603,18 @@ function renderAdminTasksList() {
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 0.65rem; padding-top: 0.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 0.75rem;">
-          <div style="display: flex; gap: 0.65rem; font-weight: 800; align-items: center;">
-            <span style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'premium' ? 200 : 50))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'premium' ? '💎 VIP' : '📋 Simple')})</span>
+          <div style="display: flex; gap: 0.65rem; font-weight: 800; align-items: center; flex-wrap: wrap;">
+            <span style="color: #fbbf24; font-weight: 900;">+${(Number(task.rewardCoins || task.reward || task.coins || (task.category === 'pro' ? 300 : (task.category === 'premium' ? 200 : 50)))).toLocaleString()} 🪙 (${task.category === 'shop_task' ? '🛒 Shop Task' : (task.category === 'pro' ? '💎 Pro' : (task.category === 'premium' ? '⭐ Star' : '📋 Simple'))})</span>
             <span class="count-badge" style="background: rgba(250, 204, 21, 0.15); color: #facc15; font-size: 0.68rem; padding: 2px 6px;">⭐ Lvl ${task.level || 1}</span>
             ${(task.category === 'shop_task' || task.isShopTask) ? `<span class="count-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.68rem; padding: 2px 6px;">🛒 +${task.shopLimitExtension || 10} Buys</span>` : ''}
             ${(Number(task.ticketCost || 0) > 0) ? `<span class="count-badge" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; font-weight: 800; font-size: 0.68rem; padding: 2px 6px;">🎟️ ${task.ticketCost} Tickets</span>` : ''}
-            ${taskCode ? `<span style="color: #38bdf8; font-family: monospace; font-size: 0.72rem; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 6px; border-radius: 5px;">🔑 6-Digit Code: <b>${escapeHtml(taskCode)}</b></span>` : ''}
+            <span style="color: #38bdf8; font-family: monospace; font-size: 0.76rem; font-weight: 800; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">
+              <span>🔑 6-Digit Code:</span> <b style="color: #facc15; font-size: 0.85rem; letter-spacing: 0.08em;">${escapeHtml(taskCode || '000000')}</b>
+            </span>
           </div>
 
           <div style="display: flex; gap: 0.35rem;">
-            <button class="btn-card-action" onclick="openEditTaskModal('${task.id}')" title="Edit Mission">✏️</button>
+            <button class="btn-card-action" onclick="openEditTaskModal('${task.id}')" title="Edit Mission & 6-Digit Code">✏️ Edit</button>
             <button class="btn-card-action" onclick="toggleTaskActive('${task.id}')" title="Toggle active status">${isActive ? 'Pause' : 'Play'}</button>
             <button class="btn-card-action danger" onclick="deleteAdminTask('${task.id}')" title="Delete Mission">🗑️</button>
           </div>
@@ -769,7 +804,11 @@ function openEditTaskModal(taskId) {
   const timerField = document.getElementById('taskInputTimer');
   if (timerField) timerField.value = task.timer || task.timerSeconds || 10;
   const secretField = document.getElementById('taskInputSecret');
-  if (secretField) secretField.value = task.verificationCode || task.code || task.secretCode || '';
+  let currentCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
+  if (!currentCode || !/^\d{6}$/.test(currentCode)) {
+    currentCode = Math.floor(100000 + Math.random() * 900000).toString();
+  }
+  if (secretField) secretField.value = currentCode;
   const editTicketCostField = document.getElementById('taskInputTicketCost');
   if (editTicketCostField) editTicketCostField.value = (task.ticketCost || 0).toString();
 
@@ -812,10 +851,13 @@ function handleSaveAdminTaskForm(e) {
   // 1. EDIT EXISTING SINGLE TASK
   if (editId) {
     const url = document.getElementById('taskInputUrl')?.value.trim();
-    const secretCode = document.getElementById('taskInputSecret')?.value.trim();
+    let secretCode = document.getElementById('taskInputSecret')?.value.trim();
     if (!url) {
       showToast('Please fill in mission URL.');
       return;
+    }
+    if (!secretCode || !/^\d{6}$/.test(secretCode)) {
+      secretCode = Math.floor(100000 + Math.random() * 900000).toString();
     }
     const idx = tasksData.findIndex(t => t.id === editId);
     if (idx !== -1) {
@@ -842,7 +884,7 @@ function handleSaveAdminTaskForm(e) {
     }
     saveTasksAndSync();
     closeAdminTaskModal();
-    showToast('Mission updated! ✓');
+    showToast(`Mission updated! Verification Code: ${secretCode} ✓`);
     return;
   }
 
@@ -890,7 +932,7 @@ function handleSaveAdminTaskForm(e) {
         createdAt: now + i,
         updatedAt: now
       };
-      tasksData.unshift(newTask);
+      tasksData.push(newTask);
     }
 
     saveTasksAndSync();
@@ -909,7 +951,7 @@ function handleSaveAdminTaskForm(e) {
     showToast('Please fill in mission URL.');
     return;
   }
-  if (!secretCode || secretCode.length < 4) {
+  if (!secretCode || !/^\d{6}$/.test(secretCode)) {
     secretCode = Math.floor(100000 + Math.random() * 900000).toString();
   }
 
@@ -935,7 +977,7 @@ function handleSaveAdminTaskForm(e) {
     createdAt: Date.now(),
     updatedAt: Date.now()
   };
-  tasksData.unshift(newTask);
+  tasksData.push(newTask);
 
   saveTasksAndSync();
   closeAdminTaskModal();

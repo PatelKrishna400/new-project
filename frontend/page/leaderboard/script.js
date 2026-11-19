@@ -720,13 +720,7 @@ function renderRealLeaderboard() {
   updateSeasonTabButton();
   const ranksCountTag = document.getElementById('ranksCountTag');
   if (ranksCountTag) {
-    if (currentSortMode === 'name') {
-      ranksCountTag.textContent = 'Alphabetical (Name Wise A-Z)';
-    } else if (currentSortMode === 'coins') {
-      ranksCountTag.textContent = 'Ranks #4 – #20 (Coins Wise)';
-    } else {
-      ranksCountTag.textContent = 'Ranks #4 – #20 (Task Wise)';
-    }
+    ranksCountTag.textContent = 'Ranks #4 – #20 (Scroll ↓)';
   }
   const userTotalTasks = parseInt(localStorage.getItem(TOTAL_TASKS_KEY) || '0', 10);
   const userEventTasks = parseInt(localStorage.getItem(EVENT_TASKS_KEY) || '0', 10);

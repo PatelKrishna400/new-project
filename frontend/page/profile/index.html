@@ -210,7 +210,7 @@
               <span>🔄 Reset Cooldowns</span>
             </button>
           </div>
-          <!-- Mission Category Filter (All / Simple / Premium) -->
+          <!-- Mission Category Filter (All / Coin / Star / Pro) -->
           <div class="admin-mode-tabs" style="margin: 0.5rem 0;" id="adminTaskFilterTabs">
             <button type="button" class="admin-mode-tab-btn active" id="btnFilterCatAll" onclick="filterAdminTasksCategory('all')">
               <span>All Missions (<span id="countAdminFilterAll">0</span>)</span>
@@ -220,6 +220,9 @@
             </button>
             <button type="button" class="admin-mode-tab-btn" id="btnFilterCatPremium" onclick="filterAdminTasksCategory('premium')">
               <span>⭐ Star Tasks (<span id="countAdminFilterPremium">0</span>)</span>
+            </button>
+            <button type="button" class="admin-mode-tab-btn" id="btnFilterCatPro" onclick="filterAdminTasksCategory('pro')">
+              <span>💎 Pro Tasks (<span id="countAdminFilterPro">0</span>)</span>
             </button>
           </div>
 
@@ -1410,6 +1413,7 @@
             <option value="simple">🪙 Coin Task (Standard Bounty)</option>
             <option value="article">📰 Article / Paragraph Reading Task (Read short paragraphs to find 6-digit code)</option>
             <option value="premium">⭐ Star Task (VIP High Bounty)</option>
+            <option value="pro">💎 Pro Task (Elite Mission)</option>
             <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
           </select>
         </div>

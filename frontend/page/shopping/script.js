@@ -254,7 +254,9 @@ function buyTicketsWithStars(ticketAmount, starCost) {
   try {
     const syncChannel = new BroadcastChannel('nova_task_sync');
     syncChannel.postMessage({ type: 'TICKETS_PURCHASED', starCost, ticketAmount, newTickets, stars, timestamp: Date.now() });
+    syncChannel.postMessage({ type: 'BALANCES_UPDATED', coins: userCoins, stars: userStars, tickets: newTickets, timestamp: Date.now() });
   } catch (e) {}
+  window.dispatchEvent(new CustomEvent('balance:changed'));
 
   alert(`🎉 Purchase Successful!\n\nYou exchanged ${starCost} ⭐ Stars for ${ticketAmount.toLocaleString()} 🎟️ Tickets!\n\nTotal Tickets: ${newTickets.toLocaleString()} 🎟️\nRemaining Stars: ${stars.toLocaleString()} ⭐`);
 }
@@ -368,7 +370,7 @@ function buyItem(btn, price, itemName) {
 
 // Real-Time Cross-Tab / Cross-Window Sync
 window.addEventListener('storage', (e) => {
-  if (e.key === 'task_game_coins' || e.key === 'task_game_stars') {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'task_user_tickets' || e.key === 'user_tickets' || e.key === 'user_coins' || e.key === 'user_stars') {
     updateDisplays();
   }
 });

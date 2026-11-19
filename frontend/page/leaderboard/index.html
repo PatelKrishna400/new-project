@@ -246,27 +246,9 @@
           </div>
         </div>
 
-        <!-- Leaderboard Sort Switcher (Task Wise / Name Wise / Coins) -->
-        <div class="leaderboard-sort-bar" id="leaderboardSortBar">
-          <button type="button" class="leaderboard-sort-btn active" id="sortBtnTasks" onclick="setLeaderboardSort('tasks')" title="Sort Leaderboard by Tasks Completed">
-            <span>🎯 Task Wise</span>
-          </button>
-          <button type="button" class="leaderboard-sort-btn" id="sortBtnName" onclick="setLeaderboardSort('name')" title="Sort Leaderboard Alphabetically by Name">
-            <span>🔤 Name Wise</span>
-          </button>
-          <button type="button" class="leaderboard-sort-btn" id="sortBtnCoins" onclick="setLeaderboardSort('coins')" title="Sort Leaderboard by Coins">
-            <span>🪙 Coins</span>
-          </button>
-        </div>
-
         <!-- In-Between Scrollable Rankings Section Header -->
         <div class="ranks-section-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <h2 class="ranks-section-title" style="margin: 0;">Contenders</h2>
-            <button type="button" id="btnLeaderboardAdminEdit" onclick="handleLeaderboardAdminClick()" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 0.68rem; font-weight: 800; border-radius: 6px; padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;">
-              <span>✏️ Admin Edit</span>
-            </button>
-          </div>
+          <h2 class="ranks-section-title" style="margin: 0;">Contenders</h2>
           <span class="ranks-count-tag" id="ranksCountTag">Ranks #4 &ndash; #20 (Scroll &darr;)</span>
         </div>
 

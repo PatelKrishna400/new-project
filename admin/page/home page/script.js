@@ -71,6 +71,25 @@ function loadAllStoredData() {
   }
 
   try {
+    const rawTasks = localStorage.getItem(TASKS_STORAGE_KEY);
+    tasksData = rawTasks ? JSON.parse(rawTasks) : [];
+    if (!Array.isArray(tasksData)) tasksData = [];
+    let modified = false;
+    tasksData.forEach(t => {
+      if (!t.verificationCode && !t.code && !t.secretCode) {
+        const gen = Math.floor(100000 + Math.random() * 900000).toString();
+        t.verificationCode = gen;
+        t.code = gen;
+        t.secretCode = gen;
+        modified = true;
+      }
+    });
+    if (modified) {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+    }
+  } catch(e) { tasksData = []; }
+
+  try {
     const rawSessions = localStorage.getItem(LEADERBOARD_SESSIONS_KEY);
     sessionsData = rawSessions ? JSON.parse(rawSessions) : [];
   } catch(e) { sessionsData = []; }
@@ -685,6 +704,309 @@ window.openUserEditModal = openUserEditModal;
 window.closeUserEditModal = closeUserEditModal;
 window.handleSaveUserBalance = handleSaveUserBalance;
 window.deleteUser = deleteUser;
+
+function openTaskModal(taskId) {
+  const modal = document.getElementById('taskModalOverlay');
+  const titleText = document.getElementById('modalTitleText');
+  const form = document.getElementById('taskModalForm');
+  if (form) form.reset();
+
+  if (taskId) {
+    const task = tasksData.find(t => t.id === taskId);
+    if (task) {
+      if (titleText) titleText.textContent = 'Edit Mission & 6-Digit Code';
+      if (document.getElementById('editTaskId')) document.getElementById('editTaskId').value = task.id;
+      if (document.getElementById('taskTitleInput')) document.getElementById('taskTitleInput').value = task.title || '';
+      if (document.getElementById('taskLinkInput')) document.getElementById('taskLinkInput').value = task.url || task.link || '';
+      if (document.getElementById('taskCategorySelect')) document.getElementById('taskCategorySelect').value = task.category || 'simple';
+      if (document.getElementById('taskLevelSelect')) document.getElementById('taskLevelSelect').value = (task.level || 1).toString();
+      if (document.getElementById('taskRewardInput')) document.getElementById('taskRewardInput').value = task.rewardCoins || task.reward || task.coins || 50;
+      if (document.getElementById('taskTicketCostInput')) document.getElementById('taskTicketCostInput').value = task.ticketCost || 0;
+      let taskCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
+      if (!taskCode || !/^\d{6}$/.test(taskCode)) {
+        taskCode = Math.floor(100000 + Math.random() * 900000).toString();
+      }
+      if (document.getElementById('taskCodeInput')) document.getElementById('taskCodeInput').value = taskCode;
+      switchAdminModalTaskMode('single');
+      if (document.getElementById('adminModalModeTabs')) document.getElementById('adminModalModeTabs').style.display = 'none';
+      if (modal) modal.classList.add('active');
+      updateModalPreview();
+      return;
+    }
+  }
+
+  if (titleText) titleText.textContent = 'Create New Mission';
+  if (document.getElementById('editTaskId')) document.getElementById('editTaskId').value = '';
+  if (document.getElementById('taskCodeInput')) document.getElementById('taskCodeInput').value = Math.floor(100000 + Math.random() * 900000).toString();
+  if (document.getElementById('adminModalModeTabs')) document.getElementById('adminModalModeTabs').style.display = 'flex';
+  switchAdminModalTaskMode('single');
+  if (modal) modal.classList.add('active');
+  updateModalPreview();
+}
+
+function closeTaskModal() {
+  const modal = document.getElementById('taskModalOverlay');
+  if (modal) modal.classList.remove('active');
+}
+
+function switchAdminModalTaskMode(mode) {
+  const modeInput = document.getElementById('adminTaskCreationMode');
+  if (modeInput) modeInput.value = mode;
+  const btnSingle = document.getElementById('btnAdminModeSingle');
+  const btnBulk = document.getElementById('btnAdminModeBulk');
+  const singleLink = document.getElementById('taskLinkInput')?.parentElement;
+  const bulkUrls = document.getElementById('adminBulkUrlsGroup');
+  const singleCode = document.getElementById('adminSingleCodeGroup');
+  const bulkCodes = document.getElementById('adminBulkCodesGroup');
+  const bulkSummary = document.getElementById('adminBulkSummaryBox');
+
+  if (mode === 'bulk') {
+    if (btnSingle) btnSingle.classList.remove('active');
+    if (btnBulk) btnBulk.classList.add('active');
+    if (singleLink) singleLink.style.display = 'none';
+    if (bulkUrls) bulkUrls.style.display = 'block';
+    if (singleCode) singleCode.style.display = 'none';
+    if (bulkCodes) bulkCodes.style.display = 'block';
+    if (bulkSummary) bulkSummary.style.display = 'block';
+  } else {
+    if (btnSingle) btnSingle.classList.add('active');
+    if (btnBulk) btnBulk.classList.remove('active');
+    if (singleLink) singleLink.style.display = 'block';
+    if (bulkUrls) bulkUrls.style.display = 'none';
+    if (singleCode) singleCode.style.display = 'block';
+    if (bulkCodes) bulkCodes.style.display = 'none';
+    if (bulkSummary) bulkSummary.style.display = 'none';
+  }
+}
+
+function autoGenerateAdminBulkCodes() {
+  const urlsText = document.getElementById('adminBulkUrlsInput')?.value || '';
+  const count = urlsText.split(/\r?\n/).map(u => u.trim()).filter(u => u.length > 0).length || 5;
+  const codes = [];
+  for (let i = 0; i < count; i++) {
+    codes.push(Math.floor(100000 + Math.random() * 900000).toString());
+  }
+  const codesInput = document.getElementById('adminBulkCodesInput');
+  if (codesInput) {
+    codesInput.value = codes.join('\n');
+    updateAdminModalBulkCounter();
+  }
+}
+
+function updateAdminModalBulkCounter() {
+  const urlsText = document.getElementById('adminBulkUrlsInput')?.value || '';
+  const urlCount = urlsText.split(/\r?\n/).map(u => u.trim()).filter(u => u.length > 0).length;
+  const codesText = document.getElementById('adminBulkCodesInput')?.value || '';
+  const codeCount = codesText.split(/\r?\n/).map(u => u.trim()).filter(u => u.length > 0).length;
+
+  const urlBadge = document.getElementById('adminBulkLinksCountBadge');
+  if (urlBadge) urlBadge.textContent = `${urlCount} URLs`;
+  const codeBadge = document.getElementById('adminBulkCodesCountBadge');
+  if (codeBadge) codeBadge.textContent = `${codeCount} Codes`;
+}
+
+function handleSaveTask(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const editId = document.getElementById('editTaskId')?.value;
+  const mode = document.getElementById('adminTaskCreationMode')?.value || 'single';
+  const category = document.getElementById('taskCategorySelect')?.value || 'simple';
+  const level = parseInt(document.getElementById('taskLevelSelect')?.value || '1', 10) || 1;
+  const shopLimitExtension = parseInt(document.getElementById('taskShopLimitExtension')?.value || '10', 10) || 10;
+  const isShopTask = (category === 'shop_task');
+  const rewardCoins = parseInt(document.getElementById('taskRewardInput')?.value || '50', 10) || 50;
+  const ticketCost = Math.max(0, parseInt(document.getElementById('taskTicketCostInput')?.value || '0', 10) || 0);
+  const baseTitle = document.getElementById('taskTitleInput')?.value.trim();
+  const icon = document.getElementById('taskIconInput')?.value.trim() || '⚡';
+  const desc = document.getElementById('taskDescInput')?.value.trim() || '';
+
+  if (!baseTitle) {
+    alert('Please enter a task title.');
+    return;
+  }
+
+  if (editId) {
+    const url = document.getElementById('taskLinkInput')?.value.trim();
+    let code = document.getElementById('taskCodeInput')?.value.trim();
+    if (!url) {
+      alert('Please enter target URL.');
+      return;
+    }
+    if (!code || !/^\d{6}$/.test(code)) {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    const idx = tasksData.findIndex(t => t.id === editId);
+    if (idx !== -1) {
+      tasksData[idx] = {
+        ...tasksData[idx],
+        title: baseTitle,
+        url,
+        link: url,
+        category,
+        level,
+        shopLimitExtension,
+        isShopTask,
+        rewardCoins,
+        reward: rewardCoins,
+        coins: rewardCoins,
+        ticketCost,
+        icon,
+        description: desc,
+        secretCode: code,
+        verificationCode: code,
+        code,
+        updatedAt: Date.now()
+      };
+    }
+  } else if (mode === 'bulk') {
+    const rawUrls = document.getElementById('adminBulkUrlsInput')?.value || '';
+    const urls = rawUrls.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+    const rawCodes = document.getElementById('adminBulkCodesInput')?.value || '';
+    const codes = rawCodes.split(/\r?\n/).map(c => c.trim()).filter(c => c.length > 0);
+    const now = Date.now();
+    for (let i = 0; i < urls.length; i++) {
+      let u = urls[i];
+      if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+      const code = (codes[i] && /^\d{6}$/.test(codes[i])) ? codes[i] : Math.floor(100000 + Math.random() * 900000).toString();
+      tasksData.push({
+        id: `task_${now}_${i}_${Math.random().toString(36).substring(2, 6)}`,
+        title: baseTitle,
+        url: u,
+        link: u,
+        category,
+        level,
+        shopLimitExtension,
+        isShopTask,
+        rewardCoins,
+        reward: rewardCoins,
+        coins: rewardCoins,
+        ticketCost,
+        icon,
+        description: desc,
+        secretCode: code,
+        verificationCode: code,
+        code,
+        active: true,
+        createdAt: now + i,
+        updatedAt: now
+      });
+    }
+  } else {
+    const url = document.getElementById('taskLinkInput')?.value.trim();
+    let code = document.getElementById('taskCodeInput')?.value.trim();
+    if (!url) {
+      alert('Please enter target URL.');
+      return;
+    }
+    if (!code || !/^\d{6}$/.test(code)) {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    tasksData.push({
+      id: `task_${Date.now()}`,
+      title: baseTitle,
+      url,
+      link: url,
+      category,
+      level,
+      shopLimitExtension,
+      isShopTask,
+      rewardCoins,
+      reward: rewardCoins,
+      coins: rewardCoins,
+      ticketCost,
+      icon,
+      description: desc,
+      secretCode: code,
+      verificationCode: code,
+      code,
+      active: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+  }
+
+  saveAdminTasksAndSync();
+  closeTaskModal();
+}
+
+function saveAdminTasksAndSync() {
+  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+  localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+  try {
+    const bc = new BroadcastChannel(SYNC_CHANNEL_NAME);
+    bc.postMessage({ type: 'TASKS_UPDATED', timestamp: Date.now() });
+    bc.close();
+  } catch(e) {}
+}
+
+function handleAdminHomeCategoryChange(val) {
+  const rewardInput = document.getElementById('taskRewardInput');
+  const badge = document.getElementById('adminHomeTaskRewardTypeBadge');
+  const iconInput = document.getElementById('taskIconInput');
+  if (val === 'pro') {
+    if (rewardInput && (rewardInput.value === '50' || !rewardInput.value)) rewardInput.value = '300';
+    if (badge) {
+      badge.textContent = '💎 Pro Mission Bounty (+300 🪙)';
+      badge.style.color = '#34d399';
+    }
+    if (iconInput && (iconInput.value === '⚡' || iconInput.value === '⭐')) iconInput.value = '💎';
+  } else if (val === 'premium') {
+    if (rewardInput && (rewardInput.value === '50' || rewardInput.value === '300' || !rewardInput.value)) rewardInput.value = '200';
+    if (badge) {
+      badge.textContent = '⭐ Star Task Bounty (+200 🪙)';
+      badge.style.color = '#facc15';
+    }
+    if (iconInput && (iconInput.value === '⚡' || iconInput.value === '💎')) iconInput.value = '⭐';
+  } else {
+    if (rewardInput && (rewardInput.value === '200' || rewardInput.value === '300' || !rewardInput.value)) rewardInput.value = '50';
+    if (badge) {
+      badge.textContent = '📋 Standard Coin Bounty (+50 🪙)';
+      badge.style.color = '#38bdf8';
+    }
+    if (iconInput && (iconInput.value === '⭐' || iconInput.value === '💎')) iconInput.value = '⚡';
+  }
+  updateModalPreview();
+}
+window.handleAdminHomeCategoryChange = handleAdminHomeCategoryChange;
+
+function updateModalPreview() {
+  const title = document.getElementById('taskTitleInput')?.value || 'Webtask Check-In';
+  const coins = document.getElementById('taskRewardInput')?.value || '50';
+  const desc = document.getElementById('taskDescInput')?.value || 'Open link & verify 6-digit code';
+  const icon = document.getElementById('taskIconInput')?.value || '⚡';
+  const code = document.getElementById('taskCodeInput')?.value || '000000';
+  const cat = document.getElementById('taskCategorySelect')?.value || 'simple';
+
+  const previewTitle = document.getElementById('previewTitle');
+  const previewReward = document.getElementById('previewReward');
+  const previewDesc = document.getElementById('previewDesc');
+  const previewIcon = document.getElementById('previewIcon');
+  const previewPill = document.getElementById('previewDurationPill');
+
+  if (previewTitle) previewTitle.textContent = title;
+  if (previewReward) previewReward.textContent = `🪙 +${coins} Coins`;
+  if (previewDesc) previewDesc.textContent = `${desc} (Code: ${code})`;
+  if (previewIcon) previewIcon.textContent = icon;
+  if (previewPill) {
+    if (cat === 'pro') {
+      previewPill.textContent = '💎 Pro Task';
+      previewPill.style.color = '#34d399';
+    } else if (cat === 'premium') {
+      previewPill.textContent = '⭐ Star Task';
+      previewPill.style.color = '#facc15';
+    } else {
+      previewPill.textContent = '🪙 Coin Task';
+      previewPill.style.color = '#38bdf8';
+    }
+  }
+}
+
+window.openTaskModal = openTaskModal;
+window.closeTaskModal = closeTaskModal;
+window.switchAdminModalTaskMode = switchAdminModalTaskMode;
+window.autoGenerateAdminBulkCodes = autoGenerateAdminBulkCodes;
+window.updateAdminModalBulkCounter = updateAdminModalBulkCounter;
+window.handleSaveTask = handleSaveTask;
+window.updateModalPreview = updateModalPreview;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadAllStoredData();
