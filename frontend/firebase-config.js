@@ -76,12 +76,27 @@ const USERS_STORAGE_KEY = 'task_game_users';
 const SYNC_FLAG_KEY = 'task_game_sync_flag';
 const SYNC_CHANNEL_NAME = 'nova_task_sync';
 
-// Initialize local defaults only if not already set, preserving real balances
+// Initialize local defaults, resetting all balances (coins, stars, tickets) to 0
 try {
+  // Ensure all balances are reset to 0
+  if (!localStorage.getItem('balance_zero_reset_v2')) {
+    localStorage.setItem('task_game_coins', '0');
+    localStorage.setItem('user_coins', '0');
+    localStorage.setItem('task_game_stars', '0');
+    localStorage.setItem('user_stars', '0');
+    localStorage.setItem('task_user_tickets', '0');
+    localStorage.setItem('user_tickets', '0');
+    localStorage.setItem('task_game_tickets', '0');
+    localStorage.setItem('balance_zero_reset_v2', 'true');
+  }
+
   if (localStorage.getItem('task_game_coins') === null) localStorage.setItem('task_game_coins', '0');
   if (localStorage.getItem('task_game_stars') === null) localStorage.setItem('task_game_stars', '0');
-  if (localStorage.getItem('user_coins') === null) localStorage.setItem('user_coins', localStorage.getItem('task_game_coins') || '0');
-  if (localStorage.getItem('user_stars') === null) localStorage.setItem('user_stars', localStorage.getItem('task_game_stars') || '0');
+  if (localStorage.getItem('user_coins') === null) localStorage.setItem('user_coins', '0');
+  if (localStorage.getItem('user_stars') === null) localStorage.setItem('user_stars', '0');
+  if (localStorage.getItem('task_user_tickets') === null) localStorage.setItem('task_user_tickets', '0');
+  if (localStorage.getItem('user_tickets') === null) localStorage.setItem('user_tickets', '0');
+  if (localStorage.getItem('task_game_tickets') === null) localStorage.setItem('task_game_tickets', '0');
   if (localStorage.getItem('completed_tasks_count') === null) localStorage.setItem('completed_tasks_count', '0');
   if (localStorage.getItem('ads_watched_count') === null) localStorage.setItem('ads_watched_count', '0');
 
@@ -336,6 +351,7 @@ function getEffectivePlayerUid() {
 
 let _prevDomCoins = null;
 let _prevDomStars = null;
+let _prevDomTickets = null;
 
 function triggerPillDeductionEffect(type, diff) {
   try {
@@ -433,11 +449,13 @@ function triggerInsufficientFundsNotice(type, required, available) {
 /**
  * Update all DOM balance indicators across any active page and tab in real time
  */
-function updateAllDomBalances(coins, stars) {
+function updateAllDomBalances(coins, stars, tickets) {
   const c = typeof coins === 'number' ? coins : parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
   const s = typeof stars === 'number' ? stars : parseInt(localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0', 10);
+  const t = typeof tickets === 'number' ? tickets : parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10);
   const coinsFmt = Number(c || 0).toLocaleString();
   const starsFmt = Number(s || 0).toLocaleString();
+  const ticketsFmt = Number(t || 0).toLocaleString();
 
   if (_prevDomCoins !== null && c < _prevDomCoins) {
     triggerPillDeductionEffect('coins', _prevDomCoins - c);
@@ -445,8 +463,12 @@ function updateAllDomBalances(coins, stars) {
   if (_prevDomStars !== null && s < _prevDomStars) {
     triggerPillDeductionEffect('stars', _prevDomStars - s);
   }
+  if (_prevDomTickets !== null && t < _prevDomTickets) {
+    triggerPillDeductionEffect('tickets', _prevDomTickets - t);
+  }
   _prevDomCoins = c;
   _prevDomStars = s;
+  _prevDomTickets = t;
 
   // All known coin DOM IDs across all games, hub, shop, wallet, leaderboard, profile, admin
   const coinElements = [
@@ -454,7 +476,7 @@ function updateAllDomBalances(coins, stars) {
     'shopCoinsDisplay', 'walletBalanceTop', 'walletCoinsTop', 'leaderboardCoinsTop', 
     'profileCoinsDisplay', 'userCoinsTop', 'headerCoins', 'statCoinsVal', 
     'playerCoinsDisplay', 'heroCoinsDisplay', 'lobbyCoinsDisplay', 'coinBalance',
-    'manageModalCoinsDisplay', 'manageModalCoinsVal', 'editUserCoinsInput', 'adminLiveCoins'
+    'manageModalCoinsDisplay', 'manageModalCoinsVal', 'editUserCoinsInput', 'adminLiveCoins', 'hudCoins'
   ];
   coinElements.forEach((id) => {
     const el = document.getElementById(id);
@@ -479,7 +501,7 @@ function updateAllDomBalances(coins, stars) {
     'shopStarsDisplay', 'walletStarsTop', 'leaderboardStarsTop', 'profileStarsDisplay', 
     'userStarsTop', 'statStarsVal', 'headerStars', 
     'playerStarsDisplay', 'lobbyStarsDisplay', 'starBalance',
-    'manageModalStarsDisplay', 'manageModalStarsVal', 'editUserStarsInput', 'adminLiveStars'
+    'manageModalStarsDisplay', 'manageModalStarsVal', 'editUserStarsInput', 'adminLiveStars', 'hudStars'
   ];
   starElements.forEach((id) => {
     const el = document.getElementById(id);
@@ -497,6 +519,28 @@ function updateAllDomBalances(coins, stars) {
       else el.textContent = starsFmt;
     });
   } catch (e) {}
+
+  // All known ticket DOM IDs across all games, hub, shop, wallet, leaderboard, profile, admin
+  const ticketElements = [
+    'hudTickets', 'shopTicketsDisplay', 'unlockModalUserTicketsText', 'userTicketsDisplay',
+    'headerTickets', 'statTicketsVal', 'streakTicketsVal', 'playerTicketsDisplay', 
+    'lobbyTicketsDisplay', 'ticketBalance', 'manageModalTicketsDisplay'
+  ];
+  ticketElements.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (el.tagName === 'INPUT') el.value = t;
+      else if (id === 'adminLiveTickets') el.textContent = `${ticketsFmt} 🎟️`;
+      else el.textContent = ticketsFmt;
+    }
+  });
+
+  try {
+    document.querySelectorAll('.header-ticket-val, [data-balance="tickets"]').forEach(el => {
+      if (el.tagName === 'INPUT') el.value = t;
+      else el.textContent = ticketsFmt;
+    });
+  } catch (e) {}
 }
 window.updateAllDomBalances = updateAllDomBalances;
 
@@ -507,13 +551,23 @@ const rawSetItem = localStorage.setItem.bind(localStorage);
 // Auto-intercept localStorage.setItem for currency keys to keep keys in sync and trigger cloud save
 localStorage.setItem = function(key, val) {
   rawSetItem(key, val);
-  if (!isInternalSync && (key === 'task_game_coins' || key === 'user_coins' || key === 'task_game_stars' || key === 'user_stars')) {
+  if (!isInternalSync && (key === 'task_game_coins' || key === 'user_coins' || key === 'task_game_stars' || key === 'user_stars' || key === 'task_user_tickets' || key === 'user_tickets' || key === 'task_game_tickets')) {
     isInternalSync = true;
     try {
       if (key === 'task_game_coins') rawSetItem('user_coins', val);
       else if (key === 'user_coins') rawSetItem('task_game_coins', val);
       else if (key === 'task_game_stars') rawSetItem('user_stars', val);
       else if (key === 'user_stars') rawSetItem('task_game_stars', val);
+      else if (key === 'task_user_tickets') {
+        rawSetItem('user_tickets', val);
+        rawSetItem('task_game_tickets', val);
+      } else if (key === 'user_tickets') {
+        rawSetItem('task_user_tickets', val);
+        rawSetItem('task_game_tickets', val);
+      } else if (key === 'task_game_tickets') {
+        rawSetItem('task_user_tickets', val);
+        rawSetItem('user_tickets', val);
+      }
     } catch (e) {}
     isInternalSync = false;
 
@@ -552,11 +606,13 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
   try {
     const coinsRaw = localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0';
     const starsRaw = localStorage.getItem('task_game_stars') || localStorage.getItem('user_stars') || '0';
+    const ticketsRaw = localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0';
     const tasksRaw = localStorage.getItem('completed_tasks_count') || localStorage.getItem('task_game_total_tasks_completed') || '0';
     const adsRaw = localStorage.getItem('ads_watched_count') || localStorage.getItem('task_game_ads_watched_count') || '0';
 
     const coins = parseInt(coinsRaw, 10);
     const stars = parseInt(starsRaw, 10);
+    const tickets = parseInt(ticketsRaw, 10);
     const tasksCompleted = parseInt(tasksRaw, 10);
     const adsWatched = parseInt(adsRaw, 10);
     const displayName = localStorage.getItem('player_username') || (currentUser ? currentUser.displayName : 'Player');
@@ -574,6 +630,7 @@ async function saveCurrentProfileToFirestore(userInstance = null) {
       avatar: avatar,
       coins: isNaN(coins) ? 0 : coins,
       stars: isNaN(stars) ? 0 : stars,
+      tickets: isNaN(tickets) ? 0 : tickets,
       tasksCompleted: isNaN(tasksCompleted) ? 0 : tasksCompleted,
       adsWatched: isNaN(adsWatched) ? 0 : adsWatched,
       sunflowerState: localStorage.getItem('sunflower_game_state') || null,
@@ -615,6 +672,11 @@ async function initCloudBalances(targetUid = null) {
         if (typeof data.stars === 'number') {
           rawSetItem('task_game_stars', data.stars.toString());
           rawSetItem('user_stars', data.stars.toString());
+        }
+        if (typeof data.tickets === 'number') {
+          rawSetItem('task_user_tickets', data.tickets.toString());
+          rawSetItem('user_tickets', data.tickets.toString());
+          rawSetItem('task_game_tickets', data.tickets.toString());
         }
         if (typeof data.tasksCompleted === 'number') {
           rawSetItem('completed_tasks_count', data.tasksCompleted.toString());
@@ -705,6 +767,14 @@ function startRealtimeUserSync(targetUid = null) {
           if (typeof cloudData.stars === 'number' && cloudData.stars !== currentStars) {
             rawSetItem('task_game_stars', cloudData.stars.toString());
             rawSetItem('user_stars', cloudData.stars.toString());
+            changed = true;
+          }
+
+          const currentTickets = parseInt(localStorage.getItem('task_user_tickets') || '0', 10);
+          if (typeof cloudData.tickets === 'number' && cloudData.tickets !== currentTickets) {
+            rawSetItem('task_user_tickets', cloudData.tickets.toString());
+            rawSetItem('user_tickets', cloudData.tickets.toString());
+            rawSetItem('task_game_tickets', cloudData.tickets.toString());
             changed = true;
           }
 

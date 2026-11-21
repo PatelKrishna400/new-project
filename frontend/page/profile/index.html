@@ -209,20 +209,20 @@
             <button class="btn-admin-action-secondary" onclick="resetPlayerCooldowns()">
               <span>🔄 Reset Cooldowns</span>
             </button>
+            <button class="btn-admin-action-restore" onclick="restoreAndRenewAllTasks()" id="btnAdminRestoreTasks" title="Restore all default basic missions and renew all completed & non-completed tasks for all players">
+              <span>🔄 Restore Basic Tasks</span>
+            </button>
           </div>
-          <!-- Mission Category Filter (All / Coin / Star / Pro) -->
+          <!-- Mission Category Filter (All / Simple / Premium) -->
           <div class="admin-mode-tabs" style="margin: 0.5rem 0;" id="adminTaskFilterTabs">
             <button type="button" class="admin-mode-tab-btn active" id="btnFilterCatAll" onclick="filterAdminTasksCategory('all')">
               <span>All Missions (<span id="countAdminFilterAll">0</span>)</span>
             </button>
             <button type="button" class="admin-mode-tab-btn" id="btnFilterCatSimple" onclick="filterAdminTasksCategory('simple')">
-              <span>🪙 Coin Tasks (<span id="countAdminFilterSimple">0</span>)</span>
+              <span>🪙 Simple Tasks (<span id="countAdminFilterSimple">0</span>)</span>
             </button>
             <button type="button" class="admin-mode-tab-btn" id="btnFilterCatPremium" onclick="filterAdminTasksCategory('premium')">
-              <span>⭐ Star Tasks (<span id="countAdminFilterPremium">0</span>)</span>
-            </button>
-            <button type="button" class="admin-mode-tab-btn" id="btnFilterCatPro" onclick="filterAdminTasksCategory('pro')">
-              <span>💎 Pro Tasks (<span id="countAdminFilterPro">0</span>)</span>
+              <span>⭐ Premium Tasks (<span id="countAdminFilterPremium">0</span>)</span>
             </button>
           </div>
 
@@ -278,68 +278,187 @@
           </div>
         </div>
 
-        <!-- 4. SUBVIEW: EVENT & SESSION-WISE LEADERBOARD STORE -->
+        <!-- 4. SUBVIEW: EVENT PAGE (PRO TASKS • PASS • LEADERBOARD) -->
         <div class="admin-sub-view" id="adminSubEvent" style="display: none;">
-          <div class="admin-event-card">
-            <div class="admin-event-badge" id="profileEventSeasonBadge">🏆 GLOBAL 3-MONTH CHAMPIONSHIP • SEASON 1</div>
-            <div class="admin-event-timer-grid">
-              <div class="timer-box"><span id="adminTimerDays">00</span><small>DAYS</small></div>
-              <div class="timer-box"><span id="adminTimerHours">00</span><small>HOURS</small></div>
-              <div class="timer-box"><span id="adminTimerMins">00</span><small>MINS</small></div>
-              <div class="timer-box"><span id="adminTimerSecs">00</span><small>SECS</small></div>
-            </div>
-            <div id="adminEventDatesInfo" style="font-size: 0.72rem; color: #38bdf8; text-align: center; margin-top: 0.4rem; font-weight: 700;">
-              Active Season Duration: 90 Days Championship • Universal Global Timer
-            </div>
-            <div style="font-size: 0.72rem; color: #94a3b8; text-align: center; margin: 0.65rem 0;">
-              Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>10,000 🪙</b>, 2nd <b>5,000 🪙</b>, 3rd <b>2,500 🪙</b>
-            </div>
-            
-            <div style="display: flex; gap: 8px; margin-top: 0.6rem;">
-              <button type="button" class="btn-admin-action-primary" onclick="adminArchiveProfileSession()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
-                <span>💾 Archive Current Session</span>
-              </button>
-              <button type="button" class="btn-admin-action-danger" onclick="adminResetLeaderboardSeason()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
-                <span>🔄 Restart Season</span>
-              </button>
-            </div>
+
+          <!-- Event Navigation Tabs (Pro Tasks / Pass / Season Leaderboard) -->
+          <div class="admin-event-tabs" id="adminEventSubTabs">
+            <button type="button" class="admin-event-tab-btn active tab-pro" id="btnEventTabPro" onclick="switchAdminEventTab('pro')" title="Pro Tasks &amp; 3-Task Packs">
+              <span>💎 Pro Tasks</span>
+            </button>
+            <button type="button" class="admin-event-tab-btn tab-pass" id="btnEventTabPass" onclick="switchAdminEventTab('pass')" title="500 Levels Battle Pass &amp; Task Pass">
+              <span>🎫 Pass</span>
+            </button>
+            <button type="button" class="admin-event-tab-btn tab-season" id="btnEventTabSeason" onclick="switchAdminEventTab('season')" title="3-Month Global Season Leaderboard">
+              <span>🏆 Leaderboard</span>
+            </button>
           </div>
 
-          <!-- Section: Live Active Contenders -->
-          <div class="section-title" style="margin-top: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>Live Qualified Contenders</span>
-            <span id="profileLiveContendersBadge" style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">0 Players</span>
-          </div>
-          <div id="adminEventPlayersList" class="admin-event-contenders-list">
-            <!-- Dynamically populated -->
-          </div>
-
-          <!-- Section: Session-Wise Leaderboard Data Store & History -->
-          <div style="margin-top: 1.25rem; border-top: 1px dashed rgba(56, 189, 248, 0.25); padding-top: 0.9rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-              <div class="section-title" style="margin: 0;">📁 Session-Wise Leaderboard History</div>
-              <select id="profileSessionFilterSelect" onchange="filterProfileSessionHistory(this.value)" style="padding: 3px 8px; font-size: 0.72rem; background: #060e24; border: 1px solid rgba(56, 189, 248, 0.3); color: #ffffff; border-radius: 6px;">
-                <option value="all">All Sessions</option>
-              </select>
-            </div>
-            <div id="profileSessionHistoryContainer">
-              <!-- Dynamically populated with archived session cards -->
-            </div>
-          </div>
-
-          <!-- Section: Player Feedback Messages (See & Delete in Event Page) -->
-          <div style="margin-top: 1.25rem; border-top: 1.5px dashed rgba(245, 158, 11, 0.35); padding-top: 0.9rem;" id="adminEventFeedbackSection">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-              <div class="section-title" style="margin: 0; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
-                <span>📩</span> Player Feedback Messages (<span id="adminFeedbackCount">0</span>)
+          <!-- TAB 1: PRO TASKS & 3-TASK PACKS MANAGEMENT (DETAIL & EDIT) -->
+          <div class="admin-event-panel" id="adminEventPanelPro">
+            <!-- Pro Event Status & Controls Card -->
+            <div class="admin-event-card pro-card-accent">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="pro-event-live-pill" id="proEventStatusBadge">● EVENT ACTIVE</span>
+                  <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">Limited-Time Challenge</span>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn-admin-pro-edit" onclick="openEditProTasksModal()">
+                    <span>✏️ Edit Pro Tasks</span>
+                  </button>
+                  <button type="button" class="btn-admin-pro-toggle" id="btnToggleProEvent" onclick="toggleProEventActive()">
+                    <span id="labelToggleProEvent">Turn Off ⏸️</span>
+                  </button>
+                </div>
               </div>
-              <button type="button" onclick="clearAllAdminFeedbacks()" style="padding: 3px 9px; font-size: 0.7rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; cursor: pointer;">
-                Clear All 🗑️
+
+              <div class="pro-metrics-grid">
+                <div class="pro-metric-box">
+                  <small>EVENT TIMER</small>
+                  <span id="proDetailTimerText">⏱️ 48H 00M</span>
+                </div>
+                <div class="pro-metric-box">
+                  <small>UNLOCK COST</small>
+                  <span id="proDetailCostText">🪙 50 + 🎟️ 2</span>
+                </div>
+                <div class="pro-metric-box">
+                  <small>TOTAL BOUNTY</small>
+                  <span id="proDetailBountyText">🪙 1,000</span>
+                </div>
+                <div class="pro-metric-box">
+                  <small>TASK RULE</small>
+                  <span style="color: #34d399; font-size: 0.75rem;">50% on #1, 100% on #3</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pro Sub-Tasks Detail List -->
+            <div class="section-title" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>Missions In Package (3 Tasks)</span>
+              <span style="font-size: 0.7rem; color: #34d399; font-weight: 800;">3/3 Active</span>
+            </div>
+            
+            <div class="pro-tasks-detail-list" id="proTasksDetailList">
+              <!-- Dynamically populated or rendered with 3 tasks -->
+            </div>
+          </div>
+
+          <!-- TAB 2: PASS (500 LEVELS BATTLE PASS & ROADMAP MANAGEMENT) -->
+          <div class="admin-event-panel" id="adminEventPanelPass" style="display: none;">
+            <!-- Pass Overview & Controls Card -->
+            <div class="admin-event-card pass-card-accent">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="pass-live-pill" id="passStatusBadge">⚡ PASS ACTIVE</span>
+                  <span style="font-size: 0.72rem; color: #facc15; font-weight: 800;" id="passDetailSeasonTitle">Season 6: Light the Fuse</span>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn-admin-pass-edit" onclick="openEditPassSettingsModal()">
+                    <span>✏️ Edit Pass</span>
+                  </button>
+                  <button type="button" class="btn-admin-pass-toggle" id="btnTogglePassAdmin" onclick="adminTogglePassActivation()">
+                    <span id="labelTogglePassAdmin">Toggle Pass ⚡</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="pass-metrics-grid">
+                <div class="pass-metric-box">
+                  <small>TOTAL TIERS</small>
+                  <span id="passDetailTotalLevels">500 Levels</span>
+                </div>
+                <div class="pass-metric-box">
+                  <small>PROGRESSION</small>
+                  <span>1 Task = 1 Lvl</span>
+                </div>
+                <div class="pass-metric-box">
+                  <small>MILESTONE LVL 10</small>
+                  <span id="passDetailMilestoneReward" style="color: #facc15;">⭐ 100 Stars</span>
+                </div>
+                <div class="pass-metric-box">
+                  <small>ACTIVE PLAYER LVL</small>
+                  <span id="passDetailPlayerLevel" style="color: #38bdf8;">Level 4</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pass Roadmap Levels Overview -->
+            <div class="section-title" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>500 Levels Track Milestones</span>
+              <button type="button" onclick="openRoadmapModal()" style="font-size: 0.7rem; background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4); color: #facc15; padding: 2px 8px; border-radius: 6px; cursor: pointer;">
+                Full Preview ↗
               </button>
             </div>
             
-            <div id="adminFeedbackListContainer" style="display: flex; flex-direction: column; gap: 8px;">
-              <!-- Dynamically populated with feedback cards -->
+            <div class="pass-milestones-preview-grid" id="passMilestonesPreviewGrid">
+              <!-- Dynamically populated preview of key level milestones -->
+            </div>
+          </div>
+
+          <!-- TAB 3: SEASON LEADERBOARD (GLOBAL 3-MONTH CHAMPIONSHIP & ARCHIVE) -->
+          <div class="admin-event-panel" id="adminEventPanelSeason" style="display: none;">
+            <div class="admin-event-card">
+              <div class="admin-event-badge" id="profileEventSeasonBadge">🏆 GLOBAL 3-MONTH CHAMPIONSHIP • SEASON 1</div>
+              <div class="admin-event-timer-grid">
+                <div class="timer-box"><span id="adminTimerDays">00</span><small>DAYS</small></div>
+                <div class="timer-box"><span id="adminTimerHours">00</span><small>HOURS</small></div>
+                <div class="timer-box"><span id="adminTimerMins">00</span><small>MINS</small></div>
+                <div class="timer-box"><span id="adminTimerSecs">00</span><small>SECS</small></div>
+              </div>
+              <div id="adminEventDatesInfo" style="font-size: 0.72rem; color: #38bdf8; text-align: center; margin-top: 0.4rem; font-weight: 700;">
+                Active Season Duration: 90 Days Championship • Universal Global Timer
+              </div>
+              <div style="font-size: 0.72rem; color: #94a3b8; text-align: center; margin: 0.65rem 0;">
+                Qualification Gate: <b>100 Tasks</b> • Prizes: 1st <b>10,000 🪙</b>, 2nd <b>5,000 🪙</b>, 3rd <b>2,500 🪙</b>
+              </div>
+              
+              <div style="display: flex; gap: 8px; margin-top: 0.6rem;">
+                <button type="button" class="btn-admin-action-primary" onclick="adminArchiveProfileSession()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
+                  <span>💾 Archive Current Session</span>
+                </button>
+                <button type="button" class="btn-admin-action-danger" onclick="adminResetLeaderboardSeason()" style="flex: 1; padding: 7px 10px; font-size: 0.78rem;">
+                  <span>🔄 Restart Season</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Section: Live Active Contenders -->
+            <div class="section-title" style="margin-top: 0.9rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>Live Qualified Contenders</span>
+              <span id="profileLiveContendersBadge" style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">0 Players</span>
+            </div>
+            <div id="adminEventPlayersList" class="admin-event-contenders-list">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Section: Session-Wise Leaderboard Data Store & History -->
+            <div style="margin-top: 1.25rem; border-top: 1px dashed rgba(56, 189, 248, 0.25); padding-top: 0.9rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                <div class="section-title" style="margin: 0;">📁 Session-Wise Leaderboard History</div>
+                <select id="profileSessionFilterSelect" onchange="filterProfileSessionHistory(this.value)" style="padding: 3px 8px; font-size: 0.72rem; background: #060e24; border: 1px solid rgba(56, 189, 248, 0.3); color: #ffffff; border-radius: 6px;">
+                  <option value="all">All Sessions</option>
+                </select>
+              </div>
+              <div id="profileSessionHistoryContainer">
+                <!-- Dynamically populated with archived session cards -->
+              </div>
+            </div>
+
+            <!-- Section: Player Feedback Messages (See & Delete in Event Page) -->
+            <div style="margin-top: 1.25rem; border-top: 1.5px dashed rgba(245, 158, 11, 0.35); padding-top: 0.9rem;" id="adminEventFeedbackSection">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                <div class="section-title" style="margin: 0; color: #fbbf24; display: flex; align-items: center; gap: 6px;">
+                  <span>📩</span> Player Feedback Messages (<span id="adminFeedbackCount">0</span>)
+                </div>
+                <button type="button" onclick="clearAllAdminFeedbacks()" style="padding: 3px 9px; font-size: 0.7rem; font-weight: 700; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 6px; cursor: pointer;">
+                  Clear All 🗑️
+                </button>
+              </div>
+              
+              <div id="adminFeedbackListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated with feedback cards -->
+              </div>
             </div>
           </div>
 
@@ -1406,16 +1525,90 @@
         <input type="hidden" id="taskEditId" value="" />
         <input type="hidden" id="taskCreationMode" value="single" />
 
-        <!-- Mission Category (Simple vs Premium vs Shop Task) -->
+        <!-- Mission Category (Simple Task vs Premium Task Only) -->
         <div class="admin-form-group">
           <label class="admin-form-label" for="taskInputCategory">Task Category / Type *</label>
           <select id="taskInputCategory" class="admin-form-input" onchange="handleAdminTaskCategoryChange(this.value)" style="font-weight: 800;">
-            <option value="simple">🪙 Coin Task (Standard Bounty)</option>
-            <option value="article">📰 Article / Paragraph Reading Task (Read short paragraphs to find 6-digit code)</option>
-            <option value="premium">⭐ Star Task (VIP High Bounty)</option>
-            <option value="pro">💎 Pro Task (Elite Mission)</option>
-            <option value="shop_task">🛒 Shop Task (Extends Daily Shop Limit)</option>
+            <option value="simple">🪙 Simple Task (Coin Task)</option>
+            <option value="premium">⭐ Premium Task (Star Task VIP)</option>
           </select>
+        </div>
+
+
+        <!-- Event 3-Task Package Builder (Profile Admin) -->
+        <div class="admin-form-group" id="profileEventPackBuilder" style="display: none; background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 1rem; margin-bottom: 1rem;">
+          <div style="font-weight: 900; color: #34d399; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>🏆 Event 3-Task Package Builder</span>
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">Min 3 Tasks • Half Price on 1st • Full on 3rd</span>
+          </div>
+
+          <!-- Package Settings: Timer & Package Unlock Cost -->
+          <div style="display: flex; gap: 0.75rem; margin-bottom: 0.85rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 140px;">
+              <label class="admin-form-label" for="profileEventTimerDuration">Event Countdown Timer *</label>
+              <select id="profileEventTimerDuration" class="admin-form-input" style="font-weight: 800;">
+                <option value="24">⏱️ 24 Hours (1 Day)</option>
+                <option value="48">⏱️ 48 Hours (2 Days)</option>
+                <option value="72">⏱️ 72 Hours (3 Days)</option>
+                <option value="168">⏱️ 7 Days (1 Week)</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 130px;">
+              <label class="admin-form-label" for="profilePackageCoinCost">Full Package Coin Cost (🪙)</label>
+              <input type="number" id="profilePackageCoinCost" class="admin-form-input font-bold" min="0" value="50" style="color: #fbbf24; font-weight: 900;">
+            </div>
+            <div style="flex: 1; min-width: 130px;">
+              <label class="admin-form-label" for="profilePackageTicketCost">Full Package Ticket Cost (🎟️)</label>
+              <input type="number" id="profilePackageTicketCost" class="admin-form-input font-bold" min="0" value="2" style="color: #c084fc; font-weight: 900;">
+            </div>
+          </div>
+
+          <!-- 3 Sub-Tasks Configuration -->
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Sub-Task 1 -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8rem; color: #34d399; margin-bottom: 0.35rem;">Task 1 of 3 (Half Price Awarded Here!)</div>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <input type="text" id="profileEventTask1Title" class="admin-form-input" placeholder="Task 1 Name" value="Mission 1: Promo Signup" style="flex: 2;">
+                <input type="number" id="profileEventTask1Price" class="admin-form-input font-bold" placeholder="Price (🪙)" value="500" style="flex: 1; color: #fbbf24;" oninput="updateProfilePackageTotalPrice()">
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="url" id="profileEventTask1Url" class="admin-form-input font-mono" placeholder="Target URL" value="https://youtube.com/" style="flex: 2;">
+                <input type="text" id="profileEventTask1Code" class="admin-form-input font-mono font-bold" placeholder="6-Digit Code" maxlength="6" value="583921" style="flex: 1; color: #facc15;">
+              </div>
+            </div>
+
+            <!-- Sub-Task 2 -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8rem; color: #34d399; margin-bottom: 0.35rem;">Task 2 of 3</div>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <input type="text" id="profileEventTask2Title" class="admin-form-input" placeholder="Task 2 Name" value="Mission 2: Community Join" style="flex: 2;">
+                <input type="number" id="profileEventTask2Price" class="admin-form-input font-bold" placeholder="Price (🪙)" value="250" style="flex: 1; color: #fbbf24;" oninput="updateProfilePackageTotalPrice()">
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="url" id="profileEventTask2Url" class="admin-form-input font-mono" placeholder="Target URL" value="https://telegram.org/" style="flex: 2;">
+                <input type="text" id="profileEventTask2Code" class="admin-form-input font-mono font-bold" placeholder="6-Digit Code" maxlength="6" value="749201" style="flex: 1; color: #facc15;">
+              </div>
+            </div>
+
+            <!-- Sub-Task 3 -->
+            <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8rem; color: #34d399; margin-bottom: 0.35rem;">Task 3 of 3 (Full Package Completion Bonus!)</div>
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+                <input type="text" id="profileEventTask3Title" class="admin-form-input" placeholder="Task 3 Name" value="Mission 3: Survey Bonus" style="flex: 2;">
+                <input type="number" id="profileEventTask3Price" class="admin-form-input font-bold" placeholder="Price (🪙)" value="250" style="flex: 1; color: #fbbf24;" oninput="updateProfilePackageTotalPrice()">
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="url" id="profileEventTask3Url" class="admin-form-input font-mono" placeholder="Target URL" value="https://google.com/" style="flex: 2;">
+                <input type="text" id="profileEventTask3Code" class="admin-form-input font-mono font-bold" placeholder="6-Digit Code" maxlength="6" value="382910" style="flex: 1; color: #facc15;">
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.75rem; font-size: 0.75rem; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center;">
+            <span>Total Package Price: <b style="color: #fbbf24;" id="profilePackageTotalBountyLabel">1,000 Coins</b></span>
+            <span style="color: #34d399; font-weight: 800;">✓ Half on 1st (500), Total on 3rd</span>
+          </div>
         </div>
 
         <!-- Task Level Selector (Levels 1 - 5) -->
@@ -1526,6 +1719,189 @@
         <div class="admin-modal-footer">
           <button type="button" class="btn-admin-modal-cancel" onclick="closeAdminTaskModal()">Cancel</button>
           <button type="submit" class="btn-admin-modal-submit" id="btnAdminSaveTask">Save Mission ✓</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Modal: Edit Pro Tasks & Event Pack -->
+  <div class="admin-modal-overlay" id="adminProTaskEditModalOverlay" onclick="if(event.target===this)closeEditProTasksModal()" style="display: none;">
+    <div class="admin-modal-card" onclick="event.stopPropagation()" style="max-width: 480px;">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title" style="color: #34d399; display: flex; align-items: center; gap: 6px;">
+          <span>💎</span> Edit Pro Tasks &amp; 3-Task Pack
+        </h3>
+        <button type="button" class="btn-close-modal" onclick="closeEditProTasksModal()">✕</button>
+      </div>
+
+      <form id="adminProTaskEditModalForm" onsubmit="handleSaveProTasksForm(event)" class="admin-modal-body">
+        <!-- Event Global Settings -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem;">
+          <div style="font-weight: 800; font-size: 0.82rem; color: #34d399; margin-bottom: 0.5rem;">⏱️ Event Parameters</div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 120px;">
+              <label class="admin-form-label" for="editProEventDuration">Countdown Duration</label>
+              <select id="editProEventDuration" class="admin-form-input font-bold">
+                <option value="24">⏱️ 24 Hours</option>
+                <option value="48">⏱️ 48 Hours</option>
+                <option value="72">⏱️ 72 Hours</option>
+                <option value="168">⏱️ 7 Days</option>
+              </select>
+            </div>
+            <div style="flex: 1; min-width: 100px;">
+              <label class="admin-form-label" for="editProPackageCoinCost">Unlock Coins (🪙)</label>
+              <input type="number" id="editProPackageCoinCost" class="admin-form-input font-bold" min="0" value="50" style="color: #fbbf24;">
+            </div>
+            <div style="flex: 1; min-width: 100px;">
+              <label class="admin-form-label" for="editProPackageTicketCost">Unlock Tickets (🎟️)</label>
+              <input type="number" id="editProPackageTicketCost" class="admin-form-input font-bold" min="0" value="2" style="color: #c084fc;">
+            </div>
+          </div>
+          <div style="margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+            <label style="font-size: 0.78rem; font-weight: 800; color: #ffffff; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="checkbox" id="editProEventActiveToggle" checked style="accent-color: #10b981; width: 16px; height: 16px;">
+              <span>Event Active (Show on Home &amp; Tasks Page)</span>
+            </label>
+            <span style="font-size: 0.72rem; color: #94a3b8;">When expired, event hides</span>
+          </div>
+        </div>
+
+        <!-- Sub-Tasks Configuration -->
+        <div style="font-weight: 800; font-size: 0.82rem; color: #ffffff; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+          <span>3-Task Package Missions</span>
+          <span style="color: #fbbf24; font-size: 0.75rem;" id="editProTotalBountyPreview">Total: 1,000 Coins</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <!-- Task 1 -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.65rem 0.75rem;">
+            <div style="font-weight: 800; font-size: 0.78rem; color: #34d399; margin-bottom: 0.35rem; display: flex; justify-content: space-between;">
+              <span>Task 1 of 3</span>
+              <span style="color: #facc15; font-size: 0.72rem;">🎁 50% Half Price Win Here!</span>
+            </div>
+            <div style="display: flex; gap: 0.4rem; margin-bottom: 0.35rem;">
+              <input type="text" id="editProTask1Title" class="admin-form-input" placeholder="Title" value="Mission 1: Promo Signup" style="flex: 2;" required>
+              <input type="number" id="editProTask1Price" class="admin-form-input font-bold" placeholder="Coins" value="500" style="flex: 1; color: #fbbf24;" oninput="updateEditProBountyPreview()" required>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <input type="url" id="editProTask1Url" class="admin-form-input font-mono" placeholder="Target Link" value="https://youtube.com/" style="flex: 2;" required>
+              <input type="text" id="editProTask1Code" class="admin-form-input font-mono font-bold" placeholder="Code" maxlength="6" value="583921" style="flex: 1; color: #facc15;" required>
+            </div>
+          </div>
+
+          <!-- Task 2 -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.65rem 0.75rem;">
+            <div style="font-weight: 800; font-size: 0.78rem; color: #34d399; margin-bottom: 0.35rem;">Task 2 of 3 (Mid Mission)</div>
+            <div style="display: flex; gap: 0.4rem; margin-bottom: 0.35rem;">
+              <input type="text" id="editProTask2Title" class="admin-form-input" placeholder="Title" value="Mission 2: Community Join" style="flex: 2;" required>
+              <input type="number" id="editProTask2Price" class="admin-form-input font-bold" placeholder="Coins" value="250" style="flex: 1; color: #fbbf24;" oninput="updateEditProBountyPreview()" required>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <input type="url" id="editProTask2Url" class="admin-form-input font-mono" placeholder="Target Link" value="https://telegram.org/" style="flex: 2;" required>
+              <input type="text" id="editProTask2Code" class="admin-form-input font-mono font-bold" placeholder="Code" maxlength="6" value="749201" style="flex: 1; color: #facc15;" required>
+            </div>
+          </div>
+
+          <!-- Task 3 -->
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 0.65rem 0.75rem;">
+            <div style="font-weight: 800; font-size: 0.78rem; color: #34d399; margin-bottom: 0.35rem; display: flex; justify-content: space-between;">
+              <span>Task 3 of 3</span>
+              <span style="color: #34d399; font-size: 0.72rem;">🏆 Full Total Price Bounty!</span>
+            </div>
+            <div style="display: flex; gap: 0.4rem; margin-bottom: 0.35rem;">
+              <input type="text" id="editProTask3Title" class="admin-form-input" placeholder="Title" value="Mission 3: Survey Bonus" style="flex: 2;" required>
+              <input type="number" id="editProTask3Price" class="admin-form-input font-bold" placeholder="Coins" value="250" style="flex: 1; color: #fbbf24;" oninput="updateEditProBountyPreview()" required>
+            </div>
+            <div style="display: flex; gap: 0.4rem;">
+              <input type="url" id="editProTask3Url" class="admin-form-input font-mono" placeholder="Target Link" value="https://google.com/" style="flex: 2;" required>
+              <input type="text" id="editProTask3Code" class="admin-form-input font-mono font-bold" placeholder="Code" maxlength="6" value="382910" style="flex: 1; color: #facc15;" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-modal-footer" style="margin-top: 1rem;">
+          <button type="button" class="btn-admin-modal-cancel" onclick="closeEditProTasksModal()">Cancel</button>
+          <button type="submit" class="btn-admin-modal-submit" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+            Save Pro Tasks ✓
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Modal: Edit Pass Settings (500 Levels & Season) -->
+  <div class="admin-modal-overlay" id="adminPassEditModalOverlay" onclick="if(event.target===this)closeEditPassSettingsModal()" style="display: none;">
+    <div class="admin-modal-card" onclick="event.stopPropagation()" style="max-width: 460px;">
+      <div class="admin-modal-header">
+        <h3 class="admin-modal-title" style="color: #facc15; display: flex; align-items: center; gap: 6px;">
+          <span>🎫</span> Edit Battle Pass &amp; Task Pass Settings
+        </h3>
+        <button type="button" class="btn-close-modal" onclick="closeEditPassSettingsModal()">✕</button>
+      </div>
+
+      <form id="adminPassEditModalForm" onsubmit="handleSavePassSettingsForm(event)" class="admin-modal-body">
+        <!-- Season Title -->
+        <div class="admin-form-group">
+          <label class="admin-form-label" for="editPassSeasonName">Season Title / Name *</label>
+          <input type="text" id="editPassSeasonName" class="admin-form-input font-bold" value="Season 6: Light the Fuse" required style="color: #fde047;">
+        </div>
+
+        <!-- Duration Days & Total Levels -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+          <div style="flex: 1;">
+            <label class="admin-form-label" for="editPassDurationDays">Season Days</label>
+            <input type="number" id="editPassDurationDays" class="admin-form-input font-bold" value="21" min="1" max="365">
+          </div>
+          <div style="flex: 1;">
+            <label class="admin-form-label" for="editPassTotalLevels">Total Track Levels</label>
+            <input type="number" id="editPassTotalLevels" class="admin-form-input font-bold" value="500" min="10" max="5000">
+          </div>
+          <div style="flex: 1;">
+            <label class="admin-form-label" for="editPassTasksPerLevel">Tasks Per Level</label>
+            <input type="number" id="editPassTasksPerLevel" class="admin-form-input font-bold" value="1" min="1" max="10">
+          </div>
+        </div>
+
+        <!-- Milestone Target -->
+        <div style="background: rgba(250, 204, 21, 0.08); border: 1px solid rgba(250, 204, 21, 0.3); border-radius: 12px; padding: 0.75rem; margin-bottom: 0.85rem;">
+          <div style="font-weight: 800; font-size: 0.8rem; color: #facc15; margin-bottom: 0.4rem;">🎯 Milestone Reward Target</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <div style="flex: 1;">
+              <label class="admin-form-label" for="editPassMilestoneLevel">Milestone Level</label>
+              <input type="number" id="editPassMilestoneLevel" class="admin-form-input font-bold" value="10" min="1">
+            </div>
+            <div style="flex: 1;">
+              <label class="admin-form-label" for="editPassMilestoneType">Reward Type</label>
+              <select id="editPassMilestoneType" class="admin-form-input font-bold">
+                <option value="stars">⭐ Stars</option>
+                <option value="coins">🪙 Coins</option>
+                <option value="tickets">🎟️ Tickets</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label class="admin-form-label" for="editPassMilestoneAmount">Amount</label>
+              <input type="number" id="editPassMilestoneAmount" class="admin-form-input font-bold" value="100" min="1" style="color: #facc15;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Activation Switch -->
+        <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 0.65rem 0.85rem; margin-bottom: 0.85rem; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.82rem; color: #ffffff;">Pass Activated Status</div>
+            <div style="font-size: 0.72rem; color: #94a3b8;">When active, players unlock Pass rewards</div>
+          </div>
+          <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <input type="checkbox" id="editPassActivatedToggle" checked style="accent-color: #facc15; width: 18px; height: 18px;">
+            <span style="font-size: 0.78rem; font-weight: 800; color: #facc15;">Activated</span>
+          </label>
+        </div>
+
+        <div class="admin-modal-footer">
+          <button type="button" class="btn-admin-modal-cancel" onclick="closeEditPassSettingsModal()">Cancel</button>
+          <button type="submit" class="btn-admin-modal-submit" style="background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; font-weight: 900;">
+            Save Pass Settings ✓
+          </button>
         </div>
       </form>
     </div>

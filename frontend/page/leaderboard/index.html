@@ -1,614 +1,1149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Fredoka Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Leaderboard — Global 3-Month Championship</title>
-  <link rel="stylesheet" href="style.css">
-  <script>
-    // Early zero-start sanitizer: Purge all demo users and mock data so everything starts from 0
-    try {
-      const storedUsersRaw = localStorage.getItem('task_game_users');
-      if (storedUsersRaw) {
-        const parsed = JSON.parse(storedUsersRaw);
-        if (Array.isArray(parsed)) {
-          const cleaned = parsed.filter(u => u && !['usr_2', 'usr_3', 'usr_4', 'usr_5', 'usr_6'].includes(u.id) && !['User 2', 'CyberHunter', 'NeonBlaze', 'ShadowNova', 'PixelMaster'].includes(u.name));
-          localStorage.setItem('task_game_users', JSON.stringify(cleaned));
-        }
-      }
-      localStorage.removeItem('user_2_name');
-      localStorage.removeItem('user_2_coins');
-      localStorage.removeItem('user_2_stars');
-      localStorage.removeItem('user_2_event_tasks');
-      localStorage.removeItem('user_2_total_tasks');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>500 Levels Battle Pass - Nova Cyber</title>
 
-      if (!localStorage.getItem('task_game_zero_start_clean_v7')) {
-        localStorage.setItem('task_game_coins', '0');
-        localStorage.setItem('task_game_stars', '0');
-        localStorage.setItem('user_coins', '0');
-        localStorage.setItem('user_stars', '0');
-        localStorage.setItem('task_game_total_tasks', '0');
-        localStorage.setItem('task_game_total_tasks_completed', '0');
-        localStorage.setItem('completed_tasks_count', '0');
-        localStorage.removeItem('task_game_tg_profile');
-        localStorage.removeItem('player_email');
-        localStorage.removeItem('player_whatsapp');
-        const existingName = localStorage.getItem('player_username');
-        if (!existingName || existingName.toLowerCase().includes('nova')) {
-          localStorage.setItem('player_username', 'Player');
-        }
-        localStorage.setItem('player_avatar', '⚡');
-        localStorage.setItem('task_game_zero_start_clean_v7', 'true');
-      }
-    } catch (e) {}
-  </script>
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Lilita+One&family=Titan+One&display=swap" rel="stylesheet" />
+
+  <!-- Inherit Home Page Cyber Theme CSS -->
+  <link rel="stylesheet" href="../home/style.css" />
+
+  <style>
+    :root {
+      --font-display: "Lilita One", "Titan One", cursive, sans-serif;
+      --font-ui: "Fredoka", sans-serif;
+      --stroke-dark: #0a1124;
+      --cyber-blue: #38bdf8;
+      --cyber-gold: #facc15;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-ui);
+      background-color: #060e24;
+      background-image: radial-gradient(circle at 50% 0%, #0c1e4a 0%, #060e24 70%);
+      color: #ffffff;
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding-bottom: 96px;
+    }
+
+    .font-display {
+      font-family: var(--font-display);
+      letter-spacing: 0.02em;
+    }
+
+    .font-ui {
+      font-family: var(--font-ui);
+    }
+
+    /* Outlines */
+    .game-outline {
+      -webkit-text-stroke: 3px #030816;
+      paint-order: stroke fill;
+      text-shadow: 0 2px 0 #030816, 0 4px 8px rgba(0,0,0,0.6);
+    }
+    .game-outline-sm {
+      -webkit-text-stroke: 2px #030816;
+      paint-order: stroke fill;
+      text-shadow: 0 1.5px 0 #030816;
+    }
+
+    /* Image 3 All Levels Gold Pill Button */
+    .btn-all-levels-gold {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1.5px solid #facc15;
+      color: #fde047;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.35);
+      transition: all 0.2s ease;
+    }
+    .btn-all-levels-gold:hover {
+      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+      color: #422006;
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.6);
+      transform: scale(1.04);
+    }
+    .btn-all-levels-gold:active {
+      transform: scale(0.96);
+    }
+
+    /* Image 3 Horizontal Level Cards Strip */
+    .h-level-track {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 6px 2px 8px 2px;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 6px;
+      margin-bottom: 6px;
+    }
+    .h-level-track::-webkit-scrollbar { display: none; }
+
+    /* Quick Jump Strip */
+    .jump-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 6px 12px;
+      background: rgba(8, 18, 48, 0.85);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    .jump-bar::-webkit-scrollbar { display: none; }
+    .jump-pill {
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #7dd3fc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .jump-pill:hover, .jump-pill.active {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: #ffffff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .jump-pill.my-level {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #422006;
+      border-color: #fef08a;
+      font-weight: 900;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Track Container & Rail */
+    .pass-track-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 16px 12px 60px 12px;
+      box-sizing: border-box;
+    }
+
+    .progress-rail {
+      position: absolute;
+      top: 10px;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 16px;
+      background-color: #0b1530;
+      border-left: 2px solid #030816;
+      border-right: 2px solid #030816;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.85);
+      border-radius: 999px;
+      overflow: hidden;
+      z-index: 5;
+    }
+
+    .progress-checkered-fill {
+      width: 100%;
+      background-color: #38bdf8;
+      background-image:
+        linear-gradient(45deg, #0284c7 25%, transparent 25%),
+        linear-gradient(-45deg, #0284c7 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #0284c7 75%),
+        linear-gradient(-45deg, transparent 75%, #0284c7 75%);
+      background-size: 10px 10px;
+      background-position: 0 0, 0 5px, 5px -5px, -5px 0;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8), inset 0 2px 0 rgba(255,255,255,0.4);
+      transition: height 0.3s ease;
+      height: 0px;
+    }
+
+    /* Tier Row */
+    .tier-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 58px 1fr;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 22px;
+      z-index: 10;
+    }
+
+    .tier-badge {
+      width: 46px;
+      height: 46px;
+      margin: 0 auto;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+      border: 3px solid #334155;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      color: #94a3b8;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7), inset 0 1.5px 0 rgba(255,255,255,0.15);
+      position: relative;
+      z-index: 15;
+      transition: all 0.25s ease;
+    }
+
+    .tier-row.reached .tier-badge {
+      background: linear-gradient(145deg, #0284c7 0%, #075985 100%);
+      border-color: #38bdf8;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.6), inset 0 1.5px 0 rgba(255,255,255,0.5);
+      transform: scale(1.05);
+    }
+
+    .tier-row.current .tier-badge {
+      background: linear-gradient(145deg, #f59e0b 0%, #b45309 100%);
+      border-color: #fde047;
+      color: #ffffff;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.8), inset 0 2px 0 rgba(255,255,255,0.6);
+      transform: scale(1.15);
+      animation: currentBadgePulse 2s infinite ease-in-out;
+    }
+
+    @keyframes currentBadgePulse {
+      0%, 100% { transform: scale(1.15); box-shadow: 0 0 16px rgba(250, 204, 21, 0.7); }
+      50% { transform: scale(1.22); box-shadow: 0 0 24px rgba(250, 204, 21, 1); }
+    }
+
+    /* Cards */
+    .pass-card {
+      position: relative;
+      border-radius: 14px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-sizing: border-box;
+      min-height: 110px;
+      justify-content: space-between;
+    }
+
+    .pass-card:active {
+      transform: scale(0.96);
+    }
+
+    /* Free Card (Cyan-Blue Cyber Theme) */
+    .card-free-tier {
+      background: linear-gradient(160deg, rgba(14, 116, 144, 0.35) 0%, rgba(3, 105, 161, 0.45) 50%, rgba(10, 25, 60, 0.85) 100%);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .card-free-tier:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6), 0 0 16px rgba(56, 189, 248, 0.3);
+      transform: translateY(-2px);
+    }
+
+    /* Pass Card (Gold-Amber VIP Theme) */
+    .card-pass-tier {
+      background: linear-gradient(160deg, rgba(161, 98, 7, 0.35) 0%, rgba(202, 138, 4, 0.45) 50%, rgba(30, 20, 10, 0.85) 100%);
+      border: 2px solid rgba(250, 204, 21, 0.4);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .card-pass-tier:hover {
+      border-color: #facc15;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.6), 0 0 16px rgba(250, 204, 21, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .card-pass-tier.locked-padlock {
+      filter: saturate(0.7) brightness(0.85);
+    }
+
+    .card-status-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      line-height: 1.1;
+      margin-top: 4px;
+      white-space: nowrap;
+    }
+    .pill-claimed {
+      background: rgba(16, 185, 129, 0.25);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .pill-claim {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: 1px solid #6ee7b7;
+      color: #ffffff;
+      animation: claimPulse 1.5s infinite;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+    }
+    .pill-locked {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #94a3b8;
+    }
+
+    @keyframes claimPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 8, 22, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10005;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+  </style>
 </head>
-<body>
+<body class="font-ui">
 
-  <!-- Mobile View Screen Shell -->
-  <div class="mobile-container">
-    
-    <!-- Top Header Bar -->
-    <header class="home-header">
-      <div class="header-user">
-        <div class="user-avatar">🏆</div>
-        <div class="user-meta">
-          <span class="user-name">Player</span>
-          <span class="user-level">GLOBAL RANKS</span>
-        </div>
-      </div>
-      <div class="header-pills">
-        <div class="coin-pill" id="coinPill" title="Total Coin Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('coins')">
-          <span>🪙</span>
-          <span class="coin-value" id="leaderboardCoinsTop">0</span>
-        </div>
-        <div class="star-pill" id="starPill" title="Total Star Balance • Tap to manage" onclick="window.openBalanceManageModal && window.openBalanceManageModal('stars')">
-          <span>⭐</span>
-          <span class="star-value" id="leaderboardStarsTop">0</span>
-        </div>
-        <div class="streak-pill" id="streakPill" title="Daily Streak Rewards • Tap to open" onclick="openDailyStreakModal()">
-          <span class="streak-logo">🔥</span>
-          <span class="streak-value" id="userStreakDisplay" style="display: none;">Day 1</span>
-          <span class="streak-badge-dot" id="streakNotificationDot" style="display: none;"></span>
-        </div>
-      </div>
-    </header>
-
-
-    <!-- Page Content -->
-    <main class="page-content">
-
-      <!-- ========================================================
-           VIEW 1: LEADERBOARD (Top 1, 2, 3 Podium + In-Between Scrolling)
-           ======================================================== -->
-      <section class="leaderboard-view-panel" id="panelLeaderboard">
-
-        <!-- Unified Combined Leaderboard Showcase Card (Season Event Banner + Top 3 Podium) -->
-        <div class="leaderboard-unified-card" id="leaderboardUnifiedCard">
-
-          <!-- Top Section: Season Banner Header -->
-          <div class="leaderboard-session-tab-card unified-session-header" id="leaderboardEventBanner" onclick="openLeaderboardSeasonModal()" role="button" tabindex="0" title="Click to view Season Details and Rewards">
-            <div class="session-tab-left">
-              <div class="session-tab-trophy-icon">🏆</div>
-              <div class="session-tab-info">
-                <h3 class="session-tab-title" id="eventTitleDisplay" style="margin: 0; font-size: 1.05rem;">Season 1</h3>
-              </div>
-            </div>
-            <div class="session-tab-right">
-              <div class="session-timer-box" id="eventTimerWrap">
-                <span class="session-timer-ico">⏱️</span>
-                <span class="session-timer-clock font-mono" id="eventCountdownClock" style="color: #ffffff !important; text-shadow: none !important;">--:--:--</span>
-              </div>
-              <button type="button" class="session-tab-join-btn" id="sessionTabJoinBtn" onclick="openLeaderboardSeasonModal(event)" aria-label="Join Season">
-                <span>Join</span>
-              </button>
-            </div>
-            <!-- Hidden fallback for legacy counter element to prevent null refs -->
-            <span id="myEventTasksCount" style="display: none;">0 🎯</span>
-          </div>
-
-          <!-- Divider Line inside Unified Card -->
-          <div class="unified-card-divider"></div>
-
-          <!-- Bottom Section: Top 1, 2, 3 Podium Showcase Stage -->
-          <div class="podium-showcase unified-podium-section">
-            <div class="podium-title-row">
-              <span class="podium-live-dot"></span>
-              <span class="podium-heading">TOP 3 CHAMPIONS</span>
-              <span class="podium-season-tag" id="podiumSeasonTag">3-MONTH SEASON</span>
-            </div>
-
-            <div class="podium-pillars-row">
-
-              <!-- #2 Silver Rank (Left - Short Compact) -->
-              <div class="podium-pillar-col silver-col" id="podiumCol2">
-                <div class="podium-player-card" id="podiumCard2">
-                  <span class="medal-icon">🥈</span>
-                  <div class="pillar-avatar silver-avatar" id="podiumAvatar2">🥈</div>
-                  <div class="pillar-player-name" id="podiumName2">Awaiting Contender</div>
-                  <div class="pillar-prize-pill silver-prize">+5,000 🪙</div>
-                  <div class="pillar-stats-row">
-                    <span class="pillar-task-count" id="podiumTasks2">0 🎯</span>
-                    <span class="pillar-player-coins" id="podiumCoins2">0 🪙</span>
-                  </div>
-                </div>
-                <div class="podium-block block-silver">
-                  <span class="block-number">2</span>
-                </div>
-              </div>
-
-              <!-- #1 Gold Rank Champion (Center - Highest - Short Compact) -->
-              <div class="podium-pillar-col gold-col" id="podiumCol1">
-                <div class="podium-player-card" id="podiumCard1">
-                  <div class="crown-icon">👑</div>
-                  <span class="medal-icon gold-medal">🥇</span>
-                  <div class="pillar-avatar gold-avatar" id="podiumAvatar1">👑</div>
-                  <div class="pillar-player-name gold-name" id="podiumName1">Awaiting Champion</div>
-                  <div class="pillar-prize-pill gold-prize">+10,000 🪙</div>
-                  <div class="pillar-stats-row">
-                    <span class="pillar-task-count gold-tasks" id="podiumTasks1">0 🎯</span>
-                    <span class="pillar-player-coins gold-coins" id="podiumCoins1">0 🪙</span>
-                  </div>
-                </div>
-                <div class="podium-block block-gold">
-                  <span class="block-number gold-number">1</span>
-                </div>
-              </div>
-
-              <!-- #3 Bronze Rank (Right - Short Compact) -->
-              <div class="podium-pillar-col bronze-col" id="podiumCol3">
-                <div class="podium-player-card" id="podiumCard3">
-                  <span class="medal-icon">🥉</span>
-                  <div class="pillar-avatar bronze-avatar" id="podiumAvatar3">🥉</div>
-                  <div class="pillar-player-name" id="podiumName3">Awaiting Challenger</div>
-                  <div class="pillar-prize-pill bronze-prize">+2,500 🪙</div>
-                  <div class="pillar-stats-row">
-                    <span class="pillar-task-count" id="podiumTasks3">0 🎯</span>
-                    <span class="pillar-player-coins" id="podiumCoins3">0 🪙</span>
-                  </div>
-                </div>
-                <div class="podium-block block-bronze">
-                  <span class="block-number">3</span>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Season Star Rewards Prize Pool Strip (Hidden per user request) -->
-        <div class="leaderboard-prizes-card" id="leaderboardPrizesCard" style="display: none !important;" aria-hidden="true">
-          <div class="prizes-card-header">
-            <span class="prizes-title">🪙 3-MONTH SEASON COIN PRIZES</span>
-            <span class="prizes-pool-badge">21,500 🪙 Total Pool</span>
-          </div>
-          <div class="prizes-grid">
-            <div class="prize-pill prize-1st">
-              <span class="prize-rank">🥇 1st Place</span>
-              <span class="prize-stars">+10,000 🪙</span>
-            </div>
-            <div class="prize-pill prize-2nd">
-              <span class="prize-rank">🥈 2nd Place</span>
-              <span class="prize-stars">+5,000 🪙</span>
-            </div>
-            <div class="prize-pill prize-3rd">
-              <span class="prize-rank">🥉 3rd-5th</span>
-              <span class="prize-stars">+2,500 🪙</span>
-            </div>
-            <div class="prize-pill prize-mid">
-              <span class="prize-rank">🎖️ 6th-10th</span>
-              <span class="prize-stars">+1,000 🪙</span>
-            </div>
-            <div class="prize-pill prize-low">
-              <span class="prize-rank">🏅 11th-20th</span>
-              <span class="prize-stars">+100 🪙</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 100-Task Qualification Gate Banner (Hidden per user request) -->
-        <div class="qualification-card" id="qualificationCard" style="display: none !important;" aria-hidden="true">
-          <div class="qualify-header">
-            <div class="qualify-status-pill" id="qualifyStatusPill">
-              <span class="qualify-icon" id="qualifyIcon">🔒</span>
-              <span class="qualify-text" id="qualifyStatusText">LEADERBOARD LOCKED</span>
-            </div>
-            <span class="qualify-req-tag">Rule: Complete 100 Web Tasks</span>
-          </div>
-
-          <div class="qualify-body">
-            <div class="qualify-title" id="qualifyTitle">Complete 100 Web Tasks to Enter</div>
-            <div class="qualify-desc" id="qualifyDesc">
-              Your name will appear on the Leaderboard once you complete 100 Web Tasks.
-            </div>
-
-            <!-- Animated Progress Bar -->
-            <div class="qualify-progress-container">
-              <div class="qualify-bar-track">
-                <div class="qualify-bar-fill" id="qualifyBarFill" style="width: 0%;"></div>
-              </div>
-              <div class="qualify-bar-labels">
-                <span id="qualifyProgressLabel">Progress: 0 / 100 Web Tasks (0%)</span>
-                <span id="qualifyRemainingLabel">100 more tasks needed</span>
-              </div>
-            </div>
-
-            <div class="qualify-action-row" id="qualifyActionRow">
-              <a href="../home/index.html" class="btn-go-tasks">
-                <span>⚡ Complete Web Tasks Now &rarr;</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- In-Between Scrollable Rankings Section Header -->
-        <div class="ranks-section-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <h2 class="ranks-section-title" style="margin: 0;">Contenders</h2>
-          <span class="ranks-count-tag" id="ranksCountTag">Ranks #4 &ndash; #20 (Scroll &darr;)</span>
-        </div>
-
-        <!-- In-Between Scrollable Rankings List ("between scrolling throw show") -->
-        <div class="ranks-scrollable-container" id="ranksScrollContainer">
-          <div class="empty-ranks-box" id="emptyRanksPlaceholder">
-            <div class="empty-ranks-icon">🏆</div>
-            <div class="empty-ranks-title">Leaderboard Awaiting Competitors</div>
-            <div class="empty-ranks-desc">Complete Web Tasks to claim your rank!</div>
-            <a href="../home/index.html" class="btn-qualify-now">Complete Web Tasks &rarr;</a>
-          </div>
-        </div>
-
-      </section>
-    </main>
-
-
-
-    <!-- Sticky User Real-Time Rank Bar (Above Menu Bar) -->
-    <div class="sticky-user-rank-bar" id="stickyUserRankBar" title="Click to view your position in leaderboard">
-      <div class="user-rank-left">
-        <span class="user-rank-badge" id="myLiveRankBadge">#--</span>
-        <div class="user-rank-avatar" id="myLiveRankAvatar">⚡</div>
-        <div class="user-rank-meta">
-          <div class="user-rank-name-row">
-            <span class="user-rank-name" id="myLiveRankName">Player</span>
-            <span class="user-rank-you-pill">YOU</span>
-          </div>
-          <span class="user-rank-status-sub" id="myLiveRankSub">Real-Time Standing</span>
-        </div>
-      </div>
-      <div class="user-rank-right">
-        <div class="user-rank-coins" id="myLiveRankCoins">0 🪙</div>
-        <div class="user-rank-stars" id="myLiveRankStars">0 ⭐</div>
-      </div>
-    </div>
-
-    <!-- Below Menu Bar (Shop, Leaderboard Active, Home Center, Wallet, Profile) -->
-    <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+  <!-- ======================================================================
+       1. TOP HUD (Back to Home, Coins, Stars, Tickets)
+       ====================================================================== -->
+  <header class="sticky top-0 z-40 bg-[#060e24]/95 backdrop-blur-md border-b border-sky-400/20 px-3 py-2 shadow-lg">
+    <div class="max-w-[440px] mx-auto flex items-center justify-between gap-2">
       
-      <!-- 1. Shop Page Link -->
-      <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
-        <div class="menu-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <path d="M16 10a4 4 0 0 1-8 0"></path>
-          </svg>
+      <!-- Home Button -->
+      <button onclick="navigateHome()" aria-label="Return to Home" class="w-9 h-9 rounded-xl bg-gradient-to-b from-[#1e293b] to-[#0f172a] border border-sky-400/30 flex items-center justify-center text-sky-400 hover:text-white transition-all shadow-md active:scale-95" title="Return to Home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Coins Display -->
+      <div class="flex items-center gap-1.5 bg-[#0a1938] border border-sky-400/30 rounded-full px-2.5 py-1 shadow-inner">
+        <span class="text-sm">🪙</span>
+        <span id="hudCoins" class="font-display text-xs sm:text-sm text-[#facc15] font-black tracking-wide">0</span>
+      </div>
+
+      <!-- Stars Display -->
+      <div class="flex items-center gap-1.5 bg-[#0a1938] border border-amber-400/30 rounded-full px-2.5 py-1 shadow-inner">
+        <span class="text-sm">⭐</span>
+        <span id="hudStars" class="font-display text-xs sm:text-sm text-[#fde047] font-black tracking-wide">0</span>
+      </div>
+
+      <!-- Tickets Display -->
+      <div class="flex items-center gap-1.5 bg-[#0a1938] border border-fuchsia-400/30 rounded-full px-2.5 py-1 shadow-inner">
+        <span class="text-sm">🎟️</span>
+        <span id="hudTickets" class="font-display text-xs sm:text-sm text-[#f472b6] font-black tracking-wide">0</span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       2. TASK PASS CARD (Exact Match to Image 2 - Replaces Volcanic Banner)
+       ====================================================================== -->
+  <section class="max-w-[440px] mx-auto px-3 pt-3 pb-1">
+    <div id="forgeCard" class="forge-card">
+
+      <!-- Top-Left Floating Gold Pill (Image 2: 3/10) -->
+      <div class="top-pill">
+        <span id="cycleTaskTag" class="game-outline-sm">3/10</span>
+      </div>
+
+      <!-- Top Row: Title & All Levels Button (Exact Match to Image 3) -->
+      <div class="task-pass-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="game-outline task-pass-title">TASK PASS</span>
         </div>
-        <span class="menu-label">Shop</span>
-      </a>
+        <button type="button" id="btnViewAllLevels" onclick="scrollToCurrentLevel()" class="btn-all-levels-gold" title="View All Levels">
+          <span>All Levels 🏆</span>
+        </button>
+      </div>
 
-      <!-- 2. Leaderboard Page Link (Active) -->
-      <a href="../leaderboard/index.html" class="below-menu-item active" id="menuLeaderboard" title="Leaderboard">
-        <div class="menu-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-            <path d="M4 22h16"></path>
-            <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
-            <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
-            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
-          </svg>
+      <!-- Horizontal Level Cards Strip (Exact Match to Image 3) -->
+      <div class="h-level-track" id="horizontalLevelTrack">
+        <!-- Dynamically populated by renderHorizontalLevelTrack() -->
+      </div>
+
+      <!-- Task Pass Progress Bar Row (Exact Match to Image 2) -->
+      <div class="task-pass-track-row" style="margin-top: 0.5rem;">
+        <!-- Blue Level Badge with Level Number (Image 2: 4) -->
+        <div class="level-badge" id="levelNumBadge">
+          <span id="levelNumText" class="game-outline">4</span>
         </div>
-        <span class="menu-label">Ranks</span>
-      </a>
 
-      <!-- 3. Home Page Link (Center) -->
-      <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
-        <div class="center-home-icon-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
+        <!-- Central Progress Track (Image 2: 0/1 Task) -->
+        <div class="game-progress-track">
+          <div class="game-progress-fill" id="taskProgressBar" style="width: 30%;"></div>
+          <span class="task-pass-count-text game-outline-sm" id="taskCountText">0/1 Task</span>
         </div>
-        <span class="menu-label">Home</span>
-      </a>
 
-      <!-- 4. Wallet Page Link -->
-      <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
-        <div class="menu-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
-            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-          </svg>
-        </div>
-        <span class="menu-label">Wallet</span>
-      </a>
-
-      <!-- 5. Profile Page Link -->
-      <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
-        <div class="menu-icon-wrap">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </div>
-        <span class="menu-label">Profile</span>
-      </a>
-
-    </nav>
-
-    <!-- ==========================================================================
-         LEADERBOARD SEASON & REWARDS POPUP MODAL
-         Triggered by clicking the Session Banner Tab (#leaderboardEventBanner)
-         Shows:
-         1. 100 Tasks Completed Requirement -> Participated Status
-                           ========================================================================== -->
-    <div class="season-modal-overlay" id="leaderboardSeasonModalOverlay" style="display: none;" onclick="handleSeasonModalBackdropClick(event)">
-      <div class="season-modal-box" onclick="event.stopPropagation()">
-        
-        <!-- Modal Top Handle & Close Button -->
-        <div class="season-modal-drag-bar"></div>
-        <button type="button" class="season-modal-close-btn" onclick="closeLeaderboardSeasonModal()" aria-label="Close modal">✕</button>
-
-        <!-- Modal Header -->
-        <div class="season-modal-header">
-          <div class="season-modal-badge">
-            <span class="season-badge-dot"></span>
-            <span id="modalSeasonStatusText">SEASON 1 • GLOBAL EVENT ACTIVE</span>
+        <!-- 3D Gold Star Reward Coin with 100 (Image 2: Star 100) -->
+        <div class="reward-preview-box" id="rewardPreviewBox" onclick="openRoadmapModal()" title="Milestone Target: 100 Stars">
+          <div class="reward-bag-svg" id="rewardBagSvg">
+            <svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));">
+              <defs>
+                <radialGradient id="goldCoinGrad" cx="35%" cy="30%" r="65%">
+                  <stop offset="0%" stop-color="#fff59d"/>
+                  <stop offset="35%" stop-color="#facc15"/>
+                  <stop offset="70%" stop-color="#eab308"/>
+                  <stop offset="100%" stop-color="#ca8a04"/>
+                </radialGradient>
+                <linearGradient id="goldCoinRim" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fef08a"/>
+                  <stop offset="100%" stop-color="#854d0e"/>
+                </linearGradient>
+              </defs>
+              <circle cx="32" cy="32" r="28" fill="url(#goldCoinRim)"/>
+              <circle cx="32" cy="32" r="25" fill="url(#goldCoinGrad)"/>
+              <polygon points="32,15 36.5,25.5 48,26.5 39.5,34 42,45.5 32,39.5 22,45.5 24.5,34 16,26.5 27.5,25.5" fill="#ffffff" stroke="#b45309" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
           </div>
-          <h2 class="season-modal-title" id="modalSeasonTitle">Season 1: 3-Month Championship</h2>
-          <div class="season-modal-timer-pill">
-            <span class="timer-ico">⏱️</span>
-            <span class="timer-desc">Session Time Left:</span>
-            <span class="timer-time font-mono" id="modalSeasonCountdown" style="color: #ffffff !important; text-shadow: none !important;">--:--:--</span>
-          </div>
-        </div>
-
-        <!-- Modal Body Scroll Container -->
-        <div class="season-modal-body">
-
-          <!-- ==========================================
-               PART 1: RANK-WISE HOW MUCH STAR WIN DISPLAY
-               ========================================== -->
-          <!-- ==========================================
-               PART 1: WINNING PRIZES (COMPACT LOW-SPACE DESIGN)
-               ========================================== -->
-          <div class="season-section-card" id="seasonRankPrizeCard" style="border: 1px solid rgba(250, 204, 21, 0.35); background: linear-gradient(155deg, rgba(25, 20, 6, 0.7) 0%, rgba(10, 18, 38, 0.85) 100%); padding: 0.6rem 0.75rem; border-radius: 14px;">
-            <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.45rem;">
-              <span style="font-size: 0.95rem;">🏆</span>
-              <h3 style="font-size: 0.82rem; font-weight: 800; color: #fef08a; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">Winning Prizes</h3>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.35rem;">
-              <!-- Rank 1: 10,000 Stars -->
-              <div style="background: rgba(250, 204, 21, 0.1); border: 1px solid rgba(250, 204, 21, 0.3); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #fde047; font-size: 0.74rem;">🥇 1st Rank</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">10,000 🪙</span>
-              </div>
-              <!-- Rank 2: 5,000 Stars -->
-              <div style="background: rgba(226, 232, 240, 0.08); border: 1px solid rgba(226, 232, 240, 0.2); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #e2e8f0; font-size: 0.74rem;">🥈 2nd Rank</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">5,000 🪙</span>
-              </div>
-              <!-- Rank 3-5: 2,500 Stars -->
-              <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #fed7aa; font-size: 0.74rem;">🥉 3rd – 5th</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">2,500 🪙</span>
-              </div>
-              <!-- Rank 6-10: 1,000 Stars -->
-              <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #7dd3fc; font-size: 0.74rem;">🎖️ 6th – 10th</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">1,000 🪙</span>
-              </div>
-              <!-- Rank 11-15: 500 Stars -->
-              <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.2); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #c084fc; font-size: 0.74rem;">🏅 11th – 15th</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">500 🪙</span>
-              </div>
-              <!-- Rank 16-20: 100 Stars -->
-              <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.2); padding: 0.32rem 0.55rem; border-radius: 9px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 700; color: #6ee7b7; font-size: 0.74rem;">⭐ 16th – 20th</span>
-                <span style="font-weight: 900; color: #ffffff; font-size: 0.76rem;">100 🪙</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- ==========================================
-               PART 2: JOIN FOR TASK COMPLETE TAB: HEADING "TASK COMPLETED"
-               ========================================== -->
-          <div class="season-section-card" id="seasonParticipationCard">
-            <div class="section-card-header">
-              <div class="section-card-title-row">
-                <span class="section-card-icon">📋</span>
-                <div class="section-card-title-wrap">
-                  <h3 class="section-card-title">Task Completed</h3>
-                </div>
-              </div>
-              <div class="participation-status-pill locked" id="participationStatusPill">
-                <span id="participationStatusIcon">🔒</span>
-                <span id="participationStatusText">NOT PARTICIPATED</span>
-              </div>
-            </div>
-
-            <div class="section-card-body">
-              <!-- Combined Single-Line Row: Loading Bar on Left + Arrow Button on Right -->
-              <div style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between;">
-                <!-- Left: Web Tasks Progress Bar -->
-                <div class="season-progress-bar-wrap" style="flex: 1; min-width: 150px; margin-bottom: 0;">
-                  <div class="season-progress-header" style="margin-bottom: 0.25rem;">
-                    <span class="progress-lbl" style="font-size: 0.72rem;">Web Tasks Completed:</span>
-                    <span class="progress-val font-mono text-blue" id="modalTasksProgressText" style="font-size: 0.75rem;">0 / 100</span>
-                  </div>
-                  <div class="season-bar-track">
-                    <div class="season-bar-fill fill-blue" id="modalTasksProgressBar" style="width: 0%;"></div>
-                  </div>
-                </div>
-
-                <!-- Right: Arrow Go to Tasks Button in Same Line -->
-                <div class="season-action-row" id="participationActionRow" style="margin-top: 0; flex-shrink: 0;">
-                  <a href="../home/index.html" class="btn-season-action btn-go-tasks-modal" title="Go to Tasks (Open Home Page)" style="padding: 0.55rem 0.85rem; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; text-decoration: none; white-space: nowrap; font-size: 0.78rem;">
-                    <span>⚡ Go to Tasks</span>
-                    <span style="font-size: 0.95rem; font-weight: 900;">➔</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Season Rank Reward Claim -->
-          <div class="season-section-card" id="seasonRankRewardCard">
-            <div class="section-card-header">
-              <div class="section-card-title-row">
-                <span class="section-card-icon">🏆</span>
-                <div class="section-card-title-wrap">
-                  <h3 class="section-card-title">Season Rank Rewards</h3>
-                </div>
-              </div>
-            </div>
-
-            <div class="section-card-body">
-              <!-- Claim Button -->
-              <button type="button" class="btn-claim-season-reward" id="btnClaimSeasonRankReward" onclick="handleClaimSeasonRankReward()" style="width: 100%; padding: 0.85rem; border-radius: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 900; font-size: 0.88rem; cursor: pointer;">
-                <span id="btnClaimSeasonRewardText">🏆 Claim Season Rank Reward</span>
-              </button>
-            </div>
-          </div>
+          <span class="task-pass-reward-amount" id="rewardAmountText">100</span>
         </div>
       </div>
-    </div>
 
-    <!-- ==========================================================================
-         LEADERBOARD ADMIN QUICK EDIT CONTENDER MODAL
-         ========================================================================== -->
-    <div class="season-modal-overlay" id="leaderboardUserEditModalOverlay" style="display: none;" onclick="handleLeaderboardEditBackdrop(event)">
-      <div class="season-modal-box" onclick="event.stopPropagation()" style="max-height: 90vh;">
-        
-        <div class="season-modal-drag-bar"></div>
-        <button type="button" class="season-modal-close-btn" onclick="closeLeaderboardUserEditModal()" aria-label="Close modal">✕</button>
-
-        <div class="season-modal-header" style="padding-bottom: 0.5rem;">
-          <div class="season-modal-badge" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35);">
-            <span class="season-badge-dot" style="background: #38bdf8;"></span>
-            <span style="color: #38bdf8;">ADMIN CONTENDER EDITOR</span>
-          </div>
-          <h2 class="season-modal-title" style="font-size: 1.15rem;">Edit Leaderboard Player Data</h2>
+      <!-- Action & Pass Status Bar -->
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-sky-400/20 text-xs font-bold text-slate-300">
+        <div class="flex items-center gap-1.5">
+          <span class="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2.5 py-0.5 rounded-full text-[11px] font-black">
+            🏆 500 Levels Track
+          </span>
+          <span class="text-slate-400 text-[11px]" id="currentLevelStatusText">Active: Level 4</span>
         </div>
-
-        <form id="leaderboardUserEditForm" onsubmit="handleSaveLeaderboardUser(event)" style="padding: 0 1.25rem 1.25rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
-          <input type="hidden" id="lbEditUserId" value="" />
-
-          <!-- User Banner Preview -->
-          <div style="display: flex; align-items: center; gap: 0.75rem; background: #060e24; padding: 0.75rem; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.35);">
-            <span style="font-size: 2rem;" id="lbEditAvatarPreview">⚡</span>
-            <div style="flex: 1;">
-              <div style="font-weight: 800; font-size: 0.95rem; color: #ffffff;" id="lbEditNameDisplay">Player</div>
-              <div style="font-size: 0.72rem; color: #38bdf8; font-family: monospace;" id="lbEditIdDisplay">UID: usr_1</div>
-            </div>
-          </div>
-
-          <!-- Avatar Quick Select -->
-          <div>
-            <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Avatar Emoji / Icon</label>
-            <div style="display: flex; gap: 0.4rem; align-items: center;">
-              <input type="text" id="lbEditAvatarInput" style="width: 55px; text-align: center; font-size: 1.2rem; padding: 4px; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 8px; color: #fff;" maxlength="4" value="⚡" oninput="document.getElementById('lbEditAvatarPreview').textContent = this.value || '👤'">
-              <div style="display: flex; gap: 4px; flex-wrap: wrap;">
-                <button type="button" onclick="setLeaderboardEditAvatar('⚡')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">⚡</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('🦁')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">🦁</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('🎯')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">🎯</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('🔥')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">🔥</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('👑')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">👑</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('⭐')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">⭐</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('🎮')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">🎮</button>
-                <button type="button" onclick="setLeaderboardEditAvatar('💎')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; padding: 3px 6px;">💎</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Display Name -->
-          <div>
-            <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Player Display Name *</label>
-            <input type="text" id="lbEditNameInput" required maxlength="30" style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 9px; color: #fff; font-weight: 700;">
-          </div>
-
-          <!-- Season Tasks (Leaderboard Rank Decider) & Total Career Tasks -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <div>
-              <label style="font-size: 0.72rem; color: #38bdf8; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span>Season Tasks (🎯) *</span>
-                <span>Rank Decider</span>
-              </label>
-              <input type="number" id="lbEditEventTasks" min="0" required style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.5); border-radius: 9px; color: #38bdf8; font-weight: 800;">
-            </div>
-            <div>
-              <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Total Career Tasks (📋)</label>
-              <input type="number" id="lbEditTotalTasks" min="0" required style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 9px; color: #fff; font-weight: 700;">
-            </div>
-          </div>
-
-          <!-- Coins and Stars -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <div>
-              <label style="font-size: 0.72rem; color: #fbbf24; font-weight: 800; display: block; margin-bottom: 4px;">Coins (🪙) *</label>
-              <input type="number" id="lbEditCoins" min="0" step="50" required style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(245, 158, 11, 0.4); border-radius: 9px; color: #fbbf24; font-weight: 800;">
-            </div>
-            <div>
-              <label style="font-size: 0.72rem; color: #facc15; font-weight: 800; display: block; margin-bottom: 4px;">Stars (⭐) *</label>
-              <input type="number" id="lbEditStars" min="0" step="1" required style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(250, 204, 21, 0.4); border-radius: 9px; color: #facc15; font-weight: 800;">
-            </div>
-          </div>
-
-          <!-- Level Tier & Status -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <div>
-              <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Level Tier</label>
-              <select id="lbEditLevelSelect" style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 9px; color: #fff; font-weight: 700;">
-                <option value="LVL 1 • NOVICE">LVL 1 • Novice</option>
-                <option value="LVL 2 • CADET">LVL 2 • Cadet</option>
-                <option value="LVL 3 • SPECIALIST">LVL 3 • Specialist</option>
-                <option value="LVL 5 • TASK MASTER">LVL 5 • Task Master</option>
-                <option value="LVL 10 • CHAMPION">LVL 10 • Champion</option>
-                <option value="LVL 20 • LEGEND">LVL 20 • Legend VIP</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; display: block; margin-bottom: 4px;">Status</label>
-              <select id="lbEditStatusSelect" style="width: 100%; box-sizing: border-box; padding: 0.55rem 0.75rem; background: #0a1738; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 9px; color: #fff; font-weight: 700;">
-                <option value="active">Active Contender 🟢</option>
-                <option value="suspended">Suspended / Hidden 🔴</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Buttons -->
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.5rem;">
-            <button type="button" onclick="closeLeaderboardUserEditModal()" style="padding: 0.6rem 1rem; border-radius: 10px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; font-weight: 700; cursor: pointer;">Cancel</button>
-            <button type="submit" style="padding: 0.6rem 1.25rem; border-radius: 10px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border: 1px solid #38bdf8; color: #fff; font-weight: 800; cursor: pointer;">Save &amp; Update Ranks 🏆</button>
-          </div>
-        </form>
-
+        <button type="button" id="btnTogglePass" onclick="toggleActivatePass()" class="px-3 py-1 rounded-lg text-xs font-black transition-all active:scale-95 bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 shadow-md hover:brightness-110">
+          <span id="passBtnLabel">Activate Pass ⚡</span>
+        </button>
       </div>
-    </div>
 
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       3. QUICK JUMP SCRUBBER (Jump to any of the 500 levels)
+       ====================================================================== -->
+  <div class="max-w-[440px] mx-auto jump-bar" id="jumpBar">
+    <button type="button" class="jump-pill my-level" onclick="scrollToCurrentLevel()">🎯 My Level</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(1)">Lvl 1</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(10)">Lvl 10</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(25)">Lvl 25</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(50)">Lvl 50</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(100)">Lvl 100</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(250)">Lvl 250</button>
+    <button type="button" class="jump-pill" onclick="scrollToTier(500)">Lvl 500 🏆</button>
   </div>
 
-  <!-- Firebase Cloud Sync & Analytics Connection -->
-  <script type="module" src="../../firebase-config.js"></script>
-  <script src="script.js"></script>
-  <script src="../../daily-streak.js"></script>
+  <!-- ======================================================================
+       4. STICKY COLUMN HEADERS (FREE, TIER, PASS)
+       ====================================================================== -->
+  <div class="sticky top-[52px] z-30 bg-[#060e24]/95 backdrop-blur-md border-b border-sky-400/20 px-3 py-2 shadow-md">
+    <div class="max-w-[440px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <!-- FREE Blue Badge -->
+      <div class="flex justify-center">
+        <div class="w-full max-w-[125px] bg-gradient-to-b from-[#38bdf8] to-[#0284c7] border-2 border-[#030816] rounded-xl py-1 text-center shadow-[0_3px_0_#030816]">
+          <span class="font-display text-sm sm:text-base text-white text-outline-xs tracking-wider">FREE</span>
+        </div>
+      </div>
+
+      <!-- TIER Center Badge -->
+      <div class="flex justify-center px-1">
+        <div class="bg-[#1e293b] border-2 border-[#030816] rounded-xl px-3 py-1 text-center shadow-[0_3px_0_#030816]">
+          <span class="font-display text-xs sm:text-sm text-slate-200 text-outline-xs tracking-wider">TIER</span>
+        </div>
+      </div>
+
+      <!-- PASS Gold Badge -->
+      <div class="flex justify-center">
+        <div id="passHeaderBadge" class="w-full max-w-[125px] bg-gradient-to-b from-[#facc15] to-[#d97706] border-2 border-[#030816] rounded-xl py-1 text-center shadow-[0_3px_0_#030816] flex items-center justify-center gap-1">
+          <span class="font-display text-sm sm:text-base text-[#422006] text-outline-xs tracking-wider">PASS</span>
+          <span id="passActiveDot" class="hidden w-2 h-2 rounded-full bg-emerald-400 border border-[#030816]"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       5. 500-LEVEL BATTLE PASS TRACK (Levels 1 to 500 Generated Dynamically)
+       ====================================================================== -->
+  <main class="pass-track-wrap" id="passTrackWrap">
+    <!-- Central Vertical Checkered Progress Rail -->
+    <div class="progress-rail" id="progressRail">
+      <div class="progress-checkered-fill" id="progressFill"></div>
+    </div>
+
+    <!-- 500 Level Rows Container -->
+    <div id="tiersContainer">
+      <!-- Generated by JavaScript: Level 1 to Level 500 -->
+    </div>
+  </main>
+
+  <!-- ======================================================================
+       6. EXACT HOME PAGE BOTTOM MENU BAR (Shop, Ranks, Home, Wallet, Profile)
+       ====================================================================== -->
+  <nav class="below-menu-bar" id="belowMenuBar" aria-label="Bottom Navigation">
+    <!-- 1. Shop Page Link -->
+    <a href="../shop/index.html" class="below-menu-item" id="menuShop" title="Shop">
+      <div class="menu-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+      </div>
+      <span class="menu-label">Shop</span>
+    </a>
+
+    <!-- 2. Leaderboard / Battle Pass Page Link (Active with Gold/Cyan Pulse) -->
+    <a href="../leaderboard/index.html" class="below-menu-item active" id="menuLeaderboard" title="500 Levels Battle Pass">
+      <div class="menu-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7c-.55 0-1-.45-1-1v-2.34"></path>
+          <path d="M18 14.66V17c0 .55-.45 1-1 1h-2c-.55 0-1-.45-1-1v-2.34"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+      </div>
+      <span class="menu-label">Pass</span>
+    </a>
+
+    <!-- 3. Home Page Link (Center Elevated) -->
+    <a href="../home/index.html" class="below-menu-item center-home-btn" id="menuHome" title="Home">
+      <div class="center-home-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </div>
+      <span class="menu-label">Home</span>
+    </a>
+
+    <!-- 4. Wallet Page Link -->
+    <a href="../wallet/index.html" class="below-menu-item" id="menuWallet" title="Wallet">
+      <div class="menu-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+          <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+          <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+        </svg>
+      </div>
+      <span class="menu-label">Wallet</span>
+    </a>
+
+    <!-- 5. Profile Page Link -->
+    <a href="../profile/index.html" class="below-menu-item" id="menuProfile" title="Profile">
+      <div class="menu-icon-wrap">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <span class="menu-label">Profile</span>
+    </a>
+  </nav>
+
+  <!-- ======================================================================
+       7. REWARD DETAIL & CLAIM MODAL
+       ====================================================================== -->
+  <div id="rewardModal" class="modal-backdrop hidden" onclick="if(event.target===this) closeRewardModal()">
+    <div class="bg-gradient-to-b from-[#1e293b] to-[#0a1938] border-2 border-sky-400/50 rounded-2xl p-5 max-w-[360px] w-full text-center shadow-2xl relative" onclick="event.stopPropagation()">
+      <div id="modalRewardEmoji" class="text-5xl mb-2">🎁</div>
+      <h3 id="modalRewardTitle" class="font-display text-xl text-white mb-1">Tier Reward</h3>
+      <div id="modalRewardTrack" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-black mb-3">FREE TRACK</div>
+      <p id="modalRewardDesc" class="text-xs text-slate-300 mb-5 leading-relaxed">Reward description</p>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="closeRewardModal()" class="flex-1 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs">Close</button>
+        <button type="button" id="btnModalClaim" onclick="claimCurrentModalReward()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 text-white font-black text-xs shadow-lg">Claim Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="arcadeToast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3 px-4 py-2 rounded-xl bg-[#0a1938]/95 border border-sky-400 text-white text-xs font-black shadow-2xl flex items-center gap-2">
+    <span id="toastMsg">Notification</span>
+  </div>
+
+  <!-- ======================================================================
+       8. JAVASCRIPT: 500 LEVELS ENGINE, REAL-TIME DATA & CLAIM LOGIC
+       ====================================================================== -->
+  <script>
+    let passConfig = {};
+    try {
+      const rawCfg = localStorage.getItem("task_pass_config");
+      if (rawCfg) passConfig = JSON.parse(rawCfg);
+    } catch(e) {}
+
+    const MAX_TIERS = passConfig.totalLevels || 500;
+
+    // Game state
+    const state = {
+      coins: parseInt(localStorage.getItem("task_game_coins") || localStorage.getItem("user_coins") || "0", 10),
+      stars: parseInt(localStorage.getItem("task_game_stars") || localStorage.getItem("user_stars") || "0", 10),
+      tickets: parseInt(localStorage.getItem("task_user_tickets") || localStorage.getItem("user_tickets") || "0", 10),
+      currentLevel: parseInt(localStorage.getItem("task_pass_level") || "4", 10),
+      completedTasks: parseInt(localStorage.getItem("task_pass_total_completed") || "3", 10),
+      passActivated: (passConfig.passActivated !== undefined) ? passConfig.passActivated : (localStorage.getItem("season_6_pass_activated") === "true"),
+      claimed: {}
+    };
+
+    try {
+      const rawClaimed = localStorage.getItem("season_battle_pass_claimed");
+      if (rawClaimed) state.claimed = JSON.parse(rawClaimed);
+    } catch(e) {}
+
+    // Deterministic Reward Calculator for Level 1 to Level 500
+    function getTierReward(tier) {
+      // FREE REWARD
+      let free = {
+        tier: tier,
+        type: "coins",
+        emoji: "🪙",
+        title: "100 Coins",
+        coins: 100,
+        stars: 0,
+        tickets: 0,
+        desc: "Level " + tier + " Free Reward: +100 Gold Coins!"
+      };
+
+      if (tier % 100 === 0) {
+        free = {
+          tier: tier,
+          type: "mythic",
+          emoji: "🏆",
+          title: "Lvl " + tier + " Grand Trophy",
+          coins: 5000,
+          stars: 1000,
+          tickets: 50,
+          desc: "Grand Milestone Tier " + tier + ": +5,000 Coins, +1,000 Stars & 50 Tickets!"
+        };
+      } else if (tier % 50 === 0) {
+        free = {
+          tier: tier,
+          type: "chest",
+          emoji: "👑",
+          title: "Lvl " + tier + " Master Chest",
+          coins: 1500,
+          stars: 300,
+          tickets: 20,
+          desc: "Epic 50-Level Milestone: +1,500 Coins & +300 Stars!"
+        };
+      } else if (tier % 25 === 0) {
+        free = {
+          tier: tier,
+          type: "chest",
+          emoji: "📦",
+          title: "Lvl " + tier + " Chest",
+          coins: 800,
+          stars: 150,
+          tickets: 10,
+          desc: "Milestone Chest: +800 Coins, +150 Stars & 10 Tickets!"
+        };
+      } else if (tier % 10 === 0) {
+        free = {
+          tier: tier,
+          type: "stars",
+          emoji: "⭐",
+          title: "100 Stars Milestone",
+          coins: 0,
+          stars: 100,
+          tickets: 0,
+          desc: "Level " + tier + " Star Milestone: +100 Stars for rewards!"
+        };
+      } else if (tier % 2 === 0) {
+        free = {
+          tier: tier,
+          type: "tickets",
+          emoji: "🎟️",
+          title: "5 Tickets",
+          coins: 0,
+          stars: 0,
+          tickets: 5,
+          desc: "Level " + tier + " Free Reward: +5 Event & Spin Tickets!"
+        };
+      }
+
+      // PASS REWARD (VIP Exclusive)
+      let pass = {
+        tier: tier,
+        type: "gems",
+        emoji: "💎",
+        title: "10 Blue Gems",
+        coins: 150,
+        stars: 0,
+        tickets: 2,
+        desc: "Pass Reward: +150 Coins & +10 Blue Gems!"
+      };
+
+      if (tier % 100 === 0) {
+        pass = {
+          tier: tier,
+          type: "prismatic",
+          emoji: "🌌",
+          title: "Prismatic Obsidian Chest",
+          coins: 10000,
+          stars: 1000,
+          tickets: 50,
+          desc: "Legendary Obsidian Pass Chest: +10,000 Coins, +1,000 Stars & 50 Tickets!"
+        };
+      } else if (tier % 50 === 0) {
+        pass = {
+          tier: tier,
+          type: "royal",
+          emoji: "💠",
+          title: "Cyan Royal Chest",
+          coins: 3000,
+          stars: 500,
+          tickets: 25,
+          desc: "Royal Pass Chest: +3,000 Coins, +500 Stars & 25 Tickets!"
+        };
+      } else if (tier % 25 === 0) {
+        pass = {
+          tier: tier,
+          type: "amethyst",
+          emoji: "🔮",
+          title: "Amethyst Pass Chest",
+          coins: 1500,
+          stars: 250,
+          tickets: 15,
+          desc: "Amethyst Pass Chest: +1,500 Coins & +250 Stars!"
+        };
+      } else if (tier % 10 === 0) {
+        pass = {
+          tier: tier,
+          type: "sack",
+          emoji: "💎",
+          title: "Sack of 30 Blue Gems",
+          coins: 500,
+          stars: 100,
+          tickets: 10,
+          desc: "VIP Pass: +500 Coins, +100 Stars & 30 Blue Gems!"
+        };
+      } else if (tier % 2 === 0) {
+        pass = {
+          tier: tier,
+          type: "gold",
+          emoji: "💰",
+          title: "Royal Gold Pouch",
+          coins: 350,
+          stars: 50,
+          tickets: 5,
+          desc: "VIP Pass: +350 Coins & +50 Stars!"
+        };
+      }
+
+      return { tier: tier, free: free, pass: pass };
+    }
+
+    // Update Header HUD
+    function updateHUD() {
+      const c = document.getElementById("hudCoins");
+      const s = document.getElementById("hudStars");
+      const t = document.getElementById("hudTickets");
+      if (c) c.textContent = state.coins.toLocaleString();
+      if (s) s.textContent = state.stars.toLocaleString();
+      if (t) t.textContent = state.tickets.toLocaleString();
+
+      // Sync with localStorage
+      localStorage.setItem("task_game_coins", state.coins.toString());
+      localStorage.setItem("user_coins", state.coins.toString());
+      localStorage.setItem("task_game_stars", state.stars.toString());
+      localStorage.setItem("user_stars", state.stars.toString());
+      localStorage.setItem("task_user_tickets", state.tickets.toString());
+      localStorage.setItem("user_tickets", state.tickets.toString());
+    }
+
+    // Update Top Task Pass Card (Image 2 & Image 3)
+    function updateTaskPassWidget() {
+      const lvlText = document.getElementById("levelNumText");
+      const progressBar = document.getElementById("taskProgressBar");
+      const countText = document.getElementById("taskCountText");
+      const cycleTag = document.getElementById("cycleTaskTag");
+      const milestoneLabel = document.getElementById("nextMilestoneLabel");
+      const curStatusText = document.getElementById("currentLevelStatusText");
+
+      const currentLvl = state.currentLevel;
+      if (lvlText) lvlText.textContent = currentLvl;
+
+      // 10-level cycle block
+      const nextTen = Math.min(MAX_TIERS, Math.ceil(currentLvl / 10) * 10);
+      const startTen = nextTen - 9;
+      const completedInBlock = Math.max(0, Math.min(10, state.completedTasks - (startTen - 1)));
+
+      if (cycleTag) cycleTag.textContent = completedInBlock + "/10";
+      if (milestoneLabel) milestoneLabel.textContent = "Lvl. " + nextTen + ": 100 ⭐";
+      if (curStatusText) curStatusText.textContent = "Active: Level " + currentLvl;
+
+      // Progress bar fill (0/1 Task)
+      if (progressBar) progressBar.style.width = "30%";
+      if (countText) countText.textContent = "0/1 Task";
+
+      // Render Image 3 Horizontal Level Cards Strip
+      renderHorizontalLevelTrack();
+
+      // Pass Toggle Button & Dot
+      const btn = document.getElementById("btnTogglePass");
+      const dot = document.getElementById("passActiveDot");
+      const label = document.getElementById("passBtnLabel");
+      if (state.passActivated) {
+        if (btn) {
+          btn.className = "px-3 py-1 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md";
+        }
+        if (label) label.textContent = "Pass Active ✓";
+        if (dot) dot.classList.remove("hidden");
+      } else {
+        if (btn) {
+          btn.className = "px-3 py-1 rounded-lg text-xs font-black transition-all bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 shadow-md";
+        }
+        if (label) label.textContent = "Activate Pass ⚡";
+        if (dot) dot.classList.add("hidden");
+      }
+    }
+
+    // Toggle Pass Activation
+    function toggleActivatePass() {
+      state.passActivated = !state.passActivated;
+      localStorage.setItem("season_6_pass_activated", state.passActivated ? "true" : "false");
+      updateTaskPassWidget();
+      renderTiers();
+      showToast(state.passActivated ? "🎉 Pass Activated! All Golden Locks Opened!" : "Pass Deactivated");
+    }
+
+    // Render Horizontal Level Strip (Exact Match to Image 3)
+    function renderHorizontalLevelTrack() {
+      const container = document.getElementById("horizontalLevelTrack");
+      if (!container) return;
+      const currentLvl = state.currentLevel;
+
+      // Show levels window around current (from max(1, currentLvl - 2) to min(MAX_TIERS, currentLvl + 5))
+      const start = Math.max(1, currentLvl - 2);
+      const end = Math.min(MAX_TIERS, currentLvl + 5);
+
+      let html = "";
+      for (let lvl = start; lvl <= end; lvl++) {
+        const isCurrent = lvl === currentLvl;
+        const isWon = lvl < currentLvl;
+        const rewardData = getTierReward(lvl);
+        const rewardItem = (lvl % 2 === 0) ? rewardData.pass : rewardData.free;
+        const icon = rewardItem.icon || (rewardItem.coins ? "🪙" : (rewardItem.stars ? "⭐" : "🎟️"));
+        const amount = rewardItem.coins || rewardItem.stars || rewardItem.tickets || 100;
+
+        let borderStyle = isCurrent 
+          ? "border: 2px solid #38bdf8; background: linear-gradient(180deg, #0e2a5e 0%, #081636 100%); box-shadow: 0 0 14px rgba(56, 189, 248, 0.55), inset 0 0 10px rgba(56, 189, 248, 0.2);"
+          : "border: 1.5px solid rgba(56, 189, 248, 0.25); background: linear-gradient(180deg, #0b1a3d 0%, #07122b 100%);";
+
+        let bottomPill = "";
+        if (isWon) {
+          bottomPill = `<span style="font-size: 0.62rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.4); padding: 1.5px 6px; border-radius: 999px;">✓ Won</span>`;
+        } else if (isCurrent) {
+          bottomPill = `<span style="font-size: 0.62rem; font-weight: 900; color: #ffffff; background: #0284c7; border: 1px solid #38bdf8; padding: 1.5px 6px; border-radius: 999px; box-shadow: 0 0 8px rgba(56,189,248,0.5);">🎯 0/1 Task</span>`;
+        } else {
+          bottomPill = `<span style="font-size: 0.62rem; font-weight: 700; color: #94a3b8; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(148, 163, 184, 0.25); padding: 1.5px 6px; border-radius: 999px;">🔒 1 Task</span>`;
+        }
+
+        html += `
+          <div onclick="scrollToTier(${lvl})" style="flex-shrink: 0; width: 74px; height: 88px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 4px; cursor: pointer; transition: all 0.2s ease; ${borderStyle}" title="Jump to Level ${lvl}">
+            <span style="font-size: 0.75rem; font-weight: 900; color: ${isCurrent ? '#38bdf8' : '#7dd3fc'};">Lvl ${lvl}</span>
+            <div style="display: flex; align-items: center; gap: 3px; font-weight: 900; font-size: 0.78rem; color: #ffffff;">
+              <span>${icon}</span>
+              <span>${amount}</span>
+            </div>
+            ${bottomPill}
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    // Build and Render all 500 Tiers
+    function renderTiers() {
+      const container = document.getElementById("tiersContainer");
+      if (!container) return;
+
+      const currentLvl = state.currentLevel;
+      let html = "";
+
+      for (let t = 1; t <= MAX_TIERS; t++) {
+        const data = getTierReward(t);
+        const reached = t <= currentLvl;
+        const isCurrent = t === currentLvl;
+
+        const freeKey = t + "_free";
+        const passKey = t + "_pass";
+        const freeClaimed = !!state.claimed[freeKey];
+        const passClaimed = !!state.claimed[passKey];
+
+        let rowClass = "tier-row";
+        if (reached) rowClass += " reached";
+        if (isCurrent) rowClass += " current";
+
+        // Free card status
+        let freePill = '<span class="card-status-pill pill-locked">🔒 Level ' + t + '</span>';
+        if (freeClaimed) {
+          freePill = '<span class="card-status-pill pill-claimed">Claimed ✓</span>';
+        } else if (reached) {
+          freePill = '<span class="card-status-pill pill-claim">Claim 🎁</span>';
+        }
+
+        // Pass card status
+        let passPill = '<span class="card-status-pill pill-locked">🔒 Lock</span>';
+        if (passClaimed) {
+          passPill = '<span class="card-status-pill pill-claimed">Claimed ✓</span>';
+        } else if (reached && state.passActivated) {
+          passPill = '<span class="card-status-pill pill-claim">Claim ⭐</span>';
+        } else if (reached && !state.passActivated) {
+          passPill = '<span class="card-status-pill pill-locked">🔒 Need Pass</span>';
+        }
+
+        const passCardExtraClass = (!state.passActivated) ? " locked-padlock" : "";
+
+        html += `
+          <div class="${rowClass}" id="tier-row-${t}" data-tier="${t}">
+            <!-- Free Card (Left) -->
+            <div class="pass-card card-free-tier" onclick="handleCardClick(${t}, 'free')" title="Tier ${t} Free Reward">
+              <div class="text-xs text-sky-300 font-black">Tier ${t}</div>
+              <div class="text-3xl my-1">${data.free.emoji}</div>
+              <div class="text-xs font-bold text-white leading-tight">${data.free.title}</div>
+              ${freePill}
+            </div>
+
+            <!-- Tier Badge (Center) -->
+            <div class="tier-badge" id="badge-${t}">${t}</div>
+
+            <!-- Pass Card (Right) -->
+            <div class="pass-card card-pass-tier${passCardExtraClass}" onclick="handleCardClick(${t}, 'pass')" title="Tier ${t} Pass Reward">
+              <div class="text-xs text-amber-300 font-black flex items-center justify-center gap-1">
+                <span>PASS</span>
+                ${(!state.passActivated) ? "<span>🔒</span>" : ""}
+              </div>
+              <div class="text-3xl my-1">${data.pass.emoji}</div>
+              <div class="text-xs font-bold text-white leading-tight">${data.pass.title}</div>
+              ${passPill}
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+      alignRail();
+    }
+
+    // Align checkered progress rail
+    function alignRail() {
+      try {
+        const wrap = document.getElementById("passTrackWrap");
+        const badgeCurrent = document.getElementById("badge-" + state.currentLevel);
+        const fill = document.getElementById("progressFill");
+
+        if (wrap && badgeCurrent && fill) {
+          const wrapRect = wrap.getBoundingClientRect();
+          const badgeRect = badgeCurrent.getBoundingClientRect();
+          const centerY = (badgeRect.top + badgeRect.height / 2) - wrapRect.top;
+          fill.style.height = Math.max(0, Math.round(centerY)) + "px";
+        }
+      } catch(e) {}
+    }
+
+    // Modal Handling
+    let activeModalReward = null;
+
+    function handleCardClick(tier, track) {
+      const data = getTierReward(tier);
+      const reward = (track === "free") ? data.free : data.pass;
+      const reached = tier <= state.currentLevel;
+      const key = tier + "_" + track;
+      const isClaimed = !!state.claimed[key];
+      const canClaim = (track === "free") ? (reached && !isClaimed) : (reached && state.passActivated && !isClaimed);
+
+      activeModalReward = { tier: tier, track: track, reward: reward, canClaim: canClaim, isClaimed: isClaimed };
+
+      const modal = document.getElementById("rewardModal");
+      const emojiEl = document.getElementById("modalRewardEmoji");
+      const titleEl = document.getElementById("modalRewardTitle");
+      const trackEl = document.getElementById("modalRewardTrack");
+      const descEl = document.getElementById("modalRewardDesc");
+      const claimBtn = document.getElementById("btnModalClaim");
+
+      if (emojiEl) emojiEl.textContent = reward.emoji;
+      if (titleEl) titleEl.textContent = reward.title;
+      if (trackEl) {
+        trackEl.textContent = track === "free" ? "FREE TRACK" : "SEASON PASS VIP";
+        trackEl.className = track === "free"
+          ? "inline-block px-3 py-1 rounded-full text-xs font-black mb-3 bg-sky-500/20 text-sky-300 border border-sky-400"
+          : "inline-block px-3 py-1 rounded-full text-xs font-black mb-3 bg-amber-500/20 text-amber-300 border border-amber-400";
+      }
+      if (descEl) descEl.textContent = reward.desc;
+
+      if (claimBtn) {
+        if (isClaimed) {
+          claimBtn.disabled = true;
+          claimBtn.textContent = "Already Claimed ✓";
+          claimBtn.className = "flex-1 py-2 rounded-xl bg-slate-600 text-slate-300 font-bold text-xs cursor-not-allowed";
+        } else if (canClaim) {
+          claimBtn.disabled = false;
+          claimBtn.textContent = "Claim Reward 🎁";
+          claimBtn.className = "flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 text-white font-black text-xs shadow-lg";
+        } else if (!reached) {
+          claimBtn.disabled = true;
+          claimBtn.textContent = "Reach Level " + tier + " First 🔒";
+          claimBtn.className = "flex-1 py-2 rounded-xl bg-slate-700 text-slate-400 font-bold text-xs cursor-not-allowed";
+        } else {
+          claimBtn.disabled = false;
+          claimBtn.textContent = "Activate Pass to Unlock ⚡";
+          claimBtn.className = "flex-1 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 font-black text-xs shadow-lg";
+        }
+      }
+
+      if (modal) modal.classList.remove("hidden");
+    }
+
+    function closeRewardModal() {
+      const modal = document.getElementById("rewardModal");
+      if (modal) modal.classList.add("hidden");
+      activeModalReward = null;
+    }
+
+    function claimCurrentModalReward() {
+      if (!activeModalReward) return;
+
+      if (!activeModalReward.canClaim && activeModalReward.track === "pass" && !state.passActivated) {
+        closeRewardModal();
+        toggleActivatePass();
+        return;
+      }
+
+      if (!activeModalReward.canClaim) return;
+
+      const { tier, track, reward } = activeModalReward;
+      const key = tier + "_" + track;
+      state.claimed[key] = true;
+      localStorage.setItem("season_battle_pass_claimed", JSON.stringify(state.claimed));
+
+      if (reward.coins) state.coins += reward.coins;
+      if (reward.stars) state.stars += reward.stars;
+      if (reward.tickets) state.tickets += reward.tickets;
+
+      updateHUD();
+      renderTiers();
+      closeRewardModal();
+      showToast("🎉 Claimed " + reward.title + "!");
+    }
+
+    // Scroll helpers
+    function scrollToCurrentLevel() {
+      scrollToTier(state.currentLevel);
+    }
+
+    function scrollToTier(tier) {
+      tier = Math.max(1, Math.min(MAX_TIERS, tier));
+      const el = document.getElementById("tier-row-" + tier);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        highlightJumpPill(tier);
+      }
+    }
+
+    function highlightJumpPill(tier) {
+      document.querySelectorAll(".jump-pill").forEach(p => p.classList.remove("active"));
+    }
+
+    function openRoadmapModal() {
+      showToast("500-Level Battle Pass active! Scroll down to explore all 500 tiers.");
+    }
+
+    function navigateHome() {
+      showToast("Returning to Home...");
+      setTimeout(() => { window.location.href = "../home/index.html"; }, 300);
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById("arcadeToast");
+      const text = document.getElementById("toastMsg");
+      if (!toast || !text) return;
+      text.textContent = msg;
+      toast.classList.remove("opacity-0", "translate-y-3");
+      toast.classList.add("opacity-100", "translate-y-0");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "translate-y-3");
+      }, 2500);
+    }
+
+    // Initialize
+    window.addEventListener("DOMContentLoaded", () => {
+      updateHUD();
+      updateTaskPassWidget();
+      renderTiers();
+
+      setTimeout(() => {
+        scrollToCurrentLevel();
+      }, 400);
+    });
+
+    // Real-Time Cross-Window Synchronization (Admin Pass Edits)
+    window.addEventListener("storage", (e) => {
+      if (e.key === "task_pass_config" || e.key === "season_6_pass_activated" || e.key === "task_pass_level" || e.key === "task_pass_total_completed") {
+        try {
+          const rawCfg = localStorage.getItem("task_pass_config");
+          if (rawCfg) passConfig = JSON.parse(rawCfg);
+          state.currentLevel = parseInt(localStorage.getItem("task_pass_level") || "4", 10);
+          state.completedTasks = parseInt(localStorage.getItem("task_pass_total_completed") || "3", 10);
+          state.passActivated = (passConfig.passActivated !== undefined) ? passConfig.passActivated : (localStorage.getItem("season_6_pass_activated") === "true");
+        } catch(e) {}
+        updateHUD();
+        updateTaskPassWidget();
+        renderTiers();
+      }
+    });
+
+    try {
+      const bc = new BroadcastChannel("nova_task_sync");
+      bc.onmessage = (msg) => {
+        if (msg && msg.data && (msg.data.type === "PASS_CONFIG_UPDATED" || msg.data.type === "TASKS_RESTORED" || msg.data.type === "TASKS_UPDATED")) {
+          try {
+            const rawCfg = localStorage.getItem("task_pass_config");
+            if (rawCfg) passConfig = JSON.parse(rawCfg);
+            state.currentLevel = parseInt(localStorage.getItem("task_pass_level") || "4", 10);
+            state.completedTasks = parseInt(localStorage.getItem("task_pass_total_completed") || "3", 10);
+            state.passActivated = (passConfig.passActivated !== undefined) ? passConfig.passActivated : (localStorage.getItem("season_6_pass_activated") === "true");
+          } catch(e) {}
+          updateHUD();
+          updateTaskPassWidget();
+          renderTiers();
+        }
+      };
+    } catch(e) {}
+
+    window.addEventListener("resize", alignRail);
+  </script>
 </body>
 </html>

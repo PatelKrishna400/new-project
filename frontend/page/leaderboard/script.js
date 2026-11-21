@@ -772,7 +772,7 @@ function renderRealLeaderboard() {
   // 5. RENDER IN-BETWEEN CONTENDERS (Ranks #4 onwards)
   const scrollContainer = document.getElementById('ranksScrollContainer');
   if (scrollContainer) {
-    const contenders = users.slice(3);
+    const contenders = users.slice(3, 20);
     if (contenders.length === 0) {
       scrollContainer.innerHTML = `
         <div class="empty-ranks-box">
@@ -1466,3 +1466,127 @@ window.simulateConcludeSeason = function () {
   updateSeasonModalData();
   showToastNotification(`🧪 Simulated: Season marked concluded/finished!`);
 };
+
+
+// ============================================================================
+// EVENT PAGE MAIN TAB SWITCHER (Leaderboard Top 20 vs Pro Tasks 3-Pack)
+// ============================================================================
+window.switchEventPageTab = function(tabName) {
+  try {
+    LeaderboardAudio.playTabSwitch();
+  } catch(e) {}
+
+  const tabLeaderboard = document.getElementById('tabEventLeaderboard');
+  const tabProTasks = document.getElementById('tabEventProTasks');
+  const panelLeaderboard = document.getElementById('panelLeaderboard');
+  const panelProTasks = document.getElementById('panelEventProTasks');
+  const seasonBar = document.getElementById('eventSeasonSelectorBar');
+
+  if (tabLeaderboard) tabLeaderboard.classList.toggle('active', tabName === 'leaderboard');
+  if (tabProTasks) tabProTasks.classList.toggle('active', tabName === 'pro-tasks');
+
+  if (tabName === 'leaderboard') {
+    if (panelLeaderboard) panelLeaderboard.style.display = 'block';
+    if (panelProTasks) panelProTasks.style.display = 'none';
+    if (seasonBar) seasonBar.style.display = 'flex';
+  } else {
+    if (panelLeaderboard) panelLeaderboard.style.display = 'none';
+    if (panelProTasks) panelProTasks.style.display = 'block';
+    if (seasonBar) seasonBar.style.display = 'none';
+    renderEventProTasks();
+  }
+};
+
+window.handleSeasonChange = function(season) {
+  if (typeof renderAllLeaderboardData === 'function') {
+    renderAllLeaderboardData();
+  }
+  showToastNotification('Switched to ' + (season === 'all_seasons' ? 'All Seasons Hall of Fame' : 'Season 1'));
+};
+
+function renderEventProTasks() {
+  const container = document.getElementById('eventPackTasksContainer');
+  if (!container) return;
+
+  // Retrieve stored tasks from localStorage
+  let tasks = [];
+  try {
+    tasks = JSON.parse(localStorage.getItem('task_game_tasks') || '[]');
+  } catch(e) {
+    tasks = [];
+  }
+
+  // Find Pro and Event tasks
+  const completedTasks = JSON.parse(localStorage.getItem('task_game_completed_tasks') || '{}');
+  const claims = JSON.parse(localStorage.getItem('task_game_claims') || '{}');
+  const unlocked = JSON.parse(localStorage.getItem('task_unlocked_tasks') || '{}');
+
+  const now = Date.now();
+  const proTasks = tasks.filter(t => {
+    if (!t || t.active === false) return false;
+    if (t.category !== 'pro' && t.category !== 'event' && t.category !== 'elite') return false;
+    if (t.eventEndTime && now > t.eventEndTime) return false; // Event time completed -> off -> do not show!
+    return true;
+  });
+
+  if (proTasks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 2.5rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1.5px dashed rgba(52, 211, 153, 0.35); border-radius: 16px;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💎</div>
+        <div style="color: #ffffff; font-weight: 800; font-size: 1rem;">No Active Event Packs</div>
+        <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 0.35rem;">New limited-time 3-task event packs will appear here soon!</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Display 3 Tasks with Name, Timer, and Price
+  container.innerHTML = proTasks.slice(0, 3).map((task, idx) => {
+    const taskNum = idx + 1;
+    const isCompleted = !!(completedTasks[task.id] || claims[task.id]);
+    const price = Number(task.rewardCoins || task.reward || task.coins || (idx === 0 ? 500 : 250));
+    const coinCost = Math.max(0, parseInt(task.coinCost || 0, 10));
+    const ticketCost = Math.max(0, parseInt(task.ticketCost || 0, 10));
+    const isUnlocked = (coinCost <= 0 && ticketCost <= 0) || !!unlocked[task.id];
+
+    let actionBtnHtml = '';
+    if (isCompleted) {
+      actionBtnHtml = `<span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-weight: 800; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.78rem; border: 1px solid rgba(16, 185, 129, 0.4);">✓ Completed</span>`;
+    } else if (!isUnlocked) {
+      const unlockLabel = (coinCost > 0 && ticketCost > 0)
+        ? `🔒 Unlock (🪙${coinCost}/🎟️${ticketCost})`
+        : (coinCost > 0 ? `🔒 Unlock (🪙${coinCost})` : `🔒 Unlock (🎟️${ticketCost})`);
+      actionBtnHtml = `<button type="button" onclick="window.location.href='../home/index.html'" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #fff; font-weight: 800; border: none; padding: 0.45rem 0.85rem; border-radius: 8px; font-size: 0.75rem; cursor: pointer;">${unlockLabel}</button>`;
+    } else {
+      actionBtnHtml = `
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <a href="${task.url || task.link || '#'}" target="_blank" rel="noopener" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; font-weight: 800; text-decoration: none; padding: 0.45rem 0.75rem; border-radius: 8px; font-size: 0.75rem;">↗ Open</a>
+          <button type="button" onclick="window.location.href='../home/index.html'" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 800; border: none; padding: 0.45rem 0.75rem; border-radius: 8px; font-size: 0.75rem; cursor: pointer;">✓ Verify</button>
+        </div>
+      `;
+    }
+
+    const halfLabel = (idx === 0) ? '<span style="color: #34d399; font-size: 0.65rem; font-weight: 800; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); padding: 1px 5px; border-radius: 4px;">Half Price Win!</span>' : '';
+
+    return `
+      <div class="event-pack-task-row">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+          <div style="width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; flex-shrink: 0; background: rgba(16, 185, 129, 0.25); border: 1.5px solid #34d399; color: #34d399;">
+            ${taskNum}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: #ffffff; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${task.title || 'Task ' + taskNum}</span>
+              <span style="font-size: 0.72rem; color: #fbbf24; font-weight: 900; background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.35); padding: 1px 6px; border-radius: 4px;">🪙 +${price}</span>
+              ${halfLabel}
+            </div>
+            <div style="font-size: 0.68rem; color: #94a3b8; margin-top: 2px;">${task.desc || 'Complete task to claim bounty'}</div>
+          </div>
+        </div>
+        <div style="flex-shrink: 0;">
+          ${actionBtnHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+}

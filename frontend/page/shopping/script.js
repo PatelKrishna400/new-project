@@ -1,7 +1,11 @@
 
 // Ads removed
 function updateRealTimeDiscounts() {
-  const baseRatePerStar = 50;
+  const fixedDiscounts = {
+    50: '20%',
+    100: '25%',
+    500: '40%'
+  };
   document.querySelectorAll('.star-shop-card').forEach(card => {
     const buyBtn = card.querySelector('.btn-buy');
     const badge = card.querySelector('.star-pack-badge');
@@ -11,12 +15,8 @@ function updateRealTimeDiscounts() {
     const match = onclickStr.match(/buyStars\((\d+),\s*(\d+)\)/);
     if (match) {
       const stars = parseInt(match[1], 10);
-      const cost = parseInt(match[2], 10);
-      const regularCost = stars * baseRatePerStar;
-
-      if (stars > 1 && regularCost > cost) {
-        const discountPct = Math.round(((regularCost - cost) / regularCost) * 100);
-        badge.textContent = `${discountPct}%`;
+      if (fixedDiscounts[stars]) {
+        badge.textContent = fixedDiscounts[stars];
       }
     }
   });
@@ -263,7 +263,7 @@ function buyTicketsWithStars(ticketAmount, starCost) {
 
 window.buyTicketsWithStars = buyTicketsWithStars;
 
-// Buy Stars for Coins (50 for 2,000, 100 for 3,750, 500 for 15,000)
+// Buy Stars for Coins (50 for 3,000, 100 for 6,000, 500 for 30,000)
 function buyStars(starAmount, coinCost, explicitItemId) {
   checkAndResetShopCycle();
   const itemId = explicitItemId || ('star_' + starAmount);

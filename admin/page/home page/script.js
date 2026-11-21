@@ -722,6 +722,7 @@ function openTaskModal(taskId) {
       if (document.getElementById('taskLevelSelect')) document.getElementById('taskLevelSelect').value = (task.level || 1).toString();
       if (document.getElementById('taskRewardInput')) document.getElementById('taskRewardInput').value = task.rewardCoins || task.reward || task.coins || 50;
       if (document.getElementById('taskTicketCostInput')) document.getElementById('taskTicketCostInput').value = task.ticketCost || 0;
+      if (document.getElementById('taskCoinCostInput')) document.getElementById('taskCoinCostInput').value = task.coinCost || 0;
       let taskCode = String(task.verificationCode || task.code || task.secretCode || '').trim();
       if (!taskCode || !/^\d{6}$/.test(taskCode)) {
         taskCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -815,6 +816,73 @@ function handleSaveTask(e) {
   const isShopTask = (category === 'shop_task');
   const rewardCoins = parseInt(document.getElementById('taskRewardInput')?.value || '50', 10) || 50;
   const ticketCost = Math.max(0, parseInt(document.getElementById('taskTicketCostInput')?.value || '0', 10) || 0);
+  const coinCost = Math.max(0, parseInt(document.getElementById('taskCoinCostInput')?.value || '0', 10) || 0);
+  if (category === 'event') {
+    const durationHours = parseInt(document.getElementById('eventTimerDuration')?.value || '24', 10);
+    const eventEndTime = Date.now() + (durationHours * 3600 * 1000);
+    const packCoinCost = Math.max(0, parseInt(document.getElementById('packageCoinCost')?.value || '50', 10));
+    const packTicketCost = Math.max(0, parseInt(document.getElementById('packageTicketCost')?.value || '2', 10));
+    const packId = 'pack_' + Date.now();
+
+    const t1 = {
+      id: 'task_' + Date.now() + '_1',
+      title: document.getElementById('eventTask1Title')?.value.trim() || 'Mission 1: Promo Signup',
+      url: document.getElementById('eventTask1Url')?.value.trim() || 'https://youtube.com/',
+      link: document.getElementById('eventTask1Url')?.value.trim() || 'https://youtube.com/',
+      verificationCode: document.getElementById('eventTask1Code')?.value.trim() || '583921',
+      rewardCoins: parseInt(document.getElementById('eventTask1Price')?.value || '500', 10),
+      category: 'pro',
+      isEventTask: true,
+      eventPackId: packId,
+      coinCost: packCoinCost,
+      ticketCost: packTicketCost,
+      eventEndTime: eventEndTime,
+      active: true,
+      createdAt: Date.now()
+    };
+
+    const t2 = {
+      id: 'task_' + Date.now() + '_2',
+      title: document.getElementById('eventTask2Title')?.value.trim() || 'Mission 2: Community Join',
+      url: document.getElementById('eventTask2Url')?.value.trim() || 'https://telegram.org/',
+      link: document.getElementById('eventTask2Url')?.value.trim() || 'https://telegram.org/',
+      verificationCode: document.getElementById('eventTask2Code')?.value.trim() || '749201',
+      rewardCoins: parseInt(document.getElementById('eventTask2Price')?.value || '250', 10),
+      category: 'pro',
+      isEventTask: true,
+      eventPackId: packId,
+      coinCost: packCoinCost,
+      ticketCost: packTicketCost,
+      eventEndTime: eventEndTime,
+      active: true,
+      createdAt: Date.now() + 1
+    };
+
+    const t3 = {
+      id: 'task_' + Date.now() + '_3',
+      title: document.getElementById('eventTask3Title')?.value.trim() || 'Mission 3: Survey Bonus',
+      url: document.getElementById('eventTask3Url')?.value.trim() || 'https://google.com/',
+      link: document.getElementById('eventTask3Url')?.value.trim() || 'https://google.com/',
+      verificationCode: document.getElementById('eventTask3Code')?.value.trim() || '382910',
+      rewardCoins: parseInt(document.getElementById('eventTask3Price')?.value || '250', 10),
+      category: 'pro',
+      isEventTask: true,
+      eventPackId: packId,
+      coinCost: packCoinCost,
+      ticketCost: packTicketCost,
+      eventEndTime: eventEndTime,
+      active: true,
+      createdAt: Date.now() + 2
+    };
+
+    tasksData.unshift(t1, t2, t3);
+    saveTasksAndSync();
+    closeTaskModal();
+    renderEventsAndSessionsPage();
+    if (typeof showToast === 'function') showToast('Event 3-Task Pack added successfully!', 'success');
+    return;
+  }
+
   const baseTitle = document.getElementById('taskTitleInput')?.value.trim();
   const icon = document.getElementById('taskIconInput')?.value.trim() || '⚡';
   const desc = document.getElementById('taskDescInput')?.value.trim() || '';
@@ -849,6 +917,7 @@ function handleSaveTask(e) {
         reward: rewardCoins,
         coins: rewardCoins,
         ticketCost,
+        coinCost,
         icon,
         description: desc,
         secretCode: code,
@@ -880,6 +949,7 @@ function handleSaveTask(e) {
         reward: rewardCoins,
         coins: rewardCoins,
         ticketCost,
+        coinCost,
         icon,
         description: desc,
         secretCode: code,
@@ -913,6 +983,7 @@ function handleSaveTask(e) {
       reward: rewardCoins,
       coins: rewardCoins,
       ticketCost,
+        coinCost,
       icon,
       description: desc,
       secretCode: code,
@@ -1012,3 +1083,308 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAllStoredData();
   renderEventsAndSessionsPage();
 });
+
+
+window.updatePackageTotalPrice = function() {
+  const p1 = parseInt(document.getElementById('eventTask1Price')?.value || '500', 10) || 0;
+  const p2 = parseInt(document.getElementById('eventTask2Price')?.value || '250', 10) || 0;
+  const p3 = parseInt(document.getElementById('eventTask3Price')?.value || '250', 10) || 0;
+  const total = p1 + p2 + p3;
+  const label = document.getElementById('packageTotalBountyLabel');
+  if (label) label.textContent = total.toLocaleString() + ' Coins';
+};
+
+window.handleAdminHomeCategoryChange = function(val) {
+  const builder = document.getElementById('adminEventPackBuilder');
+  const levelGroup = document.getElementById('taskLevelGroup');
+  const shopGroup = document.getElementById('shopExtensionGroup');
+  const singleUrlGroup = document.getElementById('adminSingleUrlGroup');
+  const singleCodeGroup = document.getElementById('adminSingleCodeGroup');
+
+  if (val === 'event') {
+    if (builder) builder.style.display = 'block';
+    if (levelGroup) levelGroup.style.display = 'none';
+    if (shopGroup) shopGroup.style.display = 'none';
+  } else {
+    if (builder) builder.style.display = 'none';
+    if (levelGroup) levelGroup.style.display = 'block';
+    if (shopGroup) shopGroup.style.display = (val === 'shop_task') ? 'block' : 'none';
+  }
+};
+
+
+const CANONICAL_BASIC_DEFAULT_TASKS = [
+  // 1. Standard Coin Tasks
+  {
+    id: "task_coin_1",
+    title: "Join Telegram Community",
+    category: "simple",
+    rewardCoins: 100,
+    reward: 100,
+    coins: 100,
+    level: 1,
+    url: "https://telegram.org",
+    link: "https://telegram.org",
+    verificationCode: "583921",
+    code: "583921",
+    secretCode: "583921",
+    description: "Join official announcement group & verify code",
+    active: true,
+    createdAt: Date.now()
+  },
+  {
+    id: "task_coin_2",
+    title: "Follow Official Twitter / X",
+    category: "simple",
+    rewardCoins: 100,
+    reward: 100,
+    coins: 100,
+    level: 1,
+    url: "https://twitter.com",
+    link: "https://twitter.com",
+    verificationCode: "749201",
+    code: "749201",
+    secretCode: "749201",
+    description: "Follow official updates and verify code",
+    active: true,
+    createdAt: Date.now() + 1
+  },
+  {
+    id: "task_coin_3",
+    title: "Watch YouTube Tutorial Video",
+    category: "simple",
+    rewardCoins: 75,
+    reward: 75,
+    coins: 75,
+    level: 1,
+    url: "https://youtube.com",
+    link: "https://youtube.com",
+    verificationCode: "382910",
+    code: "382910",
+    secretCode: "382910",
+    description: "Watch video guide & copy secret code",
+    active: true,
+    createdAt: Date.now() + 2
+  },
+  {
+    id: "task_coin_4",
+    title: "Visit Partner Website",
+    category: "simple",
+    rewardCoins: 50,
+    reward: 50,
+    coins: 50,
+    level: 1,
+    url: "https://google.com",
+    link: "https://google.com",
+    verificationCode: "619482",
+    code: "619482",
+    secretCode: "619482",
+    description: "Browse partner features and verify",
+    active: true,
+    createdAt: Date.now() + 3
+  },
+  {
+    id: "task_coin_5",
+    title: "Daily App Check-In Bonus",
+    category: "simple",
+    rewardCoins: 50,
+    reward: 50,
+    coins: 50,
+    level: 1,
+    url: "https://google.com",
+    link: "https://google.com",
+    verificationCode: "119284",
+    code: "119284",
+    secretCode: "119284",
+    description: "Daily active player bonus verification",
+    active: true,
+    createdAt: Date.now() + 4
+  },
+
+  // 2. Star Tasks (VIP)
+  {
+    id: "task_star_1",
+    title: "VIP Daily Quiz Bonus",
+    category: "premium",
+    rewardCoins: 250,
+    reward: 250,
+    coins: 250,
+    level: 2,
+    url: "https://google.com",
+    link: "https://google.com",
+    verificationCode: "492018",
+    code: "492018",
+    secretCode: "492018",
+    description: "VIP exclusive trivia question reward",
+    active: true,
+    createdAt: Date.now() + 5
+  },
+  {
+    id: "task_star_2",
+    title: "Exclusive VIP Survey",
+    category: "premium",
+    rewardCoins: 350,
+    reward: 350,
+    coins: 350,
+    level: 2,
+    url: "https://google.com",
+    link: "https://google.com",
+    verificationCode: "829103",
+    code: "829103",
+    secretCode: "829103",
+    description: "VIP community feedback survey",
+    active: true,
+    createdAt: Date.now() + 6
+  },
+  {
+    id: "task_star_3",
+    title: "VIP Partner Sponsorship Check",
+    category: "premium",
+    rewardCoins: 300,
+    reward: 300,
+    coins: 300,
+    level: 2,
+    url: "https://google.com",
+    link: "https://google.com",
+    verificationCode: "301928",
+    code: "301928",
+    secretCode: "301928",
+    description: "High-tier sponsor verification",
+    active: true,
+    createdAt: Date.now() + 7
+  },
+
+  // 3. Pro Tasks (Elite 3-Task Pack)
+  {
+    id: "task_pro_1",
+    title: "Elite Cyber Challenge - Pack Mission 1",
+    category: "pro",
+    rewardCoins: 1000,
+    reward: 1000,
+    coins: 1000,
+    coinCost: 50,
+    ticketCost: 2,
+    level: 3,
+    url: "https://youtube.com/",
+    link: "https://youtube.com/",
+    verificationCode: "583921",
+    code: "583921",
+    secretCode: "583921",
+    description: "Mission 1 of 3 (Half 500 Coins on 1st!)",
+    isEventTask: true,
+    eventPackId: "pack_default",
+    active: true,
+    createdAt: Date.now() + 8
+  },
+  {
+    id: "task_pro_2",
+    title: "Elite Cyber Challenge - Pack Mission 2",
+    category: "pro",
+    rewardCoins: 1000,
+    reward: 1000,
+    coins: 1000,
+    coinCost: 50,
+    ticketCost: 2,
+    level: 3,
+    url: "https://telegram.org/",
+    link: "https://telegram.org/",
+    verificationCode: "749201",
+    code: "749201",
+    secretCode: "749201",
+    description: "Mission 2 of 3 (Progress toward full bounty)",
+    isEventTask: true,
+    eventPackId: "pack_default",
+    active: true,
+    createdAt: Date.now() + 9
+  },
+  {
+    id: "task_pro_3",
+    title: "Elite Cyber Challenge - Pack Mission 3",
+    category: "pro",
+    rewardCoins: 1000,
+    reward: 1000,
+    coins: 1000,
+    coinCost: 50,
+    ticketCost: 2,
+    level: 3,
+    url: "https://google.com/",
+    link: "https://google.com/",
+    verificationCode: "382910",
+    code: "382910",
+    secretCode: "382910",
+    description: "Mission 3 of 3 (Full 1000 bounty awarded!)",
+    isEventTask: true,
+    eventPackId: "pack_default",
+    active: true,
+    createdAt: Date.now() + 10
+  }
+];
+
+function restoreAndRenewAllTasks() {
+  if (!confirm("Are you sure you want to restore all basic missions and renew all tasks for all players?\n\nThis will reset all completion records so that both completed and non-completed tasks are refreshed back to active and visible in the app!")) {
+    return;
+  }
+
+  // 1. Reset all completed task tracking across all storage keys
+  localStorage.setItem('task_game_completed_tasks', '{}');
+  localStorage.setItem('task_completed_tasks', '{}');
+  localStorage.removeItem(CLAIMS_STORAGE_KEY);
+  localStorage.removeItem('task_game_claims');
+  localStorage.setItem('completed_tasks_count', '0');
+  localStorage.setItem('task_game_total_tasks_completed', '0');
+  localStorage.setItem('task_pass_total_completed', '0');
+
+  // Reset all balances (coins, stars, tickets) to 0
+  localStorage.setItem('task_game_coins', '0');
+  localStorage.setItem('user_coins', '0');
+  localStorage.setItem('task_game_stars', '0');
+  localStorage.setItem('user_stars', '0');
+  localStorage.setItem('task_user_tickets', '0');
+  localStorage.setItem('user_tickets', '0');
+  localStorage.setItem('task_game_tickets', '0');
+  if (typeof updateAllDomBalances === 'function') {
+    updateAllDomBalances(0, 0, 0);
+  }
+
+  // Clear any temporary task open/claim state
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && (k.startsWith('task_opened_') || k.startsWith('task_claimed_'))) {
+      localStorage.removeItem(k);
+    }
+  }
+
+  // 2. Restore basic default tasks to storage
+  tasksData = JSON.parse(JSON.stringify(CANONICAL_BASIC_DEFAULT_TASKS));
+  localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+  localStorage.setItem('admin_tasks', JSON.stringify(tasksData));
+
+  // 3. Set sync flags
+  localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
+  localStorage.setItem('task_restore_flag', Date.now().toString());
+
+  // 4. Broadcast to other open windows / tabs
+  if (syncChannel) {
+    syncChannel.postMessage({ type: 'TASKS_RESTORED', timestamp: Date.now() });
+    syncChannel.postMessage({ type: 'TASKS_UPDATED', timestamp: Date.now() });
+    syncChannel.postMessage({ type: 'CLAIMS_UPDATED', timestamp: Date.now() });
+    syncChannel.postMessage({ type: 'BALANCES_UPDATED', coins: 0, stars: 0, tickets: 0, timestamp: Date.now() });
+  }
+  try {
+    const bc = new BroadcastChannel('nova_task_sync');
+    bc.postMessage({ type: 'TASKS_RESTORED', timestamp: Date.now() });
+    bc.postMessage({ type: 'TASKS_UPDATED', timestamp: Date.now() });
+    bc.postMessage({ type: 'BALANCES_UPDATED', coins: 0, stars: 0, tickets: 0, timestamp: Date.now() });
+    bc.close();
+  } catch(e) {}
+
+  // 5. Cloud sync if Firebase is present
+  if (window.Firebase && typeof window.Firebase.saveTasksToCloud === 'function') {
+    window.Firebase.saveTasksToCloud(tasksData);
+  }
+
+  // 6. Refresh admin UI
+  renderAdminTasksList();
+  showToast('🔄 All missions restored to basic state and renewed for all players! ✓');
+}
+window.restoreAndRenewAllTasks = restoreAndRenewAllTasks;

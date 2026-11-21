@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Missions - Nova Cyber</title>
+
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800;900&family=Lilita+One&family=Titan+One&display=swap" rel="stylesheet" />
+
+  <!-- Home Page Cyber Theme CSS -->
+  <link rel="stylesheet" href="../home/style.css" />
+
+  <style>
+    :root {
+      --font-display: "Lilita One", "Titan One", cursive, sans-serif;
+      --font-ui: "Fredoka", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-ui);
+      background-color: #060e24;
+      background-image: radial-gradient(circle at 50% 0%, #0c1e4a 0%, #060e24 70%);
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 2rem;
+    }
+
+    /* Clean Page Header with ONLY Back Button */
+    .task-only-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(6, 14, 36, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-clean-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.55rem 1.15rem;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      border-radius: 12px;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.92rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.2);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .btn-clean-back:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-color: #38bdf8;
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+      transform: translateX(-2px);
+    }
+
+    .btn-clean-back:active {
+      transform: scale(0.96);
+    }
+
+    .tasks-page-content {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 1rem 1rem 3rem 1rem;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body class="font-ui">
+
+  <!-- ======================================================================
+       1. TOP BAR (ONLY BACK BUTTON - NO EXTRA CLUTTER)
+       ====================================================================== -->
+  <header class="task-only-header">
+    <div style="max-width: 440px; width: 100%; margin: 0 auto;">
+      <button type="button" class="btn-clean-back" onclick="navigateBack()" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #38bdf8;">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        <span>Back</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======================================================================
+       2. TASKS LIST CONTAINER (Filtered by Category)
+       ====================================================================== -->
+  <main class="tasks-page-content">
+    <!-- Category Status / VIP / Event Banner -->
+    <div id="catBannerContainer"></div>
+
+    <!-- Active Tasks List -->
+    <div class="tasks-list" id="tasksList" style="margin-top: 0.75rem;">
+      <!-- Dynamically populated -->
+    </div>
+  </main>
+
+  <!-- ======================================================================
+       3. TASK VERIFY MODAL
+       ====================================================================== -->
+  <div class="task-verify-modal-overlay" id="taskVerifyModalOverlay" style="display: none;" onclick="if(event.target===this) closeVerifyModal()">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span class="game-outline" style="font-size: 1.15rem; color: #ffffff;" id="verifyModalTitle">Verify Mission</span>
+        <button type="button" onclick="closeVerifyModal()" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; width: 28px; height: 28px; border-radius: 50%; font-size: 0.9rem; cursor: pointer;">✕</button>
+      </div>
+
+      <div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.85rem;" id="verifyModalDesc">
+        Complete the task steps, then confirm verification to claim your reward!
+      </div>
+
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn-verify-cancel" onclick="closeVerifyModal()" style="padding: 0.45rem 1rem; font-size: 0.82rem;">Cancel</button>
+        <button type="button" class="btn-verify-confirm" id="btnVerifyConfirm" onclick="submitVerification()" style="padding: 0.45rem 1.25rem; font-size: 0.82rem;">✓ Claim Reward</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       4. REWARDED AD MODAL (+5 Extra Tasks)
+       ====================================================================== -->
+  <div class="task-verify-modal-overlay" id="rewardedAdModalOverlay" style="display: none; position: fixed; inset: 0; background: rgba(3, 8, 22, 0.88); backdrop-filter: blur(8px); z-index: 10005; align-items: center; justify-content: center; padding: 1rem; box-sizing: border-box;">
+    <div style="background: linear-gradient(145deg, #0f172a 0%, #0a0f1d 100%); border: 2px solid rgba(250, 204, 21, 0.45); border-radius: 20px; width: 100%; max-width: 400px; padding: 1.25rem; box-sizing: border-box; text-align: center; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85);">
+      <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📺</div>
+      <h3 style="color: #facc15; font-size: 1.15rem; font-weight: 900; margin-bottom: 0.35rem;">Sponsored Video Ad</h3>
+      <p style="font-size: 0.78rem; color: #94a3b8; margin-bottom: 1rem;">Watch this short message to unlock <b style="color: #facc15;">+5 Extra Star Tasks</b>!</p>
+
+      <div style="background: rgba(15, 23, 42, 0.8); border: 1.5px solid rgba(56, 189, 248, 0.25); border-radius: 12px; height: 16px; overflow: hidden; margin-bottom: 1rem;">
+        <div id="adProgressFill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #facc15, #f59e0b); transition: width 1s linear;"></div>
+      </div>
+
+      <div style="font-size: 0.82rem; color: #e2e8f0; font-weight: 800; margin-bottom: 1.25rem;">
+        Time Remaining: <span id="adCountdownSeconds" style="color: #facc15;">5</span>s
+      </div>
+
+      <button type="button" id="btnClaimAdReward" onclick="finishRewardedAd()" disabled style="width: 100%; padding: 0.65rem; border-radius: 12px; font-weight: 900; font-size: 0.85rem; background: rgba(250, 204, 21, 0.3); color: #94a3b8; border: none; cursor: not-allowed;">⏳ Watching Ad...</button>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       5. JAVASCRIPT: TASKS ENGINE, VERIFY, AD WATCH, BACK NAVIGATION
+       ====================================================================== -->
+  <script>
+    // Determine active category from URL (?cat=coin/star/pro) or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeCat = (urlParams.get("cat") || localStorage.getItem("task_active_tab") || "simple").toLowerCase();
+    if (activeCat === "coin") activeCat = "simple";
+    if (activeCat === "star") activeCat = "premium";
+
+    function navigateBack() {
+      if (document.referrer && (document.referrer.includes("/home") || document.referrer.includes("index.html"))) {
+        window.location.href = document.referrer;
+      } else if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = "../home/index.html";
+      }
+    }
+
+    // Default missions fallback
+    const DEFAULT_TASKS = [
+      { id: "task_coin_1", title: "Join Telegram Community", category: "simple", rewardCoins: 100, url: "https://telegram.org" },
+      { id: "task_coin_2", title: "Follow Official Twitter / X", category: "simple", rewardCoins: 100, url: "https://twitter.com" },
+      { id: "task_coin_3", title: "Watch YouTube Tutorial Video", category: "simple", rewardCoins: 75, url: "https://youtube.com" },
+      { id: "task_coin_4", title: "Visit Partner Website", category: "simple", rewardCoins: 50, url: "https://google.com" },
+      { id: "task_coin_5", title: "Daily App Check-In Bonus", category: "simple", rewardCoins: 50, url: "https://google.com" },
+      { id: "task_star_1", title: "VIP Daily Quiz Bonus", category: "premium", rewardCoins: 250, url: "https://google.com" },
+      { id: "task_star_2", title: "Exclusive VIP Survey", category: "premium", rewardCoins: 350, url: "https://google.com" },
+      { id: "task_star_3", title: "VIP Partner Sponsorship Check", category: "premium", rewardCoins: 300, url: "https://google.com" },
+      { id: "task_pro_1", title: "Elite Cyber Challenge - Pack Mission 1", category: "pro", rewardCoins: 1000, coinCost: 50, ticketCost: 2, url: "https://youtube.com/" },
+      { id: "task_pro_2", title: "Elite Cyber Challenge - Pack Mission 2", category: "pro", rewardCoins: 1000, coinCost: 50, ticketCost: 2, url: "https://telegram.org/" },
+      { id: "task_pro_3", title: "Elite Cyber Challenge - Pack Mission 3", category: "pro", rewardCoins: 1000, coinCost: 50, ticketCost: 2, url: "https://google.com/" }
+    ];
+
+    function getStoredTasks() {
+      try {
+        const raw = localStorage.getItem("task_game_tasks") || localStorage.getItem("admin_tasks");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch(e) {}
+      return DEFAULT_TASKS;
+    }
+
+    function isTaskCompleted(taskId) {
+      try {
+        const raw = localStorage.getItem("task_game_completed_tasks");
+        if (raw) {
+          const obj = JSON.parse(raw);
+          return !!obj[taskId];
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function markTaskCompleted(taskId) {
+      try {
+        const raw = localStorage.getItem("task_game_completed_tasks");
+        const obj = raw ? JSON.parse(raw) : {};
+        obj[taskId] = Date.now();
+        localStorage.setItem("task_game_completed_tasks", JSON.stringify(obj));
+        
+        let count = parseInt(localStorage.getItem("task_game_total_tasks_completed") || "0", 10);
+        count++;
+        localStorage.setItem("task_game_total_tasks_completed", count.toString());
+      } catch(e) {}
+    }
+
+    // Render Tasks for this Category
+    function renderCategoryTasks() {
+      const allTasks = getStoredTasks();
+      const container = document.getElementById("tasksList");
+      const bannerContainer = document.getElementById("catBannerContainer");
+      if (!container) return;
+
+      const activeTasks = allTasks.filter(t => !isTaskCompleted(t.id));
+
+      let filtered = [];
+      let bannerHtml = "";
+
+      if (activeCat === "premium" || activeCat === "star") {
+        filtered = activeTasks.filter(t => t.category === "premium" || t.category === "star");
+        const isVip = localStorage.getItem("task_vip_pass_active") === "true";
+
+        if (!isVip) {
+          bannerHtml = `
+            <div class="vip-pass-promo-card">
+              <div class="vip-promo-title"><span>👑</span> Star Tasks VIP Pass</div>
+              <div class="vip-promo-desc">Unlock high-bounty Star missions and daily rewards! Choose a 15, 30, or 90-day plan.</div>
+              <button type="button" class="vip-promo-btn" onclick="alert('Visit Shop to activate VIP Pass!')">⚡ Unlock VIP Pass ↗</button>
+            </div>
+          `;
+        } else {
+          bannerHtml = `
+            <div class="vip-active-status-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 6px;">
+                <div style="color: #facc15; font-weight: 900; font-size: 0.88rem; display: flex; align-items: center; gap: 5px;">
+                  <span>👑</span> VIP ACTIVE
+                </div>
+                <button type="button" class="btn-watch-ad-unlock" onclick="watchAdForExtraTasks()">📺 Watch Ad (+5 Tasks)</button>
+              </div>
+            </div>
+          `;
+        }
+      } else if (activeCat === "pro" || activeCat === "elite" || activeCat === "event") {
+        let proSettings = null;
+        try {
+          const rawPro = localStorage.getItem("task_game_pro_event_settings");
+          if (rawPro) proSettings = JSON.parse(rawPro);
+        } catch(e) {}
+        const isEventActive = proSettings ? (proSettings.active !== false) : true;
+        filtered = activeTasks.filter(t => t.category === "pro" || t.category === "elite" || t.category === "event");
+        bannerHtml = `
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(52, 211, 153, 0.4); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 0.95rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <div>
+              <div style="color: #34d399; font-weight: 900; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                <span>💎</span> Pro Elite Missions
+              </div>
+              <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">
+                Complete 3-task packs: Win 50% half price on 1st task, and full total price on all 3!
+              </div>
+            </div>
+            <span style="font-size: 0.7rem; font-weight: 800; color: ${isEventActive ? '#34d399' : '#f87171'}; background: ${isEventActive ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}; border: 1px solid ${isEventActive ? 'rgba(52, 211, 153, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 3px 8px; border-radius: 999px;">
+              ${isEventActive ? '⏱️ Active' : '○ Event Ended'}
+            </span>
+          </div>
+        `;
+      } else {
+        // Standard Coin tasks
+        filtered = activeTasks.filter(t => t.category === "simple" || t.category === "coin" || (!t.category && t.category !== "premium" && t.category !== "pro"));
+        bannerHtml = `
+          <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(2, 132, 199, 0.08) 100%); border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 0.95rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
+            <div>
+              <div style="color: #38bdf8; font-weight: 900; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                <span>🪙</span> Coin Tasks
+              </div>
+              <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">
+                Standard missions • Free to complete • Instant coins
+              </div>
+            </div>
+            <span style="font-size: 0.7rem; font-weight: 800; color: #38bdf8; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); padding: 3px 8px; border-radius: 999px;">Standard</span>
+          </div>
+        `;
+      }
+
+      if (bannerContainer) bannerContainer.innerHTML = bannerHtml;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1.5px dashed rgba(56, 189, 248, 0.3); border-radius: 16px;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
+            <div style="color: #ffffff; font-weight: 800; font-size: 1.05rem;">All Missions Completed!</div>
+            <div style="color: #94a3b8; font-size: 0.78rem; margin-top: 0.35rem;">Check back soon for new available missions.</div>
+          </div>
+        `;
+        return;
+      }
+
+      // 1-line cards with 1, 2, 3 badge, Open and Verify buttons
+      container.innerHTML = filtered.map((task, idx) => {
+        const num = idx + 1;
+        const reward = Number(task.rewardCoins || task.reward || 100);
+        const isPro = activeCat === "pro" || task.category === "pro";
+        const isStar = activeCat === "premium" || task.category === "premium";
+
+        const numStyle = isPro
+          ? "background: rgba(16, 185, 129, 0.25); border: 1.5px solid #34d399; color: #34d399;"
+          : (isStar
+            ? "background: rgba(168, 85, 247, 0.25); border: 1.5px solid #c084fc; color: #facc15;"
+            : "background: rgba(56, 189, 248, 0.25); border: 1.5px solid #38bdf8; color: #38bdf8;");
+
+        const halfNotice = isPro ? `<span style="font-size: 0.65rem; color: #34d399; font-weight: 800; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); padding: 1px 5px; border-radius: 4px;">Half ${Math.floor(reward/2)} on 1st</span>` : "";
+
+        return `
+          <div class="task-card" id="taskCard_${task.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0.95rem; gap: 0.75rem; border-radius: 14px; margin-bottom: 0.65rem; background: rgba(10, 23, 56, 0.85); border: 1.5px solid rgba(56, 189, 248, 0.3);">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+              <!-- 1, 2, 3 Number Badge -->
+              <div style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.05rem; flex-shrink: 0; box-shadow: 0 0 10px rgba(0,0,0,0.4); ${numStyle}">
+                ${num}
+              </div>
+              <!-- Title & Bounty -->
+              <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span style="font-weight: 800; color: #ffffff; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;">${task.title}</span>
+                  <span style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 999px;">🪙 ${reward}</span>
+                  ${halfNotice}
+                </div>
+              </div>
+            </div>
+            <!-- Open & Verify Buttons in One Line -->
+            <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+              <button type="button" onclick="handleOpenTask('${task.url || 'https://google.com'}')" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; font-weight: 800; border-radius: 8px; border: 1px solid rgba(56,189,248,0.5); cursor: pointer; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">↗ Open</button>
+              <button type="button" onclick="openVerifyModal('${task.id}', '${task.title}', ${reward})" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 800; border-radius: 8px; border: 1px solid rgba(52,211,153,0.5); cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">✓ Verify</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function handleOpenTask(url) {
+      window.open(url, "_blank");
+    }
+
+    let activeVerifyTask = null;
+    function openVerifyModal(taskId, title, reward) {
+      activeVerifyTask = { taskId, title, reward };
+      const modal = document.getElementById("taskVerifyModalOverlay");
+      const titleEl = document.getElementById("verifyModalTitle");
+      const descEl = document.getElementById("verifyModalDesc");
+      if (titleEl) titleEl.textContent = "Verify: " + title;
+      if (descEl) descEl.textContent = "Claim your reward of 🪙 +" + reward + " Coins!";
+      if (modal) modal.style.display = "flex";
+    }
+
+    function closeVerifyModal() {
+      const modal = document.getElementById("taskVerifyModalOverlay");
+      if (modal) modal.style.display = "none";
+      activeVerifyTask = null;
+    }
+
+    function submitVerification() {
+      if (!activeVerifyTask) return;
+      const { taskId, reward } = activeVerifyTask;
+      markTaskCompleted(taskId);
+
+      // Award coins
+      let coins = parseInt(localStorage.getItem("task_game_coins") || localStorage.getItem("user_coins") || "0", 10);
+      coins += reward;
+      localStorage.setItem("task_game_coins", coins.toString());
+      localStorage.setItem("user_coins", coins.toString());
+
+      // Advance Task Pass level
+      let passLevel = parseInt(localStorage.getItem("task_pass_level") || "1", 10);
+      let passCompleted = parseInt(localStorage.getItem("task_pass_total_completed") || "0", 10);
+      passCompleted++;
+      passLevel++;
+      localStorage.setItem("task_pass_level", passLevel.toString());
+      localStorage.setItem("task_pass_total_completed", passCompleted.toString());
+
+      closeVerifyModal();
+      alert("🎉 Mission Verified!\n\n+ " + reward + " 🪙 Coins Won!");
+      renderCategoryTasks();
+    }
+
+    // Rewarded Ad Simulation (+5 Extra Tasks)
+    let adInterval = null;
+    function watchAdForExtraTasks() {
+      const modal = document.getElementById("rewardedAdModalOverlay");
+      const btn = document.getElementById("btnClaimAdReward");
+      const fill = document.getElementById("adProgressFill");
+      const count = document.getElementById("adCountdownSeconds");
+
+      if (modal) modal.style.display = "flex";
+      if (btn) {
+        btn.disabled = true;
+        btn.style.cursor = "not-allowed";
+        btn.style.background = "rgba(250, 204, 21, 0.3)";
+        btn.style.color = "#94a3b8";
+        btn.textContent = "⏳ Watching Ad...";
+      }
+      if (fill) fill.style.width = "0%";
+
+      let secs = 5;
+      clearInterval(adInterval);
+      adInterval = setInterval(() => {
+        secs--;
+        if (count) count.textContent = secs;
+        if (fill) fill.style.width = ((5 - secs) * 20) + "%";
+
+        if (secs <= 0) {
+          clearInterval(adInterval);
+          if (btn) {
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
+            btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+            btn.style.color = "#ffffff";
+            btn.textContent = "Claim +5 Tasks Reward 🎁";
+          }
+        }
+      }, 1000);
+    }
+
+    function finishRewardedAd() {
+      const modal = document.getElementById("rewardedAdModalOverlay");
+      if (modal) modal.style.display = "none";
+      alert("🎉 Rewarded Ad Completed!\n\n+5 Extra Star Task Unlocks added to your quota for today!");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderCategoryTasks();
+
+      // Real-Time Cross-Tab Synchronization (Instant updates when Admin restores tasks)
+      try {
+        const syncBc = new BroadcastChannel("nova_task_sync");
+        syncBc.onmessage = (event) => {
+          if (event.data && (event.data.type === 'TASKS_RESTORED' || event.data.type === 'TASKS_UPDATED' || event.data.type === 'CLAIMS_UPDATED')) {
+            renderCategoryTasks();
+          }
+        };
+      } catch(e) {}
+
+      window.addEventListener("storage", (e) => {
+        if (e.key === "task_game_tasks" || e.key === "task_game_completed_tasks" || e.key === "task_game_sync_flag" || e.key === "task_restore_flag") {
+          renderCategoryTasks();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

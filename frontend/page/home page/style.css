@@ -2666,3 +2666,379 @@ h1, h2, h3, h4, h5, h6, p, button, input, select, textarea, label {
   color: #94a3b8;
   border: 1px solid rgba(100, 116, 139, 0.35);
 }
+
+
+/* ==========================================================================
+   VERTICAL TASK CATEGORY HUB CARDS & DEDICATED CATEGORY PAGES
+   ========================================================================== */
+.task-category-hub {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.85rem !important;
+  margin-bottom: 1.25rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.task-hub-card {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0.95rem 1.15rem !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  text-decoration: none !important;
+  width: 100% !important;
+}
+
+.task-hub-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.task-hub-card:active {
+  transform: translateY(1px);
+}
+
+/* 1. Coin Tasks Card Styling */
+.hub-card-coin {
+  background: linear-gradient(135deg, rgba(16, 29, 66, 0.92) 0%, rgba(10, 19, 46, 0.95) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.15);
+}
+.hub-card-coin:hover {
+  border-color: #38bdf8;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 22px rgba(56, 189, 248, 0.35);
+}
+
+/* 2. Star Tasks Card Styling */
+.hub-card-star {
+  background: linear-gradient(135deg, rgba(35, 17, 68, 0.92) 0%, rgba(20, 10, 42, 0.95) 100%);
+  border: 1.5px solid rgba(168, 85, 247, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(168, 85, 247, 0.18);
+}
+.hub-card-star:hover {
+  border-color: #c084fc;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 24px rgba(168, 85, 247, 0.38);
+}
+
+/* 3. Pro Tasks Card Styling */
+.hub-card-pro {
+  background: linear-gradient(135deg, rgba(13, 40, 34, 0.92) 0%, rgba(8, 25, 21, 0.95) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(16, 185, 129, 0.18);
+}
+.hub-card-pro:hover {
+  border-color: #34d399;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 24px rgba(16, 185, 129, 0.38);
+}
+
+.hub-card-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.hub-card-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.hub-card-icon-wrap.coin-glow {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.hub-card-icon-wrap.star-glow {
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
+}
+
+.hub-card-icon-wrap.pro-glow {
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.hub-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.hub-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hub-card-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.4px;
+}
+
+.hub-card-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.hub-card-badge.coin-badge {
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.hub-card-badge.star-badge {
+  background: rgba(250, 204, 21, 0.18);
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.hub-card-badge.pro-badge {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+}
+
+.hub-card-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.hub-card-arrow {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.hub-card-arrow.star-arrow {
+  background: rgba(250, 204, 21, 0.18);
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.35);
+}
+
+.hub-card-arrow.pro-arrow {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+.hub-card-card:hover .hub-card-arrow {
+  transform: translateX(2px);
+}
+
+.hub-card-vip-pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.hub-card-event-timer {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+/* ==========================================================================
+   DEDICATED TASK CATEGORY PAGE VIEW
+   ========================================================================== */
+.task-category-page-view {
+  width: 100%;
+  animation: fadeInPage 0.25s ease-out;
+}
+
+@keyframes fadeInPage {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cat-page-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+  background: rgba(10, 23, 56, 0.85);
+  border: 1.5px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  margin-bottom: 0.95rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  gap: 0.5rem;
+}
+
+.cat-page-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.cat-page-back-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateX(-1.5px);
+}
+
+.cat-page-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.cat-page-header-icon {
+  font-size: 1.25rem;
+}
+
+.cat-page-header-title {
+  font-size: 0.98rem;
+  font-weight: 900;
+  color: #ffffff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat-balance-pill {
+  font-size: 0.78rem;
+  font-weight: 900;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Star Tasks VIP Promo Card */
+.vip-pass-promo-card {
+  background: linear-gradient(135deg, rgba(30, 20, 56, 0.95) 0%, rgba(20, 10, 42, 0.98) 100%);
+  border: 2px solid rgba(250, 204, 21, 0.55);
+  border-radius: 16px;
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6), 0 0 20px rgba(250, 204, 21, 0.22);
+}
+
+.vip-pass-promo-card .vip-promo-title {
+  color: #facc15;
+  font-size: 1.1rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.vip-pass-promo-card .vip-promo-desc {
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  margin: 0.4rem 0 0.75rem 0;
+  line-height: 1.45;
+}
+
+.vip-pass-promo-card .vip-promo-btn {
+  background: linear-gradient(135deg, #facc15 0%, #f59e0b 55%, #d97706 100%);
+  color: #000000;
+  font-weight: 900;
+  font-size: 0.85rem;
+  padding: 0.55rem 1.15rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+  transition: all 0.2s ease;
+}
+
+.vip-pass-promo-card .vip-promo-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 18px rgba(245, 158, 11, 0.6);
+}
+
+/* Star Tasks VIP Active Card */
+.vip-active-status-card {
+  background: linear-gradient(135deg, rgba(20, 30, 60, 0.92) 0%, rgba(10, 20, 45, 0.95) 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
+  border-radius: 16px;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.btn-watch-ad-unlock {
+  background: linear-gradient(135deg, #facc15 0%, #f59e0b 55%, #d97706 100%);
+  color: #000000;
+  font-weight: 900;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-watch-ad-unlock:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 5px 16px rgba(245, 158, 11, 0.6);
+}

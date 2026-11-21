@@ -9,12 +9,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Task Earner — Webtask</title>
   <script>
-    // Initialize local defaults only if not already set, preserving real balances
+    // Initialize local defaults, resetting all balances (coins, stars, tickets) to 0
     try {
+      if (!localStorage.getItem('balance_zero_reset_v2')) {
+        localStorage.setItem('task_game_coins', '0');
+        localStorage.setItem('user_coins', '0');
+        localStorage.setItem('task_game_stars', '0');
+        localStorage.setItem('user_stars', '0');
+        localStorage.setItem('task_user_tickets', '0');
+        localStorage.setItem('user_tickets', '0');
+        localStorage.setItem('task_game_tickets', '0');
+        localStorage.setItem('balance_zero_reset_v2', 'true');
+      }
+
       if (localStorage.getItem('task_game_coins') === null) localStorage.setItem('task_game_coins', '0');
       if (localStorage.getItem('task_game_stars') === null) localStorage.setItem('task_game_stars', '0');
-      if (localStorage.getItem('user_coins') === null) localStorage.setItem('user_coins', localStorage.getItem('task_game_coins') || '0');
-      if (localStorage.getItem('user_stars') === null) localStorage.setItem('user_stars', localStorage.getItem('task_game_stars') || '0');
+      if (localStorage.getItem('user_coins') === null) localStorage.setItem('user_coins', '0');
+      if (localStorage.getItem('user_stars') === null) localStorage.setItem('user_stars', '0');
+      if (localStorage.getItem('task_user_tickets') === null) localStorage.setItem('task_user_tickets', '0');
+      if (localStorage.getItem('user_tickets') === null) localStorage.setItem('user_tickets', '0');
+      if (localStorage.getItem('task_game_tickets') === null) localStorage.setItem('task_game_tickets', '0');
       if (localStorage.getItem('completed_tasks_count') === null) localStorage.setItem('completed_tasks_count', '0');
       if (localStorage.getItem('ads_watched_count') === null) localStorage.setItem('ads_watched_count', '0');
 
@@ -70,148 +84,103 @@
     <!-- Page Content (Tasks) -->
     <main class="page-content">
 
-      <!-- Sticky Task Controls: Event Banner + Task Pass Widget + Category Switcher Tabs Stay In Place On Scroll -->
+      <!-- Sticky Task Controls: Event Banner + Category Switcher Tabs Stay In Place On Scroll -->
       <div class="sticky-task-controls" id="stickyTaskControls">
 
-        <!-- GLOBAL CHAMPIONSHIP EVENT BANNER (Top Event Show) -->
-        <div class="home-event-banner" id="homeEventBanner" onclick="window.location.href='../leaderboard/index.html'" role="button" tabindex="0" title="Click to view Season Championship & Rewards">
-          <div class="event-banner-left">
-            <div class="event-trophy-icon">🏆</div>
-            <div class="event-banner-info">
-              <div class="event-banner-tag">
-                <span class="event-live-dot"></span>
-                <span>GLOBAL EVENT</span>
+        <!-- Vertical Task Category Hub Cards (Coin Tasks -> Below: Star Tasks -> Below: Pro Tasks) -->
+        <div class="task-category-hub" id="taskCategoryHub">
+          
+          <!-- 1. Coin Tasks Card (At Top) -->
+          <div class="task-hub-card hub-card-coin" id="hubCardCoin" onclick="openTaskCategoryPage('simple')" role="button" tabindex="0" title="Click to open Coin Tasks">
+            <div class="hub-card-left">
+              <div class="hub-card-icon-wrap coin-glow">
+                <span class="hub-card-icon">🪙</span>
               </div>
-              <h3 class="event-banner-title" id="homeEventTitleDisplay">Season 1: 3-Month Championship</h3>
-              <span class="event-banner-sub">21,500 🪙 Prize Pool • Top 100 Win</span>
-            </div>
-          </div>
-          <div class="event-banner-right">
-            <div class="event-timer-box" id="homeEventTimerWrap">
-              <span class="event-timer-ico">⏱️</span>
-              <span class="event-timer-clock font-mono" id="homeEventCountdownClock">--:--:--</span>
-            </div>
-            <button type="button" class="event-join-btn" onclick="event.stopPropagation(); window.location.href='../leaderboard/index.html'" aria-label="Join Season">
-              <span>Join 🏆</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- GAME LEVEL BAR WIDGET (TASK PASS - Up to Level 5000) -->
-        <div class="task-pass-widget-wrap">
-                  <div id="forgeCard" class="forge-card">
-
-            <!-- Top-Left Floating Cyber Gold Pill -->
-            <div class="top-pill">
-              <span id="cycleTaskTag" class="game-outline-sm">0/10</span>
-            </div>
-
-            <!-- Top Row: Title & Milestone Target (Opens All Levels Modal) -->
-            <div class="task-pass-header-row">
-              <div style="display: flex; align-items: center;">
-                <span class="game-outline task-pass-title">TASK PASS</span>
-              </div>
-              <button type="button" id="btnViewAllLevels" onclick="openTaskPassRoadmapModal()" class="task-pass-milestone" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.18) 0%, rgba(202, 138, 4, 0.28) 100%); border: 1.5px solid rgba(250, 204, 21, 0.55); color: #fde047; font-size: 0.82rem; font-weight: 800; padding: 4px 12px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 0 10px rgba(250, 204, 21, 0.25);">
-                <span id="nextMilestoneLabel">Lvl. 10: 100 ⭐</span>
-              </button>
-            </div>
-
-            <!-- Middle Row: Cyber Level Shield + Cyber Progress Bar (1 Task = 1 Level) + Prize Bag Icon -->
-            <div class="task-pass-track-row">
-
-              <!-- Left Cyber Level Shield Badge -->
-              <div id="levelBadge" class="level-badge" title="Current Level" onclick="openTaskPassRoadmapModal()" style="cursor: pointer;">
-                <span id="levelNumText" class="game-outline">1</span>
-              </div>
-
-              <!-- Center Neon Cyber Progress Bar (Level 1 in 1 task, then Level 2 in 1 task) -->
-              <div class="game-progress-track">
-                <div id="taskProgressBar" class="game-progress-fill" style="width: 0%;"></div>
-                <span id="taskCountText" class="game-outline">0/1 Task</span>
-              </div>
-
-              <!-- Right Reward Bag / Ticket / Star Icon + Amount (Winning Price for this Level) -->
-              <div id="rewardPreviewBox" class="reward-preview-box" title="Winning Price for this Level" onclick="openTaskPassRoadmapModal()" style="cursor: pointer;">
-                <div id="rewardBagSvg" class="reward-bag-svg">
-                  <svg viewBox="0 0 64 64" width="52" height="52" style="width: 52px; height: 52px; display: block;">
-    <defs>
-      <radialGradient id="coinGrad" cx="35%" cy="30%" r="65%">
-        <stop offset="0%" stop-color="#fff59d"/>
-        <stop offset="35%" stop-color="#facc15"/>
-        <stop offset="70%" stop-color="#eab308"/>
-        <stop offset="100%" stop-color="#ca8a04"/>
-      </radialGradient>
-      <linearGradient id="coinRim" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#fef08a"/>
-        <stop offset="100%" stop-color="#854d0e"/>
-      </linearGradient>
-      <linearGradient id="coinInner" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#fef9c3"/>
-        <stop offset="50%" stop-color="#f59e0b"/>
-        <stop offset="100%" stop-color="#b45309"/>
-      </linearGradient>
-    </defs>
-    <circle cx="32" cy="32" r="27" fill="url(#coinGrad)" stroke="#111318" stroke-width="3.5"/>
-    <circle cx="32" cy="32" r="21" fill="url(#coinInner)" stroke="url(#coinRim)" stroke-width="2.5"/>
-    <polygon points="32,18 35.5,26 44,27 37.5,33 39.5,41.5 32,37 24.5,41.5 26.5,33 20,27 28.5,26" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
-    <path d="M16 26 A20 20 0 0 1 40 14" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
-  </svg>
+              <div class="hub-card-info">
+                <div class="hub-card-title-row">
+                  <span class="hub-card-title">Coin Tasks</span>
+                  <span class="hub-card-badge coin-badge"><span id="simpleTasksCount">0</span> Available</span>
                 </div>
-                <span id="rewardAmountText" class="game-outline">100</span>
+                <div class="hub-card-sub">Standard missions • Free to complete • Instant coins</div>
               </div>
-
             </div>
-
-
-
+            <div class="hub-card-right">
+              <span class="hub-card-arrow">Open ➜</span>
+            </div>
           </div>
-        </div>
 
-
-        <!-- Task Mode Switcher Tabs (Coin Tasks / Star Tasks / Pro Tasks) -->
-        <div class="task-category-tabs">
-          <button type="button" class="task-category-tab active" id="tabSimpleTasks" onclick="switchTaskTab('simple')" title="Coin Tasks (Standard missions)">
-            <div class="tab-btn-content">
-              <span class="tab-cat-icon">🪙</span>
-              <div class="tab-cat-info">
-                <span class="tab-cat-title">Coin Tasks</span>
-                <span class="tab-cat-sub">Standard missions</span>
+          <!-- 2. Star Tasks Card (Below Coin Tasks) -->
+          <div class="task-hub-card hub-card-star" id="hubCardStar" onclick="openTaskCategoryPage('premium')" role="button" tabindex="0" title="Click to open Star Tasks">
+            <div class="hub-card-left">
+              <div class="hub-card-icon-wrap star-glow">
+                <span class="hub-card-icon">⭐</span>
+              </div>
+              <div class="hub-card-info">
+                <div class="hub-card-title-row">
+                  <span class="hub-card-title">Star Tasks</span>
+                  <span class="hub-card-badge star-badge"><span id="premiumTasksCount">0</span> VIP</span>
+                </div>
+                <div class="hub-card-sub">VIP High Bounty • Exclusive star missions &amp; rewards</div>
               </div>
             </div>
-            <span class="tab-cat-count" id="simpleTasksCount">0</span>
-          </button>
+            <div class="hub-card-right">
+              <span class="hub-card-vip-pill" id="hubCardVipStatus">👑 VIP</span>
+              <span class="hub-card-arrow star-arrow">Open ➜</span>
+            </div>
+          </div>
 
-          <button type="button" class="task-category-tab tab-cat-premium" id="tabPremiumTasks" onclick="switchTaskTab('premium')" title="Star Tasks (VIP High Bounty)">
-            <div class="tab-btn-content">
-              <span class="tab-cat-icon">⭐</span>
-              <div class="tab-cat-info">
-                <span class="tab-cat-title">Star Tasks</span>
-                <span class="tab-cat-sub">VIP High Bounty</span>
+          <!-- 3. Pro Tasks Card (Below Star Tasks) -->
+          <div class="task-hub-card hub-card-pro" id="hubCardPro" onclick="openTaskCategoryPage('pro')" role="button" tabindex="0" title="Click to open Pro Tasks">
+            <div class="hub-card-left">
+              <div class="hub-card-icon-wrap pro-glow">
+                <span class="hub-card-icon">💎</span>
+              </div>
+              <div class="hub-card-info">
+                <div class="hub-card-title-row">
+                  <span class="hub-card-title">Pro Tasks</span>
+                  <span class="hub-card-badge pro-badge"><span id="proTasksCount">0</span> Elite</span>
+                </div>
+                <div class="hub-card-sub">Limited-time event missions • Dual coin &amp; ticket unlock</div>
               </div>
             </div>
-            <span class="tab-cat-count premium-count" id="premiumTasksCount">0</span>
-          </button>
-
-          <button type="button" class="task-category-tab tab-cat-pro" id="tabProTasks" onclick="switchTaskTab('pro')" title="Pro Tasks (Elite missions)">
-            <div class="tab-btn-content">
-              <span class="tab-cat-icon">💎</span>
-              <div class="tab-cat-info">
-                <span class="tab-cat-title">Pro Tasks</span>
-                <span class="tab-cat-sub">Elite missions</span>
-              </div>
+            <div class="hub-card-right">
+              <span class="hub-card-event-timer" id="hubProTimerBadge">⏱️ Event</span>
+              <span class="hub-card-arrow pro-arrow">Open ➜</span>
             </div>
-            <span class="tab-cat-count pro-count" id="proTasksCount">0</span>
-          </button>
+          </div>
+
         </div>
 
       </div><!-- /.sticky-task-controls -->
 
+      <!-- Dedicated Task Category Page View (Opens when Coin, Star, or Pro card is clicked) -->
+      <div class="task-category-page-view" id="taskCategoryPageView" style="display: none;">
+        
+        <!-- Sticky Category Top Bar with Back Button, Title, and Real-Time Balance -->
+        <div class="cat-page-top-bar" id="catPageTopBar">
+          <button type="button" class="cat-page-back-btn" onclick="closeTaskCategoryPage()" aria-label="Back to Task Categories">
+            <span class="cat-back-arrow">←</span>
+            <span class="cat-back-text">All Categories</span>
+          </button>
+          <div class="cat-page-header-info">
+            <span class="cat-page-header-icon" id="catPageHeaderIcon">🪙</span>
+            <span class="cat-page-header-title" id="catPageHeaderTitle">Coin Tasks</span>
+          </div>
+          <div class="cat-page-header-balance" id="catPageHeaderBalance">
+            <span class="cat-balance-pill" id="catBalancePill">🪙 0</span>
+          </div>
+        </div>
 
+        <!-- Category Specific Top Banner (VIP Pass Status / Event Countdown / Summary) -->
+        <div id="catPageBannerContainer">
+          <!-- Dynamically populated by renderTasks -->
+        </div>
 
+        <!-- Tasks List inside this Category -->
+        <div class="tasks-list" id="tasksList">
+          <!-- Dynamically loaded & synchronized with Admin in real time -->
+        </div>
 
-      <!-- Tasks List -->
-      <div class="tasks-list" id="tasksList">
-        <!-- Dynamically loaded & synchronized with Admin in real time -->
       </div>
 
     </main>
@@ -433,9 +402,9 @@
     </div>
   </div>
 
-  <!-- Ticket Task Unlock Modal -->
+  <!-- Dual Option Task Unlock Modal (Coins OR Tickets) -->
   <div class="task-verify-modal-overlay" id="taskUnlockModalOverlay" style="display: none;" onclick="handleUnlockModalBackdropClick(event)">
-    <div class="task-verify-modal-box" onclick="event.stopPropagation()" style="max-width: 410px; border-color: rgba(168, 85, 247, 0.45); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(168, 85, 247, 0.25);">
+    <div class="task-verify-modal-box" onclick="event.stopPropagation()" style="max-width: 440px; border-color: rgba(168, 85, 247, 0.45); box-shadow: 0 15px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(168, 85, 247, 0.25);">
       <button type="button" class="verify-modal-close-btn" onclick="closeTaskUnlockModal()" aria-label="Close modal">✕</button>
       
       <div class="verify-modal-header">
@@ -443,9 +412,9 @@
           <span class="verify-badge-dot" style="background: #c084fc; box-shadow: 0 0 8px #c084fc;"></span>
           <span>MISSION ACCESS LOCKED</span>
         </div>
-        <h2 class="verify-modal-title" style="margin-top: 0.4rem;">Unlock With Tickets</h2>
+        <h2 class="verify-modal-title" style="margin-top: 0.4rem;">Unlock Mission</h2>
         <div style="font-size: 0.78rem; color: #94a3b8; margin-top: 0.25rem;">
-          Spend your tickets to unlock this mission and start earning rewards!
+          Choose your unlock payment: Pay with Coins OR pay with Tickets to start earning!
         </div>
       </div>
 
@@ -457,29 +426,43 @@
         </div>
       </div>
 
-      <!-- Ticket Cost & Current Balance Display -->
-      <div style="display: flex; gap: 10px; margin: 1rem 0 0.85rem; background: rgba(10, 23, 56, 0.65); padding: 0.85rem; border-radius: 14px; border: 1px solid rgba(168, 85, 247, 0.25);">
-        <div style="flex: 1; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.1);">
-          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Unlock Cost</div>
-          <div id="unlockModalTicketCostText" style="font-size: 1.15rem; color: #c084fc; font-weight: 900; margin-top: 2px;">🎟️ 0 Tickets</div>
+      <!-- Dual Payment Options Row -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0 0.85rem;">
+        <!-- Option 1: Unlock with Coins -->
+        <div id="unlockOptionCoinCard" style="background: rgba(234, 179, 8, 0.1); border: 1.5px solid rgba(250, 204, 21, 0.4); border-radius: 14px; padding: 0.85rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 0.68rem; color: #fde047; font-weight: 800; text-transform: uppercase;">Option 1: Coins</div>
+            <div id="unlockModalCoinCostText" style="font-size: 1.15rem; color: #facc15; font-weight: 900; margin: 3px 0;">🪙 50</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">Balance: <span id="unlockModalUserCoinsText" style="color: #ffffff; font-weight: 800;">0</span></div>
+          </div>
+          <button type="button" class="btn-verify-confirm" id="btnConfirmUnlockCoin" onclick="confirmUnlockTask('coins')" style="margin-top: 8px; padding: 6px 10px; font-size: 0.75rem; background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; font-weight: 900; border-radius: 8px;">
+            Pay Coins 🪙
+          </button>
         </div>
-        <div style="flex: 1; text-align: center;">
-          <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Your Tickets</div>
-          <div id="unlockModalUserTicketsText" style="font-size: 1.15rem; color: #38bdf8; font-weight: 900; margin-top: 2px;">🎟️ 0</div>
+
+        <!-- Option 2: Unlock with Tickets -->
+        <div id="unlockOptionTicketCard" style="background: rgba(168, 85, 247, 0.1); border: 1.5px solid rgba(168, 85, 247, 0.4); border-radius: 14px; padding: 0.85rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 0.68rem; color: #c084fc; font-weight: 800; text-transform: uppercase;">Option 2: Tickets</div>
+            <div id="unlockModalTicketCostText" style="font-size: 1.15rem; color: #c084fc; font-weight: 900; margin: 3px 0;">🎟️ 2</div>
+            <div style="font-size: 0.68rem; color: #94a3b8;">Balance: <span id="unlockModalUserTicketsText" style="color: #38bdf8; font-weight: 800;">0</span></div>
+          </div>
+          <button type="button" class="btn-verify-confirm" id="btnConfirmUnlockTicket" onclick="confirmUnlockTask('tickets')" style="margin-top: 8px; padding: 6px 10px; font-size: 0.75rem; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color: #fff; font-weight: 900; border-radius: 8px;">
+            Pay Tickets 🎟️
+          </button>
         </div>
       </div>
 
       <!-- Alert / Notice message -->
-      <div id="unlockModalAlertMsg" style="display: none; padding: 0.65rem; border-radius: 10px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1rem; text-align: center;"></div>
+      <div id="unlockModalAlertMsg" style="display: none; padding: 0.65rem; border-radius: 10px; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.75rem; text-align: center;"></div>
 
-      <div class="verify-modal-btn-row" id="unlockModalBtnRow">
-        <button type="button" class="btn-verify-cancel" onclick="closeTaskUnlockModal()">Cancel</button>
-        <button type="button" class="btn-verify-confirm" id="btnConfirmUnlockTask" onclick="confirmUnlockTask()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
-          🎟️ Unlock Now
-        </button>
+      <div style="text-align: center; margin-top: 0.25rem;">
+        <button type="button" class="btn-verify-cancel" onclick="closeTaskUnlockModal()" style="padding: 0.45rem 1.25rem; font-size: 0.8rem;">Cancel</button>
       </div>
     </div>
   </div>
+
+
 
   <!-- Firebase Cloud Sync & Analytics Connection -->
   <script type="module" src="../../firebase-config.js"></script>
@@ -505,6 +488,35 @@
       <div id="roadmapLevelsList" style="flex: 1; overflow-y: auto; padding: 0.85rem; display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: rgba(56, 189, 248, 0.4) transparent;">
         <!-- Dynamically populated with Level 1, Level 2, Level 3... with prices and status -->
       </div>
+
+    </div>
+  </div>
+
+  <!-- REWARDED AD MODAL (Watch Ad to Unlock +5 More Tasks) -->
+  <div class="task-verify-modal-overlay" id="rewardedAdModalOverlay" style="display: none; position: fixed; inset: 0; background: rgba(3, 8, 22, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10005; align-items: center; justify-content: center; padding: 1rem; box-sizing: border-box;">
+    <div class="rewarded-ad-card" style="background: linear-gradient(145deg, #0f172a 0%, #0a0f1d 100%); border: 2px solid rgba(250, 204, 21, 0.45); border-radius: 20px; width: 100%; max-width: 420px; padding: 1.25rem; box-sizing: border-box; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85), 0 0 30px rgba(250, 204, 21, 0.25); text-align: center; position: relative;">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span style="font-size: 0.7rem; font-weight: 800; color: #facc15; background: rgba(250, 204, 21, 0.15); border: 1px solid rgba(250, 204, 21, 0.4); padding: 2px 8px; border-radius: 999px;">SPONSORED REWARD</span>
+        <span id="adCountdownBadge" style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; background: rgba(255, 255, 255, 0.08); padding: 2px 8px; border-radius: 999px;">Reward in: <b id="adCountdownSeconds" style="color: #facc15;">5s</b></span>
+      </div>
+
+      <div style="padding: 1rem 0;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem; animation: pulse 1.5s infinite;">📺</div>
+        <h3 style="color: #ffffff; font-weight: 900; font-size: 1.2rem; margin: 0 0 0.4rem 0;">Renew Daily Tasks</h3>
+        <p style="color: #94a3b8; font-size: 0.82rem; margin: 0 auto; max-width: 320px; line-height: 1.4;">
+          Watch this short sponsored message to unlock <b style="color: #facc15;">+5 Extra Star Tasks</b> for today!
+        </p>
+      </div>
+
+      <!-- Animated Progress Bar -->
+      <div style="background: rgba(255, 255, 255, 0.08); border-radius: 999px; height: 10px; overflow: hidden; margin-bottom: 1.25rem; border: 1px solid rgba(250, 204, 21, 0.3);">
+        <div id="adProgressFill" style="background: linear-gradient(90deg, #facc15, #f59e0b); height: 100%; width: 0%; transition: width 0.1s linear;"></div>
+      </div>
+
+      <button type="button" id="btnClaimAdReward" disabled onclick="finishRewardedAd()" style="width: 100%; background: rgba(250, 204, 21, 0.3); border: 1.5px solid rgba(250, 204, 21, 0.5); color: #94a3b8; font-weight: 900; font-size: 0.95rem; padding: 0.75rem 1rem; border-radius: 12px; cursor: not-allowed; transition: all 0.25s ease; box-shadow: none;">
+        ⏳ Watching Ad...
+      </button>
 
     </div>
   </div>

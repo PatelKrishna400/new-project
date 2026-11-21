@@ -113,6 +113,15 @@ function getLevelReward(level) {
       title: `Complete ${target} ${taskWord} to Win 100 Stars ⭐`,
       popText: '+100 STARS ⭐'
     };
+  } else if (level % 2 === 0) {
+    return {
+      type: 'tickets',
+      amount: 5,
+      iconSvg: TASK_PASS_SVGS.ticket || TASK_PASS_SVGS.coin,
+      tag: `Level ${level} • Target: ${target} ${taskWord}`,
+      title: `Complete ${target} ${taskWord} to Win 5 Tickets 🎟️`,
+      popText: '+5 TICKETS 🎟️'
+    };
   } else {
     return {
       type: 'coins',
@@ -186,7 +195,7 @@ function renderTaskPassLevelsStrip(currentLevel, totalCompleted) {
       statusClass = "status-current";
     }
 
-    const emoji = reward.type === "stars" ? "⭐" : "🪙";
+    const emoji = reward.type === "stars" ? "⭐" : (reward.type === "tickets" ? "🎟️" : "🪙");
 
     html += `
       <div class="${cardClass}" id="levelStripCard_${lvl}" onclick="openTaskPassRoadmapModal(${lvl})" title="Level ${lvl}: Complete 1 task to win ${reward.amount} ${emoji}">
@@ -220,38 +229,32 @@ function updateTaskPassUI() {
 
   const cycleTaskTag = document.getElementById("cycleTaskTag");
   const nextMilestoneLabel = document.getElementById("nextMilestoneLabel");
-  const levelBadge = document.getElementById("levelBadge");
-  const levelNumText = document.getElementById("levelNumText");
-  const taskProgressBar = document.getElementById("taskProgressBar");
-  const taskCountText = document.getElementById("taskCountText");
-  const rewardBagSvg = document.getElementById("rewardBagSvg");
-  const rewardAmountText = document.getElementById("rewardAmountText");
-
-  if (!levelNumText || !taskProgressBar) return;
 
   const reward = getLevelReward(currentLevel);
 
   // Target in 10-level block: e.g. Level 1-10 -> Target Lvl 10 (100 ⭐), Level 11-20 -> Target Lvl 20 (100 ⭐)
   const nextTenLevel = Math.min(MAX_TASK_PASS_LEVEL, Math.ceil(currentLevel / 10) * 10);
-  if (nextMilestoneLabel) nextMilestoneLabel.textContent = `Lvl. ${nextTenLevel}: 100 ⭐`;
+  if (nextMilestoneLabel) nextMilestoneLabel.textContent = 'All Levels 🏆';
 
   // Top-left gold pill: show target progress out of 10 (e.g. 0/10, 1/10, 2/10, 3/10)
   const startLevel = nextTenLevel - 9;
   const completedInBlock = Math.max(0, Math.min(10, totalCompleted - (startLevel - 1)));
   if (cycleTaskTag) cycleTaskTag.textContent = `${completedInBlock}/10`;
 
-  // Level Number in Shield
-  levelNumText.textContent = currentLevel;
+  // Optional legacy elements if present in DOM
+  const levelNumText = document.getElementById("levelNumText");
+  const taskProgressBar = document.getElementById("taskProgressBar");
+  const taskCountText = document.getElementById("taskCountText");
+  const rewardBagSvg = document.getElementById("rewardBagSvg");
+  const rewardAmountText = document.getElementById("rewardAmountText");
 
-  // Center Loading Bar: 1 Task = 1 Level (Level 1 in 1 task, Level 2 in 1 task, etc.)
-  taskProgressBar.style.width = "0%";
+  if (levelNumText) levelNumText.textContent = currentLevel;
+  if (taskProgressBar) taskProgressBar.style.width = "0%";
   if (taskCountText) taskCountText.textContent = "0/1 Task";
-
-  // Right Reward Bag Icon & Winning Prize Amount
   if (rewardBagSvg) rewardBagSvg.innerHTML = reward.iconSvg;
   if (rewardAmountText) rewardAmountText.textContent = reward.amount;
 
-  // Render Horizontal Levels Strip: only show target in 10-level block
+  // Render Horizontal Levels Strip: only show target in 10-level block (Image 4)
   renderTaskPassLevelsStrip(currentLevel, totalCompleted);
 }
 window.updateTaskPassUI = updateTaskPassUI;
@@ -292,6 +295,12 @@ function advanceTaskPassProgress(clickX, clickY) {
     const starDisplay = document.getElementById("userStarsDisplay");
     if (starDisplay) starDisplay.textContent = curStars.toLocaleString();
     if (typeof triggerHeaderPillBounce === "function") triggerHeaderPillBounce("starPill");
+  } else if (rewardWon.type === "tickets") {
+    let curTickets = parseInt(localStorage.getItem("task_game_tickets") || localStorage.getItem("user_tickets") || "0", 10);
+    curTickets += rewardWon.amount;
+    localStorage.setItem("task_game_tickets", curTickets.toString());
+    localStorage.setItem("user_tickets", curTickets.toString());
+    if (window.userTickets !== undefined) window.userTickets = curTickets;
   } else {
     let curCoins = parseInt(localStorage.getItem("task_game_coins") || localStorage.getItem("user_coins") || "0", 10);
     curCoins += rewardWon.amount;
@@ -546,12 +555,11 @@ function getStoredTasks() {
     const raw = localStorage.getItem(TASKS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
+      if (Array.isArray(parsed) && parsed.length > 0) {
         // Purge demo, seed, and sponsor tasks
         const cleaned = parsed.filter(t => t && t.id && 
           !t.id.startsWith('task_article_') && 
           !t.id.startsWith('task_sponsor_') && 
-          !['task_1', 'task_2', 'task_3', 'task_4', 'task_5'].includes(t.id) &&
           !String(t.title || '').toLowerCase().includes('demo') &&
           !String(t.title || '').toLowerCase().includes('sponsor')
         );
@@ -572,8 +580,11 @@ function getStoredTasks() {
         return cleaned;
       }
     }
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify([]));
-    return [];
+    const adminRaw = localStorage.getItem('admin_tasks');
+    if (adminRaw) {
+      const parsed = JSON.parse(adminRaw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch (e) {}
   return [];
 }
@@ -598,22 +609,11 @@ function markTaskCompleted(taskId) {
     localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(claims));
   } catch (e) {}
 
-  // Explicitly remove task from TASKS_STORAGE_KEY so it's permanently removed from storage
-  try {
-    const raw = localStorage.getItem(TASKS_STORAGE_KEY);
-    if (raw) {
-      const list = JSON.parse(raw);
-      if (Array.isArray(list)) {
-        const updated = list.filter(t => t && String(t.id) !== String(taskId));
-        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(updated));
-      }
-    }
-  } catch (e) {}
-
   localStorage.setItem(SYNC_FLAG_KEY, Date.now().toString());
   try {
     const ch = new BroadcastChannel(SYNC_CHANNEL_NAME);
     ch.postMessage({ type: 'TASK_COMPLETED', taskId, timestamp: Date.now() });
+    ch.close();
   } catch (e) {}
 }
 
@@ -869,9 +869,14 @@ function getRemainingVipDays() {
 
 function getVipDailyTaskLimit() {
   const plan = localStorage.getItem(VIP_PLAN_KEY) || '15days';
-  if (plan === '90days') return 20;
-  if (plan === '30days') return 10;
-  return 5; // Starter pass is 5 tasks/day
+  let baseLimit = 5;
+  if (plan === '90days') baseLimit = 20;
+  else if (plan === '30days') baseLimit = 10;
+
+  // Extra tasks earned via watching rewarded ads!
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const extraFromAds = parseInt(localStorage.getItem('extra_vip_tasks_' + todayKey) || '0', 10);
+  return baseLimit + extraFromAds;
 }
 
 function getVipMaxAllowedLevel() {
@@ -1288,16 +1293,6 @@ function renderTasks() {
   const playerInfo = getPlayerLevelInfo();
   const selectedLevel = getSelectedLevelTab();
 
-  // Player level progression is powered by Task Pass
-
-  // Ensure tab buttons match activeTab
-  const tabSimple = document.getElementById('tabSimpleTasks');
-  const tabPremium = document.getElementById('tabPremiumTasks');
-  const tabPro = document.getElementById('tabProTasks');
-  if (tabSimple) tabSimple.classList.toggle('active', activeTab === 'simple' || activeTab === 'all');
-  if (tabPremium) tabPremium.classList.toggle('active', activeTab === 'premium' || activeTab === 'all');
-  if (tabPro) tabPro.classList.toggle('active', activeTab === 'pro' || activeTab === 'all');
-
   const isVipActive = hasActivePremiumSubscription();
   const daysLeft = getRemainingVipDays();
   const dailyLimit = getVipDailyTaskLimit();
@@ -1310,163 +1305,201 @@ function renderTasks() {
   const claims = getStoredClaims();
 
   // Active uncompleted tasks only (completed tasks are removed/hidden)
+  // Also filter expired event tasks: if eventEndTime has passed, event is OFF and hidden from home page!
+  const now = Date.now();
   const activeTasks = tasks.filter(t => {
     if (!t || t.active === false) return false;
     if (completedTasks && completedTasks[t.id]) return false;
     if (claims && claims[t.id]) return false;
+
+    if (t.eventEndTime && now > t.eventEndTime) {
+      return false; // Limited-time event expired -> off -> hide!
+    }
+
     return true;
   });
 
   // Separate Coin Tasks vs Star Tasks vs Pro Tasks
-  const simpleTasks = activeTasks.filter(t => (t.category === 'simple' || t.category === 'coin' || t.category === 'article' || (!t.category && !isTaskShop(t))) && t.category !== 'pro' && t.category !== 'elite');
+  const simpleTasks = activeTasks.filter(t => (t.category === 'simple' || t.category === 'coin' || t.category === 'article' || (!t.category && !isTaskShop(t))) && t.category !== 'pro' && t.category !== 'elite' && t.category !== 'event');
   const allPremiumTasks = activeTasks.filter(t => t.category === 'premium' || t.category === 'star' || isTaskShop(t));
-  const allProTasks = activeTasks.filter(t => t.category === 'pro' || t.category === 'elite');
+  const allProTasks = activeTasks.filter(t => t.category === 'pro' || t.category === 'elite' || t.category === 'event');
 
-  // Category switcher tab badges: Show total available tasks for each category
+  // Hub counter badges & dynamic indicators
   const simpleBadge = document.getElementById('simpleTasksCount');
   const premiumBadge = document.getElementById('premiumTasksCount');
   const proBadge = document.getElementById('proTasksCount');
-  const totalBadge = document.getElementById('totalTasksCountBadge');
   if (simpleBadge) simpleBadge.textContent = simpleTasks.length;
   if (premiumBadge) premiumBadge.textContent = allPremiumTasks.length;
   if (proBadge) proBadge.textContent = allProTasks.length;
-  if (totalBadge) totalBadge.textContent = activeTasks.length;
 
-  // Active mode tasks collection (Coin vs Star vs Pro vs All)
+  const vipStatusPill = document.getElementById('hubCardVipStatus');
+  if (vipStatusPill) {
+    if (isVipActive) {
+      vipStatusPill.textContent = `👑 VIP Active (${daysLeft}d)`;
+      vipStatusPill.style.background = 'rgba(16, 185, 129, 0.25)';
+      vipStatusPill.style.color = '#34d399';
+    } else {
+      vipStatusPill.textContent = '👑 VIP';
+      vipStatusPill.style.background = 'rgba(234, 179, 8, 0.2)';
+      vipStatusPill.style.color = '#facc15';
+    }
+  }
+
+  const proTimerBadge = document.getElementById('hubProTimerBadge');
+  const hubCardPro = document.getElementById('hubCardPro');
+  let proSettings = null;
+  try {
+    const rawPro = localStorage.getItem('task_game_pro_event_settings');
+    if (rawPro) proSettings = JSON.parse(rawPro);
+  } catch (e) {}
+
+  const isProEventActive = proSettings ? (proSettings.active !== false) : true;
+  if (hubCardPro) {
+    if (!isProEventActive) {
+      hubCardPro.style.display = 'none';
+    } else {
+      hubCardPro.style.display = 'flex';
+    }
+  }
+
+  if (proTimerBadge) {
+    if (!isProEventActive) {
+      proTimerBadge.textContent = 'Ended';
+    } else if (proSettings && proSettings.durationHours) {
+      proTimerBadge.textContent = `⏱️ ${proSettings.durationHours}h`;
+    } else {
+      const globalEvt = (typeof getUniversalGlobalLeaderboardEvent === 'function') ? getUniversalGlobalLeaderboardEvent() : null;
+      if (globalEvt && globalEvt.endTime && globalEvt.endTime > Date.now()) {
+        const msLeft = globalEvt.endTime - Date.now();
+        const hrs = Math.floor(msLeft / (1000 * 60 * 60));
+        const mins = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+        proTimerBadge.textContent = `⏱️ ${hrs}h ${mins}m`;
+      } else {
+        proTimerBadge.textContent = '⏱️ Event';
+      }
+    }
+  }
+
+  // Active mode tasks collection
   let currentModeTasks = simpleTasks;
   if (activeTab === 'premium') {
     currentModeTasks = allPremiumTasks;
-  } else if (activeTab === 'pro') {
+  } else if (activeTab === 'pro' || activeTab === 'event') {
     currentModeTasks = allProTasks;
   } else if (activeTab === 'all') {
     currentModeTasks = activeTasks;
   }
 
-  // Active tasks sorted strictly by addition order (first added in admin on top, then subsequent tasks below line by line)
   const currentList = [...currentModeTasks].sort((a, b) => {
     const timeA = a.createdAt || parseInt(String(a.id || '').replace(/\D/g, '').slice(0, 13), 10) || 0;
     const timeB = b.createdAt || parseInt(String(b.id || '').replace(/\D/g, '').slice(0, 13), 10) || 0;
     if (timeA !== timeB && timeA && timeB) return timeA - timeB;
-
     return tasks.indexOf(a) - tasks.indexOf(b);
   });
 
+  // Banner Container per Category
   let statusBarHtml = '';
   if (activeTab === 'premium') {
     if (!isVipActive) {
       statusBarHtml = `
-        <div class="vip-daily-status-bar" style="background: linear-gradient(135deg, rgba(250, 204, 21, 0.12) 0%, rgba(245, 158, 11, 0.06) 100%); border: 1.5px solid rgba(250, 204, 21, 0.35); border-radius: 14px; padding: 0.75rem 0.95rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.65rem;">
-          <div>
-            <div style="color: #facc15; font-weight: 900; font-size: 0.84rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>💎</span> VIP Premium Missions
-            </div>
-            <div style="color: #94a3b8; font-size: 0.7rem; margin-top: 0.15rem;">
-              VIP Pass required to verify and claim high-bounty Star rewards.
-            </div>
+        <div class="vip-pass-promo-card">
+          <div class="vip-promo-title">
+            <span>👑</span> Star Tasks VIP Pass
           </div>
-          <button type="button" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 900; border: none; padding: 0.45rem 0.85rem; border-radius: 10px; font-size: 0.74rem; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">
-            👑 View Plans ↗
-          </button>
-        </div>
-      `;
-    } else if (limitReached) {
-      statusBarHtml = `
-        <div class="vip-daily-status-bar limit-reached" style="background: rgba(239, 68, 68, 0.12); border: 1.5px solid rgba(239, 68, 68, 0.45); border-radius: 14px; padding: 0.75rem 1rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
-          <div>
-            <div style="color: #f87171; font-weight: 900; font-size: 0.82rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>🛑</span> Daily Quota Reached (${completedToday}/${dailyLimit} Tasks)
-            </div>
-            <div style="color: #94a3b8; font-size: 0.7rem; margin-top: 0.15rem;">
-              You've completed all ${dailyLimit} tasks allowed today for your plan. Resets at midnight!
-            </div>
+          <div class="vip-promo-desc">
+            Unlock exclusive high-bounty Star tasks, earn Stars daily to redeem real rewards! Choose a 15, 30, or 90-day plan.
           </div>
-          ${localStorage.getItem('premium_vip_plan') !== '90days' ? '<button type="button" onclick="openSubscriptionModal()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 800; border: none; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.72rem; cursor: pointer; white-space: nowrap;">Upgrade Pass ↗</button>' : ''}
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="vip-promo-btn" onclick="openSubscriptionModal()">
+              ⚡ Unlock VIP Pass ↗
+            </button>
+            <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">Includes 5 Daily Tasks</span>
+          </div>
         </div>
       `;
     } else {
-      const lockedHigherCount = allPremiumTasks.length - premiumTasks.length;
       statusBarHtml = `
-        <div class="vip-daily-status-bar" style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 0.55rem 0.9rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
-          <span style="font-size: 0.75rem; color: #bae6fd; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
-            <span>⚡</span> Daily Progress: <b style="color: #ffffff;">${completedToday} / ${dailyLimit}</b> Tasks • Lvl 1-${maxAllowedLevel}
-          </span>
-          <span style="font-size: 0.7rem; color: #38bdf8; font-weight: 800;">
-            ${remainingToday} Left ${lockedHigherCount > 0 ? `<button type="button" onclick="openSubscriptionModal()" style="background:none; border:none; color:#facc15; font-weight:800; text-decoration:underline; cursor:pointer; margin-left:4px;">(${lockedHigherCount} Locked ↗)</button>` : ''}
-          </span>
+        <div class="vip-active-status-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 6px;">
+            <div style="color: #facc15; font-weight: 900; font-size: 0.88rem; display: flex; align-items: center; gap: 5px;">
+              <span>👑</span> VIP ACTIVE • ${daysLeft} Days Remaining
+            </div>
+            <button type="button" class="btn-watch-ad-unlock" onclick="watchAdForExtraTasks()">
+              📺 Watch Ad (+5 Tasks)
+            </button>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: #94a3b8; font-weight: 700;">
+            <span>⚡ Daily Tasks: <b style="color: #ffffff;">${completedToday} / ${dailyLimit}</b> Used</span>
+            <span style="color: #38bdf8;">${remainingToday} Tasks Left Today</span>
+          </div>
         </div>
       `;
     }
-  } else if (activeTab === 'pro') {
+  } else if (activeTab === 'pro' || activeTab === 'event') {
     statusBarHtml = `
-      <div class="pro-daily-status-bar" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.06) 100%); border: 1.5px solid rgba(52, 211, 153, 0.35); border-radius: 14px; padding: 0.75rem 0.95rem; margin-bottom: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.65rem;">
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%); border: 1.5px solid rgba(52, 211, 153, 0.4); border-radius: 14px; padding: 0.85rem 1rem; margin-bottom: 0.95rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;">
         <div>
-          <div style="color: #34d399; font-weight: 900; font-size: 0.84rem; display: flex; align-items: center; gap: 0.35rem;">
-            <span>💎</span> Pro Elite Missions
+          <div style="color: #34d399; font-weight: 900; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+            <span>💎</span> Pro Elite &amp; Event Missions
           </div>
-          <div style="color: #94a3b8; font-size: 0.7rem; margin-top: 0.15rem;">
-            High-reward elite missions for ambitious earners. Complete &amp; verify to level up faster!
+          <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">
+            Complete 3-task packs: Win 50% half price on 1st task, and full total price on all 3!
           </div>
         </div>
-        <span style="font-size: 0.72rem; color: #6ee7b7; font-weight: 800; background: rgba(16, 185, 129, 0.2); padding: 0.3rem 0.65rem; border-radius: 8px; border: 1px solid rgba(52, 211, 153, 0.4); white-space: nowrap;">
-          ${allProTasks.length} Available
-        </span>
+        <div style="text-align: right; flex-shrink: 0;">
+          <span style="font-size: 0.7rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(52, 211, 153, 0.4); padding: 3px 8px; border-radius: 999px; white-space: nowrap;">
+            ⏱️ Event Active
+          </span>
+        </div>
       </div>
     `;
   }
 
+  const completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10);
+
   if (currentList.length === 0) {
-    const isLevelCompleted = selectedLevel < playerInfo.level;
-    const modeLabel = (activeTab === 'premium') ? 'Star' : (activeTab === 'pro' ? 'Pro' : 'Coin');
-    const emptyBorder = (activeTab === 'premium') ? 'rgba(250, 204, 21, 0.35)' : (activeTab === 'pro' ? 'rgba(52, 211, 153, 0.35)' : 'rgba(56, 189, 248, 0.35)');
-    const emptyColor = (activeTab === 'premium') ? '#facc15' : (activeTab === 'pro' ? '#34d399' : '#38bdf8');
-    const emptyIcon = (activeTab === 'premium') ? '⭐' : (activeTab === 'pro' ? '💎' : '🪙');
     container.innerHTML = statusBarHtml + `
-      <div class="empty-tasks-box" style="border-color: ${emptyBorder}; padding: 2rem 1.25rem;">
-        <div class="empty-tasks-icon">${emptyIcon}</div>
-        <div class="empty-tasks-text" style="color: ${emptyColor}; font-weight: 900; font-size: 1.1rem;">
-          No ${modeLabel} Tasks in Level ${selectedLevel === 6 ? 'All' : selectedLevel}
-        </div>
-        <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 0.35rem; line-height: 1.4;">
-          ${isLevelCompleted 
-            ? `You have cleared all ${modeLabel.toLowerCase()} missions in Level ${selectedLevel}. Proceed to Level ${playerInfo.level} to continue earning!`
-            : `There are currently no active ${modeLabel.toLowerCase()} tasks in this level. New tasks added in Admin will appear here automatically.`}
-        </div>
-        ${isLevelCompleted ? `
-          <button type="button" class="btn-claim" onclick="switchLevelTab(${playerInfo.level})" style="margin-top: 1rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; font-weight: 800; padding: 0.55rem 1.3rem; border-radius: 10px; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);">
-            Go to Current Level (${playerInfo.level}) ↗
-          </button>
-        ` : ''}
+      <div style="text-align: center; padding: 2.5rem 1rem; background: rgba(15, 23, 42, 0.6); border: 1.5px dashed rgba(56, 189, 248, 0.3); border-radius: 16px;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
+        <div style="color: #ffffff; font-weight: 800; font-size: 1rem;">All Missions Completed!</div>
+        <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 0.35rem;">Check back soon or explore other categories.</div>
       </div>
     `;
     return;
   }
 
-  container.innerHTML = statusBarHtml + currentList.map(task => {
-    const opened = isTaskOpened(task.id);
+  // Render One-Line Sleek Task Bar (1, 2, 3 -> 4 Number Badge & Open / Verify Buttons in One Line)
+  container.innerHTML = statusBarHtml + currentList.map((task, idx) => {
+    const taskNumber = idx + 1; // 1, 2, 3... in one line
     const taskShop = isTaskShop(task);
     const taskArticle = isTaskArticle(task);
-    const isPro = task.category === 'pro' || task.category === 'elite';
+    const isPro = task.category === 'pro' || task.category === 'elite' || task.category === 'event';
     const isPremium = (task.category === 'premium' || taskShop) && !isPro;
     const taskLevel = parseInt(task.level || 1, 10);
-    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPro ? 300 : (isPremium ? 200 : (taskArticle ? 75 : 50))));
-    const shopExtension = parseInt(task.shopLimitExtension || task.limitExtension || 10, 10);
+    const rewardCoins = Number(task.rewardCoins || task.reward || task.coins || (isPro ? 1000 : (isPremium ? 200 : (taskArticle ? 75 : 50))));
+
+    // Dual Unlock Check (Coin Cost or Ticket Cost)
+    const coinCost = Math.max(0, parseInt(task.coinCost || 0, 10));
     const ticketCost = Math.max(0, parseInt(task.ticketCost || 0, 10));
-    const isUnlocked = (ticketCost <= 0) || isTaskUnlocked(task.id);
-    const faviconUrl = getWebsiteFaviconUrl(task.link || task.url);
+    const hasUnlockCost = (coinCost > 0 || ticketCost > 0);
+    const isUnlocked = (!hasUnlockCost) || isTaskUnlocked(task.id);
 
     let btnHtml = '';
     if (isPremium && !isVipActive) {
-      btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="openSubscriptionModal()" style="padding: 0.48rem 0.95rem; font-size: 0.78rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 900; white-space: nowrap; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">👑 VIP Required</button>`;
+      btnHtml = `<button type="button" class="btn-claim btn-task-open" onclick="openSubscriptionModal()" style="padding: 0.45rem 0.85rem; font-size: 0.78rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000; font-weight: 900; white-space: nowrap; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35); border-radius: 8px;">👑 VIP Lock</button>`;
     } else if (isPremium && limitReached) {
-      btnHtml = `<button type="button" class="btn-claim btn-task-limit" onclick="handleDailyLimitReachedClick()" style="background: #334155; color: #94a3b8; border: 1px solid #475569; cursor: pointer;">Limit Reached (${completedToday}/${dailyLimit})</button>`;
+      btnHtml = `<button type="button" class="btn-claim btn-task-limit" onclick="watchAdForExtraTasks()" style="background: linear-gradient(135deg, #facc15 0%, #f59e0b 100%); color: #000; font-weight: 900; font-size: 0.75rem; border: none; cursor: pointer; white-space: nowrap; box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4); border-radius: 8px;">📺 Watch Ad (+5)</button>`;
     } else if (!isUnlocked) {
-      btnHtml = `<button type="button" class="btn-claim btn-task-unlock" onclick="openTaskUnlockModal('${task.id}')" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45); cursor: pointer; white-space: nowrap;">🔒 Unlock (🎟️ ${ticketCost})</button>`;
+      const unlockText = (coinCost > 0 && ticketCost > 0)
+        ? `🔒 Unlock (🪙${coinCost}/🎟️${ticketCost})`
+        : (coinCost > 0 ? `🔒 Unlock (🪙 ${coinCost})` : `🔒 Unlock (🎟️ ${ticketCost})`);
+      btnHtml = `<button type="button" class="btn-claim btn-task-unlock" onclick="openTaskUnlockModal('${task.id}')" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: #ffffff; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45); cursor: pointer; white-space: nowrap; font-size: 0.75rem; padding: 0.45rem 0.75rem; border-radius: 8px;">${unlockText}</button>`;
     } else {
       const openBtnText = taskArticle ? '↗ Read' : '↗ Open';
       btnHtml = `
         <div style="display: flex; gap: 6px; align-items: center;">
-          <button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')" style="padding: 0.48rem 0.8rem; font-size: 0.78rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">${openBtnText}</button>
-          <button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')" style="padding: 0.48rem 0.8rem; font-size: 0.78rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">✓ Verify</button>
+          <button type="button" class="btn-claim btn-task-open" onclick="handleOpenTask('${task.id}')" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); font-weight: 800; border-radius: 8px;">${openBtnText}</button>
+          <button type="button" class="btn-claim btn-task-verify" onclick="openVerifyModal('${task.id}')" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); white-space: nowrap; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); font-weight: 800; border-radius: 8px;">✓ Verify</button>
         </div>
       `;
     }
@@ -1474,54 +1507,38 @@ function renderTasks() {
     let cardClass = isPro ? 'task-card task-card-pro' : (isPremium ? 'task-card task-card-premium' : 'task-card');
     if (!isUnlocked) cardClass += ' task-card-locked';
 
-    let statusPill = '';
-    if (!isUnlocked) {
-      statusPill = `<span class="task-status-pill" style="background: rgba(168, 85, 247, 0.2); border: 1px solid #a855f7; color: #c084fc; font-weight: 800;">🔒 🎟️ ${ticketCost} Tickets</span>`;
-    } else if (taskShop) {
-      statusPill = `<span class="task-status-pill vip-pill" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); border-color: #34d399; color: #ffffff;">🛒 +${shopExtension} Shop Limit • Lvl ${taskLevel}</span>`;
-    } else if (taskArticle) {
-      statusPill = `<span class="task-status-pill ready" style="background: rgba(14, 165, 233, 0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 800;">📰 Read Article • Lvl ${taskLevel}</span>`;
-    } else if (isPro) {
-      statusPill = `<span class="task-status-pill pro-pill" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #34d399; color: #34d399; font-weight: 800;">💎 Pro • +${rewardCoins} 🪙</span>`;
-    } else if (isPremium) {
-      statusPill = `<span class="task-status-pill vip-pill">⭐ Lvl ${taskLevel} • +${rewardCoins} 🪙</span>`;
-    } else {
-      statusPill = `<span class="task-status-pill ready">🪙 ${rewardCoins} Coins</span>`;
-    }
+    const numBadgeStyle = isPro
+      ? 'background: rgba(16, 185, 129, 0.25); border: 1.5px solid #34d399; color: #34d399;'
+      : (isPremium
+        ? 'background: rgba(168, 85, 247, 0.25); border: 1.5px solid #c084fc; color: #facc15;'
+        : 'background: rgba(56, 189, 248, 0.25); border: 1.5px solid #38bdf8; color: #38bdf8;');
 
-    let iconWrapHtml = '';
-    if (!isUnlocked) {
-      iconWrapHtml = `<div class="task-icon-wrap" style="background: rgba(168, 85, 247, 0.18); border: 1.5px solid rgba(168, 85, 247, 0.45); font-size: 1.3rem;">🔒</div>`;
-    } else if (faviconUrl) {
-      iconWrapHtml = `
-        <div class="task-icon-wrap" style="position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(56, 189, 248, 0.35);">
-          <img src="${faviconUrl}" alt="${escapeHtml(task.title || 'Logo')}" class="task-website-logo" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';" />
-          <span class="task-fallback-icon" style="display: none; font-size: 1.25rem;">${task.icon || '🌐'}</span>
-        </div>
-      `;
-    } else {
-      iconWrapHtml = `<div class="task-icon-wrap">${task.icon || (taskShop ? '🛒' : (isPremium ? '💎' : '⚡'))}</div>`;
-    }
-
-    const cardOnClick = (!isUnlocked) ? `onclick="if (!event.target.closest('button')) openTaskUnlockModal('${task.id}')"` : '';
+    const halfRewardNotice = isPro ? `<span style="font-size: 0.65rem; color: #34d399; font-weight: 800; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(52, 211, 153, 0.35); padding: 1px 5px; border-radius: 4px;">Half ${Math.floor(rewardCoins/2)} on 1st</span>` : '';
 
     return `
-      <div class="${cardClass}" id="taskCard_${task.id}" ${cardOnClick}>
-        ${iconWrapHtml}
-        <div class="task-details" style="flex: 1; min-width: 0;">
-          <div class="task-header-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span class="task-title-text" style="font-weight: 700; color: #ffffff; font-size: 0.92rem;">${escapeHtml(task.title || 'Webtask Mission')}</span>
-            ${statusPill}
+      <div class="${cardClass}" id="taskCard_${task.id}" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0.95rem; gap: 0.75rem; border-radius: 14px; margin-bottom: 0.65rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1; min-width: 0;">
+          <!-- Left Number Badge (1, 2, 3 -> 4) -->
+          <div class="task-num-badge" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.05rem; flex-shrink: 0; box-shadow: 0 0 10px rgba(0, 0, 0, 0.4); ${numBadgeStyle}">
+            ${taskNumber}
+          </div>
+          <!-- Center Task Details in One Line -->
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span style="font-weight: 800; color: #ffffff; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="${escapeHtml(task.title || 'Mission')}">${escapeHtml(task.title || 'Mission')}</span>
+              <span class="task-status-pill ready" style="font-size: 0.7rem; font-weight: 800; padding: 2px 6px;">🪙 ${rewardCoins}</span>
+              ${halfRewardNotice}
+            </div>
           </div>
         </div>
-        <div class="task-action-wrap" id="action_${task.id}">
+        <!-- Right Action (Open and Verify Buttons in One Line) -->
+        <div class="task-action-wrap" id="action_${task.id}" style="flex-shrink: 0;">
           ${btnHtml}
         </div>
       </div>
     `;
   }).join('');
 }
-
 function getWebsiteFaviconUrl(url) {
   try {
     if (!url) return null;
@@ -1548,8 +1565,9 @@ function isTaskUnlocked(taskId) {
   const tasks = getStoredTasks();
   const task = tasks.find(t => t.id === taskId);
   if (!task) return true;
-  const cost = Math.max(0, parseInt(task.ticketCost || 0, 10));
-  if (cost <= 0) return true;
+  const costTicket = Math.max(0, parseInt(task.ticketCost || 0, 10));
+  const costCoin = Math.max(0, parseInt(task.coinCost || 0, 10));
+  if (costTicket <= 0 && costCoin <= 0) return true;
   const unlocked = getUnlockedTasks();
   return !!unlocked[taskId];
 }
@@ -1861,6 +1879,25 @@ window.submitTaskVerification = function(event) {
     } catch (e) {}
   }
 
+  // Event Task Pack 3-Task Half Price Reward Logic
+  const isEventTask = (task.category === 'pro' || task.category === 'event' || task.isEventTask);
+  let eventMsg = '';
+  if (isEventTask) {
+    const packKey = 'event_pack_completed_count';
+    let packCount = parseInt(localStorage.getItem(packKey) || '0', 10) + 1;
+    localStorage.setItem(packKey, packCount.toString());
+
+    if (packCount % 3 === 1) {
+      // 1st of 3 completed -> Win Half Price (e.g. 500 out of 1000)
+      const halfAmount = Math.floor(rewardAmount / 2);
+      eventMsg = `\n🎉 1st Event Task Completed! Won Half Bounty: +${halfAmount} 🪙 Coins! (Complete remaining 2 to win full prize!)`;
+    } else if (packCount % 3 === 0) {
+      // All 3 completed -> Full Remaining Price Win
+      const fullRemaining = Math.ceil(rewardAmount / 2);
+      eventMsg = `\n🏆 3-Task Event Pack Finished! Won Remaining +${fullRemaining} 🪙 Coins! Total event price won!`;
+    }
+  }
+
   let completedCount = parseInt(localStorage.getItem('task_game_total_tasks_completed') || '0', 10) + 1;
   localStorage.setItem('task_game_total_tasks_completed', completedCount.toString());
   localStorage.setItem('completed_tasks_count', completedCount.toString());
@@ -1914,7 +1951,7 @@ window.submitTaskVerification = function(event) {
   if (passResult && passResult.levelCompleted && passResult.reward) {
     const passMsg = `\n🎉 Task Pass Level ${passResult.completedLevel} Completed!\nReward: ${passResult.reward.popText} Won!\nNow entering Level ${passResult.newLevel}!`;
     setTimeout(() => {
-      alert(`🎉 Mission Verified!\n\n• Task Reward: +${rewardAmount} 🪙 Coins${shopBonusMsg}${diamondWonMsg}${passMsg}`);
+      alert(`🎉 Mission Verified!\n\n• Task Reward: +${rewardAmount} 🪙 Coins${shopBonusMsg}${diamondWonMsg}${eventMsg}${passMsg}`);
     }, 400);
   } else if (diamondWonMsg) {
     setTimeout(() => {
@@ -2085,10 +2122,11 @@ if (document.readyState === 'loading') {
 
 // Real-Time Cross-Tab / Cross-Window Synchronization (Admin Edits -> Real-Time Player Screen Updates)
 window.addEventListener('storage', (e) => {
-  if (e.key === TASKS_STORAGE_KEY || e.key === SYNC_FLAG_KEY || e.key === CLAIMS_STORAGE_KEY) {
+  if (e.key === TASKS_STORAGE_KEY || e.key === SYNC_FLAG_KEY || e.key === CLAIMS_STORAGE_KEY || e.key === COMPLETED_TASKS_KEY || e.key === 'task_restore_flag' || e.key === 'admin_tasks' || e.key === 'task_game_pro_event_settings' || e.key === 'task_pass_config') {
     renderTasks();
+    if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
   }
-  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'user_coins' || e.key === 'user_stars' || e.key === 'player_username' || e.key === 'player_avatar' || e.key === 'task_pass_level' || e.key === 'task_pass_total_completed') {
+  if (e.key === 'task_game_coins' || e.key === 'task_game_stars' || e.key === 'user_coins' || e.key === 'user_stars' || e.key === 'player_username' || e.key === 'player_avatar' || e.key === 'task_pass_level' || e.key === 'task_pass_total_completed' || e.key === 'completed_tasks_count') {
     updateCoinDisplay();
     if (typeof updateTaskPassUI === 'function') updateTaskPassUI();
   }
@@ -2182,3 +2220,215 @@ if (document.readyState === 'loading') {
 window.syncStickyTaskControlsTop = syncStickyTaskControlsTop;
 
 
+
+
+// ============================================================================
+// DEDICATED TASK CATEGORY PAGE NAVIGATION & REWARDED AD SYSTEM
+// ============================================================================
+window.openTaskCategoryPage = function(category) {
+  currentTaskTab = category;
+  localStorage.setItem('task_active_tab', category);
+
+  const catParam = (category === 'simple' || category === 'coin') ? 'coin' : ((category === 'premium' || category === 'star') ? 'star' : 'pro');
+  const isSubdir = window.location.pathname.includes('/frontend/page/');
+  const targetUrl = isSubdir ? '../tasks/index.html?cat=' + catParam : 'frontend/page/tasks/index.html?cat=' + catParam;
+
+  try {
+    window.location.href = targetUrl;
+    return;
+  } catch(e) {
+    console.warn("Navigation failed, using fallback:", e);
+  }
+
+  // Fallback in-page view
+  const hub = document.getElementById('taskCategoryHub');
+  const pageView = document.getElementById('taskCategoryPageView');
+  const homeHeader = document.querySelector('.home-header') || document.querySelector('header');
+  const belowMenu = document.getElementById('belowMenuBar');
+
+  if (hub) hub.style.display = 'none';
+  if (homeHeader) homeHeader.style.display = 'none';
+  if (belowMenu) belowMenu.style.display = 'none';
+  if (pageView) {
+    pageView.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  renderTasks();
+};
+
+window.closeTaskCategoryPage = function() {
+  const hub = document.getElementById('taskCategoryHub');
+  const pageView = document.getElementById('taskCategoryPageView');
+  const homeHeader = document.querySelector('.home-header') || document.querySelector('header');
+  const belowMenu = document.getElementById('belowMenuBar');
+
+  if (pageView) pageView.style.display = 'none';
+  if (hub) hub.style.display = 'flex';
+  if (homeHeader) homeHeader.style.display = '';
+  if (belowMenu) belowMenu.style.display = '';
+
+  renderTasks();
+};
+
+let adTimerInterval = null;
+
+window.watchAdForExtraTasks = function() {
+  const modal = document.getElementById('rewardedAdModalOverlay');
+  if (!modal) return;
+
+  const claimBtn = document.getElementById('btnClaimAdReward');
+  const countdownSec = document.getElementById('adCountdownSeconds');
+  const progressFill = document.getElementById('adProgressFill');
+
+  modal.style.display = 'flex';
+  if (claimBtn) {
+    claimBtn.disabled = true;
+    claimBtn.style.cursor = 'not-allowed';
+    claimBtn.style.background = 'rgba(250, 204, 21, 0.3)';
+    claimBtn.style.color = '#94a3b8';
+    claimBtn.textContent = '⏳ Watching Ad...';
+  }
+  if (progressFill) progressFill.style.width = '0%';
+
+  let secondsLeft = 5;
+  if (countdownSec) countdownSec.textContent = `${secondsLeft}s`;
+
+  if (adTimerInterval) clearInterval(adTimerInterval);
+
+  const startTime = Date.now();
+  const totalDuration = 5000;
+
+  adTimerInterval = setInterval(() => {
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(100, (elapsed / totalDuration) * 100);
+    if (progressFill) progressFill.style.width = `${progress}%`;
+
+    const remainingSec = Math.max(0, Math.ceil((totalDuration - elapsed) / 1000));
+    if (countdownSec) countdownSec.textContent = `${remainingSec}s`;
+
+    if (elapsed >= totalDuration) {
+      clearInterval(adTimerInterval);
+      if (countdownSec) countdownSec.textContent = 'Done! ✓';
+      if (claimBtn) {
+        claimBtn.disabled = false;
+        claimBtn.style.cursor = 'pointer';
+        claimBtn.style.background = 'linear-gradient(135deg, #facc15 0%, #f59e0b 55%, #d97706 100%)';
+        claimBtn.style.color = '#000000';
+        claimBtn.style.boxShadow = '0 4px 16px rgba(245, 158, 11, 0.5)';
+        claimBtn.textContent = '🎉 Claim +5 Extra Tasks!';
+      }
+    }
+  }, 100);
+};
+
+window.finishRewardedAd = function() {
+  const modal = document.getElementById('rewardedAdModalOverlay');
+  if (modal) modal.style.display = 'none';
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const extraKey = 'extra_vip_tasks_' + todayKey;
+  const currentExtra = parseInt(localStorage.getItem(extraKey) || '0', 10);
+  const newExtra = currentExtra + 5;
+  localStorage.setItem(extraKey, newExtra.toString());
+
+  try {
+    if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
+  } catch(e) {}
+
+  alert('🎉 Rewarded Ad Completed!\n\n+5 Extra Star Task Unlocks added to your daily quota for today!');
+  renderTasks();
+};
+
+window.openTaskUnlockModal = function(taskId) {
+  currentUnlockTaskId = taskId;
+  const tasks = getStoredTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const modal = document.getElementById('taskUnlockModalOverlay');
+  const titleEl = document.getElementById('unlockModalTaskTitle');
+  const rewardEl = document.getElementById('unlockModalTaskReward');
+  const coinCostEl = document.getElementById('unlockModalCoinCostText');
+  const ticketCostEl = document.getElementById('unlockModalTicketCostText');
+  const userCoinsEl = document.getElementById('unlockModalUserCoinsText');
+  const userTicketsEl = document.getElementById('unlockModalUserTicketsText');
+  const btnUnlockCoins = document.getElementById('btnUnlockWithCoins');
+  const btnUnlockTickets = document.getElementById('btnUnlockWithTickets');
+
+  const coinCost = Math.max(0, parseInt(task.coinCost || 0, 10));
+  const ticketCost = Math.max(0, parseInt(task.ticketCost || (coinCost === 0 ? 2 : 0), 10));
+
+  const userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  const userTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10);
+
+  if (titleEl) titleEl.textContent = task.title || 'Mission';
+  if (rewardEl) {
+    const rew = task.rewardCoins || task.reward || task.coins || 50;
+    rewardEl.textContent = `🪙 +${rew} Coins Bounty`;
+  }
+
+  if (coinCostEl) coinCostEl.textContent = `🪙 ${coinCost} Coins`;
+  if (ticketCostEl) ticketCostEl.textContent = `🎟️ ${ticketCost} Tickets`;
+  if (userCoinsEl) userCoinsEl.textContent = `Balance: 🪙 ${userCoins.toLocaleString()}`;
+  if (userTicketsEl) userTicketsEl.textContent = `Balance: 🎟️ ${userTickets.toLocaleString()}`;
+
+  if (btnUnlockCoins) {
+    btnUnlockCoins.disabled = (coinCost > 0 && userCoins < coinCost);
+    btnUnlockCoins.style.opacity = (coinCost > 0 && userCoins < coinCost) ? '0.5' : '1';
+  }
+  if (btnUnlockTickets) {
+    btnUnlockTickets.disabled = (ticketCost > 0 && userTickets < ticketCost);
+    btnUnlockTickets.style.opacity = (ticketCost > 0 && userTickets < ticketCost) ? '0.5' : '1';
+  }
+
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+  }
+};
+
+window.confirmUnlockTask = function(method) {
+  if (!currentUnlockTaskId) return;
+  const taskId = currentUnlockTaskId;
+  const tasks = getStoredTasks();
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const coinCost = Math.max(0, parseInt(task.coinCost || 0, 10));
+  const ticketCost = Math.max(0, parseInt(task.ticketCost || (coinCost === 0 ? 2 : 0), 10));
+
+  let userCoins = parseInt(localStorage.getItem('task_game_coins') || localStorage.getItem('user_coins') || '0', 10);
+  let userTickets = parseInt(localStorage.getItem('task_user_tickets') || localStorage.getItem('user_tickets') || '0', 10);
+
+  if (method === 'coins') {
+    if (coinCost > 0 && userCoins < coinCost) {
+      alert(`Insufficient coins! You need ${coinCost} coins to unlock.`);
+      return;
+    }
+    userCoins -= coinCost;
+    localStorage.setItem('task_game_coins', userCoins.toString());
+    localStorage.setItem('user_coins', userCoins.toString());
+  } else {
+    if (ticketCost > 0 && userTickets < ticketCost) {
+      alert(`Insufficient tickets! You need ${ticketCost} tickets to unlock.`);
+      return;
+    }
+    userTickets -= ticketCost;
+    localStorage.setItem('task_user_tickets', userTickets.toString());
+    localStorage.setItem('user_tickets', userTickets.toString());
+  }
+
+  const unlockedMap = getUnlockedTasks();
+  unlockedMap[taskId] = true;
+  localStorage.setItem('task_unlocked_tasks', JSON.stringify(unlockedMap));
+
+  try {
+    if (typeof HomeAudio !== 'undefined' && HomeAudio.playSuccess) HomeAudio.playSuccess();
+  } catch(e) {}
+
+  alert(`🎉 Mission Unlocked!\n\nSuccessfully unlocked with ${method === 'coins' ? coinCost + ' Coins 🪙' : ticketCost + ' Tickets 🎟️'}!`);
+  closeTaskUnlockModal();
+  updateCoinDisplay();
+  renderTasks();
+};

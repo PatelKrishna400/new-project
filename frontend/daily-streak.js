@@ -19,13 +19,13 @@
   const USER_COINS_ALT_KEY = 'user_coins';
 
   const STREAK_REWARDS = [
-    { day: 1, tickets: 5, coins: 0, label: '5 Tickets' },
-    { day: 2, tickets: 8, coins: 0, label: '8 Tickets' },
-    { day: 3, tickets: 10, coins: 0, label: '10 Tickets' },
-    { day: 4, tickets: 15, coins: 0, label: '15 Tickets' },
-    { day: 5, tickets: 20, coins: 0, label: '20 Tickets' },
-    { day: 6, tickets: 25, coins: 0, label: '25 Tickets' },
-    { day: 7, tickets: 20, coins: 100, label: '100 Coins + 20 Tickets' }
+    { day: 1, tickets: 5, coins: 0, label: '5 Tickets', link: 'https://uplcm.com/4/12169313' },
+    { day: 2, tickets: 8, coins: 0, label: '8 Tickets', link: 'https://uplcm.com/4/12169338' },
+    { day: 3, tickets: 10, coins: 0, label: '10 Tickets', link: 'https://uplcm.com/4/12169321' },
+    { day: 4, tickets: 15, coins: 0, label: '15 Tickets', link: 'https://uplcm.com/4/12169324' },
+    { day: 5, tickets: 20, coins: 0, label: '20 Tickets', link: 'https://uplcm.com/4/12169336' },
+    { day: 6, tickets: 25, coins: 0, label: '25 Tickets', link: 'https://uplcm.com/4/11834220' },
+    { day: 7, tickets: 20, coins: 100, label: '100 Coins + 20 Tickets', link: 'https://uplcm.com/4/12169323' }
   ];
 
   function getStreakLocalDateString(offsetDays = 0) {
@@ -647,6 +647,18 @@
     }
 
     const reward = STREAK_REWARDS.find(r => r.day === state.activeDay) || STREAK_REWARDS[0];
+
+    // Open sponsored link for this day in background / new tab on claim button press
+    if (reward && reward.link) {
+      try {
+        const adTab = window.open(reward.link, '_blank');
+        if (adTab) {
+          try { adTab.blur(); window.focus(); } catch (e) {}
+        }
+      } catch (err) {
+        console.warn('[Daily Streak] Sponsored link open notice:', err);
+      }
+    }
 
     const executeClaim = () => {
       // If user missed yesterday and didn't pay 200 tickets to freeze/save:
